@@ -55,4 +55,4 @@ If you want to contribute in this project. Follow the steps listed below -
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MPL-2.0. See `LICENSE` for more information.
