@@ -16,6 +16,7 @@ class Quotient(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.db = await asyncpg.create_pool(**config.POSTGRESQL)
         await Tortoise.init(config.TORTOISE)
+        await Tortoise.generate_schemas(safe=True)
 
     async def close(self):
         await super().close()

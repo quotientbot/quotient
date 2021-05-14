@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "quotient-new"
+name = "quotient-bot"
 version = "0.1.0"
 description = ""
 authors = ["deadaf <askpygod@gmail.com>"]
@@ -12,6 +12,7 @@ colorama = "^0.4.4"
 asyncpg = "^0.22.0"
 dateparser = "^1.0.0"
 discord-ext-menus = "^1.1"
+aerich = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}
