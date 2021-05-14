@@ -30,9 +30,9 @@ If you still want to run Quotient locally, here are the steps you want to do:
 
 1. **Make sure you have Python 3.8 or higher.**
 2. **Setup Environment:**
-   > ➥ Install poetry: `pip install poetry`
-   > ➥ Install dependencies: `poetry install`
-   > ➥ Spawn a shell: `poetry shell`
+   > ➥ Install poetry: `pip install poetry`<br>
+   > ➥ Install dependencies: `poetry install`<br>
+   > ➥ Spawn a shell: `poetry shell`<br>
 3. **Setup PostgreSQL database**
 4. **Setup Tortoise-ORM**
 5. **Rename example_config.py to config.py and fill in all the secrets**
