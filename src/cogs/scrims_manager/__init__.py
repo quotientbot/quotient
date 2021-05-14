@@ -13,6 +13,7 @@ from core import Cog
 
 import discord
 import asyncio
+import config
 
 
 @dataclass
@@ -134,7 +135,7 @@ class ScrimManager(Cog):
         reserved_count = await scrim.reserved_slots.all().count()
 
         embed = discord.Embed(
-            color=discord.Color.blurple(),
+            color=discord.Color(config.COLOR),
             title="Registration is now open!",
             description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
             f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
@@ -220,7 +221,7 @@ class ScrimManager(Cog):
 
     def config_embed(self, value, description: str):
         embed = discord.Embed(
-            color=discord.Color.blurple(),
+            color=discord.Color(config.COLOR),
             title=f"🛠️ Scrims Manager ({value}/6)",
             description=description,
         )
@@ -233,7 +234,6 @@ class ScrimManager(Cog):
     @commands.max_concurrency(1, BucketType.guild)
     async def setup(self, ctx):
 
-        # Not Going to do Setup thingy by my own lol (I am lazy)
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
         if count > 3:
@@ -345,7 +345,7 @@ class ScrimManager(Cog):
             description="\n".join(
                 f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1)
             ),
-            color=discord.Color.blurple(),
+            color=discord.Color(config.COLOR),
         )
 
         # TODO: use ctx.prompt
@@ -400,7 +400,7 @@ class ScrimManager(Cog):
                         f"scrims-moderators. User with {scrims_mod.mention} can also send messages in "
                         f"registration channels and they won't be considered as scrims-registration.\n\n"
                         f"`Note`: **Do not rename this channel.**",
-                        color=discord.Color.blurple(),
+                        color=discord.Color(config.COLOR),
                     )
                 )
                 await note.pin()

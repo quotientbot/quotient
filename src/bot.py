@@ -1,8 +1,7 @@
 from discord import AllowedMentions, Intents
 from colorama import Fore
 from core import Quotient
-import os , traceback
-
+import os, traceback
 
 intents = Intents.default()
 intents.members = True
@@ -13,7 +12,9 @@ bot = Quotient(
     strip_after_prefix=True,
     case_insensitive=True,
     chunk_guilds_at_startup=False,
-    allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
+    allowed_mentions=AllowedMentions(
+        everyone=False, roles=False, replied_user=True, users=True
+    ),
 )
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -30,6 +31,7 @@ for ext in bot.config.EXTENSIONS:
         tb = traceback.format_exception(type(e), e, e.__traceback__)
         tbe = "".join(tb) + ""
         print(Fore.RED + f"[WARNING] Could not load extension {ext}: {tbe}")
+
 
 @bot.before_invoke
 async def bot_before_invoke(ctx):

@@ -6,7 +6,7 @@ import config, asyncpg
 
 class Quotient(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
-        super().__init__(command_prefix="", *args, **kwargs)
+        super().__init__(command_prefix="!", *args, **kwargs)
 
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
@@ -21,3 +21,6 @@ class Quotient(commands.AutoShardedBot):
     async def close(self):
         await super().close()
         await self.session.close()
+
+    async def on_ready(self):
+        print("bot is ready!")
