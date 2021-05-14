@@ -22,18 +22,34 @@
   </p>
 </p>
 
+## Running
+
+I would prefer if you don't run an instance of Quotient. You can directly invite it from the above given URL. The source here is provided for educational purposes only.
+
+If you still want to run Quotient locally, here are the steps you want to do:
+
+1. **Make sure you have Python 3.8 or higher.**
+2. **Setup Environment:**
+   > ➥ Install poetry: `pip install poetry`
+   > ➥ Install dependencies: `poetry install`
+   > ➥ Spawn a shell: `poetry shell`
+3. **Setup PostgreSQL database**
+4. **Setup Tortoise-ORM**
+5. **Rename example_config.py to config.py and fill in all the secrets**
+6. **Run ./src/bot.py**
+
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
-If you want to contribute in this project. Follow the steps listed below - 
+If you want to contribute in this project. Follow the steps listed below -
 
 1. Fork the Project
 2. Make the changes you want to do
 3. Open a pull request
-4. Make sure to add proper details!
-
 
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the MPL-2.0. See `LICENSE` for more information.
