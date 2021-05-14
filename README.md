@@ -11,35 +11,16 @@
   <h3 align="center">Quotient Bot</h3>
 
   <p align="center">
-    A multipurpose and customizable bot!
+    A very powerful, multipurpose and fully customizable discord bot!
     <br />
     <a href="https://quotientbot.xyz/"><strong>Explore website »</strong></a>
     <br />
     <br />
-    <a href="https://discord.gg/aBM5xz6">Discord</a>
+    <a href="https://discord.gg/aBM5xz6">Discord Server</a>
     ·
-    <a href="https://discord.com/oauth2/authorize?client_id=746348747918934096&permissions=21175985838&redirect_uri=https://discord.gg/aBM5xz6&response_type=code&scope=bot">Invite</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=746348747918934096&permissions=21175985838&redirect_uri=https://discord.gg/aBM5xz6&response_type=code&scope=bot">Invite Quotient</a>
   </p>
 </p>
-
-<!-- ABOUT THE PROJECT -->
-## About Quotient
-
-Quotient is the bot which is particularly designed to provide you all the features. This bot is also focused on e-sports management servers to arrange scrims and tournaments.
-
-Why quotient?:
-* Multipurpose bot for your server. No need of any other bot after adding quotient.
-* Best scrims and tournament manager
-* Get easy and immediate support and answers to all your queries
-
-Maybe, you don't look on any other bots after using quotient :)
-
-### Built With
-
-The things we used to build quotient - 
-* [Python](https://python.org)
-* [Discord.py](https://discordpy.readthedocs.io/en/latest)
-
 
 <!-- CONTRIBUTING -->
 ## Contributing
