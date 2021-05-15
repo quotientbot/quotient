@@ -68,7 +68,6 @@ class ScrimManager(Cog):
             assigned_slots = await scrim.assigned_slots.all().count()
 
             slot = await AssignedSlot.create(
-                id=scrim.id,
                 user_id=ctx.author.id,
                 team_name=teamname,
                 num=assigned_slots + 1,
@@ -148,7 +147,6 @@ class ScrimManager(Cog):
             assinged_slot = AssignedSlot.create(
                 user_id=slot.user_id,
                 team_name=slot.team_name,
-                members=slot.members,
                 jump_url=None,
                 num=count + 1,
             )
