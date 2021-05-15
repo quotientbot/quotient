@@ -75,12 +75,10 @@ class ScrimManager(Cog):
                 jump_url=message.jump_url,
             )
 
-            print("created slot")
             await scrim.assinged_slots.add(slot)
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
             if scrim.total_slots == assigned_slots + 1:
-                print(f"lets close")
                 await Scrim.filter(pk=scrim.id).update(closed_at=datetime.now(tz=IST))
 
                 registration_channel = scrim.registration_channel
@@ -337,19 +335,15 @@ class ScrimManager(Cog):
             f"Role: {scrim.role.mention}",
             f"Minimum Mentions: {scrim.required_mentions}",
             f"Slots: {scrim.total_slots}",
-            f"Open Time: {time.time(scrim.open_time)}",
+            f"Open Time: {time(scrim.open_time)}",
         ]
 
-        embed = discord.Embed(
-            title="Are these correct?",
-            description="\n".join(
-                f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1)
-            ),
-            color=discord.Color(config.COLOR),
+        title = ("Are these correct?",)
+        description = "\n".join(
+            f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1)
         )
 
-        # TODO: use ctx.prompt
-        # confirm = await Confirm(embed=embed, delete_message_after=False).prompt(ctx)
+        confirm = await ctx.prompt(description, title=title)
         confirm = True
         if not confirm:
             await ctx.send("Ok, Aborting!")

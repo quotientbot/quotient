@@ -1,6 +1,7 @@
 import discord, aiohttp, asyncio
 from discord.ext import commands
 from tortoise import Tortoise
+from .Context import Context
 import config, asyncpg
 
 
@@ -18,9 +19,21 @@ class Quotient(commands.AutoShardedBot):
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
 
+        # Initializing Models (Assigning Bot attribute to all models)
+        for mname, model in Tortoise.apps.get("models").items():
+            model.bot = self
+
     async def close(self):
         await super().close()
         await self.session.close()
 
     async def on_ready(self):
         print("bot is ready!")
+
+    async def process_commands(self, message):
+        ctx = await self.get_context(message, cls=Context)
+
+        if ctx.command is None:
+            return
+
+        await self.invoke(ctx)
