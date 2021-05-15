@@ -106,6 +106,7 @@ class ScrimManager(Cog):
         if scrim.open_time != timer.expires:  # If time is not same return :)
             return
 
+        # TODO: fix this toggle
         if scrim.toggle != True or not hasattr(scrim.open_days, time.day_today()):
             return await self.SMNotToday(scrim, timer)
 
@@ -338,7 +339,7 @@ class ScrimManager(Cog):
             f"Open Time: {time(scrim.open_time)}",
         ]
 
-        title = ("Are these correct?",)
+        title = "Are these correct?"
         description = "\n".join(
             f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1)
         )
