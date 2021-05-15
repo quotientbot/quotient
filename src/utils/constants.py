@@ -17,5 +17,22 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class LogType(Enum):
+    msg = "msg"  # msg delete / bulk delete / msg edit
+    join = "join"  # member join
+    leave = "leave"  # mem leave
+    action = "action"  # ban , unban
+    server = "server"  # server update
+    channel = "channel"  # channel create / update
+    role = "role"  # role create / update
+    member = "member"  # member update
+    voice = "voice"  # voice chan logs
+    reaction = "reaction"  # reaction stuff
+    mod = "mod"  # modlogs case id stuff
+    cmd = "cmd"  # bot's cmds
+    invites = "invites"  # inv created /deleted (invite tracking alag se ki jayegi)
+    pings = "pings"  # someone pinged someone
+
+
 MISSING = _Sentinel()
 IST = pytz.timezone("Asia/Kolkata")

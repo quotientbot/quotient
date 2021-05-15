@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord, asyncio
+import utils
 
 
 class Context(commands.Context):
@@ -78,3 +79,16 @@ class Context(commands.Context):
                 await msg.delete()
         finally:
             return confirm
+
+    async def error(self, message, delete_after=None):
+        return await self.send(
+            embed=discord.Embed(description=message, color=discord.Color.red()),
+            delete_after=delete_after,
+        )
+
+    async def send_m(self, message, delete_after=None):
+        return await self.send(
+            embed=discord.Embed(
+                description=f"{utils.check} | {message}", color=self.config.COLOR
+            )
+        )

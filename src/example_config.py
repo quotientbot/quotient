@@ -1,6 +1,4 @@
 # for tortoise-orm
-from config import FOOTER
-
 
 TORTOISE = {}
 

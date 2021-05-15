@@ -1,6 +1,100 @@
-from .fields import BigIntArrayField, EnumArrayField
-from utils.constants import Day
+from .fields import BigIntArrayField, EnumArrayField, CharVarArrayField
+from utils.constants import Day, LogType
 from tortoise import fields, models
+import discord, config
+
+
+class Guild(models.Model):
+    class Meta:
+        table = "guild_data"
+
+    guild_id = fields.BigIntField(pk=True)
+    prefix = fields.CharField(default="q")
+    embed_color = fields.IntField(default=65459)
+    embed_footer = fields.TextField(default=config.FOOTER)
+    bot_master = BigIntArrayField(
+        default=list
+    )  # they can use all quo cmds even if they don't have required permissions
+    mute_role = fields.BigIntField(null=True)
+    muted_members = BigIntArrayField(default=list)
+    tag_enabled_for_everyone = fields.BooleanField(
+        default=True
+    )  # ye naam maine ni rkha sachi
+    emoji_stealer_channel = fields.BigIntField(null=True)
+    emoji_stealer_message = fields.BigIntField(null=True)
+    is_premium = fields.BooleanField(default=False)
+    made_premium_by = fields.BigIntField(null=True)
+    premium_end_time = fields.DatetimeField(null=True)
+    premium_notified = fields.BooleanField(
+        default=False
+    )  # this is useful, I just don't remember where :c
+    public_profile = fields.BooleanField(
+        default=True
+    )  # whether to list the server on global leaderboards
+    private_channel = fields.BigIntField(null=True)
+    private_webhook = fields.TextField(null=True)
+    disabled_channels = BigIntArrayField(
+        default=list
+    )  # channels where bot won't reply to cmds
+    disabled_commands = CharVarArrayField(default=list)
+    disabled_users = BigIntArrayField(default=list)
+    censored = CharVarArrayField(default=list)  # will shift this to automod
+
+    @property
+    def obj(self):  # Guild.guild utna acha nai lgta :c
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def mute_role(self):
+        if self.guild is not None:
+            return self.guild.get_role(self.mute_role)
+
+    @property
+    def muted_members(self):
+        return list(map(self.bot.get_user, self.muted_members))
+
+    # ************************************************************************************************
+
+
+class User(models.Model):
+    class Meta:
+        table = "user_data"
+
+    user_id = fields.BigIntField(pk=True)
+    is_premium = fields.BooleanField(default=False)
+    premium_expire_time = fields.DatetimeField(null=True)
+    made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
+    premiums = fields.IntField(default=0)
+    premium_notified = fields.BooleanField(default=False)
+    public_profile = fields.BooleanField(default=True)
+    badges = CharVarArrayField(default=list)
+
+    @property
+    def obj(self):
+        return self.bot.get_user(self.user_id)
+
+
+# ************************************************************************************************
+
+
+class Logging(models.Model):
+    class Meta:
+        table = "logging"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    color = fields.IntField()  # modlogs m noi
+    toggle = fields.BooleanField(default=True)
+    ignore_bots = fields.BooleanField(default=False)
+    ignored_channels = BigIntArrayField(default=list)
+    type = fields.CharEnumField(LogType)
+
+
+#TODO: make logging properties
+# ************************************************************************************************
+
+# ************************************************************************************************
 
 # ************************************************************************************************
 class Timer(models.Model):
@@ -59,6 +153,18 @@ class Scrim(models.Model):
     def role(self):
         if self.guild is not None:
             return self.guild.get_role(self.role_id)
+
+    @property
+    def logschan(self):
+        if self.guild is not None:
+            return discord.utils.get(
+                self.guild.text_channels, name="quotient-scrims-logs"
+            )
+
+    @property
+    def modrole(self):
+        if self.guild is not None:
+            return discord.utils.get(self.guild.roles, name="scrims-mod")
 
     @property
     def registration_channel(self):
