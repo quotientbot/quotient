@@ -25,7 +25,9 @@ class QueueMessage:
         return iter((self.scrim, self.message))
 
 
-class ScrimManager(Cog):
+class ScrimManager(Cog, name="Esports"):
+    icon = "🏅"
+
     def __init__(self, bot):
         self.bot = bot
         self.queue = asyncio.Queue()
@@ -204,6 +206,36 @@ class ScrimManager(Cog):
         else:
             pass
 
+    @commands.Cog.listener("on_message")
+    async def on_scrim_registration(self, message: discord.Message):
+        # if not message.guild or message.author.bot:
+        #     return
+        if message.author == self.bot.user:
+            return
+
+        channel_id = message.channel.id
+
+        if channel_id not in self.registration_channels:
+            return
+
+        scrim = await Scrim.get_or_none(
+            registration_channel_id=channel_id,
+        )
+
+        if scrim is None:  # Scrim is possibly deleted
+            self.registration_channels.pop(channel_id)
+            return
+
+        if scrim.opened_at is None:
+            # Registration isn't opened yet.
+            return
+
+        # if not all(map(lambda m: not m.bot, message.mentions)):
+        #     # Mentioned Bots
+        #     return
+
+        self.queue.put_nowait(QueueMessage(scrim, message))
+
     # ************************************************************************************************
 
     @commands.group(aliases=("s",))
@@ -227,9 +259,9 @@ class ScrimManager(Cog):
 
     # ************************************************************************************************
 
-    @smanager.command()
+    @smanager.command(name="setup")
     @commands.max_concurrency(1, BucketType.guild)
-    async def setup(self, ctx):
+    async def s_setup(self, ctx):
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
@@ -297,7 +329,7 @@ class ScrimManager(Cog):
         scrim.required_mentions = await inputs.integer_input(
             ctx,
             check,
-            limits=(1, 10),
+            limits=(0, 10),
         )
 
         # Total Slots
@@ -408,45 +440,59 @@ class ScrimManager(Cog):
             except discord.NotFound:
                 await ctx.send(text)
 
-    @smanager.command()
-    async def edit(self, ctx, *, scrim_id: int):
+    @smanager.command(name="edit")
+    async def s_edit(self, ctx, *, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(
-                "This Scrim doesn't seems to exists or not belongs to your server."
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
             )
         menu = ConfigEditMenu(scrim=scrim)
         await menu.start(ctx)
 
-    @commands.Cog.listener("on_message")
-    async def on_scrim_registration(self, message: discord.Message):
-        # if not message.guild or message.author.bot:
-        #     return
-        if message.author == self.bot.user:
-            return
+    @smanager.command(name="open")
+    async def s_open(self, ctx, scrim_id: int):
+        ...
 
-        channel_id = message.channel.id
+    @smanager.command(name="close")
+    async def s_close(self, ctx, scrim_id: int):
+        ...
 
-        if channel_id not in self.registration_channels:
-            return
+    @smanager.command(name="config")
+    async def s_config(self, ctx):
+        ...
 
-        scrim = await Scrim.get_or_none(
-            registration_channel_id=channel_id,
-        )
+    @smanager.command(name="toggle")
+    async def s_toggle(self, ctx, scrim_id: int):
+        ...
 
-        if scrim is None:  # Scrim is possibly deleted
-            self.registration_channels.pop(channel_id)
-            return
+    @smanager.command(name="slotlist")
+    async def s_slotlist(self, ctx, scrim_id: int):
+        ...
 
-        if scrim.opened_at is None:
-            # Registration isn't opened yet.
-            return
+    @smanager.command(name="delete")
+    async def s_delete(self, ctx, scr_id: int):
+        ...
 
-        # if not all(map(lambda m: not m.bot, message.mentions)):
-        #     # Mentioned Bots
-        #     return
+    @smanager.command(name="myslot")
+    async def s_myslot(self, ctx, scrim_id: int):
+        ...
 
-        self.queue.put_nowait(QueueMessage(scrim, message))
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+
+    @commands.group()
+    async def tourney(self, ctx):
+        pass
+
+    @tourney.command(name="create")
+    async def t_create(self, ctx):
+        ...
 
 
 def setup(bot):

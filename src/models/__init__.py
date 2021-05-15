@@ -11,7 +11,9 @@ class Guild(models.Model):
     guild_id = fields.BigIntField(pk=True)
     prefix = fields.CharField(default="q")
     embed_color = fields.IntField(default=65459)
-    embed_footer = fields.TextField(default=config.FOOTER)
+    embed_footer = fields.TextField(
+        default=config.FOOTER
+    )  # i am not sure if its a good idea to insert it by default :c
     bot_master = BigIntArrayField(
         default=list
     )  # they can use all quo cmds even if they don't have required permissions
@@ -256,7 +258,7 @@ class BaseSlot(models.Model):
     id = fields.IntField(pk=True)
     user_id = fields.BigIntField()
     team_name = fields.TextField()
-    members = BigIntArrayField(default=list)
+    # members = BigIntArrayField(default=list)
 
 
 class AssignedSlot(BaseSlot):
