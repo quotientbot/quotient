@@ -90,8 +90,11 @@ class Logging(models.Model):
     ignored_channels = BigIntArrayField(default=list)
     type = fields.CharEnumField(LogType)
 
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
 
-# TODO: make logging properties
+
 # ************************************************************************************************
 
 
