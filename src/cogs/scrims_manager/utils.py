@@ -54,8 +54,8 @@ class ConfigEditMenu(menus.Menu):
             "Mentions": f"`{scrim.required_mentions:,}`",
             "Slots": f"`{scrim.total_slots:,}`",
             "Open Time": f"`{open_time}`",
-            "Open on Sundays": ("`No!`", "`Yes!`")[scrim.open_sunday],
-            "Auto-clean": ("`No!`", "`Yes!`")[scrim.cleanup],
+            # "Open on Sundays": ("`No!`", "`Yes!`")[scrim.open_sunday],
+            "Auto-clean": ("`No!`", "`Yes!`")[scrim.autoclean],
             "Ping Role": ping_role,
             "Open Role": open_role,
         }
@@ -186,15 +186,15 @@ class ConfigEditMenu(menus.Menu):
 
         await self.update_scrim(open_time=open_time)
 
+    # @menus.button(regional_indicator("H"))
+    # async def change_open_sunday(self, payload):
+    #     await self.update_scrim(open_sunday=not self.scrim.open_sunday)
+
     @menus.button(regional_indicator("H"))
-    async def change_open_sunday(self, payload):
-        await self.update_scrim(open_sunday=not self.scrim.open_sunday)
+    async def change_cleanup(self, payload):
+        await self.update_scrim(cleanup=not self.scrim.autoclean)
 
     @menus.button(regional_indicator("I"))
-    async def change_cleanup(self, payload):
-        await self.update_scrim(cleanup=not self.scrim.cleanup)
-
-    @menus.button(regional_indicator("J"))
     async def change_ping_role(self, payload):
         msg = await self.cembed("Which role should I ping when I open registrations?")
 
@@ -206,7 +206,7 @@ class ConfigEditMenu(menus.Menu):
         await inputs.safe_delete(msg)
         await self.update_scrim(ping_role_id=role.id)
 
-    @menus.button(regional_indicator("K"))
+    @menus.button(regional_indicator("J"))
     async def change_open_role(self, payload):
         msg = await self.cembed("For which role should I open registrations?")
 

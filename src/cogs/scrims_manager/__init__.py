@@ -1,11 +1,11 @@
 from discord.ext.commands.cooldowns import BucketType
 from models import AssignedSlot, Scrim, Timer
+from utils import default, time, day_today
 from datetime import timedelta, datetime
+from utils.constants import IST, Day
 from discord import AllowedMentions
 from dataclasses import dataclass
 from discord.ext import commands
-from utils import default, time
-from utils.constants import IST
 from .utils import ConfigEditMenu
 from .errors import ScrimError, SMError
 from utils import inputs
@@ -65,7 +65,7 @@ class ScrimManager(Cog):
                 continue
 
             print("scrims not closed")
-            assigned_slots = await scrim.assinged_slots.all().count()
+            assigned_slots = await scrim.assigned_slots.all().count()
 
             slot = await AssignedSlot.create(
                 id=scrim.id,
@@ -75,7 +75,7 @@ class ScrimManager(Cog):
                 jump_url=message.jump_url,
             )
 
-            await scrim.assinged_slots.add(slot)
+            await scrim.assigned_slots.add(slot)
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
 
             if scrim.total_slots == assigned_slots + 1:
@@ -107,8 +107,8 @@ class ScrimManager(Cog):
             return
 
         # TODO: fix this toggle
-        if scrim.toggle != True or not hasattr(scrim.open_days, time.day_today()):
-            return await self.SMNotToday(scrim, timer)
+        if scrim.toggle != True or not Day(day_today()) in scrim.open_days:
+            return
 
         guild = scrim.guild
 
@@ -140,7 +140,7 @@ class ScrimManager(Cog):
             f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
         )
 
-        await scrim.assinged_slots.clear()  # Deleting all previously assigned slots. (idk why this line exists.)
+        await scrim.assigned_slots.clear()  # Deleting all previously assigned slots.
 
         async for slot in scrim.reserved_slots.all():
             count = await scrim.assinged_slots.all().count()
@@ -153,7 +153,7 @@ class ScrimManager(Cog):
                 num=count + 1,
             )
 
-            await scrim.assinged_slots.add(assinged_slot)
+            await scrim.assigned_slots.add(assinged_slot)
 
             self.bot.loop.create_task(
                 guild.get_member(slot.user_id).add_roles(scrim.role),
@@ -203,7 +203,7 @@ class ScrimManager(Cog):
                 description=f"Registration opened for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
             )
 
-        else:  # Error khudhi dispatch kar lena
+        else:
             pass
 
     # ************************************************************************************************

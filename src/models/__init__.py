@@ -43,7 +43,7 @@ class Scrim(models.Model):
     closed_at = fields.DatetimeField(null=True)
     autoclean = fields.BooleanField(default=False)
     ping_role_id = fields.BigIntField(null=True)
-    toggle = fields.BooleanField(default=True)
+    stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
     open_days = EnumArrayField(Day, default=lambda: list(Day))
     assigned_slots = fields.ManyToManyField("models.AssignedSlot")
@@ -103,9 +103,9 @@ class Scrim(models.Model):
         if self.guild is not None:
             return self.guild.get_role(self.open_role_id)
 
-    @property
+    @property  # what? you think its useless , i know :)
     def toggle(self):
-        return self.toggle
+        return self.stoggle
 
     @property
     def teams_registered(self):  # This should be awaited
@@ -125,7 +125,6 @@ class BaseSlot(models.Model):
         abstract = True
 
     id = fields.IntField(pk=True)
-    s_id = fields.IntField()
     user_id = fields.BigIntField()
     team_name = fields.TextField()
     members = BigIntArrayField(default=list)
