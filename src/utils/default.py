@@ -10,7 +10,9 @@ def find_team(message):
     if teamname is None:
         return f"{author}'s slot"
 
-    teamname = (re.sub("|team|name|[^\w\s]", "", teamname.group())).strip()
+    teamname = (
+        re.sub(r"\w*@\w*|\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())
+    ).strip()
 
     return f"Team {teamname.title()}" if teamname else f"{author}'s slot"
 
