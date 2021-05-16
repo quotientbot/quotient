@@ -84,7 +84,7 @@ class ScrimManager(Cog, name="Esports"):
 
                 registration_channel = scrim.registration_channel
                 overwrite = registration_channel.overwrites_for(ctx.guild.default_role)
-                overwrite.update(send_messages=True)
+                overwrite.update(send_messages=False)
                 await registration_channel.set_permissions(
                     ctx.guild.default_role,
                     overwrite=overwrite,
@@ -107,7 +107,6 @@ class ScrimManager(Cog, name="Esports"):
         if scrim.open_time != timer.expires:  # If time is not same return :)
             return
 
-        # TODO: fix this toggle
         if scrim.toggle != True or not Day(day_today()) in scrim.open_days:
             return
 
@@ -116,19 +115,19 @@ class ScrimManager(Cog, name="Esports"):
         if guild is None:
             return await scrim.delete()
 
-        if scrim.registration_channel is None:  # Error tum hi dispatch karlio
+        if scrim.registration_channel is None:
             pass
 
-        if scrim.role is None:  # Error tum hi dispatch karlio
+        if scrim.role is None:
             pass
 
-        if scrim.open_role_id and not scrim.open_role:  # Error tum hi dispatch karlio
+        if scrim.open_role_id and not scrim.open_role:
             pass
 
         scrim_open_role = scrim.open_role or guild.default_role
 
         if scrim.ping_role_id and not scrim.ping_role:
-            pass  # Error tum hi dispatch karlio
+            pass
 
         scrim_ping_role = scrim.ping_role
 
@@ -450,13 +449,12 @@ class ScrimManager(Cog, name="Esports"):
         menu = ConfigEditMenu(scrim=scrim)
         await menu.start(ctx)
 
-    @smanager.command(name="open")
-    async def s_open(self, ctx, scrim_id: int):
-        ...
-
-    @smanager.command(name="close")
-    async def s_close(self, ctx, scrim_id: int):
-        ...
+    # @smanager.command(name="open")
+    # async def s_open(self, ctx, scrim_id: int):
+    #     ...
+    # @smanager.command(name="close")
+    # async def s_close(self, ctx, scrim_id: int):
+    #     ...
 
     @smanager.command(name="config")
     async def s_config(self, ctx):
@@ -468,7 +466,15 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="slotlist")
     async def s_slotlist(self, ctx, scrim_id: int):
-        ...
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+
+        embed, channel = await scrim.create_slotlist
+
+        await channel.send(embed=embed)
 
     @smanager.command(name="delete")
     async def s_delete(self, ctx, scr_id: int):
