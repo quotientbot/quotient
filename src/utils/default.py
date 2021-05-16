@@ -1,16 +1,18 @@
 import re
-import unicodedata
 from typing import Union
 
 
+def find_team(message):
+    """Finds team name from a message"""
+    content = message.content.lower()
+    author = message.author
+    teamname = re.search(r"team.*", content)
+    if teamname is None:
+        return f"{author}'s slot"
 
+    teamname = (re.sub("|team|name|[^\w\s]", "", teamname.group())).strip()
 
-def find_team(matched):
-    team_name = [x for x in matched[0].lower().split() if x not in {"team", "name"}]
-    team_name = " ".join([i for i in team_name if all(ch not in i for ch in ["@"])])
-    team_name = re.sub(r"[^\w\s]", "", team_name)
-
-    return unicodedata.normalize("NFKC", team_name.replace("name", ""))
+    return f"Team {teamname.title()}" if teamname else f"{author}'s slot"
 
 
 def regional_indicator(c: str) -> str:
@@ -26,5 +28,3 @@ def keycap_digit(c: Union[int, str]) -> str:
     elif c == 10:
         return "\U000FE83B"
     raise ValueError("Invalid keycap digit")
-
-

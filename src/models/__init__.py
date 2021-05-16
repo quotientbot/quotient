@@ -240,7 +240,7 @@ class Scrim(models.Model):
 
     @property
     def teams_registered(self):  # This should be awaited
-        return self.assigned_slots.all()
+        return self.assigned_slots.order_by("num")
 
     async def user_registered(self):
         async for members in self.teams_registered.only("members"):
@@ -252,8 +252,9 @@ class Scrim(models.Model):
         slotstr = ""
         for i in await self.teams_registered:
             i = dict(i)
-            slotstr += f"Slot {i['num']:02}  ->  {i['team_name'].title()}\n"
+            slotstr += f"Slot {i['num']:02}  ->  {i['team_name']}\n"
 
+        print(len(slotstr))
         embed = discord.Embed(
             title=self.name + " Slotlist", description=f"```\n{slotstr}```"
         )

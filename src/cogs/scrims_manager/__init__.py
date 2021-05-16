@@ -48,16 +48,7 @@ class ScrimManager(Cog, name="Esports"):
 
             ctx = await self.bot.get_context(message)
 
-            matched_lines = tuple(
-                line.strip()
-                for line in ctx.message.clean_content.lower().split("\n")
-                if "team" in line
-            )
-
-            if len(matched_lines) == 0:
-                teamname = f"{str(ctx.author)}'s team"
-            else:
-                teamname = default.find_team(matched_lines)
+            teamname = default.find_team(message)
 
             scrim = await Scrim.get_or_none(
                 pk=scrim.id
@@ -78,7 +69,7 @@ class ScrimManager(Cog, name="Esports"):
 
             await scrim.assigned_slots.add(slot)
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-
+            await ctx.author.add_roles(scrim.role)
             if scrim.total_slots == assigned_slots + 1:
                 await Scrim.filter(pk=scrim.id).update(closed_at=datetime.now(tz=IST))
 
