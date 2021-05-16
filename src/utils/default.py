@@ -11,7 +11,7 @@ def find_team(message):
         return f"{author}'s slot"
 
     teamname = (
-        re.sub(r"\w*@\w*|\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())
+        re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())
     ).strip()
 
     return f"Team {teamname.title()}" if teamname else f"{author}'s slot"
