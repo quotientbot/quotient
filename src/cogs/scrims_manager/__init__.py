@@ -16,7 +16,7 @@ import discord
 import asyncio
 import config
 
-
+# TODO: update scrim set opened_at = Null at end
 @dataclass
 class QueueMessage:
     scrim: Scrim
@@ -215,9 +215,20 @@ class ScrimManager(Cog, name="Esports"):
             # Registration isn't opened yet.
             return
 
-        # if not all(map(lambda m: not m.bot, message.mentions)):
-        #     # Mentioned Bots
-        #     return
+        if not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
+            return self.bot.dispatch(
+                "scrim_registration_deny", message, "mentioned_bots", scrim
+            )
+
+        elif not len(message.mentions) >= scrim.required_mentions:
+            return self.bot.dispatch(
+                "scrim_registration_deny", message, "insufficient_mentions", scrim
+            )
+
+        elif message.author.id in scrim.banned_users_ids:
+            return self.bot.dispatch(
+                "scrim_registration_deny", message, "banned", scrim
+            )
 
         self.queue.put_nowait(QueueMessage(scrim, message))
 
@@ -307,7 +318,7 @@ class ScrimManager(Cog, name="Esports"):
             embed=self.config_embed(
                 4,
                 "How many mentions are required for successful registration?"
-                " (Can't be more than 10 or less than 1.)",
+                " (Can't be more than 10 or less than 0.)",
             )
         )
 

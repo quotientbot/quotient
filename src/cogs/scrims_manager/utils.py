@@ -46,7 +46,7 @@ class ConfigEditMenu(menus.Menu):
             scrim.registration_channel, "mention", "`Channel Deleted!`"
         )
         scrim_role = getattr(scrim.role, "mention", "`Role Deleted!`")
-        open_time = time(scrim.open_time)
+        open_time = (scrim.open_time).strftime("%I:%M %p")
 
         ping_role = (
             getattr(scrim.ping_role, "mention", "`Role Deleted!`")
@@ -70,7 +70,6 @@ class ConfigEditMenu(menus.Menu):
             "Mentions": f"`{scrim.required_mentions:,}`",
             "Slots": f"`{scrim.total_slots:,}`",
             "Open Time": f"`{open_time}`",
-            # "Open on Sundays": ("`No!`", "`Yes!`")[scrim.open_sunday],
             "Auto-clean": ("`No!`", "`Yes!`")[scrim.autoclean],
             "Ping Role": ping_role,
             "Open Role": open_role,
