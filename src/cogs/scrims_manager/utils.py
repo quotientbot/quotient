@@ -8,6 +8,22 @@ import discord, string
 import config
 
 
+async def toggle_channel(channel, role, bool=True):
+    overwrite = channel.overwrites_for(role)
+    overwrite.update(send_messages=bool)
+    try:
+        await channel.set_permissions(
+            role,
+            overwrite=overwrite,
+            reason=f"{'Open for Registrations!' if bool is True else 'Registration is over!'} ",
+        )
+
+        return True
+
+    except:
+        return False
+
+
 class ConfigEditMenu(menus.Menu):
     def __init__(self, *, scrim: Scrim):
         super().__init__(
@@ -218,3 +234,7 @@ class ConfigEditMenu(menus.Menu):
 
         await inputs.safe_delete(msg)
         await self.update_scrim(open_role_id=role.id)
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
+    async def on_stop(self, payload):
+        self.stop()

@@ -1,4 +1,5 @@
 from discord.ext.commands.cooldowns import BucketType
+from .utils import ConfigEditMenu, toggle_channel
 from models import AssignedSlot, Scrim, Timer
 from utils import default, time, day_today
 from datetime import timedelta, datetime
@@ -6,7 +7,7 @@ from utils.constants import IST, Day
 from discord import AllowedMentions
 from dataclasses import dataclass
 from discord.ext import commands
-from .utils import ConfigEditMenu
+
 from .errors import ScrimError, SMError
 from utils import inputs
 from core import Cog
@@ -73,13 +74,12 @@ class ScrimManager(Cog, name="Esports"):
                 await Scrim.filter(pk=scrim.id).update(closed_at=datetime.now(tz=IST))
 
                 registration_channel = scrim.registration_channel
-                overwrite = registration_channel.overwrites_for(ctx.guild.default_role)
-                overwrite.update(send_messages=False)
-                await registration_channel.set_permissions(
-                    ctx.guild.default_role,
-                    overwrite=overwrite,
-                    reason="Open for scrim registration!",
+                open_role = scrim.open_role
+                channel_update = await toggle_channel(
+                    registration_channel, open_role, False
                 )
+                print(channel_update)
+
                 await ctx.send("Registration is now closed.")
 
     @property
@@ -150,13 +150,9 @@ class ScrimManager(Cog, name="Esports"):
 
         # Opening Channel for Normal Janta
         registration_channel = scrim.registration_channel
-        overwrite = registration_channel.overwrites_for(scrim_open_role)
-        overwrite.update(send_messages=True)
-        await registration_channel.set_permissions(
-            scrim_open_role,
-            overwrite=overwrite,
-            reason="Open for scrim registration!",
-        )
+        open_role = scrim.open_role
+        channel_update = await toggle_channel(registration_channel, open_role, True)
+        print(channel_update)
 
         self.registration_channels.add(registration_channel.id)
 
