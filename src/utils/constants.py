@@ -31,7 +31,7 @@ class LogType(Enum):
     mod = "mod"  # modlogs case id stuff
     cmd = "cmd"  # bot's cmds
     invites = "invites"  # inv created /deleted (invite tracking alag se ki jayegi)
-    pings = "pings"  # someone pinged someone
+    pings = "pings"  # someone pinged someone (ye sbse jruri h )
 
 
 MISSING = _Sentinel()

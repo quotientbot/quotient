@@ -57,7 +57,6 @@ class ScrimManager(Cog, name="Esports"):
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
 
-            print("scrims not closed")
             assigned_slots = await scrim.assigned_slots.all().count()
 
             slot = await AssignedSlot.create(
