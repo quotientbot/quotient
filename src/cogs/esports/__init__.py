@@ -3,8 +3,10 @@ from .utils import (
     toggle_channel,
     scrim_end_process,
     DaysMenu,
+    SlotEditor,
     postpone_scrim,
     check_if_correct_scrim,
+    keycap_digit,
 )
 from discord.ext.commands.cooldowns import BucketType
 from models import AssignedSlot, Scrim, Timer
@@ -427,6 +429,8 @@ class ScrimManager(Cog, name="Esports"):
             except discord.NotFound:
                 await ctx.send(text)
 
+    # ************************************************************************************************
+
     @smanager.command(name="edit")
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: int):
@@ -437,6 +441,8 @@ class ScrimManager(Cog, name="Esports"):
             )
         menu = ConfigEditMenu(scrim=scrim)
         await menu.start(ctx)
+
+    # ************************************************************************************************
 
     @smanager.command(name="days")
     @checks.can_use_sm()
@@ -461,6 +467,8 @@ class ScrimManager(Cog, name="Esports"):
     async def s_config(self, ctx):
         pass
 
+    # ************************************************************************************************
+
     @smanager.command(name="toggle")
     @checks.can_use_sm()
     async def s_toggle(self, ctx, scrim_id: int, option: str = None):
@@ -478,6 +486,7 @@ class ScrimManager(Cog, name="Esports"):
         if not option or option.lower() not in valid_opt:
             return await ctx.send(display_msg)
 
+    # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
         await ctx.send_help(ctx.command)
@@ -515,14 +524,20 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
     async def s_slotlist_edit(self, ctx, scrim_id: int):
-        pass
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+        menu = SlotEditor(scrim=scrim)
+        await menu.start(ctx)
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
     async def s_slotlist_image(self, ctx, scrim_id: int):
-        # some day
         ...
 
+    # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()
     async def s_delete(self, ctx, scrim_id: int):

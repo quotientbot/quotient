@@ -1,15 +1,14 @@
-import re
+from utils import regional_indicator, keycap_digit
+from models import Scrim, ArrayRemove, ArrayAppend
+from datetime import datetime, timedelta
+from discord.ext.menus import Button
+from utils import inputs, constants
+from .errors import ScrimError
+from discord.ext import menus
+
 import discord, string
 import humanize
 import config
-from utils.default import regional_indicator, keycap_digit
-from utils import inputs, constants
-from discord.ext import menus
-from .errors import ScrimError
-from datetime import datetime, timedelta
-from utils import time
-from models import Scrim, ArrayRemove, ArrayAppend
-from discord.ext.menus import Button
 
 
 class ScrimID:
@@ -132,6 +131,80 @@ async def scrim_end_process(ctx, scrim):
 
         if channel != None and channel.permissions_for(ctx.me).send_messages:
             await channel.send(embed=embed)
+
+
+class SlotEditor(menus.Menu):
+    def __init__(self, *, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.check = (
+            lambda msg: msg.channel == self.ctx.channel
+            and msg.author == self.ctx.author
+        )
+
+    async def initial_embed(self):
+        embed, channel = await self.scrim.create_slotlist
+        embed.color = config.COLOR
+        embed.description += f"\n\n\N{BLACK SQUARE FOR STOP}\ufe0f | Remove changes and Abort.\n{keycap_digit(1)} | Change a slot.\n{keycap_digit(2)} | Insert one more slot.\n✅ | Save and Send."
+
+        return embed
+
+    async def refresh(self):
+        self.scrim = await Scrim.get(pk=self.scrim.id)
+        await self.message.edit(embed=await self.initial_embed())
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=await self.initial_embed())
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
+    async def on_stop(self, payload):
+        self.stop()
+
+    @menus.button(keycap_digit(1))
+    async def on_one(self, payload):
+        msg = await self.send(
+            e=discord.Embed(
+                color=config.COLOR, description=f"Which slot do you want to edit?"
+            )
+        )
+        slot = await inputs.integer_input(
+            self.ctx,
+            self.check,
+            delete_after=True,
+            limits=(None, None),
+        )
+
+        await inputs.safe_delete(msg)
+        slot = [dict(i) for i in await self.scrim.assigned_slots if dict(i)['num'] == slot]
+        if not len(slot):
+            await self.ctx.send(e=discord.Embed(color=discord.COLOR.red(), description="You entered an invalid slot number."),delete_after=2)
+            await self.refresh()
+        else:
+            msg = await self.send(
+            e=discord.Embed(
+                color=config.COLOR, description=f"Enter the team name to which you want to give this slot?"
+                )
+            )
+            teamname = await inputs.string_input(
+                self.ctx,
+                self.check,
+                delete_after=True
+            )
+
+            await inputs.safe_delete(msg)
+
+            #TODO: update teamname to the slot where num is `slot`
+    @menus.button(keycap_digit(2))
+    async def on_two(self, payload):
+        ...
+
+    @menus.button("✅")
+    async def on_check(self, payload):
+        ...
 
 
 class DaysMenu(menus.Menu):
