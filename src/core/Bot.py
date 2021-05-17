@@ -1,7 +1,7 @@
 from discord import AllowedMentions, Intents
+from colorama import Fore, Style, init
 import discord, aiohttp, asyncio, os
 from discord.ext import commands
-from colorama import Fore, init
 from tortoise import Tortoise
 from .Context import Context
 from typing import NoReturn
@@ -63,9 +63,6 @@ class Quotient(commands.AutoShardedBot):
         await super().close()
         await self.session.close()
 
-    async def on_ready(self):
-        print("bot is ready!")
-
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
 
@@ -73,3 +70,9 @@ class Quotient(commands.AutoShardedBot):
             return
 
         await self.invoke(ctx)
+
+    async def on_ready(self):  # yes we love colors and colorama
+        print(Fore.RED + "------------------------------------------------------")
+        print(Style.BRIGHT + f"Logged in as {self.user.name}({self.user.id})")
+        print(Style.BRIGHT + f"Currently in {len(self.guilds)} Guilds")
+        print(Style.BRIGHT + f"Connected to {len(self.users)} Users")
