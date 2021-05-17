@@ -161,6 +161,7 @@ class Scrim(models.Model):
     opened_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
     autoclean = fields.BooleanField(default=False)
+    autoslotlist = fields.BooleanField(default=True)
     ping_role_id = fields.BigIntField(null=True)
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)

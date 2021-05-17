@@ -1,5 +1,5 @@
+from .utils import ConfigEditMenu, toggle_channel, scrim_end_process
 from discord.ext.commands.cooldowns import BucketType
-from .utils import ConfigEditMenu, toggle_channel
 from models import AssignedSlot, Scrim, Timer
 from utils import default, time, day_today
 from datetime import timedelta, datetime
@@ -68,19 +68,24 @@ class ScrimManager(Cog, name="Esports"):
             )
 
             await scrim.assigned_slots.add(slot)
+
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            await ctx.author.add_roles(scrim.role)
+            try:
+                await ctx.author.add_roles(scrim.role)
+                role_given = True
+            except:
+                role_given = False
+
+            self.bot.dispatch(
+                "scrim_log",
+                "reg_success",
+                scrim,
+                message=ctx.message,
+                role_added=role_given,
+            )
+
             if scrim.total_slots == assigned_slots + 1:
-                await Scrim.filter(pk=scrim.id).update(closed_at=datetime.now(tz=IST))
-
-                registration_channel = scrim.registration_channel
-                open_role = scrim.open_role
-                channel_update = await toggle_channel(
-                    registration_channel, open_role, False
-                )
-                print(channel_update)
-
-                await ctx.send("Registration is now closed.")
+                await scrim_end_process(ctx, scrim)
 
     @property
     def reminders(self):
@@ -152,7 +157,6 @@ class ScrimManager(Cog, name="Esports"):
         registration_channel = scrim.registration_channel
         open_role = scrim.open_role
         channel_update = await toggle_channel(registration_channel, open_role, True)
-        print(channel_update)
 
         self.registration_channels.add(registration_channel.id)
 
@@ -177,19 +181,7 @@ class ScrimManager(Cog, name="Esports"):
             allowed_mentions=AllowedMentions(roles=True, everyone=True),
         )
 
-        log_channel = discord.utils.get(
-            guild.text_channels,
-            name="quotient-scrims-logs",
-        )
-
-        if log_channel is not None:
-            embed = discord.Embed(
-                color=0x00B1FF,
-                description=f"Registration opened for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
-            )
-
-        else:
-            pass
+        self.bot.dispatch("scrim_log", "open", scrim, permission_updated=channel_update)
 
     @commands.Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
@@ -215,10 +207,12 @@ class ScrimManager(Cog, name="Esports"):
             # Registration isn't opened yet.
             return
 
-        if not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
-            return self.bot.dispatch(
-                "scrim_registration_deny", message, "mentioned_bots", scrim
-            )
+        # if scrim.required_mentions and not all(
+        #     map(lambda m: not m.bot, message.mentions)
+        # ):  # mentioned bots
+        #     return self.bot.dispatch(
+        #         "scrim_registration_deny", message, "mentioned_bots", scrim
+        #     )
 
         elif not len(message.mentions) >= scrim.required_mentions:
             return self.bot.dispatch(

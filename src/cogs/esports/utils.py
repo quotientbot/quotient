@@ -1,9 +1,11 @@
 from utils.default import regional_indicator
+from utils import inputs, constants
 from discord.ext import menus
 from .errors import ScrimError
+from datetime import datetime
 from utils.time import time
 from models import Scrim
-from utils import inputs
+
 import discord, string
 import config
 
@@ -22,6 +24,42 @@ async def toggle_channel(channel, role, bool=True):
 
     except:
         return False
+
+
+async def scrim_end_process(ctx, scrim):
+    opened_at = scrim.opened_at
+    closed_at = datetime.now(tz=constants.IST)
+
+    registration_channel = ctx.channel
+    open_role = scrim.open_role
+
+    await Scrim.filter(pk=scrim.id).update(
+        opened_at=None, closed_at=datetime.now(tz=constants.IST)
+    )
+
+    channel_update = await toggle_channel(registration_channel, open_role, False)
+
+    await ctx.send(
+        embed=discord.Embed(
+            color=config.COLOR, description="**Registration is now Closed!**"
+        )
+    )
+
+    ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
+
+    if scrim.autoslotlist:
+        time_taken = closed_at - opened_at
+        m, s = divmod(int(time_taken.total_seconds()), 60)
+
+        time_taken = f"{m:2d}m {s:2d}s"
+
+        embed, channel = await scrim.create_slotlist
+
+        embed.set_footer(text="Registration took: {0}".format(time_taken))
+        embed.color = config.COLOR
+
+        if channel != None and channel.permissions_for(ctx.me).send_messages:
+            await channel.send(embed=embed)
 
 
 class ConfigEditMenu(menus.Menu):
