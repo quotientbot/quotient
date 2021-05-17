@@ -1,12 +1,14 @@
-from utils.default import regional_indicator
+from utils.default import regional_indicator, keycap_digit
 from utils import inputs, constants
 from discord.ext import menus
 from .errors import ScrimError
-from datetime import datetime
+from datetime import datetime, timedelta
 from utils.time import time
 from models import Scrim
 
+
 import discord, string
+import humanize
 import config
 
 
@@ -49,9 +51,9 @@ async def scrim_end_process(ctx, scrim):
 
     if scrim.autoslotlist:
         time_taken = closed_at - opened_at
-        m, s = divmod(int(time_taken.total_seconds()), 60)
+        delta = datetime.now() - timedelta(seconds=time_taken.total_seconds())
 
-        time_taken = f"{m:2d}m {s:2d}s"
+        time_taken = humanize.precisedelta(delta)
 
         embed, channel = await scrim.create_slotlist
 
@@ -60,6 +62,91 @@ async def scrim_end_process(ctx, scrim):
 
         if channel != None and channel.permissions_for(ctx.me).send_messages:
             await channel.send(embed=embed)
+
+
+class DaysMenu(menus.Menu):
+    def __init__(self, *, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.days = scrim.open_days
+        self.check = (
+            lambda msg: msg.channel == self.ctx.channel
+            and msg.author == self.ctx.author
+        )
+
+    def initial_embed(self):
+        embed = discord.Embed(color=discord.Color(config.COLOR))
+        embed.title = "Edit Open Days: {0}".format(self.scrim.id)
+
+        description = ""
+
+        for count, i in enumerate(constants.Day, start=1):
+            description += f"{count:02}. {(i.name.title()).ljust(10)}   {'✅' if i in self.days else '❌'}\n"
+
+        embed.description = f"```{description}```"
+        return embed
+
+    def get_days(self, day):
+        days = self.days
+        if constants.Day(day) in days:
+            days.remove(constants.Day(day))
+        else:
+            days.append(constants.Day(day))
+
+        return days
+
+    async def refresh(self):
+        self.scrim = await Scrim.get(pk=self.scrim.id)
+        await self.message.edit(embed=self.initial_embed())
+
+    async def update_scrim(self, days):
+        await Scrim.filter(pk=self.scrim.id).update(open_days=days)
+        await self.refresh()
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=self.initial_embed())
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
+    async def on_stop(self, payload):
+        self.stop()
+
+    @menus.button(keycap_digit("1"))
+    async def change_monday(self, payload):
+        await self.update_scrim(self.get_days("monday"))
+
+    @menus.button(keycap_digit("2"))
+    async def change_tues(self, payload):
+        await self.update_scrim(self.get_days("tuesday"))
+
+    @menus.button(keycap_digit("3"))
+    async def change_wed(self, payload):
+        await self.update_scrim(self.get_days("wednesday"))
+
+    @menus.button(keycap_digit("4"))
+    async def change_thu(self, payload):
+        await self.update_scrim(self.get_days("thursday"))
+
+    @menus.button(keycap_digit("5"))
+    async def change_fri(self, payload):
+        await self.update_scrim(self.get_days("friday"))
+
+    @menus.button(keycap_digit("6"))
+    async def change_sat(self, payload):
+        await self.update_scrim(self.get_days("saturday"))
+
+    @menus.button(keycap_digit("7"))
+    async def change_sun(self, payload):
+        await self.update_scrim(self.get_days("sunday"))
+
+
+# *****************************************************************************************************
+# *****************************************************************************************************
+# *****************************************************************************************************
+# *****************************************************************************************************
 
 
 class ConfigEditMenu(menus.Menu):

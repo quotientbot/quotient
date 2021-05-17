@@ -1,4 +1,5 @@
 from discord.ext import commands
+from models import Scrim
 from core import Cog
 import discord
 
@@ -16,7 +17,9 @@ class SMError(Cog):
         return embed
 
     @Cog.listener()
-    async def on_scrim_registration_deny(self, message, type, scrim):
+    async def on_scrim_registration_deny(
+        self, message: discord.Message, type: str, scrim: Scrim
+    ):
         logschan = scrim.logschan
 
         await message.add_reaction("\N{CROSS MARK}")
@@ -56,7 +59,7 @@ class SMError(Cog):
             await logschan.send(embed=e)
 
     @Cog.listener()
-    async def on_scrim_log(self, type, scrim, **kwargs):
+    async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
         """
         A listener that is dispatched everytime registration starts or ends.
         """

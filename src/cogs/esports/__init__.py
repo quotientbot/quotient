@@ -1,4 +1,4 @@
-from .utils import ConfigEditMenu, toggle_channel, scrim_end_process
+from .utils import ConfigEditMenu, toggle_channel, scrim_end_process, DaysMenu
 from discord.ext.commands.cooldowns import BucketType
 from models import AssignedSlot, Scrim, Timer
 from utils import default, time, day_today
@@ -118,8 +118,6 @@ class ScrimManager(Cog, name="Esports"):
 
         if scrim.open_role_id and not scrim.open_role:
             pass
-
-        scrim_open_role = scrim.open_role or guild.default_role
 
         if scrim.ping_role_id and not scrim.ping_role:
             pass
@@ -438,6 +436,16 @@ class ScrimManager(Cog, name="Esports"):
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
             )
         menu = ConfigEditMenu(scrim=scrim)
+        await menu.start(ctx)
+
+    @smanager.command(name="days")
+    async def s_days(self, ctx, *, scrim_id: int):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+        menu = DaysMenu(scrim=scrim)
         await menu.start(ctx)
 
     # @smanager.command(name="open")
