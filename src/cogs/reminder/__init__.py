@@ -1,3 +1,4 @@
+
 from datetime import datetime, timedelta
 import discord, asyncio, asyncpg
 from discord.ext import commands
@@ -55,11 +56,11 @@ class Reminders(commands.Cog):
 
                 now = datetime.now(tz=IST)
 
-                print(now, timer.expires)
+                # print(now, timer.expires)
 
                 if timer.expires >= now:
                     to_sleep = (timer.expires - now).total_seconds()
-                    print(to_sleep)
+                    # print(to_sleep)
                     await asyncio.sleep(to_sleep)
 
                 await self.call_timer(timer)
