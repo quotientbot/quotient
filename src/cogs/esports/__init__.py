@@ -463,17 +463,42 @@ class ScrimManager(Cog, name="Esports"):
     async def s_toggle(self, ctx, scrim_id: int):
         ...
 
-    @smanager.command(name="slotlist")
-    async def s_slotlist(self, ctx, scrim_id: int):
+    @smanager.group(name="slotlist", invoke_without_subcommand=True)
+    async def s_slotlist(self, ctx):
+        pass
+
+    @s_slotlist.command(name="send")
+    async def s_slotlist_send(self, ctx, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
             )
 
-        embed, channel = await scrim.create_slotlist
+        if not len(await scrim.teams_registered):
+            return await ctx.error("Nobody registered yet!")
 
-        await channel.send(embed=embed)
+        else:
+            embed, channel = await scrim.create_slotlist
+            embed.color = ctx.bot.color
+
+            await ctx.send(embed=embed)
+            prompt = await ctx.prompt(
+                "This is how the slotlist looks. Should I send it?"
+            )
+            if prompt:
+                if channel != None and channel.permissions_for(ctx.me).send_messages:
+                    await channel.send(embed=embed)
+                    await ctx.send_m(f"Slotlist sent successfully!")
+                else:
+                    await ctx.error(f"I can't send messages in {channel}")
+
+            else:
+                await ctx.send_m(f"Ok!")
+
+    @s_slotlist.command(name="edit")
+    async def s_slotlist_edit(self, ctx, scrim_id: int):
+        ...
 
     @smanager.command(name="delete")
     async def s_delete(self, ctx, scr_id: int):

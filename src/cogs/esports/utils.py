@@ -3,13 +3,16 @@ from utils import inputs, constants
 from discord.ext import menus
 from .errors import ScrimError
 from datetime import datetime, timedelta
-from utils.time import time
-from models import Scrim
-
+from utils import time
+from models import Scrim, ArrayRemove, ArrayAppend
 
 import discord, string
 import humanize
 import config
+
+
+class ScrimID:
+    ...
 
 
 async def toggle_channel(channel, role, bool=True):
@@ -79,32 +82,31 @@ class DaysMenu(menus.Menu):
         )
 
     def initial_embed(self):
+        scrim = self.scrim
         embed = discord.Embed(color=discord.Color(config.COLOR))
-        embed.title = "Edit Open Days: {0}".format(self.scrim.id)
+        embed.title = "Edit Open Days: {0}".format(scrim.id)
 
         description = ""
 
         for count, i in enumerate(constants.Day, start=1):
-            description += f"{count:02}. {(i.name.title()).ljust(10)}   {'✅' if i in self.days else '❌'}\n"
+            description += f"{count:02}. {(i.name.title()).ljust(10)}   {'✅' if i in scrim.open_days else '❌'}\n"
 
         embed.description = f"```{description}```"
         return embed
-
-    def get_days(self, day):
-        days = self.days
-        if constants.Day(day) in days:
-            days.remove(constants.Day(day))
-        else:
-            days.append(constants.Day(day))
-
-        return days
 
     async def refresh(self):
         self.scrim = await Scrim.get(pk=self.scrim.id)
         await self.message.edit(embed=self.initial_embed())
 
-    async def update_scrim(self, days):
-        await Scrim.filter(pk=self.scrim.id).update(open_days=days)
+    async def update_scrim(self, day):
+        if constants.Day(day) in self.scrim.open_days:
+            await Scrim.filter(pk=self.scrim.id).update(
+                open_days=ArrayRemove("open_days", constants.Day(day))
+            )
+        else:
+            await Scrim.filter(pk=self.scrim.id).update(
+                open_days=ArrayAppend("open_days", constants.Day(day))
+            )
         await self.refresh()
 
     async def send_initial_message(self, ctx, channel):
@@ -116,31 +118,31 @@ class DaysMenu(menus.Menu):
 
     @menus.button(keycap_digit("1"))
     async def change_monday(self, payload):
-        await self.update_scrim(self.get_days("monday"))
+        await self.update_scrim("monday")
 
     @menus.button(keycap_digit("2"))
     async def change_tues(self, payload):
-        await self.update_scrim(self.get_days("tuesday"))
+        await self.update_scrim("tuesday")
 
     @menus.button(keycap_digit("3"))
     async def change_wed(self, payload):
-        await self.update_scrim(self.get_days("wednesday"))
+        await self.update_scrim("wednesday")
 
     @menus.button(keycap_digit("4"))
     async def change_thu(self, payload):
-        await self.update_scrim(self.get_days("thursday"))
+        await self.update_scrim("thursday")
 
     @menus.button(keycap_digit("5"))
     async def change_fri(self, payload):
-        await self.update_scrim(self.get_days("friday"))
+        await self.update_scrim("friday")
 
     @menus.button(keycap_digit("6"))
     async def change_sat(self, payload):
-        await self.update_scrim(self.get_days("saturday"))
+        await self.update_scrim("saturday")
 
     @menus.button(keycap_digit("7"))
     async def change_sun(self, payload):
-        await self.update_scrim(self.get_days("sunday"))
+        await self.update_scrim("sunday")
 
 
 # *****************************************************************************************************

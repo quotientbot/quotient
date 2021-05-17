@@ -12,6 +12,7 @@ class Quotient(commands.AutoShardedBot):
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
         self.config = config
+        self.color = config.COLOR
 
     async def init_quo(self):
         self.session = aiohttp.ClientSession(loop=self.loop)
