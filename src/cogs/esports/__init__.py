@@ -53,7 +53,7 @@ class ScrimManager(Cog, name="Esports"):
 
             scrim = await Scrim.get_or_none(
                 pk=scrim.id
-            )  # Refetch Scrim to check get its updated instance...
+            )  # Refetch Scrim to check get its updated instancepass
 
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
@@ -450,14 +450,14 @@ class ScrimManager(Cog, name="Esports"):
 
     # @smanager.command(name="open")
     # async def s_open(self, ctx, scrim_id: int):
-    #     ...
+    #     pass
     # @smanager.command(name="close")
     # async def s_close(self, ctx, scrim_id: int):
-    #     ...
+    #     pass
 
     @smanager.command(name="config")
     async def s_config(self, ctx):
-        ...
+        pass
 
     @smanager.command(name="toggle")
     async def s_toggle(self, ctx, scrim_id: int, option: str = None):
@@ -510,15 +510,15 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="edit")
     async def s_slotlist_edit(self, ctx, scrim_id: int):
-        ...
+        pass
 
     @smanager.command(name="delete")
-    async def s_delete(self, ctx, scrim_id: int):
-        ...
+    async def s_delete(self, ctx, scr_id: int):
+        pass
 
     @smanager.command(name="myslot")
     async def s_myslot(self, ctx, scrim_id: int):
-        ...
+        pass
 
     # ************************************************************************************************
     # ************************************************************************************************
@@ -534,7 +534,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="create")
     async def t_create(self, ctx):
-        ...
+        pass
 
 
 def setup(bot):
