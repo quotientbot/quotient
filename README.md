@@ -25,27 +25,24 @@
 
 I would prefer if you don't run an instance of Quotient. You can directly invite it from the above given URL. The source here is provided for educational purposes only.
 
-If you still want to run Quotient locally, here are the steps you want to do:
+If you still want to run Quotient on your machine, here are the steps you want to do:
 
-1. **Make sure you have [Python 3.8](https://www.python.org/) or higher.**
-2. **Setup Environment.** (We used [`poetry`](https://pypi.org/project/poetry/))
-3. **Setup [PostgreSQL](https://www.postgresql.org/) database**
-4. **Setup [Tortoise-ORM](https://github.com/tortoise/tortoise-orm)**
-5. **Rename example_config.py to config.py and fill in all the secrets**
-6. **Run `./src/bot.py`**
+1. Make sure you have [Python 3.8](https://www.python.org/) or higher.
+2. Setup Environment. (We used [`poetry`](https://pypi.org/project/poetry/))
+3. Setup [PostgreSQL](https://www.postgresql.org/) database
+4. Setup [Tortoise-ORM](https://github.com/tortoise/tortoise-orm)
+5. Rename example_config.py to config.py and fill in all the secrets
+6. Run `./src/bot.py`
 
-<!-- CONTRIBUTING -->
+<!-- CONTRIBUTION -->
 
-## Contributing
+## Contribute
 
-If you want to contribute in this project. Follow the steps listed below -
-
-1. Fork the Project
-2. Make the changes you want to do
-3. Open a pull request
+If You are looking forward to contribute to the project , we would like you to know that we love easter eggs.
+Maybe you can try hiding some in your code too : )
 
 <!-- LICENSE -->
 
 ## License
 
-Distributed under the MPL-2.0. See `LICENSE` for more information.
+Distributed under the MPL-2.0. See [`LICENSE`](https://github.com/quotientbot/Quotient-Bot/blob/main/LICENSE) for more information.
