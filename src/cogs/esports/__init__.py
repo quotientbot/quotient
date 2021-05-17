@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from discord.ext import commands
 
 from .errors import ScrimError, SMError
-from utils import inputs
+from utils import inputs , checks
 from core import Cog
 
 import discord
@@ -226,7 +226,7 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s",), invoke_without_subcommand=True)
+    @commands.group(aliases=("s",), invoke_without_command=True)
     async def smanager(self, ctx):
         await ctx.send_help(ctx.command)
 
@@ -248,6 +248,7 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @smanager.command(name="setup")
+    @checks.can_use_sm()
     @commands.max_concurrency(1, BucketType.guild)
     async def s_setup(self, ctx):
 
@@ -429,6 +430,7 @@ class ScrimManager(Cog, name="Esports"):
                 await ctx.send(text)
 
     @smanager.command(name="edit")
+    @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
@@ -439,6 +441,7 @@ class ScrimManager(Cog, name="Esports"):
         await menu.start(ctx)
 
     @smanager.command(name="days")
+    @checks.can_use_sm()
     async def s_days(self, ctx, *, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
@@ -456,10 +459,12 @@ class ScrimManager(Cog, name="Esports"):
     #     pass
 
     @smanager.command(name="config")
+    @checks.can_use_sm()
     async def s_config(self, ctx):
         pass
 
     @smanager.command(name="toggle")
+    @checks.can_use_sm()
     async def s_toggle(self, ctx, scrim_id: int, option: str = None):
 
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
@@ -475,11 +480,12 @@ class ScrimManager(Cog, name="Esports"):
         if not option or option.lower() not in valid_opt:
             return await ctx.send(display_msg)
 
-    @smanager.group(name="slotlist", invoke_without_subcommand=True)
+    @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
         await ctx.send_help(ctx.command)
 
     @s_slotlist.command(name="send")
+    @checks.can_use_sm()
     async def s_slotlist_send(self, ctx, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
@@ -509,17 +515,33 @@ class ScrimManager(Cog, name="Esports"):
                 await ctx.send_m(f"Ok!")
 
     @s_slotlist.command(name="edit")
+    @checks.can_use_sm()
     async def s_slotlist_edit(self, ctx, scrim_id: int):
         pass
 
+    @s_slotlist.command(name="image")
+    @checks.can_use_sm()
+    async def s_slotlist_image(self,ctx,scrim_id: int):
+        #some day
+        ...
+
     @smanager.command(name="delete")
-    async def s_delete(self, ctx, scr_id: int):
-        pass
+    @checks.can_use_sm()
+    async def s_delete(self, ctx, scrim_id: int):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+        
+        prompt = await ctx.prompt(f'Are you sure you want to delete scrim `{scrim.id}`?',)
+        if prompt:
+            await scrim.delete()
+            await ctx.send_m(f'Scrim (`{scrim.id}`) deleted successfully.')
+        else:
+            await ctx.send_m(f'Alright! Aborting')
 
-    @smanager.command(name="myslot")
-    async def s_myslot(self, ctx, scrim_id: int):
-        pass
-
+            
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************
