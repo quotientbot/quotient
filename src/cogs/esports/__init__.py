@@ -1,4 +1,11 @@
-from .utils import ConfigEditMenu, toggle_channel, scrim_end_process, DaysMenu
+from .utils import (
+    ConfigEditMenu,
+    toggle_channel,
+    scrim_end_process,
+    DaysMenu,
+    postpone_scrim,
+    check_if_correct_scrim,
+)
 from discord.ext.commands.cooldowns import BucketType
 from models import AssignedSlot, Scrim, Timer
 from utils import default, time, day_today
@@ -9,7 +16,7 @@ from dataclasses import dataclass
 from discord.ext import commands
 
 from .errors import ScrimError, SMError
-from utils import inputs , checks
+from utils import inputs, checks
 from core import Cog
 
 import discord
@@ -103,24 +110,12 @@ class ScrimManager(Cog, name="Esports"):
             return
 
         if scrim.toggle != True or not Day(day_today()) in scrim.open_days:
-            return
+            return await postpone_scrim(self.bot, scrim)
 
         guild = scrim.guild
 
-        if guild is None:
-            return await scrim.delete()
-
-        if scrim.registration_channel is None:
-            pass
-
-        if scrim.role is None:
-            pass
-
-        if scrim.open_role_id and not scrim.open_role:
-            pass
-
-        if scrim.ping_role_id and not scrim.ping_role:
-            pass
+        if not await check_if_correct_scrim(self.bot, scrim):
+            return
 
         scrim_ping_role = scrim.ping_role
 
@@ -162,6 +157,7 @@ class ScrimManager(Cog, name="Esports"):
             open_time=scrim.open_time + timedelta(hours=24),
             opened_at=datetime.now(tz=IST),
             closed_at=None,
+            slotlist_message_id=None,
         )
 
         await scrim.refresh_from_db(("open_time",))
@@ -521,8 +517,8 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
-    async def s_slotlist_image(self,ctx,scrim_id: int):
-        #some day
+    async def s_slotlist_image(self, ctx, scrim_id: int):
+        # some day
         ...
 
     @smanager.command(name="delete")
@@ -533,15 +529,16 @@ class ScrimManager(Cog, name="Esports"):
             raise ScrimError(
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
             )
-        
-        prompt = await ctx.prompt(f'Are you sure you want to delete scrim `{scrim.id}`?',)
+
+        prompt = await ctx.prompt(
+            f"Are you sure you want to delete scrim `{scrim.id}`?",
+        )
         if prompt:
             await scrim.delete()
-            await ctx.send_m(f'Scrim (`{scrim.id}`) deleted successfully.')
+            await ctx.send_m(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
-            await ctx.send_m(f'Alright! Aborting')
+            await ctx.send_m(f"Alright! Aborting")
 
-            
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************

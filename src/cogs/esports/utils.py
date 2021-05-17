@@ -14,6 +14,39 @@ from discord.ext.menus import Button
 class ScrimID:
     ...
 
+async def check_if_correct_scrim(bot,scrim):
+        guild = scrim.guild
+
+        if guild is None:
+            return await scrim.delete()
+
+        if scrim.registration_channel is None:
+            pass
+
+        if scrim.role is None:
+            pass
+
+        if scrim.open_role_id and not scrim.open_role:
+            pass
+
+        if scrim.ping_role_id and not scrim.ping_role:
+            pass
+
+
+async def postpone_scrim(bot, scrim):
+    reminder = bot.get_cog("Reminders")
+
+    await Scrim.filter(pk=scrim.id).update(
+        open_time=scrim.open_time + timedelta(hours=24)
+    )
+    await scrim.refresh_from_db(("open_time",))
+
+    await reminder.create_timer(
+        scrim.open_time,
+        "scrim_open",
+        scrim_id=scrim.id,
+    )
+
 
 async def toggle_channel(channel, role, _bool=True):
     overwrite = channel.overwrites_for(role)
@@ -22,7 +55,9 @@ async def toggle_channel(channel, role, _bool=True):
         await channel.set_permissions(
             role,
             overwrite=overwrite,
-            reason=("Registration is over!", "Open for Registrations!")[_bool],  # False=0, True=1
+            reason=("Registration is over!", "Open for Registrations!")[
+                _bool
+            ],  # False=0, True=1
         )
 
         return True
@@ -38,11 +73,17 @@ async def scrim_end_process(ctx, scrim):
     registration_channel = ctx.channel
     open_role = scrim.open_role
 
-    await Scrim.filter(pk=scrim.id).update(opened_at=None, closed_at=datetime.now(tz=constants.IST))
+    await Scrim.filter(pk=scrim.id).update(
+        opened_at=None, closed_at=datetime.now(tz=constants.IST)
+    )
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
 
-    await ctx.send(embed=discord.Embed(color=config.COLOR, description="**Registration is now Closed!**"))
+    await ctx.send(
+        embed=discord.Embed(
+            color=config.COLOR, description="**Registration is now Closed!**"
+        )
+    )
 
     ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
 
@@ -70,7 +111,10 @@ class DaysMenu(menus.Menu):
         )
         self.scrim = scrim
         self.days = scrim.open_days
-        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+        self.check = (
+            lambda msg: msg.channel == self.ctx.channel
+            and msg.author == self.ctx.author
+        )
 
         # Adding buttons dynamically
         for idx, day in enumerate(constants.Day, start=1):
@@ -120,17 +164,26 @@ class ConfigEditMenu(menus.Menu):
             clear_reactions_after=True,
         )
         self.scrim = scrim
-        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+        self.check = (
+            lambda msg: msg.channel == self.ctx.channel
+            and msg.author == self.ctx.author
+        )
 
     def initial_embed(self):
         scrim = self.scrim
-        slotlist_channel = getattr(scrim.slotlist_channel, "mention", "`Channel Deleted!`")
-        registration_channel = getattr(scrim.registration_channel, "mention", "`Channel Deleted!`")
+        slotlist_channel = getattr(
+            scrim.slotlist_channel, "mention", "`Channel Deleted!`"
+        )
+        registration_channel = getattr(
+            scrim.registration_channel, "mention", "`Channel Deleted!`"
+        )
         scrim_role = getattr(scrim.role, "mention", "`Role Deleted!`")
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
         ping_role = (
-            getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
+            getattr(scrim.ping_role, "mention", "`Role Deleted!`")
+            if scrim.ping_role_id
+            else "`Not Configured!`"
         )
         open_role = (
             getattr(scrim.open_role, "mention", "`Role Deleted!`")
@@ -185,7 +238,9 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("A"))
     async def change_scrim_name(self, payload):
-        msg = await self.cembed("What is the new name you want to give to these scrims?")
+        msg = await self.cembed(
+            "What is the new name you want to give to these scrims?"
+        )
         name = await inputs.string_input(
             self.ctx,
             self.check,
@@ -234,7 +289,9 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("E"))
     async def change_required_mentions(self, payload):
-        msg = await self.cembed("How many mentions are required for successful registration?")
+        msg = await self.cembed(
+            "How many mentions are required for successful registration?"
+        )
         mentions = await inputs.integer_input(
             self.ctx,
             self.check,
