@@ -1,6 +1,5 @@
 ![discord.py Version](https://img.shields.io/badge/lib-discord.py%201.7.0-blue)
 ![Language](https://img.shields.io/badge/lang-Python%203.9-green)
-![Time Taken](https://img.shields.io/badge/wakatime-5386%20hrs%2018%20min-red)
 
 <br />
 <p align="center">
@@ -28,15 +27,12 @@ I would prefer if you don't run an instance of Quotient. You can directly invite
 
 If you still want to run Quotient locally, here are the steps you want to do:
 
-1. **Make sure you have Python 3.8 or higher.**
-2. **Setup Environment:**
-   > ➥ Install poetry: `pip install poetry`<br>
-   > ➥ Install dependencies: `poetry install`<br>
-   > ➥ Spawn a shell: `poetry shell`<br>
-3. **Setup PostgreSQL database**
-4. **Setup Tortoise-ORM**
+1. **Make sure you have [Python 3.8](https://www.python.org/) or higher.**
+2. **Setup Environment.** (We used [`poetry`](https://pypi.org/project/poetry/))
+3. **Setup [PostgreSQL](https://www.postgresql.org/) database**
+4. **Setup [Tortoise-ORM](https://github.com/tortoise/tortoise-orm)**
 5. **Rename example_config.py to config.py and fill in all the secrets**
-6. **Run ./src/bot.py**
+6. **Run `./src/bot.py`**
 
 <!-- CONTRIBUTING -->
 
