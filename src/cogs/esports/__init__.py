@@ -113,6 +113,8 @@ class ScrimManager(Cog, name="Esports"):
             return await postpone_scrim(self.bot, scrim)
 
         guild = scrim.guild
+        if not guild:
+            return await scrim.delete()
 
         if not await check_if_correct_scrim(self.bot, scrim):
             return

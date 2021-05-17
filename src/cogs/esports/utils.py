@@ -1,3 +1,4 @@
+import re
 import discord, string
 import humanize
 import config
@@ -14,23 +15,54 @@ from discord.ext.menus import Button
 class ScrimID:
     ...
 
-async def check_if_correct_scrim(bot,scrim):
-        guild = scrim.guild
 
-        if guild is None:
-            return await scrim.delete()
+async def check_if_correct_scrim(bot, scrim) -> bool:
+    guild = scrim.guild
+    registration_channel = scrim.registration_channel
+    role = scrim.role
+    _bool = True
+    embed = discord.Embed(color=discord.Color.red())
+    embed.description = f"Registration of `scrim {scrim.id}` couldn't be opened due to the following reason:\n"
 
-        if scrim.registration_channel is None:
-            pass
+    if not registration_channel:
+        embed.description += (
+            "I couldn't find registration channel. Maybe its deleted or hidden from me."
+        )
+        _bool = False
 
-        if scrim.role is None:
-            pass
+    elif not registration_channel.permissions_for(guild.me).manage_channels:
+        embed.description += "I don't have permissions to manage {0}".format(
+            registration_channel.mention
+        )
+        _bool = False
 
-        if scrim.open_role_id and not scrim.open_role:
-            pass
+    elif scrim.role is None:
+        embed.description += "I couldn't find success role."
+        _bool = False
 
-        if scrim.ping_role_id and not scrim.ping_role:
-            pass
+    elif (
+        not guild.me.guild_permissions.manage_roles
+        or role.position >= guild.me.top_role.position
+    ):
+        embed.description += "I don't have permissions to `manage roles` in this server or {0} is above my top role ({1}).".format(
+            role.mention, guild.me.top_role.mention
+        )
+        _bool = False
+
+    elif scrim.open_role_id and not scrim.open_role:
+        embed.description += "You have set a custom open role which is deleted."
+        _bool = False
+
+    if not _bool:
+        logschan = scrim.logschan
+        if logschan and logschan.permissions_for(guild.me).send_messages:
+            await logschan.send(
+                content=getattr(scrim.modrole, "mention", None),
+                embed=embed,
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
+
+    return _bool
 
 
 async def postpone_scrim(bot, scrim):
