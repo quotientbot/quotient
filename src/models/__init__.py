@@ -168,9 +168,7 @@ class Scrim(models.Model):
     open_role_id = fields.BigIntField(null=True)
     open_days = EnumArrayField(Day, default=lambda: list(Day))
     assigned_slots = fields.ManyToManyField("models.AssignedSlot")
-    reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField(
-        "models.ReservedSlot"
-    )
+    reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
 
     @property
     def guild(self):
@@ -184,9 +182,7 @@ class Scrim(models.Model):
     @property
     def logschan(self):
         if self.guild is not None:
-            return discord.utils.get(
-                self.guild.text_channels, name="quotient-scrims-logs"
-            )
+            return discord.utils.get(self.guild.text_channels, name="quotient-scrims-logs")
 
     @property
     def modrole(self):
@@ -260,9 +256,7 @@ class Scrim(models.Model):
             slotstr += f"Slot {i['num']:02}  ->  {i['team_name']}\n"
 
         print(len(slotstr))
-        embed = discord.Embed(
-            title=self.name + " Slotlist", description=f"```\n{slotstr}```"
-        )
+        embed = discord.Embed(title=self.name + " Slotlist", description=f"```\n{slotstr}```")
 
         channel = self.slotlist_channel
 

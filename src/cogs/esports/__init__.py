@@ -51,9 +51,7 @@ class ScrimManager(Cog, name="Esports"):
 
             teamname = default.find_team(message)
 
-            scrim = await Scrim.get_or_none(
-                pk=scrim.id
-            )  # Refetch Scrim to check get its updated instance...
+            scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instancepass
 
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
@@ -213,14 +211,10 @@ class ScrimManager(Cog, name="Esports"):
         #     )
 
         elif not len(message.mentions) >= scrim.required_mentions:
-            return self.bot.dispatch(
-                "scrim_registration_deny", message, "insufficient_mentions", scrim
-            )
+            return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
 
         elif message.author.id in scrim.banned_users_ids:
-            return self.bot.dispatch(
-                "scrim_registration_deny", message, "banned", scrim
-            )
+            return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
 
         self.queue.put_nowait(QueueMessage(scrim, message))
 
@@ -358,9 +352,7 @@ class ScrimManager(Cog, name="Esports"):
         ]
 
         title = "Are these correct?"
-        description = "\n".join(
-            f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1)
-        )
+        description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
 
         confirm = await ctx.prompt(description, title=title)
         confirm = True
@@ -374,27 +366,19 @@ class ScrimManager(Cog, name="Esports"):
             scrims_mod = discord.utils.get(ctx.guild.roles, name="scrims-mod")
 
             if scrims_mod is None:
-                scrims_mod = await ctx.guild.create_role(
-                    name="scrims-mod", color=0x00FFB3, reason=reason
-                )
+                scrims_mod = await ctx.guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
 
             overwrite = registration_channel.overwrites_for(ctx.guild.default_role)
-            overwrite.update(
-                read_messages=True, send_messages=True, read_message_history=True
-            )
+            overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
             await registration_channel.set_permissions(scrims_mod, overwrite=overwrite)
 
             # Srims LOGS
-            scrims_log_channel = discord.utils.get(
-                ctx.guild.text_channels, name="quotient-scrims-logs"
-            )
+            scrims_log_channel = discord.utils.get(ctx.guild.text_channels, name="quotient-scrims-logs")
 
             if scrims_log_channel is None:
                 guild = ctx.guild
                 overwrites = {
-                    guild.default_role: discord.PermissionOverwrite(
-                        read_messages=False
-                    ),
+                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
                     guild.me: discord.PermissionOverwrite(read_messages=True),
                     scrims_mod: discord.PermissionOverwrite(read_messages=True),
                 }
@@ -419,9 +403,7 @@ class ScrimManager(Cog, name="Esports"):
                 await note.pin()
 
             await scrim.save()
-            await self.reminders.create_timer(
-                scrim.open_time, "scrim_open", scrim_id=scrim.id
-            )
+            await self.reminders.create_timer(scrim.open_time, "scrim_open", scrim_id=scrim.id)
             text = f"Scrims Management Setup Complete. (`Scrims ID: {scrim.id}`)"
             try:
                 await message.edit(content=text)
@@ -432,9 +414,7 @@ class ScrimManager(Cog, name="Esports"):
     async def s_edit(self, ctx, *, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
-            raise ScrimError(
-                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
-            )
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
         menu = ConfigEditMenu(scrim=scrim)
         await menu.start(ctx)
 
@@ -442,26 +422,24 @@ class ScrimManager(Cog, name="Esports"):
     async def s_days(self, ctx, *, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
-            raise ScrimError(
-                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
-            )
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
         menu = DaysMenu(scrim=scrim)
         await menu.start(ctx)
 
     # @smanager.command(name="open")
     # async def s_open(self, ctx, scrim_id: int):
-    #     ...
+    #     pass
     # @smanager.command(name="close")
     # async def s_close(self, ctx, scrim_id: int):
-    #     ...
+    #     pass
 
     @smanager.command(name="config")
     async def s_config(self, ctx):
-        ...
+        pass
 
     @smanager.command(name="toggle")
     async def s_toggle(self, ctx, scrim_id: int):
-        ...
+        pass
 
     @smanager.group(name="slotlist", invoke_without_subcommand=True)
     async def s_slotlist(self, ctx):
@@ -471,9 +449,7 @@ class ScrimManager(Cog, name="Esports"):
     async def s_slotlist_send(self, ctx, scrim_id: int):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
-            raise ScrimError(
-                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
-            )
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
         if not len(await scrim.teams_registered):
             return await ctx.error("Nobody registered yet!")
@@ -483,9 +459,7 @@ class ScrimManager(Cog, name="Esports"):
             embed.color = ctx.bot.color
 
             await ctx.send(embed=embed)
-            prompt = await ctx.prompt(
-                "This is how the slotlist looks. Should I send it?"
-            )
+            prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
             if prompt:
                 if channel != None and channel.permissions_for(ctx.me).send_messages:
                     await channel.send(embed=embed)
@@ -498,15 +472,15 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="edit")
     async def s_slotlist_edit(self, ctx, scrim_id: int):
-        ...
+        pass
 
     @smanager.command(name="delete")
     async def s_delete(self, ctx, scr_id: int):
-        ...
+        pass
 
     @smanager.command(name="myslot")
     async def s_myslot(self, ctx, scrim_id: int):
-        ...
+        pass
 
     # ************************************************************************************************
     # ************************************************************************************************
@@ -522,7 +496,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="create")
     async def t_create(self, ctx):
-        ...
+        pass
 
 
 def setup(bot):

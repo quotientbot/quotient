@@ -1,3 +1,6 @@
+import discord, string
+import humanize
+import config
 from utils.default import regional_indicator, keycap_digit
 from utils import inputs, constants
 from discord.ext import menus
@@ -5,24 +8,21 @@ from .errors import ScrimError
 from datetime import datetime, timedelta
 from utils import time
 from models import Scrim, ArrayRemove, ArrayAppend
-
-import discord, string
-import humanize
-import config
+from discord.ext.menus import Button
 
 
 class ScrimID:
     ...
 
 
-async def toggle_channel(channel, role, bool=True):
+async def toggle_channel(channel, role, _bool=True):
     overwrite = channel.overwrites_for(role)
-    overwrite.update(send_messages=bool)
+    overwrite.update(send_messages=_bool)
     try:
         await channel.set_permissions(
             role,
             overwrite=overwrite,
-            reason=f"{'Open for Registrations!' if bool is True else 'Registration is over!'} ",
+            reason=("Registration is over!", "Open for Registrations!")[_bool],  # False=0, True=1
         )
 
         return True
@@ -38,17 +38,11 @@ async def scrim_end_process(ctx, scrim):
     registration_channel = ctx.channel
     open_role = scrim.open_role
 
-    await Scrim.filter(pk=scrim.id).update(
-        opened_at=None, closed_at=datetime.now(tz=constants.IST)
-    )
+    await Scrim.filter(pk=scrim.id).update(opened_at=None, closed_at=datetime.now(tz=constants.IST))
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
 
-    await ctx.send(
-        embed=discord.Embed(
-            color=config.COLOR, description="**Registration is now Closed!**"
-        )
-    )
+    await ctx.send(embed=discord.Embed(color=config.COLOR, description="**Registration is now Closed!**"))
 
     ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
 
@@ -76,21 +70,27 @@ class DaysMenu(menus.Menu):
         )
         self.scrim = scrim
         self.days = scrim.open_days
-        self.check = (
-            lambda msg: msg.channel == self.ctx.channel
-            and msg.author == self.ctx.author
-        )
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+        # Adding buttons dynamically
+        for idx, day in enumerate(constants.Day, start=1):
+
+            def action(day):
+                async def wraps(self, payload):
+                    await self.update_scrim(day)
+
+                return wraps
+
+            self.add_button(Button(keycap_digit(idx), action(day)))
 
     def initial_embed(self):
         scrim = self.scrim
         embed = discord.Embed(color=discord.Color(config.COLOR))
         embed.title = "Edit Open Days: {0}".format(scrim.id)
-
-        description = ""
-
-        for count, i in enumerate(constants.Day, start=1):
-            description += f"{count:02}. {(i.name.title()).ljust(10)}   {'✅' if i in scrim.open_days else '❌'}\n"
-
+        description = "\n".join(
+            f"{idx:02}. {(day.value.title()).ljust(10)}   {('❌', '✅')[day in scrim.open_days]}"
+            for idx, day in enumerate(constants.Day, start=1)
+        )
         embed.description = f"```{description}```"
         return embed
 
@@ -99,14 +99,9 @@ class DaysMenu(menus.Menu):
         await self.message.edit(embed=self.initial_embed())
 
     async def update_scrim(self, day):
-        if constants.Day(day) in self.scrim.open_days:
-            await Scrim.filter(pk=self.scrim.id).update(
-                open_days=ArrayRemove("open_days", constants.Day(day))
-            )
-        else:
-            await Scrim.filter(pk=self.scrim.id).update(
-                open_days=ArrayAppend("open_days", constants.Day(day))
-            )
+        # Lets do some magic
+        func = (ArrayAppend, ArrayRemove)[day in self.scrim.open_days]
+        await Scrim.filter(pk=self.scrim.id).update(open_days=func("open_days", day))
         await self.refresh()
 
     async def send_initial_message(self, ctx, channel):
@@ -115,40 +110,6 @@ class DaysMenu(menus.Menu):
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
         self.stop()
-
-    @menus.button(keycap_digit("1"))
-    async def change_monday(self, payload):
-        await self.update_scrim("monday")
-
-    @menus.button(keycap_digit("2"))
-    async def change_tues(self, payload):
-        await self.update_scrim("tuesday")
-
-    @menus.button(keycap_digit("3"))
-    async def change_wed(self, payload):
-        await self.update_scrim("wednesday")
-
-    @menus.button(keycap_digit("4"))
-    async def change_thu(self, payload):
-        await self.update_scrim("thursday")
-
-    @menus.button(keycap_digit("5"))
-    async def change_fri(self, payload):
-        await self.update_scrim("friday")
-
-    @menus.button(keycap_digit("6"))
-    async def change_sat(self, payload):
-        await self.update_scrim("saturday")
-
-    @menus.button(keycap_digit("7"))
-    async def change_sun(self, payload):
-        await self.update_scrim("sunday")
-
-
-# *****************************************************************************************************
-# *****************************************************************************************************
-# *****************************************************************************************************
-# *****************************************************************************************************
 
 
 class ConfigEditMenu(menus.Menu):
@@ -159,26 +120,17 @@ class ConfigEditMenu(menus.Menu):
             clear_reactions_after=True,
         )
         self.scrim = scrim
-        self.check = (
-            lambda msg: msg.channel == self.ctx.channel
-            and msg.author == self.ctx.author
-        )
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     def initial_embed(self):
         scrim = self.scrim
-        slotlist_channel = getattr(
-            scrim.slotlist_channel, "mention", "`Channel Deleted!`"
-        )
-        registration_channel = getattr(
-            scrim.registration_channel, "mention", "`Channel Deleted!`"
-        )
+        slotlist_channel = getattr(scrim.slotlist_channel, "mention", "`Channel Deleted!`")
+        registration_channel = getattr(scrim.registration_channel, "mention", "`Channel Deleted!`")
         scrim_role = getattr(scrim.role, "mention", "`Role Deleted!`")
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
         ping_role = (
-            getattr(scrim.ping_role, "mention", "`Role Deleted!`")
-            if scrim.ping_role_id
-            else "`Not Configured!`"
+            getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
         )
         open_role = (
             getattr(scrim.open_role, "mention", "`Role Deleted!`")
@@ -233,9 +185,7 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("A"))
     async def change_scrim_name(self, payload):
-        msg = await self.cembed(
-            "What is the new name you want to give to these scrims?"
-        )
+        msg = await self.cembed("What is the new name you want to give to these scrims?")
         name = await inputs.string_input(
             self.ctx,
             self.check,
@@ -284,9 +234,7 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("E"))
     async def change_required_mentions(self, payload):
-        msg = await self.cembed(
-            "How many mentions are required for successful registration?"
-        )
+        msg = await self.cembed("How many mentions are required for successful registration?")
         mentions = await inputs.integer_input(
             self.ctx,
             self.check,
