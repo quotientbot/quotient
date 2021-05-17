@@ -16,7 +16,7 @@ import discord
 import asyncio
 import config
 
-# TODO: update scrim set opened_at = Null at end
+# TODO: a seprate class to check scrim_id in cmd args
 @dataclass
 class QueueMessage:
     scrim: Scrim
@@ -226,9 +226,9 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s",))
+    @commands.group(aliases=("s",), invoke_without_subcommand=True)
     async def smanager(self, ctx):
-        pass
+        await ctx.send_help(ctx.command)
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, ScrimError):
@@ -460,12 +460,24 @@ class ScrimManager(Cog, name="Esports"):
         ...
 
     @smanager.command(name="toggle")
-    async def s_toggle(self, ctx, scrim_id: int):
-        ...
+    async def s_toggle(self, ctx, scrim_id: int, option: str = None):
+
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+
+        valid_opt = ("scrim", "ping", "openrole", "autoclean")
+        display = ",".join(map(lambda s: f"`{s}`", valid_opt))
+        display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim_id} scrim`"
+
+        if not option or option.lower() not in valid_opt:
+            return await ctx.send(display_msg)
 
     @smanager.group(name="slotlist", invoke_without_subcommand=True)
     async def s_slotlist(self, ctx):
-        pass
+        await ctx.send_help(ctx.command)
 
     @s_slotlist.command(name="send")
     async def s_slotlist_send(self, ctx, scrim_id: int):
@@ -501,7 +513,7 @@ class ScrimManager(Cog, name="Esports"):
         ...
 
     @smanager.command(name="delete")
-    async def s_delete(self, ctx, scr_id: int):
+    async def s_delete(self, ctx, scrim_id: int):
         ...
 
     @smanager.command(name="myslot")
