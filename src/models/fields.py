@@ -33,7 +33,7 @@ class EnumArrayField(Field, str):
     SQL_TYPE = "varchar[]"
 
     def to_db_value(self, value: Any, instance: "Union[Type[Model], Model]") -> Any:
-        if inspect.isfunction(value):
+        if inspect.isclass(value) and issubclass(value, Enum):
             value = value()
 
         return [str(val.value) for val in value]
