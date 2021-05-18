@@ -76,3 +76,4 @@ class Quotient(commands.AutoShardedBot):
         print(Style.BRIGHT + f"Logged in as {self.user.name}({self.user.id})")
         print(Style.BRIGHT + f"Currently in {len(self.guilds)} Guilds")
         print(Style.BRIGHT + f"Connected to {len(self.users)} Users")
+        print(Style.BRIGHT + f"Spawned {len(self.shards)} Shards")

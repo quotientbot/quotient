@@ -87,7 +87,7 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed)
 
     async def command_not_found(self, string: str):
-        message = f"Could not find the command `{string}`. "
+        message = f"Could not find the `{string}` command. "
         commands_list = [str(cmd) for cmd in self.context.bot.walk_commands()]
 
         if dym := "\n".join(get_close_matches(string, commands_list)):

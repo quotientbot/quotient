@@ -35,7 +35,9 @@ class Context(commands.Context):
         delete_after=True,
         author_id=None,
     ):
-        """An interactive reaction confirmation dialog."""
+        """
+        An interactive reaction confirmation dialog.
+        """
 
         if not self.channel.permissions_for(self.me).add_reactions:
             raise RuntimeError("Bot does not have Add Reactions permission.")
