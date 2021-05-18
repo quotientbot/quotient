@@ -19,7 +19,7 @@ async def channel_input(ctx, check, timeout=120, delete_after=False):
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         channel = await TextChannelConverter().convert(ctx, message.content)
     except asyncio.TimeoutError:
-        raise InputError("You failed to select a channel in time. Try again!")
+        raise InputError("You failed to select a channel in given time. Try again!")
 
     else:
         if not channel.permissions_for(ctx.me).read_messages:
@@ -38,7 +38,7 @@ async def role_input(ctx, check, timeout=120, hierarchy=True, delete_after=False
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         role = await RoleConverter().convert(ctx, message.content)
     except asyncio.TimeoutError:
-        raise InputError("You failed to select a role in time. Try again!")
+        raise InputError("You failed to select a role in given time. Try again!")
 
     else:
         if hierarchy is True:
@@ -94,7 +94,7 @@ async def integer_input(
     try:
         message = await ctx.bot.wait_for("message", check=new_check, timeout=timeout)
     except asyncio.TimeoutError:
-        raise InputError("You failed to select a number in time. Try again!")
+        raise InputError("You failed to select a number in given time. Try again!")
     else:
         if delete_after:
             await safe_delete(message)
@@ -106,7 +106,7 @@ async def time_input(ctx, check, timeout=120, delete_after=False):
     try:
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
-        raise InputError("Timeout, You have't responsed in time. Try again!")
+        raise InputError("Timeout, You have't responsed in given time. Try again!")
     else:
         try:
             parsed = dateparser.parse(
@@ -123,7 +123,7 @@ async def time_input(ctx, check, timeout=120, delete_after=False):
 
             return parsed
         except TypeError:
-            raise InputError("This isn't valid time format.")
+            raise InputError("This time format is not valid.")#cool
 
 
 async def string_input(ctx, check, timeout=120, delete_after=False):
