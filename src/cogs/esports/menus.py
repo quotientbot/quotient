@@ -1,3 +1,4 @@
+from re import S
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -38,7 +39,7 @@ class SlotEditor(menus.Menu):
 
     @menus.button(keycap_digit(1))
     async def on_one(self, payload):
-        msg = await self.ctx.send(e=discord.Embed(color=config.COLOR, description=f"Which slot do you want to edit?"))
+        msg = await self.ctx.send(embed=discord.Embed(color=config.COLOR, description=f"Which slot do you want to edit?"))
         slot = await inputs.integer_input(
             self.ctx,
             self.check,
@@ -47,16 +48,19 @@ class SlotEditor(menus.Menu):
         )
 
         await inputs.safe_delete(msg)
-        slot = [dict(i) for i in await self.scrim.assigned_slots if dict(i)["num"] == slot]
+        slot = await self.scrim.assigned_slots.filter(num=slot)
         if not len(slot):
+            print("not len")
             await self.ctx.send(
                 e=discord.Embed(color=discord.COLOR.red(), description="You entered an invalid slot number."),
                 delete_after=2,
             )
             await self.refresh()
+
         else:
+
             msg = await self.ctx.send(
-                e=discord.Embed(
+                embed=discord.Embed(
                     color=config.COLOR, description=f"Enter the team name to which you want to give this slot?"
                 )
             )
@@ -64,7 +68,10 @@ class SlotEditor(menus.Menu):
 
             await inputs.safe_delete(msg)
 
-            # TODO: update teamname to the slot where num is `slot`
+            print(slot[0])
+            await slot[0].update(team_name=teamname)
+            print("updated")
+            await self.refresh()
 
     @menus.button(keycap_digit(2))
     async def on_two(self, payload):
