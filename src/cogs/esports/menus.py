@@ -1,4 +1,3 @@
-from re import S
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -48,9 +47,8 @@ class SlotEditor(menus.Menu):
         )
 
         await inputs.safe_delete(msg)
-        slots = self.scrim.assigned_slots.filter(num=slot)
-        if await slots.count() == 0:
-            print("not len")
+        slots = await self.scrim.assigned_slots.filter(num=slot).first()
+        if not slots:
             await self.ctx.send(
                 e=discord.Embed(color=discord.COLOR.red(), description="You entered an invalid slot number."),
                 delete_after=2,
@@ -67,8 +65,8 @@ class SlotEditor(menus.Menu):
             teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
             await inputs.safe_delete(msg)
-            await slots.update(team_name=teamname)
-            print("updated")
+
+            await AssignedSlot.filter(id=slots.id).update(team_name=teamname)
             await self.refresh()
 
     @menus.button(keycap_digit(2))
@@ -77,12 +75,12 @@ class SlotEditor(menus.Menu):
         teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
         await inputs.safe_delete(msg)
 
-        assigned_slots = await self.scrim.assigned_slots.all().count()
-
+        assigned_slots = (await self.scrim.assigned_slots.order_by("num"))[-1]
+        # why? because idk how to reverse the results and don't want to go through the docs right now
         slot = await AssignedSlot.create(
             user_id=self.ctx.author.id,
             team_name=teamname,
-            num=assigned_slots + 1,
+            num=assigned_slots.num + 1,
             jump_url=self.ctx.message.jump_url,
         )
 
