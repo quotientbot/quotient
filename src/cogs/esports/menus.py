@@ -75,8 +75,7 @@ class SlotEditor(menus.Menu):
         teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
         await inputs.safe_delete(msg)
 
-        assigned_slots = (await self.scrim.assigned_slots.order_by("num"))[-1]
-        # why? because idk how to reverse the results and don't want to go through the docs right now
+        assigned_slots = await self.scrim.assigned_slots.order_by("-num").first()
         slot = await AssignedSlot.create(
             user_id=self.ctx.author.id,
             team_name=teamname,
