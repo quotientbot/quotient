@@ -28,8 +28,6 @@ QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord
 
 
 class ScrimManager(Cog, name="Esports"):
-    icon = "🏅"
-
     def __init__(self, bot):
         self.bot = bot
         self.queue = asyncio.Queue()
