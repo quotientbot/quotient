@@ -483,12 +483,12 @@ class ScrimManager(Cog, name="Esports"):
             if prompt:
                 if channel != None and channel.permissions_for(ctx.me).send_messages:
                     await channel.send(embed=embed)
-                    await ctx.send_m(f"Slotlist sent successfully!")
+                    await ctx.success(f"Slotlist sent successfully!")
                 else:
                     await ctx.error(f"I can't send messages in {channel}")
 
             else:
-                await ctx.send_m(f"Ok!")
+                await ctx.success(f"Ok!")
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
@@ -517,9 +517,9 @@ class ScrimManager(Cog, name="Esports"):
         )
         if prompt:
             await scrim.delete()
-            await ctx.send_m(f"Scrim (`{scrim.id}`) deleted successfully.")
+            await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
-            await ctx.send_m(f"Alright! Aborting")
+            await ctx.success(f"Alright! Aborting")
 
     # ************************************************************************************************
     # ************************************************************************************************

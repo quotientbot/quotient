@@ -86,9 +86,10 @@ class Context(commands.Context):
             delete_after=delete_after,
         )
 
-    async def send_m(self, message, delete_after=None):
+    async def success(self, message, delete_after=None):
         return await self.send(
             embed=discord.Embed(
-                description=f"{utils.check} | {message}", color=self.config.COLOR
-            )
+                description=f"{utils.check} | {message}",
+                color=self.config.COLOR,
+            ),
         )

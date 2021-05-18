@@ -6,7 +6,6 @@ import humanize
 import config
 
 
-
 class ScrimID:
     pass
 

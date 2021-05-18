@@ -1,7 +1,7 @@
-from discord.ext import commands
-from models import Scrim
-from core import Cog
 import discord
+from core import Cog
+from models import Scrim
+from discord.ext import commands
 
 
 class ScrimError(commands.CommandError):
