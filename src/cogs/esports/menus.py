@@ -48,8 +48,8 @@ class SlotEditor(menus.Menu):
         )
 
         await inputs.safe_delete(msg)
-        slot = await self.scrim.assigned_slots.filter(num=slot)
-        if not len(slot):
+        slots = self.scrim.assigned_slots.filter(num=slot)
+        if await slots.count() == 0:
             print("not len")
             await self.ctx.send(
                 e=discord.Embed(color=discord.COLOR.red(), description="You entered an invalid slot number."),
@@ -67,9 +67,7 @@ class SlotEditor(menus.Menu):
             teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
             await inputs.safe_delete(msg)
-
-            print(slot[0])
-            await slot[0].update(team_name=teamname)
+            await slots.update(team_name=teamname)
             print("updated")
             await self.refresh()
 
