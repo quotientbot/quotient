@@ -434,7 +434,31 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="config")
     @checks.can_use_sm()
     async def s_config(self, ctx):
-        pass
+        allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
+
+        if not len(allscrims):
+            return await ctx.send(
+                f"You do not have any scrims setup on this server.\n\nKindly use `{ctx.prefix}smanager setup` to setup one."
+            )
+
+        to_paginate = []
+        for idx, scrim in enumerate(allscrims, start=1):
+            reg_channel = getattr(scrim.registration_channel, "mention", "`Channel Deleted!`")
+            slot_channel = getattr(scrim.slotlist_channel, "mention", "`Channel Deleted!`")
+
+            role = getattr(scrim.role, "mention", "`Role Deleted!`")
+            open_time = (scrim.open_time).strftime("%I:%M %p")
+            open_role = getattr(scrim.open_role, "mention", "`Role Deleted!`")
+            ping_role = getattr(scrim.ping_role, "mention", "`Not Set!`")
+            mystring = f"> Scrim ID: `{scrim.id}`\n> Name: `{scrim.name}`\n> Registration Channel: {reg_channel}\n> Slotlist Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{scrim.required_mentions}`\n> Total Slots: `{scrim.total_slots}`\n> Open Time: `{open_time}`\n> Toggle: `{scrim.stoggle}`\n> Open Role: {open_role}\n> Ping Role: {ping_role}"
+
+            to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")
+
+        paginator = Pages(
+            ctx, title="Total Scrims: {}".format(len(to_paginate)), entries=to_paginate, per_page=1, show_entry_count=True
+        )
+
+        await paginator.paginate()
 
     # ************************************************************************************************
 
