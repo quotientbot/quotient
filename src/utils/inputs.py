@@ -130,7 +130,7 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
     try:
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
-        raise InputError("Response timed out!")
+        raise InputError("Took too long. Good Bye.") # This would sound cooler.
     else:
         if delete_after:
             await safe_delete(message)
