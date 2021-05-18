@@ -10,9 +10,7 @@ def find_team(message):
     if teamname is None:
         return f"{author}'s slot"
 
-    teamname = (
-        re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())
-    ).strip()
+    teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
 
     return f"Team {teamname.title()}" if teamname else f"{author}'s slot"
 
@@ -30,3 +28,11 @@ def keycap_digit(c: Union[int, str]) -> str:
     elif c == 10:
         return "\U000FE83B"
     raise ValueError("Invalid keycap digit")
+
+
+async def aenumerate(asequence, start=0):
+    """Asynchronously enumerate an async iterator from a given start value"""
+    n = start
+    async for elem in asequence:
+        yield n, elem
+        n += 1

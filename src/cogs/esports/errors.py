@@ -17,9 +17,7 @@ class SMError(Cog):
         return embed
 
     @Cog.listener()
-    async def on_scrim_registration_deny(
-        self, message: discord.Message, type: str, scrim: Scrim
-    ):
+    async def on_scrim_registration_deny(self, message: discord.Message, type: str, scrim: Scrim):
         logschan = scrim.logschan
 
         await message.add_reaction("\N{CROSS MARK}")
@@ -30,9 +28,7 @@ class SMError(Cog):
 
         if type == "mentioned_bots":
             await message.reply(
-                embed=self.red_embed(
-                    "Don't mention Bots. Mention your real teammates."
-                ),
+                embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
                 delete_after=5,
             )
             e.description += f"Mentioned Bots."
@@ -48,9 +44,7 @@ class SMError(Cog):
 
         elif type == "banned":
             await message.reply(
-                embed=self.red_embed(
-                    f"{str(message.author)}, You are banned from the scrims. You cannot register."
-                ),
+                embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
                 delete_after=5,
             )
             e.description += f"They are banned from scrims."
@@ -79,9 +73,7 @@ class SMError(Cog):
             if not permission_updated:
                 imp = True
                 embed.color = discord.Color.red()
-                embed.description += (
-                    f"\nI couldn't open {registration_channel.mention}."
-                )
+                embed.description += f"\nI couldn't open {registration_channel.mention}."
 
         elif type == "closed":
             permission_updated = kwargs.get("permission_updated")
@@ -93,12 +85,9 @@ class SMError(Cog):
             if not permission_updated:
                 imp = True
                 embed.color = discord.Color.red()
-                embed.description += (
-                    f"\nI couldn't close {registration_channel.mention}."
-                )
+                embed.description += f"\nI couldn't close {registration_channel.mention}."
 
         elif type == "reg_success":
-
             message = kwargs.get("message")
             role_added = kwargs.get("role_added")
 
@@ -109,13 +98,9 @@ class SMError(Cog):
             if role_added is False:
                 imp = True
                 embed.color = discord.Color.red()
-                embed.description += (
-                    f"\nUnfortunately I couldn't give them {role.mention}."
-                )
-        if (
-            logschan != None
-            and logschan.permissions_for(logschan.guild.me).send_messages
-        ):
+                embed.description += f"\nUnfortunately I couldn't give them {role.mention}."
+
+        if logschan != None and logschan.permissions_for(logschan.guild.me).send_messages:
             await logschan.send(
                 content=modrole.mention if modrole != None and imp is True else None,
                 embed=embed,
