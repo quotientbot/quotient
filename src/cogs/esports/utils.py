@@ -1,3 +1,4 @@
+from typing import NoReturn
 from models import Scrim
 from datetime import datetime, timedelta
 from utils import constants
@@ -54,7 +55,7 @@ async def is_valid_scrim(bot, scrim) -> bool:
     return _bool
 
 
-async def postpone_scrim(bot, scrim):
+async def postpone_scrim(bot, scrim) -> NoReturn:
     reminder = bot.get_cog("Reminders")
 
     await Scrim.filter(pk=scrim.id).update(open_time=scrim.open_time + timedelta(hours=24))
@@ -67,7 +68,7 @@ async def postpone_scrim(bot, scrim):
     )
 
 
-async def toggle_channel(channel, role, _bool=True):
+async def toggle_channel(channel, role, _bool=True) -> bool:
     overwrite = channel.overwrites_for(role)
     overwrite.update(send_messages=_bool)
     try:
@@ -83,7 +84,7 @@ async def toggle_channel(channel, role, _bool=True):
         return False
 
 
-async def scrim_end_process(ctx, scrim):
+async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     opened_at = scrim.opened_at
     closed_at = datetime.now(tz=constants.IST)
 
@@ -98,7 +99,7 @@ async def scrim_end_process(ctx, scrim):
 
     ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
 
-    if scrim.autoslotlist:
+    if scrim.autoslotlist and len(await scrim.teams_registered):
         time_taken = closed_at - opened_at
         delta = datetime.now() - timedelta(seconds=time_taken.total_seconds())
 
