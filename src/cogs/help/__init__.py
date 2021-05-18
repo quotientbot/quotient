@@ -48,7 +48,7 @@ class HelpCommand(commands.HelpCommand):
         embed.set_footer(text=f'Use "{self.clean_prefix}help <command>" for more information.')
         embed.add_field(
             name="Subcommands",
-            value="\n".join(f"`{self.clean_prefix}{c.qualified_name}`: {c.short_doc}" for c in group.commands),
+            value="\n".join(f"`{self.clean_prefix}{c.qualified_name}` : {c.short_doc}" for c in group.commands),
         )
         if group.aliases:
             embed.add_field(name="Aliases", value=", ".join(f"`{aliases}`" for aliases in group.aliases), inline=False)
