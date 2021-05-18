@@ -2,7 +2,7 @@ import config
 from discord.ext import menus
 from discord.ext.menus import Button
 import string
-from models import Scrim
+from models import Scrim, AssignedSlot
 from utils import *
 from models.functions import *
 from .errors import ScrimError
@@ -19,9 +19,9 @@ class SlotEditor(menus.Menu):
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     async def initial_embed(self):
-        embed, channel = await self.scrim.create_slotlist
+        embed, channel = await self.scrim.create_slotlist()
         embed.color = config.COLOR
-        embed.description += f"\n\n\N{BLACK SQUARE FOR STOP}\ufe0f | Remove changes and Abort.\n{keycap_digit(1)} | Change a slot.\n{keycap_digit(2)} | Insert one more slot.\n✅ | Save and Send."
+        embed.description += f"\n\n\N{BLACK SQUARE FOR STOP}\ufe0f | Remove changes and Abort.\n{keycap_digit(1)} | Change a slot.\n{keycap_digit(2)} | Insert one more slot.\n✅ | Send And Exit."
 
         return embed
 
@@ -38,7 +38,7 @@ class SlotEditor(menus.Menu):
 
     @menus.button(keycap_digit(1))
     async def on_one(self, payload):
-        msg = await self.send(e=discord.Embed(color=config.COLOR, description=f"Which slot do you want to edit?"))
+        msg = await self.ctx.send(e=discord.Embed(color=config.COLOR, description=f"Which slot do you want to edit?"))
         slot = await inputs.integer_input(
             self.ctx,
             self.check,
@@ -55,7 +55,7 @@ class SlotEditor(menus.Menu):
             )
             await self.refresh()
         else:
-            msg = await self.send(
+            msg = await self.ctx.send(
                 e=discord.Embed(
                     color=config.COLOR, description=f"Enter the team name to which you want to give this slot?"
                 )
@@ -68,11 +68,42 @@ class SlotEditor(menus.Menu):
 
     @menus.button(keycap_digit(2))
     async def on_two(self, payload):
-        ...
+        msg = await self.ctx.send(embed=discord.Embed(color=config.COLOR, description="Enter new team's name."))
+        teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        await inputs.safe_delete(msg)
+
+        assigned_slots = await self.scrim.assigned_slots.all().count()
+
+        slot = await AssignedSlot.create(
+            user_id=self.ctx.author.id,
+            team_name=teamname,
+            num=assigned_slots + 1,
+            jump_url=self.ctx.message.jump_url,
+        )
+
+        await self.scrim.assigned_slots.add(slot)
+        await self.refresh()
 
     @menus.button("✅")
     async def on_check(self, payload):
-        ...
+        embed, channel = await self.scrim.create_slotlist()
+        embed.color = config.COLOR
+        if not channel:
+            await self.ctx.error("I couldn't find slotlist channel.")
+
+        elif self.scrim.slotlist_message_id != None:
+            slotmsg = channel.get_partial_message(self.scrim.slotlist_message_id)
+
+            if slotmsg:
+                await slotmsg.edit(embed=embed)
+
+            else:
+                await channel.send(embed=embed)
+
+        else:
+            await channel.send(embed=embed)
+
+        self.stop()
 
 
 class DaysMenu(menus.Menu):
@@ -143,9 +174,7 @@ class ConfigEditMenu(menus.Menu):
         scrim_role = getattr(scrim.role, "mention", "`Role Deleted!`")
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
-        ping_role = (
-            getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
-        )
+        ping_role = getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
         open_role = (
             getattr(scrim.open_role, "mention", "`Role Deleted!`")
             if scrim.open_role_id
@@ -289,10 +318,6 @@ class ConfigEditMenu(menus.Menu):
         )
 
         await self.update_scrim(open_time=open_time)
-
-    # @menus.button(regional_indicator("H"))
-    # async def change_open_sunday(self, payload):
-    #     await self.update_scrim(open_sunday=not self.scrim.open_sunday)
 
     @menus.button(regional_indicator("H"))
     async def change_cleanup(self, payload):

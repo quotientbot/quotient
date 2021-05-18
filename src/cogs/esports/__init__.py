@@ -23,6 +23,7 @@ from .menus import *
 from typing import NamedTuple
 
 # TODO: a seprate class to check scrim_id in cmd args
+
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 
 
@@ -295,8 +296,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(
             embed=self.config_embed(
                 4,
-                "How many mentions are required for successful registration?"
-                " (Can't be more than 10 or less than 0.)",
+                "How many mentions are required for successful registration?" " (Can't be more than 10 or less than 0.)",
             )
         )
 
@@ -469,7 +469,7 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.error("Nobody registered yet!")
 
         else:
-            embed, channel = await scrim.create_slotlist
+            embed, channel = await scrim.create_slotlist()
             embed.color = ctx.bot.color
 
             await ctx.send(embed=embed)

@@ -151,7 +151,6 @@ class Scrim(models.Model):
     name = fields.TextField(default="Quotient-Scrims")
     registration_channel_id = fields.BigIntField()
     slotlist_channel_id = fields.BigIntField()
-    slotlist_sent = fields.BooleanField(default=False)
     slotlist_message_id = fields.BigIntField(null=True)
     role_id = fields.BigIntField(null=True)
     required_mentions = fields.IntField()
@@ -250,7 +249,7 @@ class Scrim(models.Model):
 
     async def create_slotlist(self):
         slots = await self.teams_registered
-        description = "\n".join(await f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
+        description = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
         embed = discord.Embed(title=self.name + " Slotlist", description=f"```{description}```")
         channel = self.slotlist_channel
         return embed, channel
