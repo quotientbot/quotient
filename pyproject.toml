@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quotient-bot"
-version = "0.1.0"
+version = "3.5.0"
 description = ""
 authors = ["deadaf <askpygod@gmail.com>"]
 
@@ -21,3 +21,6 @@ black = {version = "^21.5b1", allow-prereleases = true}
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 122

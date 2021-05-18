@@ -7,7 +7,7 @@ import config
 
 
 class ScrimID:
-    pass
+    ...
 
 
 async def is_valid_scrim(bot, scrim) -> bool:
