@@ -120,7 +120,11 @@ class ScrimManager(Cog, name="Esports"):
             f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
         )
 
-        await scrim.assigned_slots.clear()  # Deleting all previously assigned slots.
+        oldslots = await scrim.assigned_slots
+        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
+
+        
+        await scrim.assigned_slots.clear()
 
         async for slot in scrim.reserved_slots.all():
             count = await scrim.assinged_slots.all().count()
