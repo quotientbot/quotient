@@ -3,7 +3,7 @@ from discord.ext import menus
 from discord.ext.menus import Button
 import string
 from models import Scrim
-from .utils import *
+from utils import *
 from models.functions import *
 from .errors import ScrimError
 

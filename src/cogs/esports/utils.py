@@ -1,15 +1,10 @@
-from utils import regional_indicator, keycap_digit
 from models import Scrim
-from models.functions import ArrayRemove, ArrayAppend
 from datetime import datetime, timedelta
-from discord.ext.menus import Button
-from utils import inputs, constants
-from .errors import ScrimError
-from discord.ext import menus
-
-import discord, string
+from utils import constants
+import discord
 import humanize
 import config
+
 
 
 class ScrimID:
