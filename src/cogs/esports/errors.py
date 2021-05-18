@@ -7,6 +7,7 @@ from discord.ext import commands
 class ScrimError(commands.CommandError):
     pass
 
+#well yeah the name is SMError but this cog serve much more than just that.
 
 class SMError(Cog):
     def __init__(self, bot):
@@ -106,3 +107,8 @@ class SMError(Cog):
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
+
+
+    @Cog.listener()
+    async def on_scrim_cmd_log(self,**kwargs):
+        ...

@@ -123,7 +123,6 @@ class ScrimManager(Cog, name="Esports"):
         oldslots = await scrim.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
 
-        
         await scrim.assigned_slots.clear()
 
         async for slot in scrim.reserved_slots.all():
@@ -429,9 +428,25 @@ class ScrimManager(Cog, name="Esports"):
     # @smanager.command(name="open")
     # async def s_open(self, ctx, scrim_id: int):
     #     pass
-    # @smanager.command(name="close")
-    # async def s_close(self, ctx, scrim_id: int):
-    #     pass
+
+    @smanager.command(name="close")
+    @checks.can_use_sm()
+    async def s_close(self, ctx, scrim_id: int):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        if scrim.opened_at is None:
+            return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
+
+        else:
+            prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
+            if prompt:
+                await scrim_end_process(ctx, scrim)
+                await ctx.message.add_reaction(emote.check)
+
+            else:
+                await ctx.success(f"Ok!")
 
     @smanager.command(name="config")
     @checks.can_use_sm()
