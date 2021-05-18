@@ -5,12 +5,11 @@ from .utils import (
     is_valid_scrim,
 )
 from discord.ext.commands.cooldowns import BucketType
-from models import AssignedSlot, Scrim, Timer
+from models import *
 from utils import default, time, day_today
 from datetime import timedelta, datetime
 from utils.constants import IST, Day
 from discord import AllowedMentions
-from dataclasses import dataclass
 from discord.ext import commands
 
 from .errors import ScrimError, SMError
@@ -21,15 +20,10 @@ import discord
 import asyncio
 import config
 from .menus import *
+from typing import NamedTuple
 
 # TODO: a seprate class to check scrim_id in cmd args
-@dataclass
-class QueueMessage:
-    scrim: Scrim
-    message: discord.Message
-
-    def __iter__(self):
-        return iter((self.scrim, self.message))
+QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 
 
 class ScrimManager(Cog, name="Esports"):
@@ -51,7 +45,7 @@ class ScrimManager(Cog, name="Esports"):
     async def registration_worker(self):
         while True:
             queue_message: QueueMessage = await self.queue.get()
-            scrim, message = queue_message
+            scrim, message = queue_message.scrim, queue_message.message
 
             ctx = await self.bot.get_context(message)
 
