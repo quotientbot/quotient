@@ -1,13 +1,15 @@
 import discord
 from core import Cog
-from models import Scrim
 from discord.ext import commands
+from models import Scrim, Timer, BannedTeam
 
 
 class ScrimError(commands.CommandError):
     pass
 
-#well yeah the name is SMError but this cog serve much more than just that.
+
+# well yeah the name is SMError but this cog serve much more than just that.
+
 
 class SMError(Cog):
     def __init__(self, bot):
@@ -55,9 +57,8 @@ class SMError(Cog):
                 return await logschan.send(embed=e)
             else:
                 text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
-                embed=self.red_embed(text)
+                embed = self.red_embed(text)
                 return await logschan.send(embed=embed)
-            
 
     @Cog.listener()
     async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
@@ -114,7 +115,38 @@ class SMError(Cog):
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
 
+    @Cog.listener()
+    async def on_scrim_unban_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+        user_id = timer.kwargs["user_id"]
+        banned_by = timer.kwargs["banned_by"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if scrim is None:
+            # probably deleted
+            await scrim.delete()
+
+        guild = scrim.guild
+        if guild is None:  # sed
+            await scrim.delete()
+
+        if not user_id in await scrim.banned_user_ids():
+            # probably unbanned manually with the command.
+            return
+
+        ban = await scrim.banned_teams.filter(user_id=user_id).first()
+        await BannedTeam.filter(id=ban.id).delete()
+
+        logschan = scrim.logschan
+        if logschan is not None and logschan.permissions_for(guild.me).send_messages:
+            banner = guild.get_member(banned_by) or self.bot.get_user(banned_by)
+            user = guild.get_member(user_id) or self.bot.get_user(user_id)
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                description=f"{user} ({user_id}) have been unbanned from Scrim (`{scrim.id}`).\nThey were banned by {banner} ({banned_by}).",
+            )
+            await logschan.send(embed=embed)
 
     @Cog.listener()
-    async def on_scrim_cmd_log(self,**kwargs):
+    async def on_scrim_cmd_log(self, **kwargs):
         ...

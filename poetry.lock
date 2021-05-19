@@ -303,6 +303,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "parsedatetime"
+version = "2.6"
+description = "Parse human-readable date/time text."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pathspec"
 version = "0.8.1"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -439,7 +447,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9ef30e42bf3ec1cbc84ba11098314e522e4a3d0d6f074f850038b79c94d24a38"
+content-hash = "6ba63ea398feac6795dd846cfa031ebbc1ff165d79ac6665bd64b595166657e1"
 
 [metadata.files]
 aerich = [
@@ -628,6 +636,10 @@ multidict = [
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
+]
+parsedatetime = [
+    {file = "parsedatetime-2.6-py3-none-any.whl", hash = "sha256:cb96edd7016872f58479e35879294258c71437195760746faffedb692aef000b"},
+    {file = "parsedatetime-2.6.tar.gz", hash = "sha256:4cb368fbb18a0b7231f4d76119165451c8d2e35951455dfee97c62a87b04d455"},
 ]
 pathspec = [
     {file = "pathspec-0.8.1-py2.py3-none-any.whl", hash = "sha256:aa0cb481c4041bf52ffa7b0d8fa6cd3e88a2ca4879c533c9153882ee2556790d"},

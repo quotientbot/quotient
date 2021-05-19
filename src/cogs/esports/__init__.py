@@ -4,16 +4,16 @@ from .utils import (
     postpone_scrim,
     is_valid_scrim,
 )
+from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime
 from discord.ext.commands.cooldowns import BucketType
 from models import *
-from utils import default, time, day_today
+
 from datetime import timedelta, datetime
-from utils.constants import IST, Day
 from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError
-from utils import inputs, checks
+from utils import time as stringtime, human_timedelta
 from core import Cog
 
 import discord
@@ -206,7 +206,7 @@ class ScrimManager(Cog, name="Esports"):
         elif not len(message.mentions) >= scrim.required_mentions:
             return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
 
-        elif message.author.id in scrim.banned_users_ids:
+        elif message.author.id in await scrim.banned_user_ids():
             return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
 
         self.queue.put_nowait(QueueMessage(scrim, message))
@@ -555,6 +555,46 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
             await ctx.success(f"Alright! Aborting")
+
+    @smanager.command(name="ban")
+    async def s_ban(self, ctx, scrim_id: int, user: discord.Member, *, time: FutureTime = None):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        if user.id in await scrim.banned_user_ids():
+            return await ctx.send(
+                f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim_id} {str(user)}` to unban them."
+            )
+
+        ban = await BannedTeam.create(user_id=user.id, expires=time.dt)
+        await scrim.banned_teams.add(ban)
+
+        if time != None:
+            await self.reminders.create_timer(
+                time.dt, "scrim_unban", scrim_id=scrim.id, user_id=user.id, banned_by=ctx.author.id
+            )
+
+            await ctx.success(
+                f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`) for **{human_timedelta(time.dt)}**"
+            )
+        else:
+            await ctx.success(f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`)")
+
+    @smanager.command(name="unban")
+    async def s_unban(self, ctx, scrim_id: int, user: discord.Member):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        if not user.id in await scrim.banned_user_ids():
+            return await ctx.send(
+                f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban {str(user)}` to ban them."
+            )
+
+        ban = await scrim.banned_teams.filter(user_id=user.id).first()
+        await BannedTeam.filter(id=ban.id).delete()
+        await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim_id}`)")
 
     # ************************************************************************************************
     # ************************************************************************************************

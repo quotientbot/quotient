@@ -7,14 +7,23 @@ class SMNotUsable(commands.CheckFailure):
     pass
 
 
+class PastTime(commands.CheckFailure):
+    pass
+
+
+class InvalidTime(commands.CheckFailure):
+    pass
+
+
 def can_use_sm():  # basic check
     async def predicate(ctx):
-        if ctx.author.guild_permissions.manage_guild or 'scrims-mod' in [role.name.lower() for role in ctx.author.roles]:
+        if ctx.author.guild_permissions.manage_guild or "scrims-mod" in [role.name.lower() for role in ctx.author.roles]:
             return True
         else:
             raise SMNotUsable()
 
     return commands.check(predicate)
+
 
 async def has_any_role_check(ctx: Context, *roles: Union[str, int]) -> bool:
     """
