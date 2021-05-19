@@ -165,7 +165,7 @@ class Scrim(models.Model):
     ping_role_id = fields.BigIntField(null=True)
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
-    open_days = EnumArrayField(Day, default=Day)
+    open_days = EnumArrayField(Day, default=Day.__iter__)
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
 
