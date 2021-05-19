@@ -6,6 +6,7 @@ from .Context import Context
 from typing import NoReturn
 import aiohttp, asyncio, os
 import config, asyncpg
+from utils import cache
 import traceback
 
 init(autoreset=True)
@@ -28,9 +29,7 @@ class Quotient(commands.AutoShardedBot):
             strip_after_prefix=True,
             case_insensitive=True,
             chunk_guilds_at_startup=False,
-            allowed_mentions=AllowedMentions(
-                everyone=False, roles=False, replied_user=True, users=True
-            ),
+            allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             **kwargs,
         )
 
@@ -54,6 +53,7 @@ class Quotient(commands.AutoShardedBot):
         self.db = await asyncpg.create_pool(**config.POSTGRESQL)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
+        await cache(self)
 
         # Initializing Models (Assigning Bot attribute to all models)
         for mname, model in Tortoise.apps.get("models").items():

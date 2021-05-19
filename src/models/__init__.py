@@ -1,1 +1,1 @@
-from .models import Scrim, Timer, AssignedSlot, ReservedSlot, BannedTeam, TagCheck
+from .models import Scrim, Timer, AssignedSlot, ReservedSlot, BannedTeam, TagCheck, Guild

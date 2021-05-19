@@ -5,79 +5,67 @@ from tortoise import fields, models
 import discord, config
 
 
-# class Guild(models.Model):
-#     class Meta:
-#         table = "guild_data"
+class Guild(models.Model):
+    class Meta:
+        table = "guild_data"
 
-#     guild_id = fields.BigIntField(pk=True)
-#     prefix = fields.CharField(default="q")
-#     embed_color = fields.IntField(default=65459)
-#     embed_footer = fields.TextField(
-#         default=config.FOOTER
-#     )  # i am not sure if its a good idea to insert it by default :c
-#     bot_master = BigIntArrayField(
-#         default=list
-#     )  # they can use all quo cmds even if they don't have required permissions
-#     mute_role = fields.BigIntField(null=True)
-#     muted_members = BigIntArrayField(default=list)
-#     tag_enabled_for_everyone = fields.BooleanField(
-#         default=True
-#     )  # ye naam maine ni rkha sachi
-#     emoji_stealer_channel = fields.BigIntField(null=True)
-#     emoji_stealer_message = fields.BigIntField(null=True)
-#     is_premium = fields.BooleanField(default=False)
-#     made_premium_by = fields.BigIntField(null=True)
-#     premium_end_time = fields.DatetimeField(null=True)
-#     premium_notified = fields.BooleanField(
-#         default=False
-#     )  # this is useful, I just don't remember where :c
-#     public_profile = fields.BooleanField(
-#         default=True
-#     )  # whether to list the server on global leaderboards
-#     private_channel = fields.BigIntField(null=True)
-#     private_webhook = fields.TextField(null=True)
-#     disabled_channels = BigIntArrayField(
-#         default=list
-#     )  # channels where bot won't reply to cmds
-#     disabled_commands = CharVarArrayField(default=list)
-#     disabled_users = BigIntArrayField(default=list)
-#     censored = CharVarArrayField(default=list)  # will shift this to automod
+    guild_id = fields.BigIntField(pk=True)
+    prefix = fields.CharField(default="q", max_length=5)
+    embed_color = fields.IntField(default=65459, null=True)
+    embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
+    bot_master = BigIntArrayField(default=list)  # they can use all quo cmds even if they don't have required permissions
+    mute_role = fields.BigIntField(null=True)
+    muted_members = BigIntArrayField(default=list)
+    tag_enabled_for_everyone = fields.BooleanField(default=True)  # ye naam maine ni rkha sachi
+    emoji_stealer_channel = fields.BigIntField(null=True)
+    emoji_stealer_message = fields.BigIntField(null=True)
+    is_premium = fields.BooleanField(default=False)
+    made_premium_by = fields.BigIntField(null=True)
+    premium_end_time = fields.DatetimeField(null=True)
+    premium_notified = fields.BooleanField(default=False)  # this is useful, I just don't remember where :c
+    public_profile = fields.BooleanField(default=True)  # whether to list the server on global leaderboards
+    private_channel = fields.BigIntField(null=True)
+    private_webhook = fields.TextField(null=True)
+    disabled_channels = BigIntArrayField(default=list)  # channels where bot won't reply to cmds
+    disabled_commands = CharVarArrayField(default=list)
+    disabled_users = BigIntArrayField(default=list)
+    censored = CharVarArrayField(default=list)  # will shift this to automod
 
-#     @property
-#     def obj(self):  # Guild.guild utna acha nai lgta :c
-#         return self.bot.get_guild(self.guild_id)
+    @property
+    def obj(self):  # Guild.guild utna acha nai lgta :c
+        return self.bot.get_guild(self.guild_id)
 
-#     @property
-#     def mute_role(self):
-#         if self.guild is not None:
-#             return self.guild.get_role(self.mute_role)
+    @property
+    def mute_role(self):
+        if self.guild is not None:
+            return self.guild.get_role(self.mute_role)
 
-#     @property
-#     def muted_members(self):
-#         return list(map(self.bot.get_user, self.muted_members))
+    @property
+    def muted_members(self):
+        return list(map(self.bot.get_user, self.muted_members))
 
-#     # ************************************************************************************************
+    # ************************************************************************************************
 
 
-# class User(models.Model):
-#     class Meta:
-#         table = "user_data"
+class User(models.Model):
+    class Meta:
+        table = "user_data"
 
-#     user_id = fields.BigIntField(pk=True)
-#     is_premium = fields.BooleanField(default=False)
-#     premium_expire_time = fields.DatetimeField(null=True)
-#     made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
-#     premiums = fields.IntField(default=0)
-#     premium_notified = fields.BooleanField(default=False)
-#     public_profile = fields.BooleanField(default=True)
-#     badges = CharVarArrayField(default=list)
+    user_id = fields.BigIntField(pk=True)
+    is_premium = fields.BooleanField(default=False)
+    premium_expire_time = fields.DatetimeField(null=True)
+    made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
+    premiums = fields.IntField(default=0)
+    premium_notified = fields.BooleanField(default=False)
+    public_profile = fields.BooleanField(default=True)
+    badges = CharVarArrayField(default=list)
 
-#     @property
-#     def obj(self):
-#         return self.bot.get_user(self.user_id)
+    @property
+    def obj(self):
+        return self.bot.get_user(self.user_id)
 
 
-# # ************************************************************************************************
+# ************************************************************************************************
 
 
 # class Logging(models.Model):
@@ -311,16 +299,17 @@ class TagCheck(models.Model):
 
 # ************************************************************************************************
 
+
 # class Fornite(models.Model):
 #     class Meta:
 #         table = "fn.settings"
 
 #     guild_id = fields.BigIntField(pk=True)
 #     suspended_role_id = fields.BigIntField()
-#     yunite_api_key = fields.TextField()
+#     is_authorized = fields.BooleanField(default=False)
 #     logging_channel_id = fields.BigIntField()
 #     logging_toggle = fields.BooleanField(default=True)
-#     data = fields.ManyToManyField("models.ForData")
+#     data: fields.ManyToManyRelation["ForData"] = fields.ManyToManyField("models.ForData")
 
 #     @property
 #     def guild(self):
@@ -348,5 +337,6 @@ class TagCheck(models.Model):
 #     expire_time = fields.DatetimeField()
 #     reason = fields.TextField(null=True)
 #     jump_url = fields.TextField(null=True)
+
 
 # ************************************************************************************************
