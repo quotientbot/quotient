@@ -296,6 +296,21 @@ class BannedTeam(BaseSlot):
 # ************************************************************************************************
 
 
+class TagCheck(models.Model):
+    class Meta:
+        table = "tagcheck"
+
+    guild_id = fields.BigIntField(pk=True)
+    channel_id = fields.BigIntField()
+    required_mentions = fields.IntField(default=0)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+
+
+# ************************************************************************************************
+
 # class Fornite(models.Model):
 #     class Meta:
 #         table = "fn.settings"

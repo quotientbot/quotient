@@ -41,6 +41,12 @@ class ScrimManager(Cog, name="Esports"):
         async for record in records:
             self.registration_channels.add(record.registration_channel_id)
 
+        records = TagCheck.all()
+        self.tagcheck_channels = set()
+
+        async for record in records:
+            self.tagcheck_channels.add(record.channel_id)
+
     async def registration_worker(self):
         while True:
             queue_message: QueueMessage = await self.queue.get()
@@ -213,8 +219,11 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s",), invoke_without_command=True)
+    @commands.group(aliases=("s", "sm"), invoke_without_command=True)
     async def smanager(self, ctx):
+        """
+        Contains commands related to Quotient's powerful scrims manager.
+        """
         await ctx.send_help(ctx.command)
 
     async def cog_command_error(self, ctx, error):
@@ -238,6 +247,10 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_sm()
     @commands.max_concurrency(1, BucketType.guild)
     async def s_setup(self, ctx):
+        """
+        Setup Scrims Manager for a channel.
+        Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
+        """
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
@@ -408,6 +421,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="edit")
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: int):
+        """
+        Edit scrims manager config for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -419,6 +435,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="days")
     @checks.can_use_sm()
     async def s_days(self, ctx, *, scrim_id: int):
+        """
+        Edit open days for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -432,6 +451,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="close")
     @checks.can_use_sm()
     async def s_close(self, ctx, scrim_id: int):
+        """
+        Close a scrim immediately, even if the slots aren't full.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -451,6 +473,10 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="config")
     @checks.can_use_sm()
     async def s_config(self, ctx):
+        """
+        Get config of all the scrims you have setup.
+        """
+
         allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
 
         if not len(allscrims):
@@ -482,7 +508,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="toggle")
     @checks.can_use_sm()
     async def s_toggle(self, ctx, scrim_id: int, option: str = None):
-
+        """
+        Toggle on/off things for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -497,11 +525,17 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
+        """
+        Create/ Edit or Send a scrim slotlist.
+        """
         await ctx.send_help(ctx.command)
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
     async def s_slotlist_send(self, ctx, scrim_id: int):
+        """
+        Send a slotlist.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -528,6 +562,10 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
     async def s_slotlist_edit(self, ctx, scrim_id: int):
+        """
+        Edit a slotlist
+        """
+
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -537,12 +575,18 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
     async def s_slotlist_image(self, ctx, scrim_id: int):
+        """
+        Get image version of a slotlist.
+        """
         pass
 
     # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()
     async def s_delete(self, ctx, scrim_id: int):
+        """
+        Completely delete a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -559,6 +603,10 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="ban")
     @checks.can_use_sm()
     async def s_ban(self, ctx, scrim_id: int, user: discord.Member, *, time: FutureTime = None):
+        """
+        Ban someone from the scrims temporarily or permanently.
+        Time argument is optional.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -591,6 +639,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="unban")
     @checks.can_use_sm()
     async def s_unban(self, ctx, scrim_id: int, user: discord.Member):
+        """
+        Unban a banned team from a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -606,10 +657,16 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.group(name="reserve", invoke_without_command=True)
     async def s_reserve(self, ctx):
+        """
+        Add / Remove a team from the reserved list
+        """
         await ctx.send_help(ctx.command)
 
     @s_reserve.command(name="add")
     async def s_reserve_add(self, ctx, scrim_id: int, time: FutureTime = None):
+        """
+        Add a team to the reserved list temporarily or permanently.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -657,6 +714,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_reserve.command(name="remove")
     async def s_reserve_remove(self, ctx, scrim_id: int, *, member: discord.User):
+        """
+        Remove a reserved team from reserved list.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -672,6 +732,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_reserve.command(name="list", aliases=("all",))
     async def s_reverse_list(self, ctx, scrim_id: int):
+        """
+        Get a list of all reserved teams and their leaders.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -686,6 +749,82 @@ class ScrimManager(Cog, name="Esports"):
 
         embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim_id}")
         await ctx.send(embed=embed)
+
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+
+    @commands.group(invoke_without_command=True, aliases=("tc",))
+    async def tagcheck(self, ctx):
+        """
+        Setup tagcheck channel for scrims/tournaments.
+        """
+        await ctx.send_help(ctx.command)
+
+    @tagcheck.command(name="set")
+    async def tagcheck_set(self, ctx, channel: discord.TextChannel, mentions=0):
+        """
+        Set a channel for tagcheck.
+        2nd argument is required mentions, Its zero by default.
+        """
+        if not (channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links):
+            return await ctx.error(f"I need `send_messages` and `embed_links` permissions in {channel.mention}")
+
+        count = await TagCheck.filter(guild_id=ctx.guild.id).count()
+        if count:
+            return await ctx.error(
+                f"You already have a tagcheck channel.\n\nRemove it with :`{ctx.prefix}tagcheck remove`"
+            )
+
+        await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, required_mentions=mentions)
+        self.tagcheck_channels.add(channel.id)
+        await ctx.success(f"Successfully set **{channel}** as a tagcheck channel.")
+
+    @tagcheck.command(name="config")
+    async def tagcheck_config(self, ctx):
+        """
+        Get tagcheck config.
+        """
+        check = await TagCheck.get_or_none(pk=ctx.guild.id)
+        if not check:
+            return await ctx.send(
+                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel.mention}`"
+            )
+
+        channel = check.channel
+
+        embed = discord.Embed(color=config.COLOR)
+        embed.add_field(name="Channel", value=getattr(channel, "mention", "Channel Deleted!"))
+        embed.add_field(name="Required Mentions", value=check.required_mentions)
+        await ctx.send(embed=embed)
+
+    @tagcheck.command(name="remove", aliases=("stop", "delete"))
+    async def tagcheck_remove(self, ctx):
+
+        check = await TagCheck.get_or_none(pk=ctx.guild.id)
+        if not check:
+            return await ctx.send(
+                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel.mention}`"
+            )
+
+        self.tagcheck_channels.discard(check.channel_id)
+
+        await check.delete()
+        await ctx.success(f"Successfully removed the tagcheck channel.")
+
+    @Cog.listener(name="on_message")
+    async def on_tagcheck_message(self, message: discord.Message):
+        if message.channel.id in self.tagcheck_channels:
+
+            tagcheck = await TagCheck.filter(channel_id=message.channel.id)
+
+            mentions = tagcheck.required_mentions
+
+            ...
 
     # ************************************************************************************************
     # ************************************************************************************************

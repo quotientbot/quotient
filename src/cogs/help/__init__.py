@@ -24,11 +24,13 @@ class HelpCommand(commands.HelpCommand):
         for cog, cmds in mapping.items():
             if cog and not cog.qualified_name in hidden:
                 if await self.filter_commands(cmds, sort=True):
-                    cats.append(str(cog.qualified_name))
+                    cats.append(cog)
 
         embed = discord.Embed(color=discord.Color(config.COLOR))
         for idx in cats:
-            embed.add_field(name=idx, value=f"`{ctx.prefix}help {idx}`")
+            embed.add_field(
+                inline=False, name=idx.qualified_name, value=", ".join(map(lambda x: f"`{x}`", idx.get_commands()))
+            )
 
         cmds = 0
         for i in self.context.bot.walk_commands():
