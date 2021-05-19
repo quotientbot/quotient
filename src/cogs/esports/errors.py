@@ -1,7 +1,7 @@
 import discord
 from core import Cog
 from discord.ext import commands
-from models import Scrim, Timer, BannedTeam
+from models import Scrim, Timer, BannedTeam, ReservedSlot
 
 
 class ScrimError(commands.CommandError):
@@ -60,7 +60,7 @@ class SMError(Cog):
                 text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
                 embed = self.red_embed(text)
                 return await logschan.send(embed=embed)
-              
+
     @Cog.listener()
     async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
         """
@@ -149,6 +149,36 @@ class SMError(Cog):
                 color=discord.Color.green(),
                 description=f"{user} ({user_id}) have been unbanned from Scrim (`{scrim.id}`).\nThey were banned by {banner} ({banned_by}).",
             )
+            await logschan.send(embed=embed)
+
+    @Cog.listener()
+    async def on_scrim_reserve_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+        team_name = timer.kwargs["team_name"]
+        user_id = timer.kwargs["user_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if scrim is None:
+            await scrim.delete()
+
+        guild = scrim.guild
+        if not guild:
+            await scrim.delete()
+
+        if not user_id in await scrim.reserved_user_ids():
+            return
+
+        team = await scrim.reserved_slots.filter(user_id=user_id).first()
+        await ReservedSlot.filter(id=team.id).delete()
+
+        logschan = scrim.logschan
+        if logschan is not None and logschan.permissions_for(guild.me).send_messages:
+            user = self.bot.get_user(user_id)
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                description=f"Reservation period of **{team_name.title()}** ({user}) is now over.\nSlot will not be reserved for them in Scrim (`{scrim_id}`).",
+            )
+
             await logschan.send(embed=embed)
 
     @Cog.listener()

@@ -1,7 +1,7 @@
 import asyncio
 import dateparser
 from datetime import datetime
-from discord.ext.commands.converter import RoleConverter, TextChannelConverter
+from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 from .exceptions import InputError
 from utils.constants import IST
 import discord
@@ -23,9 +23,7 @@ async def channel_input(ctx, check, timeout=120, delete_after=False):
 
     else:
         if not channel.permissions_for(ctx.me).read_messages:
-            raise InputError(
-                f"Unfortunately, I don't have send messages permissions in {channel.mention}."
-            )
+            raise InputError(f"Unfortunately, I don't have send messages permissions in {channel.mention}.")
 
         if delete_after:
             await safe_delete(message)
@@ -59,18 +57,29 @@ async def role_input(ctx, check, timeout=120, hierarchy=True, delete_after=False
         return role
 
 
-async def integer_input(
-    ctx, check, timeout=120, limits=(None, None), delete_after=False
-):
+async def member_input(ctx, check, timeout=120, delete_after=False):
+    try:
+        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+        member = await MemberConverter().convert(ctx, message.content)
+
+    except asyncio.TimeoutError:
+        raise InputError("You failed to mention a member in time. Try again!")
+
+    else:
+        if delete_after:
+            await safe_delete(message)
+
+        return member
+
+
+async def integer_input(ctx, check, timeout=120, limits=(None, None), delete_after=False):
     def new_check(message):
         if not check(message):
             return False
 
         try:
             if limits[1] is not None:
-                if len(message.content) > len(
-                    str(limits[1])
-                ):  # This is for safe side, memory errors u know :)
+                if len(message.content) > len(str(limits[1])):  # This is for safe side, memory errors u know :)
                     return False
 
             digit = int(message.content)
@@ -130,7 +139,7 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
     try:
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
-        raise InputError("Took too long. Good Bye.") # This would sound cooler.
+        raise InputError("Took too long. Good Bye.")  # This would sound cooler.
     else:
         if delete_after:
             await safe_delete(message)

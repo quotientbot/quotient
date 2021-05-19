@@ -3,6 +3,7 @@ from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
 
 
+# TODO: shift these to exceptions.py
 class SMNotUsable(commands.CheckFailure):
     pass
 

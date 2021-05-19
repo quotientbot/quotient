@@ -126,9 +126,9 @@ class ScrimManager(Cog, name="Esports"):
         await scrim.assigned_slots.clear()
 
         async for slot in scrim.reserved_slots.all():
-            count = await scrim.assinged_slots.all().count()
+            count = await scrim.assigned_slots.all().count()
 
-            assinged_slot = AssignedSlot.create(
+            assinged_slot = await AssignedSlot.create(
                 user_id=slot.user_id,
                 team_name=slot.team_name,
                 jump_url=None,
@@ -557,6 +557,7 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.success(f"Alright! Aborting")
 
     @smanager.command(name="ban")
+    @checks.can_use_sm()
     async def s_ban(self, ctx, scrim_id: int, user: discord.Member, *, time: FutureTime = None):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
@@ -567,7 +568,13 @@ class ScrimManager(Cog, name="Esports"):
                 f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim_id} {str(user)}` to unban them."
             )
 
-        ban = await BannedTeam.create(user_id=user.id, expires=time.dt)
+        if time != None:
+
+            expire_time = time.dt
+        else:
+            expire_time = None
+
+        ban = await BannedTeam.create(user_id=user.id, expires=expire_time)
         await scrim.banned_teams.add(ban)
 
         if time != None:
@@ -582,6 +589,7 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.success(f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`)")
 
     @smanager.command(name="unban")
+    @checks.can_use_sm()
     async def s_unban(self, ctx, scrim_id: int, user: discord.Member):
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
@@ -595,6 +603,89 @@ class ScrimManager(Cog, name="Esports"):
         ban = await scrim.banned_teams.filter(user_id=user.id).first()
         await BannedTeam.filter(id=ban.id).delete()
         await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim_id}`)")
+
+    @smanager.group(name="reserve", invoke_without_command=True)
+    async def s_reserve(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @s_reserve.command(name="add")
+    async def s_reserve_add(self, ctx, scrim_id: int, time: FutureTime = None):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        def check(message: discord.Message):
+            return message.author == ctx.author and ctx.channel == message.channel
+
+        msg = await ctx.send(
+            embed=discord.Embed(
+                color=config.COLOR,
+                description="For which user do you wish to reserve a slot?\nThis is needed to add scrims role to them when registration start.",
+            )
+        )
+        member = await inputs.member_input(ctx, check, delete_after=True)
+
+        if not member:
+            return await ctx.error(f"That's not a valid member.")
+
+        if member.id in await scrim.reserved_user_ids():
+            return await ctx.send(
+                f"{str(member)} is already in the reserved list.\n\nIf you would like to remove them , use: `{ctx.prefix}smanager reserve add {scrim_id}`"
+            )
+
+        await ctx.send(embed=discord.Embed(color=config.COLOR, description=f"What is {member}'s team name?"))
+        team_name = await inputs.string_input(ctx, check, delete_after=True)
+
+        if time != None:
+
+            expire_time = time.dt
+        else:
+            expire_time = None
+
+        slot = await ReservedSlot.create(user_id=member.id, team_name=team_name, expires=expire_time)
+        await scrim.reserved_slots.add(slot)
+
+        if expire_time:
+            await self.reminders.create_timer(
+                expire_time, "scrim_reserve", scrim_id=scrim.id, user_id=member.id, team_name=team_name
+            )
+
+            return await ctx.success(
+                f"Successfully reserved **{team_name}** in Scrim (`{scrim_id}`) for {human_timedelta(expire_time )}"
+            )
+        await ctx.send(f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`).")
+
+    @s_reserve.command(name="remove")
+    async def s_reserve_remove(self, ctx, scrim_id: int, *, member: discord.User):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        if not member.id in await scrim.reserved_user_ids():
+            return await ctx.send(
+                f"**{member}** is not reserved.\n\nYou can reserve their team with: `{ctx.prefix}smanager reserve add {scrim_id}`"
+            )
+
+        team = await scrim.reserved_slots.filter(user_id=member.id).first()
+        await ReservedSlot.filter(id=team.id).delete()
+        await ctx.success(f"Successfully deleted {member}'s reserved slot from Scrim (`{scrim_id}`)")
+
+    @s_reserve.command(name="list", aliases=("all",))
+    async def s_reverse_list(self, ctx, scrim_id: int):
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+
+        if not sum(await scrim.reserved_user_ids()):
+            return await ctx.error("None of the slots is reserved.")
+
+        users = ""
+        for idx, user in enumerate(await scrim.reserved_slots.all(), start=1):
+            owner = ctx.guild.get_member(user.user_id) or self.bot.get_user(user.user_id)
+            users += f"`{idx:02d}`| {user.team_name.title()} ({getattr(owner,'mention','Not Found')})\n"
+
+        embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim_id}")
+        await ctx.send(embed=embed)
 
     # ************************************************************************************************
     # ************************************************************************************************

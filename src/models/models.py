@@ -205,7 +205,7 @@ class Scrim(models.Model):
 
     @property
     def banned_users(self):
-        return list(map(self.bot.get_user, self.banned_users_ids))
+        return list(map(self.bot.get_user, self.banned_users_ids()))
 
     @property
     def opened(self):
@@ -246,6 +246,9 @@ class Scrim(models.Model):
         async for members in self.teams_registered.only("members"):
             for member_id in members:
                 yield member_id
+
+    async def reserved_user_ids(self):
+        return (i.user_id for i in await self.reserved_slots.all())
 
     async def banned_user_ids(self):
         return (i.user_id for i in await self.banned_teams.all())
