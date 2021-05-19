@@ -156,7 +156,6 @@ class Scrim(models.Model):
     required_mentions = fields.IntField()
     total_slots = fields.IntField()
     host_id = fields.BigIntField()
-    banned_users_ids = BigIntArrayField(default=list)
     open_time = fields.DatetimeField()
     opened_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
@@ -168,6 +167,7 @@ class Scrim(models.Model):
     open_days = EnumArrayField(Day, default=Day.__iter__)
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
+    banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
 
     @property
     def guild(self):
@@ -247,6 +247,9 @@ class Scrim(models.Model):
             for member_id in members:
                 yield member_id
 
+    async def banned_user_ids(self):
+        return (i.user_id for i in await self.banned_teams.all())
+
     async def create_slotlist(self):
         slots = await self.teams_registered
         description = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
@@ -261,7 +264,7 @@ class BaseSlot(models.Model):
 
     id = fields.IntField(pk=True)
     user_id = fields.BigIntField()
-    team_name = fields.TextField()
+    team_name = fields.TextField(null=True)
     members = BigIntArrayField(default=list)
 
 
@@ -276,6 +279,13 @@ class AssignedSlot(BaseSlot):
 class ReservedSlot(BaseSlot):
     class Meta:
         table = "sm.reserved_slots"
+
+    expires = fields.DatetimeField(null=True)
+
+
+class BannedTeam(BaseSlot):
+    class Meta:
+        table = "sm.banned_teams"
 
     expires = fields.DatetimeField(null=True)
 

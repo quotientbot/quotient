@@ -3,4 +3,5 @@ from .models import (
     Timer,
     AssignedSlot,
     ReservedSlot,
+    BannedTeam,
 )
