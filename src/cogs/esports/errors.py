@@ -54,7 +54,7 @@ class SMError(Cog):
             if logschan.permissions_for(logschan.guild.me).embed_links:
                 return await logschan.send(embed=e)
             else:
-                # The bot will not be able to send embeds to this channel because of lack of permission. 
+                # The bot will not be able to send embeds to this channel because of lack of permission.
                 text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
                 return await logschan.send(text)
             
