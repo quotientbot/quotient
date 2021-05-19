@@ -34,7 +34,8 @@ class EnumArrayField(Field, str):
 
     def to_db_value(self, value: Any, instance: "Union[Type[Model], Model]") -> Any:
         if inspect.isclass(value) and issubclass(value, Enum):
-            value = value()
+            # value = value()  This shouldn't be called, I am keeping this for future reference.
+            pass
 
         return [str(val.value) for val in value]
 
