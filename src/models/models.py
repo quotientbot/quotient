@@ -32,12 +32,9 @@ class Guild(models.Model):
     censored = CharVarArrayField(default=list)  # will shift this to automod
 
     @property
-    def obj(self):  # Guild.guild utna acha nai lgta :c
-        return self.bot.get_guild(self.guild_id)
-
-    @property
     def mute_role(self):
-        if self.guild is not None:
+        guild = self.bot.get_guild(self.guild_id)
+        if guild is not None:
             return self.guild.get_role(self.mute_role)
 
     @property
@@ -59,10 +56,6 @@ class User(models.Model):
     premium_notified = fields.BooleanField(default=False)
     public_profile = fields.BooleanField(default=True)
     badges = CharVarArrayField(default=list)
-
-    @property
-    def obj(self):
-        return self.bot.get_user(self.user_id)
 
 
 # ************************************************************************************************
@@ -295,6 +288,12 @@ class TagCheck(models.Model):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
+
+    @property
+    def modrole(self):
+        guild = self.bot.get_guild(self.guild_id)
+        if guild != None:
+            return discord.utils.get(guild.roles, name="scrims-mod")
 
 
 # ************************************************************************************************

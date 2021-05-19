@@ -187,6 +187,9 @@ class ScrimManager(Cog, name="Esports"):
 
         channel_id = message.channel.id
 
+        if channel_id in self.tagcheck_channels:  # for the sake of cleanliness :c
+            return self.bot.dispatch("tagcheck_message", message)
+
         if channel_id not in self.registration_channels:
             return
 
@@ -195,8 +198,8 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         if scrim is None:  # Scrim is possibly deleted
-            self.registration_channels.pop(channel_id)
-            return
+            return self.registration_channels.discard(channel_id)
+            
 
         if scrim.opened_at is None:
             # Registration isn't opened yet.
@@ -595,6 +598,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Are you sure you want to delete scrim `{scrim.id}`?",
         )
         if prompt:
+            self.registration_channels.discard(scrim.registration_channel_id)
             await scrim.delete()
             await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
@@ -774,6 +778,8 @@ class ScrimManager(Cog, name="Esports"):
         if not (channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links):
             return await ctx.error(f"I need `send_messages` and `embed_links` permissions in {channel.mention}")
 
+        if channel.id in self.registration_channels:
+            return await ctx.error("This is a scrims registration channel, Kindly choose a different channel.")
         count = await TagCheck.filter(guild_id=ctx.guild.id).count()
         if count:
             return await ctx.error(
@@ -815,16 +821,6 @@ class ScrimManager(Cog, name="Esports"):
 
         await check.delete()
         await ctx.success(f"Successfully removed the tagcheck channel.")
-
-    @Cog.listener(name="on_message")
-    async def on_tagcheck_message(self, message: discord.Message):
-        if message.channel.id in self.tagcheck_channels:
-
-            tagcheck = await TagCheck.filter(channel_id=message.channel.id)
-
-            mentions = tagcheck.required_mentions
-
-            ...
 
     # ************************************************************************************************
     # ************************************************************************************************

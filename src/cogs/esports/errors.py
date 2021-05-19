@@ -1,5 +1,7 @@
 import discord
 from core import Cog
+from utils import find_team, emote
+from models import TagCheck
 from discord.ext import commands
 from models import Scrim, Timer, BannedTeam, ReservedSlot
 
@@ -180,6 +182,32 @@ class SMError(Cog):
             )
 
             await logschan.send(embed=embed)
+
+    @Cog.listener()
+    async def on_tagcheck_message(self, message):
+        tagcheck = await TagCheck.get_or_none(channel_id=message.channel.id)
+
+        modrole = tagcheck.modrole
+        if modrole != None and modrole in message.author.roles:
+            return
+
+        react_bool = True
+        if tagcheck.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
+            react_bool = False
+            await message.reply("Kindly mention your real teammate.", delete_after=5)
+
+        elif not len(message.mentions) >= tagcheck.required_mentions:
+            react_bool = False
+            await message.reply(f"You need to mention `{tagcheck.required_mentions} teammates`.", delete_after=5)
+
+        team_name = find_team(message)
+
+        await message.add_reaction((emote.xmark, emote.check)[react_bool])
+
+        if react_bool:
+            embed = discord.Embed(color=self.bot.config.COLOR)
+            embed.description = f"Team Name: {team_name}\nPlayer(s): {(', '.join(m.mention for m in message.mentions)) if message.mentions else message.author.mention}"
+            await message.reply(embed=embed)
 
     @Cog.listener()
     async def on_scrim_cmd_log(self, **kwargs):
