@@ -1,10 +1,10 @@
 from discord import AllowedMentions, Intents
 from colorama import Fore, Style, init
-import discord, aiohttp, asyncio, os
 from discord.ext import commands
 from tortoise import Tortoise
 from .Context import Context
 from typing import NoReturn
+import aiohttp, asyncio, os
 import config, asyncpg
 import traceback
 
