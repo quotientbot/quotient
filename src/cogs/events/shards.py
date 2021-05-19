@@ -15,7 +15,7 @@ class ShardEvents(Cog, name="Shard Events"):
         self.bot = bot
 
     # TODO: shard events should also be sent as a webhook to the server to prevent checking terminal.
-    # TODO: Add colors to shard events.
+    # FIXME: Pyaare colors not showing up. @deadshot
 
     @Cog.listener()
     async def on_shard_ready(self, shard_id):
