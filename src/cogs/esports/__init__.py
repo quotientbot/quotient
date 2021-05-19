@@ -213,7 +213,7 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s",), invoke_without_command=True)
+    @commands.group(aliases=("s","sm"), invoke_without_command=True)
     async def smanager(self, ctx):
         await ctx.send_help(ctx.command)
 
@@ -238,6 +238,10 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_sm()
     @commands.max_concurrency(1, BucketType.guild)
     async def s_setup(self, ctx):
+        """
+        Setup Scrims Manager for a channel.
+        Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
+        """
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
@@ -408,6 +412,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="edit")
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: int):
+        """
+        Edit scrims manager config for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -419,6 +426,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="days")
     @checks.can_use_sm()
     async def s_days(self, ctx, *, scrim_id: int):
+        """
+        Edit open days for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -432,6 +442,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="close")
     @checks.can_use_sm()
     async def s_close(self, ctx, scrim_id: int):
+        """
+        Close a scrim immediately, even if the slots aren't full.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -451,6 +464,10 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="config")
     @checks.can_use_sm()
     async def s_config(self, ctx):
+        """
+        Get config of all the scrims you have setup.
+        """
+
         allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
 
         if not len(allscrims):
@@ -482,7 +499,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="toggle")
     @checks.can_use_sm()
     async def s_toggle(self, ctx, scrim_id: int, option: str = None):
-
+        """
+        Toggle on/off things for a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -497,11 +516,17 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
+        """
+        Create/ Edit or Send a scrim slotlist.
+        """
         await ctx.send_help(ctx.command)
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
     async def s_slotlist_send(self, ctx, scrim_id: int):
+        """
+        Send a slotlist.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -528,6 +553,10 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
     async def s_slotlist_edit(self, ctx, scrim_id: int):
+        """
+        Edit a slotlist
+        """
+
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -537,12 +566,18 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
     async def s_slotlist_image(self, ctx, scrim_id: int):
+        """
+        Get image version of a slotlist.
+        """
         pass
 
     # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()
     async def s_delete(self, ctx, scrim_id: int):
+        """
+        Completely delete a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -559,6 +594,10 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="ban")
     @checks.can_use_sm()
     async def s_ban(self, ctx, scrim_id: int, user: discord.Member, *, time: FutureTime = None):
+        """
+        Ban someone from the scrims temporarily or permanently.
+        Time argument is optional.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -591,6 +630,9 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="unban")
     @checks.can_use_sm()
     async def s_unban(self, ctx, scrim_id: int, user: discord.Member):
+        """
+        Unban a banned team from a scrim.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -606,10 +648,16 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.group(name="reserve", invoke_without_command=True)
     async def s_reserve(self, ctx):
+        """
+        Add / Remove a team from the reserved list
+        """
         await ctx.send_help(ctx.command)
 
     @s_reserve.command(name="add")
     async def s_reserve_add(self, ctx, scrim_id: int, time: FutureTime = None):
+        """
+        Add a team to the reserved list temporarily or permanently.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -657,6 +705,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_reserve.command(name="remove")
     async def s_reserve_remove(self, ctx, scrim_id: int, *, member: discord.User):
+        """
+        Remove a reserved team from reserved list.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
@@ -672,6 +723,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_reserve.command(name="list", aliases=("all",))
     async def s_reverse_list(self, ctx, scrim_id: int):
+        """
+        Get a list of all reserved teams and their leaders.
+        """
         scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")

@@ -16,7 +16,11 @@ class InvalidTime(commands.CheckFailure):
     pass
 
 
-def can_use_sm():  # basic check
+def can_use_sm():
+    """
+    Returns True if the user has manage roles or scrim-mod role in the server.
+    """
+
     async def predicate(ctx):
         if ctx.author.guild_permissions.manage_guild or "scrims-mod" in [role.name.lower() for role in ctx.author.roles]:
             return True
