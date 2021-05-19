@@ -50,12 +50,13 @@ class SMError(Cog):
             )
             e.description += f"They are banned from scrims."
 
-        if logschan != None and logschan.permissions_for(logschan.guild.me).embed_links:
-            return await logschan.send(embed=e)
-        else:
-            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
-            embed=self.red_embed(text)
-            return await logschan.send(embed=embed)
+        if logschan is not None:
+            if logschan.permissions_for(logschan.guild.me).embed_links:
+                return await logschan.send(embed=e)
+            else:
+                text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
+                embed=self.red_embed(text)
+                return await logschan.send(embed=embed)
             
 
     @Cog.listener()
