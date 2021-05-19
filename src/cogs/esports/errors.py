@@ -113,6 +113,9 @@ class SMError(Cog):
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
+        else:
+            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
+            return await logschan.send(text)
 
 
     @Cog.listener()
