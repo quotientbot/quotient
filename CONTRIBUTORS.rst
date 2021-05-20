@@ -9,4 +9,4 @@ Contributors
 * Shivang Rathore ``@Wiper-R``
 * Abhinav Singh ``@swayyed``
 * ShashankKumarSaxena ``@ShashankKumarSaxena``
-* Ayush Srivastava ``@ItzJck``
+* Ayush Srivastav ``@ItzJck``
