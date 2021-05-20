@@ -32,9 +32,8 @@ class HelpCommand(commands.HelpCommand):
                 inline=False, name=idx.qualified_name, value=", ".join(map(lambda x: f"`{x}`", idx.get_commands()))
             )
 
-        cmds = 0
-        for i in self.context.bot.walk_commands():
-            cmds += 1
+        cmds = sum(1 for i in self.context.bot.walk_commands())
+
         embed.set_footer(text="Total Commands: {}".format(cmds))
         await ctx.send(embed=embed)
 

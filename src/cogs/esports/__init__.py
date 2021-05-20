@@ -199,7 +199,6 @@ class ScrimManager(Cog, name="Esports"):
 
         if scrim is None:  # Scrim is possibly deleted
             return self.registration_channels.discard(channel_id)
-            
 
         if scrim.opened_at is None:
             # Registration isn't opened yet.
@@ -524,6 +523,33 @@ class ScrimManager(Cog, name="Esports"):
 
         if not option or option.lower() not in valid_opt:
             return await ctx.send(display_msg)
+
+        stoggle = scrim.stoggle
+        ping = scrim.ping_role_id
+        openrole = scrim.open_role_id
+        autoclean = scrim.autoclean
+
+        if option.lower() == "scrim":
+            await Scrim.filter(pk=scrim.id).update(stoggle=not (stoggle))
+            await ctx.success(f"Scrim is now {'OFF' if stoggle else 'ON'}")
+
+        elif option.lower() == "ping":
+            if ping is None:
+                return await ctx.error(f"Ping Role is not set.")
+
+            await Scrim.filter(pk=scrim.id).update(ping_role_id=None)
+            await ctx.success(f"Ping Role turned OFF.")
+
+        elif option.lower() == "openrole":
+            if openrole is None:
+                return await ctx.error(f"Open Role is not set.")
+
+            await Scrim.filter(pk=scrim.id).update(open_role_id=None)
+            await ctx.success(f"Open Role set to {ctx.guild.default_role.mention}")
+
+        elif option.lower() == "autoclean":
+            await Scrim.filter(pk=scrim.id).update(autoclean=not (autoclean))
+            await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
 
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
