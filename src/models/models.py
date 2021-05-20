@@ -4,11 +4,12 @@ from utils.constants import LogType
 from tortoise import fields, models
 import config
 
+
 class Guild(models.Model):
     class Meta:
         table = "guild_data"
 
-    guild_id = fields.BigIntField(pk=True) # This fieldname will be changed soon!
+    guild_id = fields.BigIntField(pk=True)  # This fieldname will be changed soon!
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
     embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
@@ -40,7 +41,7 @@ class Guild(models.Model):
             return self._guild.get_role(self.mute_role)
 
     @property
-    def muted_members(self):
+    def muted(self):
         return tuple(map(self.bot.get_user, self.muted_members))
 
     # ************************************************************************************************
