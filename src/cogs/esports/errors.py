@@ -216,3 +216,8 @@ class SMError(Cog):
     @Cog.listener()
     async def on_scrim_cmd_log(self, **kwargs):
         ...
+
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        # will delete scrim/tournament if its registration channel.
+        ...
