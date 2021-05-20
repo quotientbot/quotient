@@ -210,5 +210,9 @@ class SMError(Cog):
             await message.reply(embed=embed)
 
     @Cog.listener()
+    async def on_scrim_autoclean_timer_complete(self, timer: Timer):
+        ...
+
+    @Cog.listener()
     async def on_scrim_cmd_log(self, **kwargs):
         ...
