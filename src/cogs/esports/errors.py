@@ -9,6 +9,8 @@ from models import Scrim, Timer, BannedTeam, ReservedSlot
 class ScrimError(commands.CommandError):
     pass
 
+class TourneyError(commands.CommandError):
+    pass
 
 # well yeah the name is SMError but this cog serve much more than just that.
 
