@@ -16,3 +16,8 @@ FOOTER = "quo is lub!"  # default footer
 
 
 DEVS = ()  # mrko b lagne laga hai tuple better hai
+
+
+# LOGS
+SHARD_LOG = ""
+ERROR_LOG = ""  # should I make these accessible to all, I am not sure :C

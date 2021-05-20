@@ -27,4 +27,5 @@ class ShardEvents(Cog, name="Shard Events"):
 
     @Cog.listener()
     async def on_shard_disconnect(self, shard_id):
+        # Kindly write RIP in <#829945755644592168> to bring it back.
         print(Fore.RED + f"Shard #{shard_id} died.")
