@@ -1,10 +1,9 @@
 from .fields import *
 from .functions import *
-from utils.constants import Day, LogType
+from utils.constants import LogType
 from tortoise import fields, models
-import discord, config
+import config
 
-# TODO: shift Scrim model to esports.py
 class Guild(models.Model):
     class Meta:
         table = "guild_data"
@@ -118,57 +117,6 @@ class Timer(models.Model):
     @property
     def args(self):
         return self.extra.get("args", ())
-
-
-# ************************************************************************************************
-
-# ************************************************************************************************
-
-
-# ************************************************************************************************
-
-# ************************************************************************************************
-
-# ************************************************************************************************
-# ************************************************************************************************
-
-# class Fornite(models.Model):
-#     class Meta:
-#         table = "fn.settings"
-
-#     guild_id = fields.BigIntField(pk=True)
-#     suspended_role_id = fields.BigIntField()
-#     is_authorized = fields.BooleanField(default=False)
-#     logging_channel_id = fields.BigIntField()
-#     logging_toggle = fields.BooleanField(default=True)
-#     data: fields.ManyToManyRelation["ForData"] = fields.ManyToManyField("models.ForData")
-
-#     @property
-#     def guild(self):
-#         return self.bot.get_guild(self.guild_id)
-
-#     @property
-#     def suspended_role(self):
-#         if self.guild is not None:
-#             return self.guild.get_role(self.suspended_role_id)
-
-#     @property
-#     def logging_channel(self):
-#         if self.guild is not None:
-#             return self.guild.get_channel(self.logging_channel_id)
-
-
-# class ForData(models.Model):
-#     class Meta:
-#         table = "fn.data"
-
-#     id = fields.BigIntField(pk=True)
-#     moderator_id = fields.BigIntField()
-#     action_user_id = fields.BigIntField()
-#     start_time = fields.DatetimeField(auto_now=True)
-#     expire_time = fields.DatetimeField()
-#     reason = fields.TextField(null=True)
-#     jump_url = fields.TextField(null=True)
 
 
 # ************************************************************************************************
