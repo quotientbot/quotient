@@ -15,7 +15,6 @@ discord-ext-menus = "^1.1"
 aerich = "^0.5.3"
 jishaku = "^1.20.0"
 parsedatetime = "^2.6"
-discord-webhook = "^0.13.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}
