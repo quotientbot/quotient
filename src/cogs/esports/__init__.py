@@ -12,14 +12,14 @@ from datetime import timedelta, datetime
 from discord import AllowedMentions
 from discord.ext import commands
 
-from .errors import ScrimError, SMError
+from .errors import ScrimError, SMError, TourneyError
 from core import Cog
 
 import discord
 import asyncio
 import config
 from .menus import *
-from typing import NamedTuple
+from typing import NamedTuple, Union
 
 # TODO: a seprate class to check scrim_id in cmd args
 
@@ -228,7 +228,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, ScrimError):
+        if isinstance(error, ScrimError) or isinstance(error, TourneyError):
             return await ctx.send(error)
 
         raise error
@@ -255,7 +255,7 @@ class ScrimManager(Cog, name="Esports"):
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
-        if count > 3:
+        if count == 3:
             raise ScrimError("You can't host more than 3 scrims concurrently.")
 
         def check(message: discord.Message):
@@ -855,13 +855,43 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    @commands.group()
+    def tcembed(self, value, description: str):
+        embed = discord.Embed(
+            color=discord.Color(config.COLOR),
+            title=f"🛠️ Tournament Manager ({value}/6)",
+            description=description,
+        )
+        embed.set_footer(text=f'Reply with "cancel" to stop the process.')
+        return embed
+
+    @commands.group(invoke_without_command=True, aliases=("tm", "t"))
     async def tourney(self, ctx):
-        pass
+        await ctx.send_help(ctx.command)
 
     @tourney.command(name="create")
     async def t_create(self, ctx):
-        pass
+        count = await Tourney.filter(guild_id=ctx.guild.id).count()
+
+        if count == 2:
+            raise TourneyError("You can't have more than 2 tournaments concurrently.")
+
+        def check(message: discord.Message):
+            if message.content.strip().lower() == "cancel":
+                raise ScrimError("Alright, reverting all process.")
+
+            return message.author == ctx.author and ctx.channel == message.channel
+
+        tourney = await Tourney(
+            guild_id=ctx.guild.id,
+            host_id=ctx.author.id,
+        )
+        await ctx.send(embed=self.tcembed(1, "Which is the default registeration channel?"))
+        channel = await inputs.channel_input(ctx, check)
+
+        if await Tourney.filter(registration_channel_id=channel.id).count():
+            raise TourneyError(f"**{channel}** is already a registration channel.")
+
+        # TODO:check for channel perms.
 
 
 def setup(bot):
