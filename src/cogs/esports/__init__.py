@@ -34,6 +34,7 @@ class ScrimManager(Cog, name="Esports"):
         self.bot.loop.create_task(self.registration_worker())
 
     async def fill_registration_channels(self):
+        print(f"fill_registration_channels")
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
         self.registration_channels = set()
 
@@ -1011,51 +1012,50 @@ class ScrimManager(Cog, name="Esports"):
             except discord.NotFound:
                 await ctx.send(text)
 
-    @tourney.command(name='config')
-    async def tourney_config(self,ctx):
+    @tourney.command(name="config")
+    async def tourney_config(self, ctx):
         pass
 
-    @tourney.command(name='delete')
-    async def tourney_delete(self,ctx):
+    @tourney.command(name="delete")
+    async def tourney_delete(self, ctx):
         pass
 
-    @tourney.command(name='groups')
-    async def tourney_group(self,ctx):
+    @tourney.command(name="groups")
+    async def tourney_group(self, ctx):
         pass
 
-    @tourney.command(name='data')
-    async def tourney_data(self,ctx):
+    @tourney.command(name="data")
+    async def tourney_data(self, ctx):
         pass
 
-    @tourney.command(name='list',aliases=('all',))
-    async def tourney_list(self,ctx):
+    @tourney.command(name="list", aliases=("all",))
+    async def tourney_list(self, ctx):
         pass
 
-    @tourney.command(name='deleteslot')
-    async def tourney_deleteslot(self,ctx):
+    @tourney.command(name="deleteslot")
+    async def tourney_deleteslot(self, ctx):
         pass
 
-    @tourney.command(name='edit')
-    async def tourney_edit(self,ctx):
+    @tourney.command(name="edit")
+    async def tourney_edit(self, ctx):
         pass
 
-    @tourney.command(name='start')
-    async def tourney_start(self,ctx):
+    @tourney.command(name="start")
+    async def tourney_start(self, ctx):
         pass
 
-    @tourney.command(name='stop')
-    async def tourney_stop(self,ctx):
+    @tourney.command(name="stop")
+    async def tourney_stop(self, ctx):
         pass
 
-    @tourney.command(name='ban')
-    async def tourney_ban(self,ctx):
+    @tourney.command(name="ban")
+    async def tourney_ban(self, ctx):
         pass
 
-    @tourney.command(name='unban')
-    async def tourney_unban(self,ctx):
+    @tourney.command(name="unban")
+    async def tourney_unban(self, ctx):
         pass
 
-    
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
