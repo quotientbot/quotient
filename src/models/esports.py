@@ -27,6 +27,25 @@ class Tourney(models.Model):
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 
+    @property
+    def guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def registration_channel(self):
+        if self.guild is not None:
+            return self.guild.get_channel(self.registration_channel_id)
+
+    @property
+    def confirm_channel(self):
+        if self.guild is not None:
+            return self.guild.get_channel(self.confirm_channel_id)
+
+    @property
+    def role(self):
+        if self.guild is not None:
+            return self.guild.get_role(self.role_id)
+
 
 class TMSlot(models.Model):
     class Meta:

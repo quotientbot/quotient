@@ -280,6 +280,9 @@ class ScrimManager(Cog, name="Esports"):
         if await Scrim.filter(registration_channel_id=channel.id).count():
             raise ScrimError("This channel is already a registration channel.")
 
+        if not channel.permissions_for(ctx.me).manage_channels:
+            raise ScrimError(f"I require `manage channels` permission in **{channel}**.")
+
         scrim.registration_channel_id = channel.id
 
         # Slotlist Channel
@@ -858,7 +861,7 @@ class ScrimManager(Cog, name="Esports"):
     def tcembed(self, value, description: str):
         embed = discord.Embed(
             color=discord.Color(config.COLOR),
-            title=f"🛠️ Tournament Manager ({value}/6)",
+            title=f"🛠️ Tournament Manager ({value}/5)",
             description=description,
         )
         embed.set_footer(text=f'Reply with "cancel" to stop the process.')
@@ -891,8 +894,168 @@ class ScrimManager(Cog, name="Esports"):
         if await Tourney.filter(registration_channel_id=channel.id).count():
             raise TourneyError(f"**{channel}** is already a registration channel.")
 
-        # TODO:check for channel perms.
+        if not channel.permissions_for(ctx.me).manage_channels:
+            raise TourneyError(f"I require `manage channels` permission in **{channel}**.")
 
+        tourney.registration_channel_id = channel.id
+
+        await ctx.send(embed=self.tcembed(2, "Which is the confirmed teams channel?"))
+        channel = await inputs.channel_input(ctx, check)
+
+        tourney.confirm_channel_id = channel.id
+
+        await ctx.send(
+            embed=self.tcembed(
+                3,
+                f"What role should I give for correct registration?",
+            )
+        )
+
+        role = await inputs.role_input(ctx, check)
+
+        tourney.role_id = role.id
+
+        # Mentions Limit
+
+        await ctx.send(
+            embed=self.tcembed(
+                4,
+                "How many mentions are required for successful registration?" " (Can't be more than 10 or less than 0.)",
+            )
+        )
+
+        tourney.required_mentions = await inputs.integer_input(
+            ctx,
+            check,
+            limits=(0, 10),
+        )
+
+        # Total Slots
+
+        await ctx.send(
+            embed=self.tcembed(
+                5,
+                "How many total slots are there? (Can't be more than 5000 or less than 10.)",
+            )
+        )
+
+        tourney.total_slots = await inputs.integer_input(
+            ctx,
+            check,
+            limits=(10, 5000),
+        )
+
+        fields = [
+            f"Registration Channel: {tourney.registration_channel}",
+            f"Slotlist Channel: {tourney.slotlist_channel}",
+            f"Role: {tourney.role}",
+            f"Minimum Mentions: {tourney.required_mentions}",
+            f"Slots: {tourney.total_slots}",
+        ]
+
+        title = "Are these correct?"
+        description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
+
+        confirm = await ctx.prompt(description, title=title)
+        confirm = True
+        if not confirm:
+            await ctx.send("Ok, Aborting!")
+        else:
+            message = await ctx.send("Setting up everything!")
+            reason = "Created for tournament management."
+
+            # Tourney MODS
+            tourney_mod = discord.utils.get(ctx.guild.roles, name="tourney-mod")
+
+            if tourney_mod is None:
+                tourney_mod = await ctx.guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
+
+            overwrite = tourney.registration_channel.overwrites_for(ctx.guild.default_role)
+            overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
+            await tourney.registration_channel.set_permissions(tourney_mod, overwrite=overwrite)
+
+            # Tourney LOGS
+            tourney_log_channel = discord.utils.get(ctx.guild.text_channels, name="quotient-tourney-logs")
+
+            if tourney_log_channel is None:
+                guild = ctx.guild
+                overwrites = {
+                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                    guild.me: discord.PermissionOverwrite(read_messages=True),
+                    tourney_mod: discord.PermissionOverwrite(read_messages=True),
+                }
+                scrims_log_channel = await ctx.guild.create_text_channel(
+                    name="quotient-tourney-logs",
+                    overwrites=overwrites,
+                    reason=reason,
+                )
+
+                # Sending Message to tourney-log-channel
+                note = await scrims_log_channel.send(
+                    embed=discord.Embed(
+                        description=f"If events related to tournament i.e opening registrations or adding roles, "
+                        f"etc are triggered, then they will be logged in this channel. "
+                        f"Also I have created {tourney_mod.mention}, you can give that role to your "
+                        f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
+                        f"registration channels and they won't be considered as tourney-registration.\n\n"
+                        f"`Note`: **Do not rename this channel.**",
+                        color=discord.Color(config.COLOR),
+                    )
+                )
+                await note.pin()
+
+            await tourney.save()
+            text = f"Tourney Management Setup Complete. (`Tourney ID: {tourney.id}`)"
+            try:
+                await message.edit(content=text)
+            except discord.NotFound:
+                await ctx.send(text)
+
+    @tourney.command(name='config')
+    async def tourney_config(self,ctx):
+        pass
+
+    @tourney.command(name='delete')
+    async def tourney_delete(self,ctx):
+        pass
+
+    @tourney.command(name='groups')
+    async def tourney_group(self,ctx):
+        pass
+
+    @tourney.command(name='data')
+    async def tourney_data(self,ctx):
+        pass
+
+    @tourney.command(name='list',aliases=('all',))
+    async def tourney_list(self,ctx):
+        pass
+
+    @tourney.command(name='deleteslot')
+    async def tourney_deleteslot(self,ctx):
+        pass
+
+    @tourney.command(name='edit')
+    async def tourney_edit(self,ctx):
+        pass
+
+    @tourney.command(name='start')
+    async def tourney_start(self,ctx):
+        pass
+
+    @tourney.command(name='stop')
+    async def tourney_stop(self,ctx):
+        pass
+
+    @tourney.command(name='ban')
+    async def tourney_ban(self,ctx):
+        pass
+
+    @tourney.command(name='unban')
+    async def tourney_unban(self,ctx):
+        pass
+
+    
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
