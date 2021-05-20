@@ -8,11 +8,11 @@ def find_team(message):
     author = message.author
     teamname = re.search(r"team.*", content)
     if teamname is None:
-        return f"{author}'s slot"
+        return f"{author}'s team"
 
     teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
 
-    return f"Team {teamname.title()}" if teamname else f"{author}'s slot"
+    return f"Team {teamname.title()}" if teamname else f"{author}'s team"
 
 
 def regional_indicator(c: str) -> str:

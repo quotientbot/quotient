@@ -55,6 +55,8 @@ class Quotient(commands.AutoShardedBot):
         await Tortoise.generate_schemas(safe=True)
         await cache(self)
 
+        # TODO: create an autoclean timer or separate it per scrim maybe
+
         # Initializing Models (Assigning Bot attribute to all models)
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self

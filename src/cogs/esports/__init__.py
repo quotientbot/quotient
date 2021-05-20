@@ -187,6 +187,9 @@ class ScrimManager(Cog, name="Esports"):
 
         channel_id = message.channel.id
 
+        if channel_id in self.tagcheck_channels:  # for the sake of cleanliness :c
+            return self.bot.dispatch("tagcheck_message", message)
+
         if channel_id not in self.registration_channels:
             return
 
@@ -195,8 +198,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         if scrim is None:  # Scrim is possibly deleted
-            self.registration_channels.pop(channel_id)
-            return
+            return self.registration_channels.discard(channel_id)
 
         if scrim.opened_at is None:
             # Registration isn't opened yet.
@@ -522,6 +524,33 @@ class ScrimManager(Cog, name="Esports"):
         if not option or option.lower() not in valid_opt:
             return await ctx.send(display_msg)
 
+        stoggle = scrim.stoggle
+        ping = scrim.ping_role_id
+        openrole = scrim.open_role_id
+        autoclean = scrim.autoclean
+
+        if option.lower() == "scrim":
+            await Scrim.filter(pk=scrim.id).update(stoggle=not (stoggle))
+            await ctx.success(f"Scrim is now {'OFF' if stoggle else 'ON'}")
+
+        elif option.lower() == "ping":
+            if ping is None:
+                return await ctx.error(f"Ping Role is not set.")
+
+            await Scrim.filter(pk=scrim.id).update(ping_role_id=None)
+            await ctx.success(f"Ping Role turned OFF.")
+
+        elif option.lower() == "openrole":
+            if openrole is None:
+                return await ctx.error(f"Open Role is not set.")
+
+            await Scrim.filter(pk=scrim.id).update(open_role_id=None)
+            await ctx.success(f"Open Role set to {ctx.guild.default_role.mention}")
+
+        elif option.lower() == "autoclean":
+            await Scrim.filter(pk=scrim.id).update(autoclean=not (autoclean))
+            await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
+
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
@@ -595,6 +624,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Are you sure you want to delete scrim `{scrim.id}`?",
         )
         if prompt:
+            self.registration_channels.discard(scrim.registration_channel_id)
             await scrim.delete()
             await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
@@ -774,6 +804,8 @@ class ScrimManager(Cog, name="Esports"):
         if not (channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links):
             return await ctx.error(f"I need `send_messages` and `embed_links` permissions in {channel.mention}")
 
+        if channel.id in self.registration_channels:
+            return await ctx.error("This is a scrims registration channel, Kindly choose a different channel.")
         count = await TagCheck.filter(guild_id=ctx.guild.id).count()
         if count:
             return await ctx.error(
@@ -815,16 +847,6 @@ class ScrimManager(Cog, name="Esports"):
 
         await check.delete()
         await ctx.success(f"Successfully removed the tagcheck channel.")
-
-    @Cog.listener(name="on_message")
-    async def on_tagcheck_message(self, message: discord.Message):
-        if message.channel.id in self.tagcheck_channels:
-
-            tagcheck = await TagCheck.filter(channel_id=message.channel.id)
-
-            mentions = tagcheck.required_mentions
-
-            ...
 
     # ************************************************************************************************
     # ************************************************************************************************
