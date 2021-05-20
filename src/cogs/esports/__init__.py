@@ -877,7 +877,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney(self, ctx):
         await ctx.send_help(ctx.command)
 
-    @tourney.command(name="create", aliases=("setup"))
+    @tourney.command(name="create", aliases=("setup",))
     async def t_create(self, ctx):
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
 
@@ -1085,7 +1085,7 @@ class ScrimManager(Cog, name="Esports"):
 
         await ctx.send(embed=e)
 
-    @tourney.command(name="rmslot", aliases=('deleteslot',))
+    @tourney.command(name="rmslot", aliases=("deleteslot",))
     async def tourney_deleteslot(self, ctx, tourney_id: int, *, user: discord.User):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
@@ -1108,7 +1108,7 @@ class ScrimManager(Cog, name="Esports"):
         pass
 
     @tourney.command(name="start")
-    async def tourney_start(self, ctx ,tourney_id: int):
+    async def tourney_start(self, ctx, tourney_id: int):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1119,24 +1119,24 @@ class ScrimManager(Cog, name="Esports"):
         channel = tourney.registration_channel
         open_role = tourney.open_role
         if channel is None:
-            raise TourneyError(f'I cannot find tourney registration channel ({tourney.registration_channel_id})')
+            raise TourneyError(f"I cannot find tourney registration channel ({tourney.registration_channel_id})")
 
         elif not channel.permissions_for(ctx.me).manage_channels:
-            raise TourneyError(f'I need `manage channels` permission in **{channel}**')
-        
+            raise TourneyError(f"I need `manage channels` permission in **{channel}**")
+
         elif open_role is None:
-            raise TourneyError(f'I can not find open role for Tourney (`{tourney_id}`)')
-                
-        prompt = await ctx.prompt(f'Are you sure you want to start registrations for Tourney (`{tourney_id}`)?')
+            raise TourneyError(f"I can not find open role for Tourney (`{tourney_id}`)")
+
+        prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney_id}`)?")
         if prompt:
             channel_update = await toggle_channel(channel, open_role, True)
 
-            await Tourney.filter(pk=tourney_id).update(started_at=datetime.now(tz=IST),closed_at=None)
+            await Tourney.filter(pk=tourney_id).update(started_at=datetime.now(tz=IST), closed_at=None)
             await ctx.message.add_reaction(emote.check)
         else:
-            await ctx.success('OK!')
-            
-    @tourney.command(name="stop", aliases=("pause"))
+            await ctx.success("OK!")
+
+    @tourney.command(name="stop", aliases=("pause",))
     async def tourney_stop(self, ctx):
         pass
 
