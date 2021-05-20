@@ -8,6 +8,20 @@ from models.functions import *
 from .errors import ScrimError
 
 
+class Points(menus.Menu):
+    def __init__(self, *, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    # will create live points tables
+    ...
+
+
 class SlotEditor(menus.Menu):
     def __init__(self, *, scrim: Scrim):
         super().__init__(

@@ -4,7 +4,7 @@ from .utils import (
     postpone_scrim,
     is_valid_scrim,
 )
-from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime
+from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 
@@ -13,7 +13,6 @@ from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError
-from utils import time as stringtime, human_timedelta
 from core import Cog
 
 import discord
