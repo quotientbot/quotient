@@ -8,7 +8,7 @@ class Guild(models.Model):
     class Meta:
         table = "guild_data"
 
-    guild_id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField(pk=True) # This fieldname will be changed soon!
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
     embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
@@ -31,14 +31,17 @@ class Guild(models.Model):
     censored = CharVarArrayField(default=list)  # will shift this to automod
 
     @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
     def mute_role(self):
-        guild = self.bot.get_guild(self.guild_id)
-        if guild is not None:
-            return self.guild.get_role(self.mute_role)
+        if self._guild is not None:
+            return self._guild.get_role(self.mute_role)
 
     @property
     def muted_members(self):
-        return list(map(self.bot.get_user, self.muted_members))
+        return tuple(map(self.bot.get_user, self.muted_members))
 
     # ************************************************************************************************
 
