@@ -1,5 +1,6 @@
 from tortoise import models, fields
 from utils.constants import Day
+from typing import Optional
 from .functions import *
 from .fields import *
 import discord
@@ -13,7 +14,7 @@ class Tourney(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    name = fields.TextField()
+    name = fields.CharField(max_length=200, default="Quotient-Tourney")
     registration_channel_id = fields.BigIntField()
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
@@ -23,12 +24,12 @@ class Tourney(models.Model):
     host_id = fields.BigIntField()
     started_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
-    open_role_id = fields.BigIntField()
+    open_role_id = fields.BigIntField(null=True)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 
     @property
-    def guild(self):
+    def guild(self) -> Optional[discord.Guild]:
         return self.bot.get_guild(self.guild_id)
 
     @property
@@ -46,12 +47,21 @@ class Tourney(models.Model):
         if self.guild is not None:
             return self.guild.get_role(self.role_id)
 
+    @property
+    def open_role(self):
+        if self.guild is not None:
+            if self.open_role_id != None:
+                return self.guild.get_role(self.open_role_id)
+            else:
+                return self.guild.default_role
+
 
 class TMSlot(models.Model):
     class Meta:
         table = "tm.register"
 
     id = fields.BigIntField(pk=True)
+    num = fields.IntField()
     team_name = fields.TextField()
     leader_id = fields.BigIntField()
     members = BigIntArrayField(default=list)
@@ -86,7 +96,7 @@ class Scrim(models.Model):
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
 
     @property
-    def guild(self):
+    def guild(self) -> Optional[discord.Guild]:
         return self.bot.get_guild(self.guild_id)
 
     @property

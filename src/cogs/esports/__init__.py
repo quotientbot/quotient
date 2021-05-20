@@ -13,7 +13,7 @@ from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError, TourneyError
-from core import Cog
+from core import Cog, Quotient
 
 import discord
 import asyncio
@@ -27,14 +27,13 @@ QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord
 
 
 class ScrimManager(Cog, name="Esports"):
-    def __init__(self, bot):
+    def __init__(self, bot: Quotient):
         self.bot = bot
         self.queue = asyncio.Queue()
         self.bot.loop.create_task(self.fill_registration_channels())
         self.bot.loop.create_task(self.registration_worker())
 
     async def fill_registration_channels(self):
-        print(f"fill_registration_channels")
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
         self.registration_channels = set()
 
@@ -47,6 +46,12 @@ class ScrimManager(Cog, name="Esports"):
         async for record in records:
             self.tagcheck_channels.add(record.channel_id)
 
+        records = Tourney.filter(started_at__not_isnull=True)
+        self.tourney_channels = set()
+
+        async for record in records:
+            self.tourney_channels.add(record.registration_channel_id)
+
     async def registration_worker(self):
         while True:
             queue_message: QueueMessage = await self.queue.get()
@@ -56,7 +61,7 @@ class ScrimManager(Cog, name="Esports"):
 
             teamname = default.find_team(message)
 
-            scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instancepass
+            scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instance
 
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
@@ -872,7 +877,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney(self, ctx):
         await ctx.send_help(ctx.command)
 
-    @tourney.command(name="create")
+    @tourney.command(name="create", aliases=("setup"))
     async def t_create(self, ctx):
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
 
@@ -1006,7 +1011,7 @@ class ScrimManager(Cog, name="Esports"):
                 await note.pin()
 
             await tourney.save()
-            text = f"Tourney Management Setup Complete. (`Tourney ID: {tourney.id}`)"
+            text = f"Tourney Management Setup Complete. (`Tourney ID: {tourney.id}`)\nUse `{ctx.prefix}tourney start {tourney.id}` to start the tourney."
             try:
                 await message.edit(content=text)
             except discord.NotFound:
@@ -1014,11 +1019,48 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="config")
     async def tourney_config(self, ctx):
-        pass
+        records = await Tourney.filter(guild_id=ctx.guild.id).all()
+        if not len(records):
+            raise TourneyError(
+                f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
+            )
+
+        to_paginate = []
+        for idx, tourney in enumerate(records, start=1):
+            reg_channel = getattr(tourney.registration_channel, "mention", "`Channel Deleted!`")
+            slot_channel = getattr(tourney.confirm_channel, "mention", "`Channel Deleted!`")
+
+            role = getattr(tourney.role, "mention", "`Role Deleted!`")
+            open_role = getattr(tourney.open_role, "mention", "`Role Deleted!`")
+            mystring = f"> Tourney ID: `{tourney.id}`\n> Name: `{tourney.name}`\n> Registration Channel: {reg_channel}\n> Confirm Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{tourney.required_mentions}`\n> Total Slots: `{tourney.total_slots}`\n> Open Role: {open_role}\n> Status: {'Open' if tourney.started_at else 'Closed'}"
+
+            to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")
+
+        paginator = Pages(
+            ctx,
+            title="Total Tourney: {}".format(len(to_paginate)),
+            entries=to_paginate,
+            per_page=1,
+            show_entry_count=True,
+        )
+
+        await paginator.paginate()
 
     @tourney.command(name="delete")
-    async def tourney_delete(self, ctx):
-        pass
+    async def tourney_delete(self, ctx, tourney_id: int):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        prompt = await ctx.prompt(
+            f"Are you sure you want to delete tournament `{tourney.id}`?",
+        )
+        if prompt:
+            self.tourney_channels.discard(tourney.registration_channel_id)
+            await tourney.delete()
+            await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
+        else:
+            await ctx.success(f"Alright! Aborting")
 
     @tourney.command(name="groups")
     async def tourney_group(self, ctx):
@@ -1030,21 +1072,71 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="list", aliases=("all",))
     async def tourney_list(self, ctx):
-        pass
+        records = await Tourney.filter(guild_id=ctx.guild.id).all()
+        if not len(records):
+            raise TourneyError(
+                f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
+            )
 
-    @tourney.command(name="deleteslot")
-    async def tourney_deleteslot(self, ctx):
-        pass
+        e = self.bot.embed(ctx)
+        for count, i in enumerate(records, 1):
+            channel = getattr(i.registration_channel, "mention", "`Deleted Channel!`")
+            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i['t_id']}`"
+
+        await ctx.send(embed=e)
+
+    @tourney.command(name="rmslot", aliases=('deleteslot',))
+    async def tourney_deleteslot(self, ctx, tourney_id: int, *, user: discord.User):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        slot = await Tourney.assigned_slots.filter(leader_id=user.id).first()
+        if not slot:
+            raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney_id}`)")
+
+        prompt = await ctx.prompt(f"**{slot.team_name}** ({user.mention}) slot will be deleted.")
+        if prompt:
+            await TMSlot.filter(id=slot.id).delete
+            await ctx.success(f"Slot deleted!")
+
+        else:
+            await ctx.success(f"Ok!")
 
     @tourney.command(name="edit")
     async def tourney_edit(self, ctx):
         pass
 
     @tourney.command(name="start")
-    async def tourney_start(self, ctx):
-        pass
+    async def tourney_start(self, ctx ,tourney_id: int):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
-    @tourney.command(name="stop")
+        elif tourney.started_at != None:
+            raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already open.")
+
+        channel = tourney.registration_channel
+        open_role = tourney.open_role
+        if channel is None:
+            raise TourneyError(f'I cannot find tourney registration channel ({tourney.registration_channel_id})')
+
+        elif not channel.permissions_for(ctx.me).manage_channels:
+            raise TourneyError(f'I need `manage channels` permission in **{channel}**')
+        
+        elif open_role is None:
+            raise TourneyError(f'I can not find open role for Tourney (`{tourney_id}`)')
+                
+        prompt = await ctx.prompt(f'Are you sure you want to start registrations for Tourney (`{tourney_id}`)?')
+        if prompt:
+            channel_update = await toggle_channel(channel, open_role, True)
+
+            await Tourney.filter(pk=tourney_id).update(started_at=datetime.now(tz=IST),closed_at=None)
+            await ctx.message.add_reaction(emote.check)
+        else:
+            await ctx.success('OK!')
+            
+    @tourney.command(name="stop", aliases=("pause"))
     async def tourney_stop(self, ctx):
         pass
 
