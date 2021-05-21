@@ -1,8 +1,9 @@
+from utils import LogType, ColorConverter
 from core import Quotient, Cog, Context
 from discord.ext import commands
 from .dispatchers import *
 from models import Logging as LM
-from utils import LogType
+
 from .events import *
 import discord
 import typing
@@ -146,8 +147,8 @@ class Logging(Cog):
         pass
 
     @commands.command()
-    async def logcolor(self, ctx: Context, logtype: LogType, color):
-        pass
+    async def logcolor(self, ctx: Context, logtype: LogType, color: ColorConverter):
+        color = int(str(color).replace("#", ""), 16)
 
     @commands.group(invoke_without_command=True)
     async def logignore(self, ctx: Context):
