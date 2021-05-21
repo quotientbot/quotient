@@ -1,5 +1,8 @@
 import re
 from typing import Union
+from datetime import datetime
+
+from .constants import IST
 
 
 def find_team(message):
@@ -36,3 +39,11 @@ async def aenumerate(asequence, start=0):
     async for elem in asequence:
         yield n, elem
         n += 1
+
+
+def get_ipm(bot):
+    """Returns Quotient's cmds invoke rate per minute"""
+    time = (datetime.now(tz=IST) - bot.start_time).total_seconds()
+    per_second = bot.cmd_invokes / time
+    per_minute = per_second * 60
+    return per_minute

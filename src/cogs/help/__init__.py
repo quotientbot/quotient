@@ -1,6 +1,6 @@
 from .functions import *
 import discord, config
-from utils import Pages
+from utils import Pages, get_ipm
 
 from core import Cog, Quotient
 from discord.ext import commands
@@ -36,7 +36,7 @@ class HelpCommand(commands.HelpCommand):
 
         cmds = sum(1 for i in self.context.bot.walk_commands())
 
-        embed.set_footer(text="Total Commands: {}".format(cmds))
+        embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
         await ctx.send(embed=embed)
 
     async def send_group_help(self, group):

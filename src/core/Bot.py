@@ -3,10 +3,12 @@ from colorama import Fore, Style, init
 from discord.ext import commands
 from tortoise import Tortoise
 from .Context import Context
+from datetime import datetime
+from utils import cache, IST
 from typing import NoReturn
 import aiohttp, asyncio, os
 import config, asyncpg
-from utils import cache
+
 import traceback
 import discord
 
@@ -38,6 +40,8 @@ class Quotient(commands.AutoShardedBot):
         self.loop = asyncio.get_event_loop()
         self.config = config
         self.color = config.COLOR
+        self.start_time = datetime.now(tz=IST)
+        self.cmd_invokes = 0
 
         for ext in self.config.EXTENSIONS:
             try:
@@ -73,6 +77,9 @@ class Quotient(commands.AutoShardedBot):
             return
 
         await self.invoke(ctx)
+
+    async def on_command(self, ctx):
+        self.cmd_invokes += 1
 
     async def on_ready(self):  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
