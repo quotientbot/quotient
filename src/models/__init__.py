@@ -1,2 +1,2 @@
-from .models import Timer, Guild
+from .models import Timer, Guild, Logging
 from .esports import *

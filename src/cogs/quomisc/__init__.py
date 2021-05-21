@@ -1,12 +1,12 @@
 from core import Cog, Quotient, Context
-from .events import *
+from .dev import *
 
 
-class Mod(Cog):
+class Quomisc(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
 
 def setup(bot):
-    bot.add_cog(Mod(bot))
-    bot.add_cog(ModEvents(bot))
+    bot.add_cog(Quomisc(bot))
+    bot.add_cog(Dev(bot))

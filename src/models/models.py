@@ -2,7 +2,7 @@ from .fields import *
 from .functions import *
 from utils.constants import LogType
 from tortoise import fields, models
-import config
+import config, discord
 
 
 class Guild(models.Model):
@@ -64,44 +64,44 @@ class User(models.Model):
 # ************************************************************************************************
 
 
-# class Logging(models.Model):
-#     class Meta:
-#         table = "logging"
+class Logging(models.Model):
+    class Meta:
+        table = "logging"
 
-#     id = fields.BigIntField(pk=True)
-#     guild_id = fields.BigIntField()
-#     channel_id = fields.BigIntField()
-#     color = fields.IntField()  # modlogs m noi
-#     toggle = fields.BooleanField(default=True)
-#     ignore_bots = fields.BooleanField(default=False)
-#     ignored_channels = BigIntArrayField(default=list)
-#     type = fields.CharEnumField(LogType)
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    color = fields.IntField(discord.Color(0x2F3136).value)  # modlogs m noi
+    toggle = fields.BooleanField(default=True)
+    ignore_bots = fields.BooleanField(default=False)
+    ignored_channels = BigIntArrayField(default=list)
+    type = fields.CharEnumField(LogType, max_length=12)
 
-#     @property
-#     def channel(self):
-#         return self.bot.get_channel(self.channel_id)
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
 
 
 # # ************************************************************************************************
 
 
-# class Tag(models.Model):
-#     class Meta:
-#         table = "tags"
+class Tag(models.Model):
+    class Meta:
+        table = "tags"
 
-#     id = fields.BigIntField(pk=True)
-#     guild_id = fields.BigIntField()
-#     name = fields.CharField()
-#     content = fields.TextField()
-#     is_embed = fields.BooleanField(default=False)
-#     is_nsfw = fields.BooleanField(default=False)
-#     owner_id = fields.BigIntField()
-#     created_at = fields.DatetimeField(auto_now=True)
-#     usage = fields.IntField(default=0)
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    name = fields.CharField(max_length=100)
+    content = fields.TextField()
+    is_embed = fields.BooleanField(default=False)
+    is_nsfw = fields.BooleanField(default=False)
+    owner_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now=True)
+    usage = fields.IntField(default=0)
 
-#     @property
-#     def owner(self):
-#         return self.bot.get_user(self.owner_id)
+    @property
+    def owner(self):
+        return self.bot.get_user(self.owner_id)
 
 
 # ************************************************************************************************

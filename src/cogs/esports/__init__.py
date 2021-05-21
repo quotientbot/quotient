@@ -1050,7 +1050,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_delete(self, ctx, tourney_id: int):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
-            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
         prompt = await ctx.prompt(
             f"Are you sure you want to delete tournament `{tourney.id}`?",
@@ -1089,7 +1089,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_deleteslot(self, ctx, tourney_id: int, *, user: discord.User):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
-            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
         slot = await Tourney.assigned_slots.filter(leader_id=user.id).first()
         if not slot:
@@ -1104,14 +1104,19 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.success(f"Ok!")
 
     @tourney.command(name="edit")
-    async def tourney_edit(self, ctx):
-        pass
+    async def tourney_edit(self, ctx, tourney_id: int):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        menu = TourneyEditor(tourney=tourney)
+        await menu.start(ctx)
 
     @tourney.command(name="start")
     async def tourney_start(self, ctx, tourney_id: int):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
-            raise TourneyError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
         elif tourney.started_at != None:
             raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already open.")
@@ -1137,16 +1142,63 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.success("OK!")
 
     @tourney.command(name="stop", aliases=("pause",))
-    async def tourney_stop(self, ctx):
-        pass
+    async def tourney_stop(self, ctx, tourney_id: int):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        elif tourney.closed_at != None:
+            raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already closed.")
+
+        channel = tourney.registration_channel
+        open_role = tourney.open_role
+        if channel is None:
+            raise TourneyError(f"I cannot find tourney registration channel ({tourney.registration_channel_id})")
+
+        elif not channel.permissions_for(ctx.me).manage_channels:
+            raise TourneyError(f"I need `manage channels` permission in **{channel}**")
+
+        elif open_role is None:
+            raise TourneyError(f"I can not find open role for Tourney (`{tourney_id}`)")
+
+        prompt = await ctx.prompt(
+            f"Are you sure you want to stop registrations for Tourney (`{tourney_id}`)?\n>You can start them later with `{ctx.prefix}tourney start {tourney_id}` command"
+        )
+        if prompt:
+            channel_update = await toggle_channel(channel, open_role, False)
+
+            await Tourney.filter(pk=tourney_id).update(started_at=None, closed_at=datetime.now(tz=IST))
+            await ctx.message.add_reaction(emote.check)
+        else:
+            await ctx.success("OK!")
 
     @tourney.command(name="ban")
-    async def tourney_ban(self, ctx):
-        pass
+    async def tourney_ban(self, ctx, tourney_id: int, user: discord.User):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        if user.id in tourney.banned_users:
+            return await ctx.send(
+                f"**{str(user)}** is already banned from the tourney.\n\nUse `{ctx.prefix}tourney unban {tourney_id} {str(user)}` to unban them."
+            )
+
+        await Tourney.filter(pk=tourney_id).update(banned_users=ArrayAppend("banned_users", user.id))
+        await ctx.success(f"**{str(user)}** has been successfully banned from Tourney (`{tourney_id}`)")
 
     @tourney.command(name="unban")
-    async def tourney_unban(self, ctx):
-        pass
+    async def tourney_unban(self, ctx, tourney_id: int, user: discord.User):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        if user.id not in tourney.banned_users:
+            return await ctx.send(
+                f"**{str(user)}** is not banned the tourney.\n\nUse `{ctx.prefix}tourney ban {tourney_id} {str(user)}` to ban them."
+            )
+
+        await Tourney.filter(pk=tourney_id).update(banned_users=ArrayRemove("banned_users", user.id))
+        await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney_id}`)")
 
 
 def setup(bot):
