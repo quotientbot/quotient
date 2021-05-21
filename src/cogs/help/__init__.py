@@ -29,7 +29,9 @@ class HelpCommand(commands.HelpCommand):
         embed = discord.Embed(color=discord.Color(config.COLOR))
         for idx in cats:
             embed.add_field(
-                inline=False, name=idx.qualified_name, value=", ".join(map(lambda x: f"`{x}`", idx.get_commands()))
+                inline=False,
+                name=idx.qualified_name.title(),
+                value=", ".join(map(lambda x: f"`{x}`", idx.get_commands())),
             )
 
         cmds = sum(1 for i in self.context.bot.walk_commands())

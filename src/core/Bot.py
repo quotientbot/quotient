@@ -74,6 +74,10 @@ class Quotient(commands.AutoShardedBot):
 
         await self.invoke(ctx)
 
+    async def on_message(self, message: discord.Message):
+        message.content = message.content.lower()
+        await self.process_commands(message)
+
     async def on_ready(self):  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
         print(Fore.BLUE + f"Logged in as {self.user.name}({self.user.id})")

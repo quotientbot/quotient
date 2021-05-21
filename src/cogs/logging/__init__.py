@@ -9,7 +9,7 @@ import discord
 import typing
 
 
-class Logging(Cog):
+class Logging(Cog, name="logging"):
     def __init__(self, bot: Quotient):
         self.bot = bot
 

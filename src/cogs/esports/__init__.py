@@ -26,7 +26,7 @@ from typing import NamedTuple, Union
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 
 
-class ScrimManager(Cog, name="Esports"):
+class ScrimManager(Cog, name="esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.queue = asyncio.Queue()
@@ -106,8 +106,8 @@ class ScrimManager(Cog, name="Esports"):
         """This listener opens the scrim registration at time."""
         scrim_id = timer.kwargs["scrim_id"]
         scrim = await Scrim.get_or_none(pk=scrim_id)
-        
-        if not scrim: #we don't want to do anything if the scrim is deleted
+
+        if not scrim:  # we don't want to do anything if the scrim is deleted
             return
 
         if scrim.open_time != timer.expires:  # If time is not same return :)

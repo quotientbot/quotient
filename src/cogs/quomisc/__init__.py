@@ -2,7 +2,7 @@ from core import Cog, Quotient, Context
 from .dev import *
 
 
-class Quomisc(Cog):
+class Quomisc(Cog, name="quomisc"):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
