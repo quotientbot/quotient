@@ -147,4 +147,17 @@ class Autorole(models.Model):
     bots = BigIntArrayField(default=list)
 
 
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def human_roles(self):
+        if self.guild is not None:
+            return map(self.guild.get_role,self.humans)
+
+    @property
+    def bot_roles(self):
+        if self.guild is not None:
+            return map(self.guild.get_role,self.bots)
 # ************************************************************************************************

@@ -20,19 +20,40 @@ class Utility(Cog, name="utility"):
         record = await Autorole.get_or_none(pk=ctx.guild.id)
         if record is None:
             await Autorole.create(guild=ctx.guild.id, humans=ArrayAppend("humans", role.id))
+            text = f"Added {role.mention} to human autoroles."
 
         else:
             func = (ArrayAppend, ArrayRemove)[role.id in record.humans]
             await Autorole.filter(guild_id=ctx.guild.id).update(humans=func("humans", role.id))
-            text = f"Added {role.mention} to human autoroles." if func == ArrayAppend else ""
+            text = (
+                f"Added {role.mention} to human autoroles."
+                if func == ArrayAppend
+                else f"Removed {role.mention} from human autoroles."
+            )
+
+        await ctx.success(text)
 
     @autorole.command(name="bots")
     async def autorole_bots(self, ctx: Context, *, role: discord.Role):
-        pass
+        record = await Autorole.get_or_none(pk=ctx.guild.id)
+        if record is None:
+            await Autorole.create(guild=ctx.guild.id, bots=ArrayAppend("bots", role.id))
+            text = f"Added {role.mention} to bot autoroles."
+
+        else:
+            func = (ArrayAppend, ArrayRemove)[role.id in record.bots]
+            await Autorole.filter(guild_id=ctx.guild.id).update(bots=func("bots", role.id))
+            text = (
+                f"Added {role.mention} to bot autoroles."
+                if func == ArrayAppend
+                else f"Removed {role.mention} from bot autoroles."
+            )
+
+        await ctx.success(text)
 
     @autorole.command(name="config")
     async def autorole_config(self, ctx: Context):
-        pass
+        embed = self.bot.embed(ctx)
 
 
 def setup(bot):
