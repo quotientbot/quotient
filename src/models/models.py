@@ -138,3 +138,13 @@ class Snipes(models.Model):
 
 
 # ************************************************************************************************
+class Autorole(models.Model):
+    class Meta:
+        table = "autoroles"
+
+    guild_id = fields.BigIntField(pk=True)
+    humans = BigIntArrayField(default=list)
+    bots = BigIntArrayField(default=list)
+
+
+# ************************************************************************************************
