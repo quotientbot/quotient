@@ -1109,6 +1109,9 @@ class ScrimManager(Cog, name="Esports"):
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
+        menu = TourneyEditor(tourney=tourney)
+        await menu.start(ctx)
+
     @tourney.command(name="start")
     async def tourney_start(self, ctx, tourney_id: int):
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
