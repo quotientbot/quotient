@@ -73,7 +73,7 @@ class Logging(models.Model):
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
-    color = fields.IntField(default=discord.Color(0x2F3136).value)  # modlogs m noi
+    color = fields.IntField(default=0x2F3136)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
     ignored_channels = BigIntArrayField(default=list)
