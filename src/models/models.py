@@ -134,6 +134,7 @@ class Snipes(models.Model):
     channel_id = fields.BigIntField()
     content = fields.TextField()
     delete_time = fields.DatetimeField(auto_now=True)
+    nsfw = fields.BooleanField(default=False)
 
 
 # ************************************************************************************************
