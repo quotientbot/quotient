@@ -12,7 +12,6 @@ class Context(commands.Context):
     def db(self):
         return self.pool
 
-
     @property
     def session(self):
         return self.bot.session

@@ -2,7 +2,7 @@ from .fields import *
 from .functions import *
 from utils.constants import LogType
 from tortoise import fields, models
-import config
+import config, discord
 
 __all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole")
 
@@ -146,18 +146,21 @@ class Autorole(models.Model):
     humans = BigIntArrayField(default=list)
     bots = BigIntArrayField(default=list)
 
-
     @property
-    def _guild(self):
+    def _guild(self) -> Optional[discord.Guild]:
         return self.bot.get_guild(self.guild_id)
 
     @property
     def human_roles(self):
-        if self.guild is not None:
-            return map(self.guild.get_role,self.humans)
+        if self._guild is not None:
+            humans = tuple(map(self._guild.get_role, self.humans))
+            return tuple(map(lambda x: getattr(x, "mention", "Deleted"), humans))
 
     @property
     def bot_roles(self):
-        if self.guild is not None:
-            return map(self.guild.get_role,self.bots)
+        if self._guild is not None:
+            bots = tuple(map(self._guild.get_role, self.bots))
+            return tuple(map(lambda x: getattr(x, "mention", "Deleted"), bots))
+
+
 # ************************************************************************************************
