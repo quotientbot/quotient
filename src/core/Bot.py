@@ -15,9 +15,7 @@ intents = Intents.default()
 intents.members = True
 
 
-os.environ["JISHAKU_HIDE"] = "True"
-os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
-os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+os.environ["JISHAKU_HIDE","JISHAKU_NO_UNDERSCORE","JISHAKU_NO_DM_TRACEBACK"] = "True"
 print(Fore.RED + "-----------------------------------------------------")
 
 
