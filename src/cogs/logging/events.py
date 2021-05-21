@@ -76,7 +76,7 @@ class LoggingEvents(Cog):
 
                 return embed, channel
 
-            else:
+            elif subtype == "bulk":
                 message = message[0]
                 audit_log_entry = await self.audit_entry(message.guild, discord.AuditLogAction.message_bulk_delete)
                 deleted_by = (
@@ -102,3 +102,7 @@ class LoggingEvents(Cog):
                 embed.timestamp = datetime.utcnow()
 
                 return embed, channel
+
+            else:
+                # edited msg
+                pass

@@ -16,6 +16,7 @@ class LoggingDispatchers(Cog):
 
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):
+        # not using raw_message_delete because if cached_message is None , there is nothing to log.
         self.bot.dispatch("snipe_deleted", message)
         guild = message.guild
 
@@ -25,3 +26,16 @@ class LoggingDispatchers(Cog):
                 return
             else:
                 self.bot.dispatch("log", LogType.msg, message=message, subtype="single")
+
+    @Cog.listener()
+    async def on_bulk_message_delete(self, messages):
+        if not messages[0].guild:
+            return
+
+        guild = messages[0].guild
+        check = await Logging.get_or_none(guild_id=guild.id, type=LogType.msg)
+        if check:
+            if messages[0].author.bot and check.ignore_bots:
+                return
+            else:
+                self.bot.dispatch("log", LogType.msg, message=messages, subtype="bulk")
