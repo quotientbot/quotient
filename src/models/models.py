@@ -2,7 +2,7 @@ from .fields import *
 from .functions import *
 from utils.constants import LogType
 from tortoise import fields, models
-import config
+import config, discord
 
 
 class Guild(models.Model):
@@ -71,7 +71,7 @@ class Logging(models.Model):
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
-    color = fields.IntField()  # modlogs m noi
+    color = fields.IntField(discord.Color(0x2F3136).value)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
     ignored_channels = BigIntArrayField(default=list)

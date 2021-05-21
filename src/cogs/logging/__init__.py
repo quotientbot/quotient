@@ -18,12 +18,11 @@ class Logging(Cog):
             await ctx.send("value error")
 
     async def insert_or_update_config(self, ctx: Context, _type: LogType, channel: discord.TextChannel):
-        _type = _type.value
         guild = ctx.guild
 
         record = await LM.get_or_none(guild_id=guild.id, type=_type)
         if record is None:
-            await LM.create(guild_id=guild.id, channel_id=channel.id, type=_type, color=discord.Color(0x2F3136))
+            await LM.create(guild_id=guild.id, channel_id=channel.id, type=_type)
 
         else:
             await LM.filter(guild_id=guild.id, type=_type).update(channel_id=channel.id)
@@ -166,6 +165,10 @@ class Logging(Cog):
 
     @commands.command()
     async def logtoggle(self, ctx: Context, logtype: typing.Union[LogType, str]):
+        pass
+
+    @commands.command()
+    async def logconfig(self, ctx: Context):
         pass
 
 
