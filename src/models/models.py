@@ -4,6 +4,8 @@ from utils.constants import LogType
 from tortoise import fields, models
 import config, discord
 
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes")
+
 
 class Guild(models.Model):
     class Meta:
@@ -121,6 +123,17 @@ class Timer(models.Model):
     @property
     def args(self):
         return self.extra.get("args", ())
+
+
+# ************************************************************************************************
+class Snipes(models.Model):
+    class Meta:
+        table = "snipes"
+
+    id = fields.BigIntField(pk=True)
+    channel_id = fields.BigIntField()
+    content = fields.TextField()
+    delete_time = fields.DatetimeField(auto_now=True)
 
 
 # ************************************************************************************************
