@@ -105,7 +105,10 @@ class ScrimManager(Cog, name="Esports"):
     async def on_scrim_open_timer_complete(self, timer: Timer):
         """This listener opens the scrim registration at time."""
         scrim_id = timer.kwargs["scrim_id"]
-        scrim = await Scrim.get(pk=scrim_id)
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        
+        if not scrim: #we don't want to do anything if the scrim is deleted
+            return
 
         if scrim.open_time != timer.expires:  # If time is not same return :)
             return
