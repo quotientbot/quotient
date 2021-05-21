@@ -1,5 +1,6 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
+from models import Autorole, ArrayAppend, ArrayRemove
 import discord
 
 
@@ -16,7 +17,14 @@ class Utility(Cog, name="utility"):
 
     @autorole.command(name="humans")
     async def autorole_humans(self, ctx: Context, *, role: discord.Role):
-        pass
+        record = await Autorole.get_or_none(pk=ctx.guild.id)
+        if record is None:
+            await Autorole.create(guild=ctx.guild.id, humans=ArrayAppend("humans", role.id))
+
+        else:
+            func = (ArrayAppend, ArrayRemove)[role.id in record.humans]
+            await Autorole.filter(guild_id=ctx.guild.id).update(humans=func("humans", role.id))
+            text = f"Added {role.mention} to human autoroles." if func == ArrayAppend else ""
 
     @autorole.command(name="bots")
     async def autorole_bots(self, ctx: Context, *, role: discord.Role):

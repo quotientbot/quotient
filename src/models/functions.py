@@ -4,6 +4,12 @@ from tortoise.expressions import F
 from enum import Enum
 
 
+__all__ = (
+    "ArrayAppend",
+    "ArrayRemove",
+)
+
+
 class ArrayAppend(Function):
     def __init__(self, field: str, value: typing.Any) -> None:
         if isinstance(value, Enum):

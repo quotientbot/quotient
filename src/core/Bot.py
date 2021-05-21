@@ -74,10 +74,6 @@ class Quotient(commands.AutoShardedBot):
 
         await self.invoke(ctx)
 
-    async def on_message(self, message: discord.Message):
-        message.content = message.content.lower()
-        await self.process_commands(message)
-
     async def on_ready(self):  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
         print(Fore.BLUE + f"Logged in as {self.user.name}({self.user.id})")
@@ -95,3 +91,7 @@ class Quotient(commands.AutoShardedBot):
         embed.set_footer(text=embed_footer)
 
         return embed
+
+    def get_cog(self, name):  # making cogs insensitive
+        cogs = {key.lower() if isinstance(key, str) else key: value for key, value in self.cogs.items()}
+        return cogs.get(name.lower())

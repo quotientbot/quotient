@@ -2,9 +2,9 @@ from .fields import *
 from .functions import *
 from utils.constants import LogType
 from tortoise import fields, models
-import config, discord
+import config
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole")
 
 
 class Guild(models.Model):
