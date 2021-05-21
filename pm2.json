@@ -1,0 +1,14 @@
+{
+  "apps": [
+    {
+      "name": "quotient",
+      "autorestart": true,
+      "watch": true,
+      "ignore_watch": ["logs"],
+      "script": "./src/bot.py",
+      "interpreter": "python3",
+      "error_file": "./logs/pm2error.log",
+      "out_file": "./logs/pm2out.log"
+    }
+  ]
+}
