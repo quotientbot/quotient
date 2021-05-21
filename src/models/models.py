@@ -91,7 +91,7 @@ class Tag(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    name = fields.CharField()
+    name = fields.CharField(max_length=100)
     content = fields.TextField()
     is_embed = fields.BooleanField(default=False)
     is_nsfw = fields.BooleanField(default=False)
