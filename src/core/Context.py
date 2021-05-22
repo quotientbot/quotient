@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord, asyncio
-import utils
+import utils, io
 
 
 class Context(commands.Context):
@@ -95,3 +95,15 @@ class Context(commands.Context):
                 color=self.config.COLOR,
             ),
         )
+
+    async def send_file(self, content, *, name: str = "Message.txt", escape_mentions=True, **kwargs):
+        """
+        sends the file containg content
+        """
+        if escape_mentions:
+            content = discord.utils.escape_mentions(content)
+
+        fp = io.BytesIO(content.encode())
+        kwargs.pop("file", None)
+
+        return await self.send(file=discord.File(fp, filename=name), **kwargs)
