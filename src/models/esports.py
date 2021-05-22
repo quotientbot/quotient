@@ -64,6 +64,11 @@ class Tourney(models.Model):
             else:
                 return self.guild.default_role
 
+    @property
+    def modrole(self):
+        if self.guild is not None:
+            return discord.utils.get(self.guild.roles, name="tourney-mod")
+
 
 class TMSlot(models.Model):
     class Meta:

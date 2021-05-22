@@ -108,13 +108,68 @@ class SMError(Cog):
                 return await logschan.send(text)
 
     @Cog.listener()
-    async def on_tourney_log(self, type: str, scrim: Tourney, **kwargs):
-        pass
+    async def on_tourney_log(self, type: str, tourney: Tourney, **kwargs):
+        """
+        Same as on_scrim_log but for tourneys
+        """
+        logschan = tourney.logschan
+        role = tourney.role
+        tourney_open_role = tourney.open_role
+        registration_channel = tourney.registration_channel
+        modrole = tourney.modrole
+
+        imp = False
+
+        if type == "closed":
+            permission_updated = kwargs.get("permission_updated")
+            embed = discord.Embed(
+                color=discord.Color(0x00B1FF),
+                description=f"Registration closed for {tourney_open_role.mention} in {registration_channel.mention}(TourneyID: `{tourney.id}`)",
+            )
+            if not permission_updated:
+                imp = True
+                embed.color = discord.Color.red()
+                embed.description += f"\nI couldn't close {registration_channel.mention}."
+
+        elif type == "reg_success":
+            message = kwargs.get("message")
+            role_added = kwargs.get("role_added")
+
+            confirmation = tourney.confirm_channel
+            if confirmation is not None:
+                slot = kwargs.get("assigned_slot")
+                e = discord.Embed(
+                    color=self.bot.color,
+                    description=f"**{slot.num}) TEAM [{slot.team_name.upper()}]({message.jump_url})**\n",
+                )
+                if len(message.mentions) > 0:
+                    e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
+
+                await confirmation.send(embed=e)
+
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
+            )
+            if role_added is False:
+                imp = True
+                embed.color = discord.Color.red()
+                embed.description += f"\nUnfortunately I couldn't give them {role.mention}."
+
+        if logschan != None and logschan.permissions_for(logschan.guild.me).send_messages:
+            await logschan.send(
+                content=modrole.mention if modrole != None and imp is True else None,
+                embed=embed,
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
+        else:
+            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
+            return await logschan.send(text)
 
     @Cog.listener()
     async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
         """
-        A listener that is dispatched everytime registration starts or ends.
+        A listener that is dispatched everytime registration starts/ends or a registration is accepted.
         """
         logschan = scrim.logschan
         role = scrim.role

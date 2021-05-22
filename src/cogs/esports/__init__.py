@@ -108,12 +108,14 @@ class ScrimManager(Cog, name="esports"):
             if not tourney or tourney.closed:  # Tourney is deleted or not opened.
                 continue
 
-            assigned_slots = await tourney.assigned_slots.order_by("-id").first() or 0 #we don't count them all instead we get num from last registration
+            assigned_slots = (
+                await tourney.assigned_slots.order_by("-id").first() or 0
+            )  # we don't count them all instead we get num from last registration
 
             slot = await TMSlot.create(
                 leader_id=ctx.author.id,
                 team_name=teamname,
-                num=assigned_slots + 1,
+                num=assigned_slots.num + 1,
                 jump_url=message.jump_url,
             )
 
@@ -127,15 +129,10 @@ class ScrimManager(Cog, name="esports"):
                 role_given = False
 
             self.bot.dispatch(
-                "tourney_log",
-                "reg_success",
-                tourney,
-                message=ctx.message,
-                role_added=role_given,
-                assigned_slot = assigned_slots + 1
+                "tourney_log", "reg_success", tourney, message=ctx.message, role_added=role_given, assigned_slot=slot
             )
 
-            if tourney.total_slots == assigned_slots + 1:
+            if tourney.total_slots == assigned_slots.num + 1:
                 await tourney_end_process(ctx, tourney)
 
     @property
