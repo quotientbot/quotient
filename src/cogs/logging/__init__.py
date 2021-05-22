@@ -1,3 +1,4 @@
+from re import L
 from utils import LogType, ColorConverter
 from core import Quotient, Cog, Context
 from discord.ext import commands
@@ -149,20 +150,32 @@ class Logging(Cog, name="logging"):
     @commands.command()
     async def logcolor(self, ctx: Context, logtype: LogType, color: ColorConverter):
         color = int(str(color).replace("#", ""), 16)
+        if logtype.value == "mod":
+            return await ctx.error(
+                f"Colors for modlogs cannot be manipulated, they are applied automatically according to the severity of the action."
+            )
 
-    @commands.group(invoke_without_command=True)
-    async def logignore(self, ctx: Context):
-        pass
+        check = await LM.get_or_none(guild_id=ctx.guild.id, type=logtype)
+        if not check:
+            return await ctx.send(
+                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}logcolor {logtype.value} <some color>`"
+            )
 
-    @logignore.command(name="bots")
-    async def logignore_bots(self, ctx: Context, logtype: LogType):
-        await ctx.send(logtype)
+        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(color=color)
+        await ctx.message.add_reaction(emote.check)
 
-    @logignore.command(name="channel")
-    async def logignore_channels(
-        self, ctx: Context, logtype: LogType, *, channel: typing.Union[discord.TextChannel, discord.VoiceChannel]
-    ):
-        pass
+    @commands.command()
+    async def logbots(self, ctx: Context, logtype: LogType):
+        check = await LM.get_or_none(guild_id=ctx.guild.id, type=logtype)
+        if not check:
+            return await ctx.send(
+                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}logcolor {logtype.value} <some color>`"
+            )
+
+        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(ignore_bots=not (check.ignore_bots))
+        await ctx.success(
+            f"Bots logging turned {'ON' if not check.ignore_bots else 'OFF'} for {logtype.value.title()} logs."
+        )
 
     @commands.command()
     async def logtoggle(self, ctx: Context, logtype: typing.Union[LogType, str]):
