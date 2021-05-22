@@ -2,7 +2,7 @@ from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from .events import *
-from utils import checks
+from utils import checks, ActionReason, MemberID, BannedMember
 import typing
 import discord
 import re
@@ -11,6 +11,9 @@ import re
 class Mod(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    def cog_check(self, ctx):
+        return ctx.guild is not None
 
     @commands.command()
     @checks.is_mod()
@@ -129,7 +132,61 @@ class Mod(Cog):
                 total_reactions += sum(r.count for r in message.reactions)
                 await message.clear_reactions()
 
-        await ctx.send_m(f"Successfully removed {total_reactions} reactions.")
+        await ctx.success(f"Successfully removed {total_reactions} reactions.")
+
+    @commands.command()
+    @checks.has_permissions(kick_members=True)
+    @commands.bot_has_guild_permissions(kick_members=True)
+    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
+        """Kicks a member from the server.
+        In order for this to work, the bot must have Kick Member permissions.
+        To use this command you must have Kick Members permission.
+        """
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.kick(member, reason=reason)
+        await ctx.success(f"{str(member)} has been successfully kicked out!")
+
+    @commands.command()
+    @checks.has_permissions(ban_members=True)
+    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    @commands.bot_has_guild_permissions(ban_members=True)
+    async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
+        """Bans a member from the server.
+        You can also ban from ID to ban regardless whether they're
+        in the server or not.
+        In order for this to work, the bot must have Ban Member permissions.
+        To use this command you must have Ban Members permission.
+        """
+
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.ban(member, reason=reason)
+        await ctx.success(f"{str(member)} has been successfully banned!")
+
+    @commands.command()
+    @checks.has_permissions(ban_members=True)
+    @commands.bot_has_guild_permissions(ban_members=True)
+    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
+        """Unbans a member from the server.
+        You can pass either the ID of the banned member or the Name#Discrim
+        combination of the member. Typically the ID is easiest to use.
+        In order for this to work, the bot must have Ban Member permissions.
+        To use this command you must have Ban Members permissions.
+        """
+
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.unban(member.user, reason=reason)
+        if member.reason:
+            await ctx.send(f"Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}.")
+        else:
+            await ctx.success(f"Unbanned {member.user} (ID: {member.user.id}).")
 
 
 def setup(bot):
