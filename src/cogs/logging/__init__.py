@@ -33,6 +33,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def msglog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log message deleted/ edited / bulk deleted
@@ -45,6 +46,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def joinlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log when someone joins.
@@ -57,6 +59,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def leavelog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log when someone leave the server.
@@ -69,6 +72,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def actionlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log ban/ unban/ kick.
@@ -81,6 +85,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def serverlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log server updates like emoji update , icon change, etc.
@@ -93,6 +98,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def channellog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log create/ edit/ delete channel.
@@ -105,6 +111,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def rolelog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log create/ edit/ delete roles.
@@ -117,6 +124,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def memberlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log member updates like name change , avatar update , etc.
@@ -129,6 +137,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def voicelog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log voice mute/ join/ leave /defean ,etc.
@@ -141,6 +150,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def reactionlog(self, ctx: Context, channel: discord.TextChannel):
         """
         Log reaction add/ remove.
@@ -153,6 +163,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def modlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log modactions with case ids.
@@ -165,6 +176,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def cmdlog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log Quotient's commands.
@@ -177,6 +189,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def invitelog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log invite create/ delete/ update
@@ -189,6 +202,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def pinglog(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Log when anyone ping anyone.
@@ -201,6 +215,7 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     @checks.is_mod()
+    @commands.bot_has_guild_permissions(view_audit_log=True)
     async def logall(self, ctx: Context, *, channel: discord.TextChannel):
         """
         Setup all the logs at once in a channel.
