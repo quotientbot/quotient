@@ -109,13 +109,14 @@ class ScrimManager(Cog, name="esports"):
                 continue
 
             assigned_slots = (
-                await tourney.assigned_slots.order_by("-id").first() or 0
+                await tourney.assigned_slots.order_by("-id").first()
             )  # we don't count them all instead we get num from last registration
-
+            
+            numb = 0 if assigned_slots is None else assigned_slots.num
             slot = await TMSlot.create(
                 leader_id=ctx.author.id,
                 team_name=teamname,
-                num=assigned_slots.num + 1,
+                num=numb + 1,
                 jump_url=message.jump_url,
             )
 
@@ -129,10 +130,10 @@ class ScrimManager(Cog, name="esports"):
                 role_given = False
 
             self.bot.dispatch(
-                "tourney_log", "reg_success", tourney, message=ctx.message, role_added=role_given, assigned_slot=slot
+                "tourney_log", "reg_success", tourney, message=ctx.message, role_added=role_given, assigned_slot=slot,num=numb+1
             )
 
-            if tourney.total_slots == assigned_slots.num + 1:
+            if tourney.total_slots == numb + 1:
                 await tourney_end_process(ctx, tourney)
 
     @property

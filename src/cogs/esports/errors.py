@@ -138,9 +138,10 @@ class SMError(Cog):
             confirmation = tourney.confirm_channel
             if confirmation is not None:
                 slot = kwargs.get("assigned_slot")
+                num = kwargs.get("num")
                 e = discord.Embed(
                     color=self.bot.color,
-                    description=f"**{slot.num}) TEAM [{slot.team_name.upper()}]({message.jump_url})**\n",
+                    description=f"**{num}) TEAM [{slot.team_name.upper()}]({message.jump_url})**\n",
                 )
                 if len(message.mentions) > 0:
                     e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
