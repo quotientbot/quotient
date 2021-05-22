@@ -1,5 +1,5 @@
 from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
-from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta , get_chunks
+from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta, get_chunks
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 
@@ -598,7 +598,7 @@ class ScrimManager(Cog, name="esports"):
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
-        valid_opt = ("scrim", "ping", "openrole", "autoclean")
+        valid_opt = ("scrim", "ping", "openrole", "autoclean","autoslotlist")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
         display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim_id} scrim`"
 
@@ -632,6 +632,9 @@ class ScrimManager(Cog, name="esports"):
             await Scrim.filter(pk=scrim.id).update(autoclean=not (autoclean))
             await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
 
+        elif option.lower() == "autoslotlist":
+            await Scrim.filter(pk=scrim.id).update(autoslotlist = not(scrim.autoslotlist))
+            await ctx.success(f"Autopost-slotlist turned {'OFF' if scrim.autoslotlist else 'ON'}!")
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
@@ -1149,19 +1152,17 @@ class ScrimManager(Cog, name="esports"):
         m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
 
         tables = []
-        for record in get_chunks(records,group_size):
+        for record in get_chunks(records, group_size):
             x = PrettyTable()
-            x.field_names = ['Slot','Registered Posi.','Team Name','Leader']
-            for idx,i in enumerate(record, start=1):
+            x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader"]
+            for idx, i in enumerate(record, start=1):
                 member = ctx.guild.get_member(i.leader_id)
-                x.add_row([idx,i.num,i.team_name,str(member)])
-            
+                x.add_row([idx, i.num, i.team_name, str(member)])
+
             tables.append(str(x))
-
-        await ctx.send_file('\n\n\n\n\n\n'.join(tables),name='slotlist.text')
-
         
-
+        await inputs.safe_delete(m)
+        await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
 
     @tourney.command(name="data")
     async def tourney_data(self, ctx, tourney_id: int):
@@ -1217,13 +1218,13 @@ class ScrimManager(Cog, name="esports"):
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
-        slot = await Tourney.assigned_slots.filter(leader_id=user.id).first()
+        slot = await tourney.assigned_slots.filter(leader_id=user.id).first()
         if not slot:
             raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney_id}`)")
 
         prompt = await ctx.prompt(f"**{slot.team_name}** ({user.mention}) slot will be deleted.")
         if prompt:
-            await TMSlot.filter(id=slot.id).delete
+            await TMSlot.filter(id=slot.id).delete()
             await ctx.success(f"Slot deleted!")
 
         else:
