@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import discord, asyncio, asyncpg
 from discord.ext import commands
 from models import Timer
-from utils.constants import IST
+from utils import IST
 
 
 class Reminders(Cog, name="reminders"):
