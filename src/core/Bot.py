@@ -117,3 +117,9 @@ class Quotient(commands.AutoShardedBot):
     def get_cog(self, name):  # making cogs insensitive
         cogs = {key.lower() if isinstance(key, str) else key: value for key, value in self.cogs.items()}
         return cogs.get(name.lower())
+
+    async def is_owner(self, user):
+        if await super().is_owner(user):
+            return True
+
+        return user.id in config.DEVS
