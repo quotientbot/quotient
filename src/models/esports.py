@@ -204,23 +204,16 @@ class Scrim(models.Model):
         return embed, channel
 
     async def create_slotlist_img(self) -> Union[discord.Embed, discord.File]:
-        '''
+        """
         This isn't done fully yet. Please dont do any shit
-        '''
+        """
         slots = await self.teams_registered
-        embed = discord.Embed(title=self.name + " Slotlist Image")    
-        font_path = f"{Path.cwd()}/Ubuntu-Regular.ttf" 
-        
-        ###############################################################################
+        embed = discord.Embed(title=self.name + " Slotlist Image")
+        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"
 
-        # NOTE - Run the bot from the src folder. I mean make your path inside src
-        # TODO - FIX THIS PATH THING
-
-        ###############################################################################
-       
         bgx = 300
         bgy = 300
-        bg = Image.new('RGBA', (300, bgy))
+        bg = Image.new("RGBA", (300, bgy))
         font_size = 16
         font = ImageFont.truetype(font_path, font_size)
         draw = ImageDraw.Draw(bg)
@@ -239,11 +232,11 @@ class Scrim(models.Model):
                 offset_y = 20
                 font = ImageFont.truetype(font_path, 14)
                 mult6 = True
-            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + offset_y], fill='#2e2e2e')
+            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + offset_y], fill="#2e2e2e")
             if mult6:
-                draw.text([x_rect, y_rect], f'Slot {slot.num:02}  |  {slot.team_name}', font=font, fill='white')
+                draw.text([x_rect, y_rect], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
             else:
-                draw.text([x_rect, y_rect+5], f'Slot {slot.num:02}  |  {slot.team_name}', font=font, fill='white')
+                draw.text([x_rect, y_rect + 5], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
             if bgy < 300:
                 bgy += y_rect + 20
             if len(slots) > 6:
@@ -253,14 +246,13 @@ class Scrim(models.Model):
 
             slot_count += 1
 
-
         bg = bg.resize((bgx, bgy), Image.ANTIALIAS)
         imgbyt = io.BytesIO()
-        bg.save(imgbyt, 'PNG')
+        bg.save(imgbyt, "PNG")
         imgbyt.seek(0)
-        file = discord.File(imgbyt, 'slotlist.png')
+        file = discord.File(imgbyt, "slotlist.png")
 
-        embed.set_image(url='attachment://slotlist.png')
+        embed.set_image(url="attachment://slotlist.png")
         return embed, file
 
 
