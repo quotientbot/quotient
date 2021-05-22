@@ -152,13 +152,13 @@ class Autorole(models.Model):
     @property
     def human_roles(self):
         if self._guild is not None:
-            humans = tuple(map(self._guild.get_role, self.humans))
+            humans = map(self._guild.get_role, self.humans)
             return tuple(map(lambda x: getattr(x, "mention", "Deleted"), humans))
 
     @property
     def bot_roles(self):
         if self._guild is not None:
-            bots = tuple(map(self._guild.get_role, self.bots))
+            bots = map(self._guild.get_role, self.bots)
             return tuple(map(lambda x: getattr(x, "mention", "Deleted"), bots))
 
 
