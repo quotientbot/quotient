@@ -11,6 +11,7 @@ import config, asyncpg
 
 import traceback
 import discord
+import mystbin
 
 init(autoreset=True)
 intents = Intents.default()
@@ -42,6 +43,7 @@ class Quotient(commands.AutoShardedBot):
         self.color = config.COLOR
         self.start_time = datetime.now(tz=IST)
         self.cmd_invokes = 0
+        self.binclient = mystbin.Client()
 
         for ext in self.config.EXTENSIONS:
             try:

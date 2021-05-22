@@ -10,7 +10,6 @@ __all__ = ("LoggingEvents",)
 
 # TODO: fix if action done by the user themself
 # TODO: fix if attachment isn't an image
-# TODO: make binclient
 class LoggingEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
@@ -31,8 +30,11 @@ class LoggingEvents(Cog):
     @Cog.listener()
     async def on_log(self, _type: LogType, **kwargs):
 
+        print(_type)
         embed, channel = await self.handle_event(_type, **kwargs)
-        await channel.send(embed=embed)
+
+        if embed is not None and channel is not None:
+            await channel.send(embed=embed)
 
     async def handle_event(self, _type: LogType, **kwargs):
         embed = discord.Embed()
