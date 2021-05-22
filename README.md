@@ -21,28 +21,17 @@
   </p>
 </p>
 
-## Running
+## Can I self-host Quotient?
 
-I would prefer if you don't run an instance of Quotient. You can directly invite it from the above given URL. The source here is provided for educational purposes only.
+We would rather prefer you not running a direct cloned instance of Quotient. It would be a ton better to just [`Invite`](https://discord.com/oauth2/authorize?client_id=746348747918934096&permissions=21175985838&redirect_uri=https://discord.gg/aBM5xz6&response_type=code&scope=bot) the bot.The source here is only for educational purpose and to maintain transparency on how we collect, use your data and off-course on how Quotient's primary features work. We also do not take any responsibility if the code malfunctions on your side.
 
-If you still want to run Quotient on your machine, here are the steps you want to do:
-
-1. Make sure you have [Python 3.8](https://www.python.org/) or higher.
-2. Setup Environment. (We used [`poetry`](https://pypi.org/project/poetry/))
-3. Setup [PostgreSQL](https://www.postgresql.org/) database
-4. Setup [Tortoise-ORM](https://github.com/tortoise/tortoise-orm)
-5. Rename example_config.py to config.py and fill in all the secrets
-6. Run `./src/bot.py`
+If you decide to edit, compile or use this code in any way. Kindly respect the [`LICENSE`](https://github.com/quotientbot/Quotient-Bot/blob/main/LICENSE).
 
 <!-- CONTRIBUTION -->
 
-## Contribute
+## How do I contribute?
 
-If You are looking forward to contribute to the project , we would like you to know that we love easter eggs.
-Maybe you can try hiding some in your code too : )
+If you are looking forward to contribute to the project, we welcome you with open arms. kindly open an issue first for discussion.
+It's also a good option to join the [`Support Server`](https://discord.gg/aBM5xz6) and get into touch with anyone having @team role.
 
-<!-- LICENSE -->
-
-## License
-
-Distributed under the MPL-2.0. See [`LICENSE`](https://github.com/quotientbot/Quotient-Bot/blob/main/LICENSE) for more information.
+There are also some easter eggs in the code, let's see if you can find some :wink:
