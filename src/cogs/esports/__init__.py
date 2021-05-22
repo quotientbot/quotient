@@ -108,7 +108,7 @@ class ScrimManager(Cog, name="esports"):
             if not tourney or tourney.closed:  # Tourney is deleted or not opened.
                 continue
 
-            assigned_slots = await tourney.assigned_slots.all().count()
+            assigned_slots = await tourney.assigned_slots.order_by("-id").first() or 0 #we don't count them all instead we get num from last registration
 
             slot = await TMSlot.create(
                 leader_id=ctx.author.id,
@@ -132,10 +132,10 @@ class ScrimManager(Cog, name="esports"):
                 tourney,
                 message=ctx.message,
                 role_added=role_given,
+                assigned_slot = assigned_slots + 1
             )
 
             if tourney.total_slots == assigned_slots + 1:
-                print("ending")
                 await tourney_end_process(ctx, tourney)
 
     @property
@@ -598,7 +598,7 @@ class ScrimManager(Cog, name="esports"):
         if scrim is None:
             raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
-        valid_opt = ("scrim", "ping", "openrole", "autoclean","autoslotlist")
+        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
         display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim_id} scrim`"
 
@@ -633,8 +633,9 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
 
         elif option.lower() == "autoslotlist":
-            await Scrim.filter(pk=scrim.id).update(autoslotlist = not(scrim.autoslotlist))
+            await Scrim.filter(pk=scrim.id).update(autoslotlist=not (scrim.autoslotlist))
             await ctx.success(f"Autopost-slotlist turned {'OFF' if scrim.autoslotlist else 'ON'}!")
+
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
@@ -1160,7 +1161,7 @@ class ScrimManager(Cog, name="esports"):
                 x.add_row([idx, i.num, i.team_name, str(member)])
 
             tables.append(str(x))
-        
+
         await inputs.safe_delete(m)
         await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
 
@@ -1294,7 +1295,7 @@ class ScrimManager(Cog, name="esports"):
         )
         if prompt:
             channel_update = await toggle_channel(channel, open_role, False)
-
+            await channel.send(f"Registration is now closed.")
             await Tourney.filter(pk=tourney_id).update(started_at=None, closed_at=datetime.now(tz=IST))
             await ctx.message.add_reaction(emote.check)
         else:

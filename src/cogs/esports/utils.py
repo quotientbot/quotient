@@ -1,6 +1,5 @@
 from typing import NoReturn
-from models import Scrim
-from prettytable import PrettyTable
+from models import Scrim , Tourney
 from datetime import datetime, timedelta
 from utils import constants
 import discord
@@ -10,10 +9,6 @@ import config
 
 class ScrimID:
     ...
-
-
-async def tourney_end_process(ctx, tourney):
-    pass
 
 
 async def is_valid_scrim(bot, scrim) -> bool:
@@ -96,7 +91,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     registration_channel = scrim.registration_channel
     open_role = scrim.open_role
 
-    await Scrim.filter(pk=scrim.id).update(opened_at=None, closed_at=datetime.now(tz=constants.IST))
+    await Scrim.filter(pk=scrim.id).update(opened_at=None, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
 
@@ -120,3 +115,17 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
         if channel != None and channel.permissions_for(ctx.me).send_messages:
             slotmsg = await channel.send(embed=embed)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
+
+
+async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
+    started_at = tourney.started_at
+    closed_at = datetime.now(tz=constants.IST)
+
+    registration_channel = tourney.registration_channel
+    open_role = tourney.open_role
+
+    await Tourney.filter(pk=tourney.id).update(started_at=None,closed_at=closed_at)
+    channel_update = await toggle_channel(registration_channel,open_role,False)
+    await registration_channel.send(embed=discord.Embed(color=discord.Color, description="**Registration is now closed!**"))
+
+    ctx.bot.dispatch("tourney_log", "closed", tourney, permission_updated=channel_update)
