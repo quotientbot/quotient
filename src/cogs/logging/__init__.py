@@ -4,6 +4,7 @@ from discord.ext import commands
 from .dispatchers import *
 from models import Logging as LM
 
+from utils import emote
 from .events import *
 import discord
 import typing
@@ -169,7 +170,18 @@ class Logging(Cog, name="logging"):
 
     @commands.command()
     async def logconfig(self, ctx: Context):
-        pass
+        records = await LM.filter(guild_id=ctx.guild.id).all()
+        if not len(records):
+            return await ctx.error(f"You haven't set logging yet.")
+        text = "**`Toggle` | `Type` | `Channel` | `Ignore Bots` | `Color`**\n\n"
+
+        for idx, record in enumerate(records, start=1):
+            emoji = emote.settings_yes if record.toggle else emote.settings_no
+            bottoggle = emote.settings_yes if record.ignore_bots else emote.settings_no
+            text += f"`{idx:02d}` {emoji} **{record.type.value.title()}** {getattr(record.channel,'mention','Channel Deleted!')} {bottoggle} {record.color}\n"
+
+        embed = self.bot.embed(ctx, description=text)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

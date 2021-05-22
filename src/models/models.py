@@ -76,7 +76,6 @@ class Logging(models.Model):
     color = fields.IntField(default=0x2F3136)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
-    ignored_channels = BigIntArrayField(default=list)
     type = fields.CharEnumField(LogType, max_length=12)
 
     @property
