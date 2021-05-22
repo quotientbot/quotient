@@ -1,5 +1,5 @@
 from typing import NoReturn
-from models import Scrim , Tourney
+from models import Scrim, Tourney
 from datetime import datetime, timedelta
 from utils import constants
 import discord
@@ -124,8 +124,10 @@ async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     registration_channel = tourney.registration_channel
     open_role = tourney.open_role
 
-    await Tourney.filter(pk=tourney.id).update(started_at=None,closed_at=closed_at)
-    channel_update = await toggle_channel(registration_channel,open_role,False)
-    await registration_channel.send(embed=discord.Embed(color=discord.Color, description="**Registration is now closed!**"))
+    await Tourney.filter(pk=tourney.id).update(started_at=None, closed_at=closed_at)
+    channel_update = await toggle_channel(registration_channel, open_role, False)
+    await registration_channel.send(
+        embed=discord.Embed(color=ctx.bot.color, description="**Registration is now closed!**")
+    )
 
     ctx.bot.dispatch("tourney_log", "closed", tourney, permission_updated=channel_update)
