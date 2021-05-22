@@ -1,7 +1,9 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
+from models import Snipes
 from models import Autorole, ArrayAppend, ArrayRemove
-from utils import checks
+from utils import checks, human_timedelta
+from typing import Optional
 import discord
 
 
@@ -102,6 +104,31 @@ class Utility(Cog, name="utility"):
         embed = self.bot.embed(ctx, title="Autorole Config")
         embed.add_field(name="Humans", value=humans, inline=False)
         embed.add_field(name="Bots", value=bots, inline=False)
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def snipe(self, ctx, *, channel: Optional[discord.TextChannel]):
+        """Snipe last deleted message of a channel."""
+
+        channel = channel or ctx.channel
+
+        snipe = await Snipes.filter(channel_id=channel.id).order_by("delete_time").first()
+        if not snipe:
+            return await ctx.send(f"There's nothing to snipe :c")
+
+        elif snipe.nsfw and not channel.is_nsfw():
+            return await ctx.send(f"The snipe is marked NSFW but the current channel isn't.")
+
+        content = (
+            snipe.content
+            if snipe.content < 128
+            else f"[Click me to see]({str(await ctx.bot.binclient.post(snipe.content))})"
+        )
+        embed = self.bot.embed(ctx)
+        embed.description = f"Message sent by **{snipe.author}** was deleted in {channel.mention}"
+        embed.add_field(name="**__Message Content__**", value=content)
+        embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
         await ctx.send(embed=embed)
 
 

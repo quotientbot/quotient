@@ -25,7 +25,7 @@ class LoggingEvents(Cog):
         channel = message.channel
         content = message.content if message.content else "*[Content Unavailable]*"
 
-        await Snipes.create(channel_id=channel.id, content=content, nsfw=channel.is_nsfw())
+        await Snipes.create(channel_id=channel.id, author_id=message.author.id, content=content, nsfw=channel.is_nsfw())
 
     @Cog.listener()
     async def on_log(self, _type: LogType, **kwargs):
