@@ -45,6 +45,7 @@ class Quotient(commands.AutoShardedBot):
         self.start_time = datetime.now(tz=IST)
         self.cmd_invokes = 0
         self.binclient = mystbin.Client()
+        self.lockdown = False
 
         for ext in self.config.EXTENSIONS:
             try:
@@ -79,7 +80,6 @@ class Quotient(commands.AutoShardedBot):
             prefix = config.PREFIX
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
-
 
     async def close(self) -> NoReturn:
         await super().close()
