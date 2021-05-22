@@ -1,3 +1,4 @@
+from models import Scrim, Tourney
 from discord.ext import commands
 from PIL import ImageColor
 import discord, re
@@ -82,3 +83,33 @@ class MemberID(commands.Converter):
             raise commands.BadArgument("I cannot do this action on this user due to role hierarchy.")
 
         return m
+
+
+class ScrimID(commands.Converter):
+    async def convert(self, ctx, argument):
+        if not argument.isdigit():
+            raise commands.BadArgument(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+
+        scrim = await Scrim.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
+        if scrim is None:
+            raise commands.BadArgument(
+                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
+            )
+
+        return scrim
+
+
+class TourneyID(commands.Converter):
+    async def convert(self, ctx, argument):
+        if not argument.isdigit():
+            raise commands.BadArgument(
+                (f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+            )
+
+        tourney = await Tourney.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
+        if tourney is None:
+            raise commands.BadArgument(
+                f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`"
+            )

@@ -45,7 +45,6 @@ class Quomisc(Cog, name="quomisc"):
     async def footer(self, ctx, *, new_footer: Optional[str]):
         pass
 
-    
 
 def setup(bot):
     bot.add_cog(Quomisc(bot))
