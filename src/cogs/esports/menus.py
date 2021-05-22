@@ -194,7 +194,7 @@ class ConfigEditMenu(menus.Menu):
         open_role = (
             getattr(scrim.open_role, "mention", "`Role Deleted!`")
             if scrim.open_role_id
-            else self.ctx.guild.default_role.mention
+            else "@everyone"
         )
 
         embed = discord.Embed(color=discord.Color(config.COLOR))

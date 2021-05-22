@@ -1,5 +1,6 @@
-import discord
+import discord, io
 from core import Cog
+from prettytable import PrettyTable
 from utils import find_team, emote
 from models import TagCheck
 from discord.ext import commands
@@ -139,6 +140,15 @@ class SMError(Cog):
                 color=discord.Color(0x00B1FF),
                 description=f"Registration closed for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist {scrim.id} edit` to edit the slotlist.",
             )
+            x = PrettyTable()
+            x.field_names = ["Slot", "Team Name", "Leader", "Jump URL"]
+            for i in await scrim.teams_registered:
+                member = scrim.guild.get_member(i.user_id)
+                x.add_row([i.num, i.team_name, str(member), i.jump_url])
+
+            if logschan is not None:
+                fp = io.BytesIO(str(x).encode())
+                return await logschan.send(file=discord.File(fp, filename="slotlist.txt"))
 
             if not permission_updated:
                 imp = True

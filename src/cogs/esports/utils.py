@@ -1,5 +1,6 @@
 from typing import NoReturn
 from models import Scrim
+from prettytable import PrettyTable
 from datetime import datetime, timedelta
 from utils import constants
 import discord
@@ -10,8 +11,10 @@ import config
 class ScrimID:
     ...
 
-async def tourney_end_process(ctx,tourney):
+
+async def tourney_end_process(ctx, tourney):
     pass
+
 
 async def is_valid_scrim(bot, scrim) -> bool:
     guild = scrim.guild

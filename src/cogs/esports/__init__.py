@@ -1,5 +1,5 @@
 from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
-from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta
+from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta , get_chunks
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 
@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from .errors import ScrimError, SMError, TourneyError
 from core import Cog, Quotient
+from prettytable import PrettyTable
 
 import discord
 import asyncio
@@ -904,7 +905,7 @@ class ScrimManager(Cog, name="esports"):
         check = await TagCheck.get_or_none(pk=ctx.guild.id)
         if not check:
             return await ctx.send(
-                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel.mention}`"
+                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel}`"
             )
 
         channel = check.channel
@@ -1135,12 +1136,64 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success(f"Alright! Aborting")
 
     @tourney.command(name="groups")
-    async def tourney_group(self, ctx):
-        pass
+    async def tourney_group(self, ctx, tourney_id: int, group_size: int = 20):
+
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        records = await tourney.assigned_slots.all()
+        if not len(records):
+            raise TourneyError(f"There is no data to show as nobody registered yet!")
+
+        m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
+
+        tables = []
+        for record in get_chunks(records,group_size):
+            x = PrettyTable()
+            x.field_names = ['Slot','Registered Posi.','Team Name','Leader']
+            for idx,i in enumerate(record, start=1):
+                member = ctx.guild.get_member(i.leader_id)
+                x.add_row([idx,i.num,i.team_name,str(member)])
+            
+            tables.append(str(x))
+
+        await ctx.send_file('\n\n\n\n\n\n'.join(tables),name='slotlist.text')
+
+        
+
 
     @tourney.command(name="data")
-    async def tourney_data(self, ctx):
-        pass
+    async def tourney_data(self, ctx, tourney_id: int):
+        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
+        if tourney is None:
+            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+        records = await tourney.assigned_slots.all()
+        if not len(records):
+            raise TourneyError(f"There is no data to show as nobody registered yet!")
+
+        m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
+
+        y = PrettyTable()
+        y.field_names = ["S No.", "Team Name", "Team Owner", "Teammates", " All Teammates in Server", "Jump URL"]
+
+        for idx, record in enumerate(records, start=1):
+            leader = str(ctx.guild.get_member(record.leader_id))
+
+            if not len(record.members):
+                teammates = "No Teammates!"
+                all_here = "No team :("
+
+            else:
+                teamlist = tuple(map(ctx.guild.get_member, record.members))
+                teammates = ", ".join(tuple(map(lambda x: str(x), teamlist)))
+                all_here = ("No!", "Yes!")[all(teamlist)]
+
+            y.add_row([idx, record.team_name, leader, teammates, all_here, record.jump_url])
+
+        await inputs.safe_delete(m)
+        await ctx.send_file(str(y), name="tourney_data.txt")
 
     @tourney.command(name="list", aliases=("all",))
     async def tourney_list(self, ctx):
