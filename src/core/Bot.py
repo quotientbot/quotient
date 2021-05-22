@@ -9,6 +9,7 @@ from typing import NoReturn
 import aiohttp, asyncio, os
 import config, asyncpg
 
+import itertools
 import traceback
 import discord
 import mystbin
@@ -67,6 +68,18 @@ class Quotient(commands.AutoShardedBot):
         # Initializing Models (Assigning Bot attribute to all models)
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
+
+    async def get_prefix(self, message):
+        if message.guild is None:
+            prefix = config.PREFIX
+
+        try:
+            prefix = self.guild_data[message.guild.id]["prefix"]
+        except KeyError:
+            prefix = config.PREFIX
+
+        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+
 
     async def close(self) -> NoReturn:
         await super().close()
