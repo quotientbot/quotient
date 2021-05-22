@@ -158,7 +158,7 @@ class Logging(Cog, name="logging"):
         check = await LM.get_or_none(guild_id=ctx.guild.id, type=logtype)
         if not check:
             return await ctx.send(
-                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}logcolor {logtype.value} <some color>`"
+                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}{logtype.value} {ctx.channel.mention}`"
             )
 
         await LM.filter(guild_id=ctx.guild.id, type=logtype).update(color=color)
@@ -169,7 +169,7 @@ class Logging(Cog, name="logging"):
         check = await LM.get_or_none(guild_id=ctx.guild.id, type=logtype)
         if not check:
             return await ctx.send(
-                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}logcolor {logtype.value} <some color>`"
+                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}{logtype.value} {ctx.channel.mention}`"
             )
 
         await LM.filter(guild_id=ctx.guild.id, type=logtype).update(ignore_bots=not (check.ignore_bots))
@@ -178,8 +178,15 @@ class Logging(Cog, name="logging"):
         )
 
     @commands.command()
-    async def logtoggle(self, ctx: Context, logtype: typing.Union[LogType, str]):
-        pass
+    async def logtoggle(self, ctx: Context, logtype: LogType):
+        check = await LM.get_or_none(guild_id=ctx.guild.id, type=logtype)
+        if not check:
+            return await ctx.send(
+                f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}{logtype.value} {ctx.channel.mention}`"
+            )
+
+        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(toggle=not (check.toggle))
+        await ctx.success(f"**{logtype.value} logs** turned {'ON' if not check.toggle else 'OFF'}!")
 
     @commands.command()
     async def logconfig(self, ctx: Context):
