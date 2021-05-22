@@ -1,5 +1,7 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
+from utils import ColorConverter
+from typing import Optional
 from .dev import *
 import inspect
 import os
@@ -31,6 +33,19 @@ class Quomisc(Cog, name="quomisc"):
         final_url = f"<{source_url}/blob/main/src/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>"
         await ctx.send(final_url)
 
+    @commands.command()
+    async def prefix(self, ctx, *, new_prefix: Optional[str]):
+        pass
+
+    @commands.command()
+    async def color(self, ctx, *, new_color: Optional[ColorConverter]):
+        pass
+
+    @commands.command()
+    async def footer(self, ctx, *, new_footer: Optional[str]):
+        pass
+
+    
 
 def setup(bot):
     bot.add_cog(Quomisc(bot))
