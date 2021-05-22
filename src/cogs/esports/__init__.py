@@ -949,10 +949,15 @@ class ScrimManager(Cog, name="esports"):
 
     @commands.group(invoke_without_command=True, aliases=("tm", "t"))
     async def tourney(self, ctx):
+        """Quotient's Awesome tournament commands"""
         await ctx.send_help(ctx.command)
 
     @tourney.command(name="create", aliases=("setup",))
+    @checks.can_use_tm()
     async def t_create(self, ctx):
+        """
+        Create or setup tournaments
+        """
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
 
         if count == 2:
@@ -1092,7 +1097,9 @@ class ScrimManager(Cog, name="esports"):
                 await ctx.send(text)
 
     @tourney.command(name="config")
+    @checks.can_use_tm()
     async def tourney_config(self, ctx):
+        """Get config of all running tourneys"""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
         if not len(records):
             raise TourneyError(
@@ -1121,7 +1128,9 @@ class ScrimManager(Cog, name="esports"):
         await paginator.paginate()
 
     @tourney.command(name="delete")
+    @checks.can_use_tm()
     async def tourney_delete(self, ctx, tourney_id: int):
+        """Delete a tournament"""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1137,7 +1146,9 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success(f"Alright! Aborting")
 
     @tourney.command(name="groups")
+    @checks.can_use_tm()
     async def tourney_group(self, ctx, tourney_id: int, group_size: int = 20):
+        """Get groups of the tournament."""
 
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
@@ -1163,7 +1174,9 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
 
     @tourney.command(name="data")
+    @checks.can_use_tm()
     async def tourney_data(self, ctx, tourney_id: int):
+        """Get all the data that Quotient collected for a tourney."""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1195,7 +1208,9 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send_file(str(y), name="tourney_data.txt")
 
     @tourney.command(name="list", aliases=("all",))
+    @checks.can_use_tm()
     async def tourney_list(self, ctx):
+        """A list of all running tournaments."""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
         if not len(records):
             raise TourneyError(
@@ -1211,7 +1226,9 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send(embed=e)
 
     @tourney.command(name="rmslot", aliases=("deleteslot",))
+    @checks.can_use_tm()
     async def tourney_deleteslot(self, ctx, tourney_id: int, *, user: discord.User):
+        """Remove someone's slot"""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1229,7 +1246,9 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success(f"Ok!")
 
     @tourney.command(name="edit")
+    @checks.can_use_tm()
     async def tourney_edit(self, ctx, tourney_id: int):
+        """Edit a tournament's config."""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1238,7 +1257,9 @@ class ScrimManager(Cog, name="esports"):
         await menu.start(ctx)
 
     @tourney.command(name="start")
+    @checks.can_use_tm()
     async def tourney_start(self, ctx, tourney_id: int):
+        """Start a tournament."""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1268,7 +1289,9 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success("OK!")
 
     @tourney.command(name="stop", aliases=("pause",))
+    @checks.can_use_tm()
     async def tourney_stop(self, ctx, tourney_id: int):
+        """Stop / Pause a tournament."""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1299,7 +1322,9 @@ class ScrimManager(Cog, name="esports"):
             await ctx.success("OK!")
 
     @tourney.command(name="ban")
+    @checks.can_use_tm()
     async def tourney_ban(self, ctx, tourney_id: int, user: discord.User):
+        """Ban someone from the tournament"""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
@@ -1313,7 +1338,9 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"**{str(user)}** has been successfully banned from Tourney (`{tourney_id}`)")
 
     @tourney.command(name="unban")
+    @checks.can_use_tm()
     async def tourney_unban(self, ctx, tourney_id: int, user: discord.User):
+        """Unban a banned user from tournament."""
         tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
         if tourney is None:
             raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
