@@ -1,4 +1,5 @@
 from models import Scrim, Tourney
+from typing import Optional
 from discord.ext import commands
 from PIL import ImageColor
 import discord, re
@@ -86,7 +87,7 @@ class MemberID(commands.Converter):
 
 
 class ScrimID(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx, argument) -> Optional[Scrim]:
         if not argument.isdigit():
             raise commands.BadArgument(
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
@@ -102,7 +103,7 @@ class ScrimID(commands.Converter):
 
 
 class TourneyID(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx, argument) -> Optional[Tourney]:
         if not argument.isdigit():
             raise commands.BadArgument(
                 (f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")

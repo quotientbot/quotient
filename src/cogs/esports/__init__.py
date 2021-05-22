@@ -1,5 +1,18 @@
 from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
-from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta, get_chunks
+from utils import (
+    default,
+    time,
+    day_today,
+    IST,
+    Day,
+    inputs,
+    checks,
+    FutureTime,
+    human_timedelta,
+    get_chunks,
+    ScrimID,
+    TourneyID,
+)
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 
@@ -108,10 +121,10 @@ class ScrimManager(Cog, name="esports"):
             if not tourney or tourney.closed:  # Tourney is deleted or not opened.
                 continue
 
-            assigned_slots = (
-                await tourney.assigned_slots.order_by("-id").first()
-            )  # we don't count them all instead we get num from last registration
-            
+            assigned_slots = await tourney.assigned_slots.order_by(
+                "-id"
+            ).first()  # we don't count them all instead we get num from last registration
+
             numb = 0 if assigned_slots is None else assigned_slots.num
             slot = await TMSlot.create(
                 leader_id=ctx.author.id,
@@ -130,7 +143,13 @@ class ScrimManager(Cog, name="esports"):
                 role_given = False
 
             self.bot.dispatch(
-                "tourney_log", "reg_success", tourney, message=ctx.message, role_added=role_given, assigned_slot=slot,num=numb+1
+                "tourney_log",
+                "reg_success",
+                tourney,
+                message=ctx.message,
+                role_added=role_given,
+                assigned_slot=slot,
+                num=numb + 1,
             )
 
             if tourney.total_slots == numb + 1:
@@ -501,28 +520,22 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="edit")
     @checks.can_use_sm()
-    async def s_edit(self, ctx, *, scrim_id: int):
+    async def s_edit(self, ctx, *, scrim_id: ScrimID):
         """
         Edit scrims manager config for a scrim.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-        menu = ConfigEditMenu(scrim=scrim)
+        menu = ConfigEditMenu(scrim=scrim_id)
         await menu.start(ctx)
 
     # ************************************************************************************************
 
     @smanager.command(name="days")
     @checks.can_use_sm()
-    async def s_days(self, ctx, *, scrim_id: int):
+    async def s_days(self, ctx, *, scrim_id: ScrimID):
         """
         Edit open days for a scrim.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-        menu = DaysMenu(scrim=scrim)
+        menu = DaysMenu(scrim=scrim_id)
         await menu.start(ctx)
 
     # @smanager.command(name="open")
@@ -531,14 +544,11 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="close")
     @checks.can_use_sm()
-    async def s_close(self, ctx, scrim_id: int):
+    async def s_close(self, ctx, scrim_id: ScrimID):
         """
         Close a scrim immediately, even if the slots aren't full.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         if scrim.opened_at is None:
             return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
 
@@ -588,14 +598,11 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="toggle")
     @checks.can_use_sm()
-    async def s_toggle(self, ctx, scrim_id: int, option: str = None):
+    async def s_toggle(self, ctx, scrim_id: ScrimID, option: str = None):
         """
         Toggle on/off things for a scrim.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
         display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim_id} scrim`"
@@ -644,14 +651,11 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
-    async def s_slotlist_send(self, ctx, scrim_id: int):
+    async def s_slotlist_send(self, ctx, scrim_id: ScrimID):
         """
         Send a slotlist.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         if not len(await scrim.teams_registered):
             return await ctx.error("Nobody registered yet!")
 
@@ -673,27 +677,20 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
-    async def s_slotlist_edit(self, ctx, scrim_id: int):
+    async def s_slotlist_edit(self, ctx, scrim_id: ScrimID):
         """
         Edit a slotlist
         """
-
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-        menu = SlotEditor(scrim=scrim)
+        menu = SlotEditor(scrim=scrim_id)
         await menu.start(ctx)
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
-    async def s_slotlist_image(self, ctx, scrim_id: int):
+    async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
         """
         Get image version of a slotlist.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         embed, file = await scrim.create_slotlist_img()
         embed.color = ctx.bot.color
 
@@ -702,14 +699,11 @@ class ScrimManager(Cog, name="esports"):
     # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()
-    async def s_delete(self, ctx, scrim_id: int):
+    async def s_delete(self, ctx, scrim_id: ScrimID):
         """
         Completely delete a scrim.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         prompt = await ctx.prompt(
             f"Are you sure you want to delete scrim `{scrim.id}`?",
         )
@@ -722,14 +716,12 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="ban")
     @checks.can_use_sm()
-    async def s_ban(self, ctx, scrim_id: int, user: discord.Member, *, time: FutureTime = None):
+    async def s_ban(self, ctx, scrim_id: ScrimID, user: discord.Member, *, time: FutureTime = None):
         """
         Ban someone from the scrims temporarily or permanently.
         Time argument is optional.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+        scrim = scrim_id
 
         if user.id in await scrim.banned_user_ids():
             return await ctx.send(
@@ -758,14 +750,11 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="unban")
     @checks.can_use_sm()
-    async def s_unban(self, ctx, scrim_id: int, user: discord.Member):
+    async def s_unban(self, ctx, scrim_id: ScrimID, user: discord.Member):
         """
         Unban a banned team from a scrim.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         if not user.id in await scrim.banned_user_ids():
             return await ctx.send(
                 f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban {str(user)}` to ban them."
@@ -783,14 +772,11 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send_help(ctx.command)
 
     @s_reserve.command(name="add")
-    async def s_reserve_add(self, ctx, scrim_id: int, time: FutureTime = None):
+    async def s_reserve_add(self, ctx, scrim_id: ScrimID, time: FutureTime = None):
         """
         Add a team to the reserved list temporarily or permanently.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         def check(message: discord.Message):
             return message.author == ctx.author and ctx.channel == message.channel
 
@@ -833,14 +819,11 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send(f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`).")
 
     @s_reserve.command(name="remove")
-    async def s_reserve_remove(self, ctx, scrim_id: int, *, member: discord.User):
+    async def s_reserve_remove(self, ctx, scrim_id: ScrimID, *, member: discord.User):
         """
         Remove a reserved team from reserved list.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
-
+        scrim = scrim_id
         if not member.id in await scrim.reserved_user_ids():
             return await ctx.send(
                 f"**{member}** is not reserved.\n\nYou can reserve their team with: `{ctx.prefix}smanager reserve add {scrim_id}`"
@@ -851,13 +834,11 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"Successfully deleted {member}'s reserved slot from Scrim (`{scrim_id}`)")
 
     @s_reserve.command(name="list", aliases=("all",))
-    async def s_reverse_list(self, ctx, scrim_id: int):
+    async def s_reverse_list(self, ctx, scrim_id: ScrimID):
         """
         Get a list of all reserved teams and their leaders.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+        scrim = scrim_id
 
         if not sum(await scrim.reserved_user_ids()):
             return await ctx.error("None of the slots is reserved.")
@@ -1137,12 +1118,9 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="delete")
     @checks.can_use_tm()
-    async def tourney_delete(self, ctx, tourney_id: int):
+    async def tourney_delete(self, ctx, tourney_id: TourneyID):
         """Delete a tournament"""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
+        tourney = tourney_id
         prompt = await ctx.prompt(
             f"Are you sure you want to delete tournament `{tourney.id}`?",
         )
@@ -1155,13 +1133,10 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
-    async def tourney_group(self, ctx, tourney_id: int, group_size: int = 20):
+    async def tourney_group(self, ctx, tourney_id: TourneyID, group_size: int = 20):
         """Get groups of the tournament."""
 
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
+        tourney = tourney_id
         records = await tourney.assigned_slots.all()
         if not len(records):
             raise TourneyError(f"There is no data to show as nobody registered yet!")
@@ -1183,11 +1158,9 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="data")
     @checks.can_use_tm()
-    async def tourney_data(self, ctx, tourney_id: int):
+    async def tourney_data(self, ctx, tourney_id: TourneyID):
         """Get all the data that Quotient collected for a tourney."""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+        tourney = tourney_id
 
         records = await tourney.assigned_slots.all()
         if not len(records):
@@ -1235,12 +1208,9 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="rmslot", aliases=("deleteslot",))
     @checks.can_use_tm()
-    async def tourney_deleteslot(self, ctx, tourney_id: int, *, user: discord.User):
+    async def tourney_deleteslot(self, ctx, tourney_id: TourneyID, *, user: discord.User):
         """Remove someone's slot"""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
+        tourney = tourney_id
         slot = await tourney.assigned_slots.filter(leader_id=user.id).first()
         if not slot:
             raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney_id}`)")
@@ -1255,24 +1225,19 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="edit")
     @checks.can_use_tm()
-    async def tourney_edit(self, ctx, tourney_id: int):
+    async def tourney_edit(self, ctx, tourney_id: TourneyID):
         """Edit a tournament's config."""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
-        menu = TourneyEditor(tourney=tourney)
+        menu = TourneyEditor(tourney=tourney_id)
         await menu.start(ctx)
 
     @tourney.command(name="start")
     @checks.can_use_tm()
-    async def tourney_start(self, ctx, tourney_id: int):
+    async def tourney_start(self, ctx, tourney_id: TourneyID):
         """Start a tournament."""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+        tourney = tourney_id
 
-        elif tourney.started_at != None:
+        if tourney.started_at != None:
             raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already open.")
 
         channel = tourney.registration_channel
@@ -1298,13 +1263,11 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()
-    async def tourney_stop(self, ctx, tourney_id: int):
+    async def tourney_stop(self, ctx, tourney_id: TourneyID):
         """Stop / Pause a tournament."""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
-        elif tourney.closed_at != None:
+        tourney = tourney_id
+        
+        if tourney.closed_at != None:
             raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already closed.")
 
         channel = tourney.registration_channel
@@ -1331,12 +1294,9 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="ban")
     @checks.can_use_tm()
-    async def tourney_ban(self, ctx, tourney_id: int, user: discord.User):
+    async def tourney_ban(self, ctx, tourney_id: TourneyID, user: discord.User):
         """Ban someone from the tournament"""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
+        tourney = tourney_id
         if user.id in tourney.banned_users:
             return await ctx.send(
                 f"**{str(user)}** is already banned from the tourney.\n\nUse `{ctx.prefix}tourney unban {tourney_id} {str(user)}` to unban them."
@@ -1347,12 +1307,9 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="unban")
     @checks.can_use_tm()
-    async def tourney_unban(self, ctx, tourney_id: int, user: discord.User):
+    async def tourney_unban(self, ctx, tourney_id: TourneyID, user: discord.User):
         """Unban a banned user from tournament."""
-        tourney = await Tourney.get_or_none(pk=tourney_id, guild_id=ctx.guild.id)
-        if tourney is None:
-            raise TourneyError(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-
+        tourney = tourney_id
         if user.id not in tourney.banned_users:
             return await ctx.send(
                 f"**{str(user)}** is not banned the tourney.\n\nUse `{ctx.prefix}tourney ban {tourney_id} {str(user)}` to ban them."
