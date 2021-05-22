@@ -1,19 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
-
-
-# TODO: shift these to exceptions.py
-class SMNotUsable(commands.CheckFailure):
-    pass
-
-
-class PastTime(commands.CheckFailure):
-    pass
-
-
-class InvalidTime(commands.CheckFailure):
-    pass
+from .exceptions import *
 
 
 def can_use_sm():
@@ -22,10 +10,24 @@ def can_use_sm():
     """
 
     async def predicate(ctx):
-        if ctx.author.guild_permissions.manage_guild or "scrims-mod" in [role.name.lower() for role in ctx.author.roles]:
+        if ctx.author.guild_permissions.manage_guild or "scrims-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
         else:
             raise SMNotUsable()
+
+    return commands.check(predicate)
+
+
+def can_use_tm():
+    """
+    Returns True if the user has manage roles or scrim-mod role in the server.
+    """
+
+    async def predicate(ctx):
+        if ctx.author.guild_permissions.manage_guild or "tourney-mod" in (role.name.lower() for role in ctx.author.roles):
+            return True
+        else:
+            raise TMNotUsable()
 
     return commands.check(predicate)
 
