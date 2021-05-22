@@ -122,7 +122,7 @@ class Utility(Cog, name="utility"):
 
         content = (
             snipe.content
-            if snipe.content < 128
+            if len(snipe.content) < 128
             else f"[Click me to see]({str(await ctx.bot.binclient.post(snipe.content))})"
         )
         embed = self.bot.embed(ctx)
