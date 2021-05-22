@@ -12,10 +12,10 @@ class Tourney(models.Model):
     class Meta:
         table = "tm.tourney"
 
-    id = fields.BigIntField(pk=True)
+    id = fields.BigIntField(pk=True, index=True)
     guild_id = fields.BigIntField()
     name = fields.CharField(max_length=200, default="Quotient-Tourney")
-    registration_channel_id = fields.BigIntField()
+    registration_channel_id = fields.BigIntField(index=True)
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
     required_mentions = fields.IntField()
@@ -86,10 +86,10 @@ class Scrim(models.Model):
     class Meta:
         table = "sm.scrims"
 
-    id = fields.BigIntField(pk=True)
+    id = fields.BigIntField(pk=True, index=True)
     guild_id = fields.BigIntField()
     name = fields.TextField(default="Quotient-Scrims")
-    registration_channel_id = fields.BigIntField()
+    registration_channel_id = fields.BigIntField(index=True)
     slotlist_channel_id = fields.BigIntField()
     slotlist_message_id = fields.BigIntField(null=True)
     role_id = fields.BigIntField(null=True)
