@@ -1,9 +1,4 @@
-from .utils import (
-    toggle_channel,
-    scrim_end_process,
-    postpone_scrim,
-    is_valid_scrim,
-)
+from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
 from utils import default, time, day_today, IST, Day, inputs, checks, FutureTime, human_timedelta
 from discord.ext.commands.cooldowns import BucketType
 from models import *
@@ -19,19 +14,22 @@ import discord
 import asyncio
 import config
 from .menus import *
-from typing import NamedTuple, Union
+from typing import NamedTuple
 
 # TODO: a seprate class to check scrim_id in cmd args
 
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
+TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
 
 
 class ScrimManager(Cog, name="esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.queue = asyncio.Queue()
+        self.tourney_queue = asyncio.Queue()
         self.bot.loop.create_task(self.fill_registration_channels())
         self.bot.loop.create_task(self.registration_worker())
+        self.bot.loop.create_task(self.tourney_registration_worker())
 
     async def fill_registration_channels(self):
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
@@ -94,6 +92,50 @@ class ScrimManager(Cog, name="esports"):
 
             if scrim.total_slots == assigned_slots + 1:
                 await scrim_end_process(ctx, scrim)
+
+    async def tourney_registration_worker(self):
+        while True:
+            queue_message: TourneyQueueMessage = await self.tourney_queue.get()
+            tourney, message = queue_message.tourney, queue_message.message
+
+            ctx = await self.bot.get_context(message)
+
+            teamname = default.find_team(message)
+
+            tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
+
+            if not tourney or tourney.closed:  # Tourney is deleted or not opened.
+                continue
+
+            assigned_slots = await tourney.assigned_slots.all().count()
+
+            slot = await TMSlot.create(
+                leader_id=ctx.author.id,
+                team_name=teamname,
+                num=assigned_slots + 1,
+                jump_url=message.jump_url,
+            )
+
+            await tourney.assigned_slots.add(slot)
+
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            try:
+                await ctx.author.add_roles(tourney.role)
+                role_given = True
+            except:
+                role_given = False
+
+            self.bot.dispatch(
+                "tourney_log",
+                "reg_success",
+                tourney,
+                message=ctx.message,
+                role_added=role_given,
+            )
+
+            if tourney.total_slots == assigned_slots + 1:
+                print("ending")
+                await tourney_end_process(ctx, tourney)
 
     @property
     def reminders(self):
@@ -185,6 +227,33 @@ class ScrimManager(Cog, name="esports"):
         )
 
         self.bot.dispatch("scrim_log", "open", scrim, permission_updated=channel_update)
+
+    @commands.Cog.listener("on_message")
+    async def on_tourney_registration(self, message: discord.Message):
+        if not message.guild or message.author.bot:
+            return
+
+        channel_id = message.channel.id
+        if channel_id not in self.tourney_channels:
+            return
+
+        tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
+        if tourney is None:
+            return self.tourney_channels.discard(channel_id)
+
+        if tourney.started_at is None:
+            return
+
+        if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
+            return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
+
+        elif not len(message.mentions) >= tourney.required_mentions:
+            return self.bot.dispatch("tourney_registration_deny", message, "insufficient_mentions", tourney)
+
+        elif message.author.id in tourney.banned_users:
+            return self.bot.dispatch("tourney_registration_deny", message, "banned", tourney)
+
+        self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
 
     @commands.Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
@@ -951,12 +1020,12 @@ class ScrimManager(Cog, name="esports"):
         tourney.total_slots = await inputs.integer_input(
             ctx,
             check,
-            limits=(10, 5000),
+            limits=(1, 5000),
         )
 
         fields = [
             f"Registration Channel: {tourney.registration_channel}",
-            f"Slotlist Channel: {tourney.slotlist_channel}",
+            f"Slotlist Channel: {tourney.confirm_channel}",
             f"Role: {tourney.role}",
             f"Minimum Mentions: {tourney.required_mentions}",
             f"Slots: {tourney.total_slots}",
@@ -1082,9 +1151,10 @@ class ScrimManager(Cog, name="esports"):
             )
 
         e = self.bot.embed(ctx)
+        e.description = ""
         for count, i in enumerate(records, 1):
             channel = getattr(i.registration_channel, "mention", "`Deleted Channel!`")
-            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i['t_id']}`"
+            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i.id}`"
 
         await ctx.send(embed=e)
 
@@ -1138,8 +1208,9 @@ class ScrimManager(Cog, name="esports"):
         prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney_id}`)?")
         if prompt:
             channel_update = await toggle_channel(channel, open_role, True)
-
+            self.tourney_channels.add(channel.id)
             await Tourney.filter(pk=tourney_id).update(started_at=datetime.now(tz=IST), closed_at=None)
+            await channel.send("**Registration is now Open!**")
             await ctx.message.add_reaction(emote.check)
         else:
             await ctx.success("OK!")

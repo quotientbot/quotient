@@ -3,14 +3,16 @@ from core import Cog
 from utils import find_team, emote
 from models import TagCheck
 from discord.ext import commands
-from models import Scrim, Timer, BannedTeam, ReservedSlot
+from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney
 
 
 class ScrimError(commands.CommandError):
     pass
 
+
 class TourneyError(commands.CommandError):
     pass
+
 
 # well yeah the name is SMError but this cog serve much more than just that.
 
@@ -22,6 +24,46 @@ class SMError(Cog):
     def red_embed(self, description: str):
         embed = discord.Embed(color=discord.Color.red(), description=description)
         return embed
+
+    @Cog.listener()
+    async def on_tourney_registration_deny(self, message: discord.Message, type: str, tourney: Tourney):
+        logschan = tourney.logschan
+        await message.add_reaction("\N{CROSS MARK}")
+        e = discord.Embed(
+            color=discord.Color.red(),
+            description=f"Registraion of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
+        )
+
+        if type == "mentioned_bots":
+            await message.reply(
+                embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
+                delete_after=5,
+            )
+            e.description += f"Mentioned Bots."
+
+        elif type == "insufficient_mentions":
+            await message.reply(
+                embed=self.red_embed(
+                    f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
+                ),
+                delete_after=5,
+            )
+            e.description += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
+
+        elif type == "banned":
+            await message.reply(
+                embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                delete_after=5,
+            )
+            e.description += f"They are banned from scrims."
+
+        if logschan is not None:
+            if logschan.permissions_for(logschan.guild.me).embed_links:
+                return await logschan.send(embed=e)
+            else:
+                # The bot will not be able to send embeds to this channel because of lack of permission.
+                text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
+                return await logschan.send(text)
 
     @Cog.listener()
     async def on_scrim_registration_deny(self, message: discord.Message, type: str, scrim: Scrim):
@@ -63,6 +105,10 @@ class SMError(Cog):
                 # The bot will not be able to send embeds to this channel because of lack of permission.
                 text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
                 return await logschan.send(text)
+
+    @Cog.listener()
+    async def on_tourney_log(self, type: str, scrim: Tourney, **kwargs):
+        pass
 
     @Cog.listener()
     async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):

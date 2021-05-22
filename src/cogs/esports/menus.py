@@ -387,7 +387,7 @@ class TourneyEditor(menus.Menu):
 
         open_role = getattr(tourney.open_role, "mention", "`Role Deleted!`")
 
-        embed = self.ctx.bot(self.ctx)
+        embed = self.bot.embed(self.ctx)
         embed.title = f"Edit Tourney Configuration: {tourney.id}"
 
         fields = {

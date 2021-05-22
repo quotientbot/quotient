@@ -33,6 +33,11 @@ class Tourney(models.Model):
         return self.bot.get_guild(self.guild_id)
 
     @property
+    def logschan(self):
+        if self.guild is not None:
+            return discord.utils.get(self.guild.text_channels, name="quotient-tourney-logs")
+
+    @property
     def registration_channel(self):
         if self.guild is not None:
             return self.guild.get_channel(self.registration_channel_id)
@@ -41,6 +46,10 @@ class Tourney(models.Model):
     def confirm_channel(self):
         if self.guild is not None:
             return self.guild.get_channel(self.confirm_channel_id)
+
+    @property
+    def closed(self):
+        return True if self.closed_at else False
 
     @property
     def role(self):

@@ -10,6 +10,8 @@ import config
 class ScrimID:
     ...
 
+async def tourney_end_process(ctx,tourney):
+    pass
 
 async def is_valid_scrim(bot, scrim) -> bool:
     guild = scrim.guild
