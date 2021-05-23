@@ -1,4 +1,5 @@
 import pytz
+import random
 from enum import Enum
 
 
@@ -32,6 +33,24 @@ class LogType(Enum):
     cmd = "cmd"  # bot's cmds
     invite = "invite"  # inv created /deleted (invite tracking alag se ki jayegi)
     ping = "ping"  # someone pinged someone (ye sbse jruri h )
+
+
+def random_greeting():
+    greetings = [
+        "Hello, sunshine!",
+        "Peek-a-boo!",
+        "Howdy-doody!",
+        "Ahoy, matey!",
+        "Hiya!",
+        "What’s crackin’?",
+        "Howdy, howdy ,howdy!",
+        "Yo!",
+        "I like your face.",
+        "Bonjour!",
+        "Yo! You know who this is.",
+    ]
+    greeting = random.choice(greetings)
+    return greeting
 
 
 MISSING = _Sentinel()

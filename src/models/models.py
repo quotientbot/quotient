@@ -4,7 +4,7 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes")
 
 
 class Guild(models.Model):
@@ -176,8 +176,8 @@ class Votes(models.Model):
 
     user_id = fields.BigIntField(pk=True)
     is_voter = fields.BooleanField(delete=False, index=True)
-    expire_time = fields.DateTimeField(null=True)
+    expire_time = fields.DatetimeField(null=True)
     reminder = fields.BooleanField(default=False)
     notified = fields.BooleanField(default=False, index=True)
     public_profile = fields.BooleanField(default=True)
-    total_votes = fields.IntegerField(default=0)
+    total_votes = fields.IntField(default=0)
