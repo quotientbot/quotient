@@ -21,7 +21,7 @@ from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError, TourneyError
-from core import Cog, Quotient
+from core import Cog, Quotient, Context
 from prettytable import PrettyTable
 
 import discord
@@ -275,9 +275,7 @@ class ScrimManager(Cog, name="esports"):
 
     @commands.Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
-        # if not message.guild or message.author.bot:
-        #     return
-        if message.author == self.bot.user:
+        if not message.guild or message.author.bot:
             return
 
         channel_id = message.channel.id
@@ -299,12 +297,12 @@ class ScrimManager(Cog, name="esports"):
             # Registration isn't opened yet.
             return
 
-        # if scrim.required_mentions and not all(
-        #     map(lambda m: not m.bot, message.mentions)
-        # ):  # mentioned bots
-        #     return self.bot.dispatch(
-        #         "scrim_registration_deny", message, "mentioned_bots", scrim
-        #     )
+        if scrim.required_mentions and not all(
+            map(lambda m: not m.bot, message.mentions)
+        ):  # mentioned bots
+            return self.bot.dispatch(
+                "scrim_registration_deny", message, "mentioned_bots", scrim
+            )
 
         elif not len(message.mentions) >= scrim.required_mentions:
             return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
@@ -342,8 +340,9 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="setup")
     @checks.can_use_sm()
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
     @commands.max_concurrency(1, BucketType.guild)
-    async def s_setup(self, ctx):
+    async def s_setup(self, ctx: Context):
         """
         Setup Scrims Manager for a channel.
         Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
@@ -351,8 +350,12 @@ class ScrimManager(Cog, name="esports"):
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
-        if count == 3:
-            raise ScrimError("You can't host more than 3 scrims concurrently.")
+        guild = await Guild.get(guild_id=ctx.guild.id)
+
+        if count == 3 and not guild.is_premium:
+            raise ScrimError(
+                f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n{self.bot.config.WEBSITE}/premium"
+            )
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -519,6 +522,7 @@ class ScrimManager(Cog, name="esports"):
     # ************************************************************************************************
 
     @smanager.command(name="edit")
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: ScrimID):
         """
@@ -531,6 +535,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="days")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_days(self, ctx, *, scrim_id: ScrimID):
         """
         Edit open days for a scrim.
@@ -544,6 +549,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="close")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True)
     async def s_close(self, ctx, scrim_id: ScrimID):
         """
         Close a scrim immediately, even if the slots aren't full.
@@ -563,6 +569,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="config")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_config(self, ctx):
         """
         Get config of all the scrims you have setup.
@@ -677,6 +684,7 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_edit(self, ctx, scrim_id: ScrimID):
         """
         Edit a slotlist
@@ -686,6 +694,7 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
         """
         Get image version of a slotlist.
@@ -694,6 +703,9 @@ class ScrimManager(Cog, name="esports"):
         embed, file = await scrim.create_slotlist_img()
         embed.color = ctx.bot.color
 
+        await ctx.send(
+            "This command is currently under beta so you may encounter bugs."
+        )  # seperate msg so that user can delete it if they want
         await ctx.send(embed=embed, file=file)
 
     # ************************************************************************************************
@@ -777,6 +789,7 @@ class ScrimManager(Cog, name="esports"):
         Add a team to the reserved list temporarily or permanently.
         """
         scrim = scrim_id
+
         def check(message: discord.Message):
             return message.author == ctx.author and ctx.channel == message.channel
 
@@ -943,6 +956,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="create", aliases=("setup",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def t_create(self, ctx):
         """
         Create or setup tournaments
@@ -1087,6 +1101,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="config")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_config(self, ctx):
         """Get config of all running tourneys"""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
@@ -1133,6 +1148,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_group(self, ctx, tourney_id: TourneyID, group_size: int = 20):
         """Get groups of the tournament."""
 
@@ -1158,6 +1174,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="data")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_data(self, ctx, tourney_id: TourneyID):
         """Get all the data that Quotient collected for a tourney."""
         tourney = tourney_id
@@ -1190,6 +1207,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="list", aliases=("all",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_list(self, ctx):
         """A list of all running tournaments."""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
@@ -1225,6 +1243,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="edit")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney_id: TourneyID):
         """Edit a tournament's config."""
 
@@ -1233,6 +1252,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="start")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_start(self, ctx, tourney_id: TourneyID):
         """Start a tournament."""
         tourney = tourney_id
@@ -1263,10 +1283,11 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_stop(self, ctx, tourney_id: TourneyID):
         """Stop / Pause a tournament."""
         tourney = tourney_id
-        
+
         if tourney.closed_at != None:
             raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already closed.")
 

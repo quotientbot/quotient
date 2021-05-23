@@ -2,7 +2,7 @@ from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from .events import *
-from utils import checks, ActionReason, MemberID, BannedMember
+from utils import ActionReason, MemberID, BannedMember
 import typing
 import discord
 import re
@@ -16,7 +16,7 @@ class Mod(Cog):
         return ctx.guild is not None
 
     @commands.command()
-    @checks.is_mod()
+    @commands.has_permissions(manage_guild=True)
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     async def selfclean(self, ctx: Context, search=100):
         """
@@ -40,7 +40,7 @@ class Mod(Cog):
         await ctx.send("\n".join(messages), delete_after=10)
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def clear(self, ctx, Choice: typing.Union[discord.Member, int], Amount: int = None):
         """
         An all in one purge command.
@@ -57,37 +57,37 @@ class Mod(Cog):
             return await ctx.error("Only Integers are allowed.")
 
     @clear.command()
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def embeds(self, ctx, search=100):
         """Removes messages that have embeds in them."""
         await do_removal(ctx, search, lambda e: len(e.embeds))
 
     @clear.command()
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def files(self, ctx, search=100):
         """Removes messages that have attachments in them."""
         await do_removal(ctx, search, lambda e: len(e.attachments))
 
     @clear.command()
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def images(self, ctx, search=100):
         """Removes messages that have embeds or attachments."""
         await do_removal(ctx, search, lambda e: len(e.embeds) or len(e.attachments))
 
     @clear.command(name="all")
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def _remove_all(self, ctx, search=100):
         """Removes all messages."""
         await do_removal(ctx, search, lambda e: True)
 
     @clear.command()
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def user(self, ctx, member: discord.Member, search=100):
         """Removes all messages by the member."""
         await do_removal(ctx, search, lambda e: e.author == member)
 
     @clear.command()
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def contains(self, ctx, *, substr: str):
         """Removes all messages containing a substring.
         The substring must be at least 3 characters long.
@@ -98,7 +98,7 @@ class Mod(Cog):
             await do_removal(ctx, 100, lambda e: substr in e.content)
 
     @clear.command(name="bot", aliases=["bots"])
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def _bot(self, ctx, prefix=None, search=100):
         """Removes a bot user's messages and messages with their optional prefix."""
 
@@ -108,7 +108,7 @@ class Mod(Cog):
         await do_removal(ctx, search, predicate)
 
     @clear.command(name="emoji", aliases=["emojis"])
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def _emoji(self, ctx, search=100):
         """Removes all messages containing custom emoji."""
         custom_emoji = re.compile(r"<a?:[a-zA-Z0-9\_]+:([0-9]+)>")
@@ -119,7 +119,7 @@ class Mod(Cog):
         await do_removal(ctx, search, predicate)
 
     @clear.command(name="reactions")
-    @checks.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def _reactions(self, ctx, search=100):
         """Removes all reactions from messages that have them."""
 
@@ -135,7 +135,7 @@ class Mod(Cog):
         await ctx.success(f"Successfully removed {total_reactions} reactions.")
 
     @commands.command()
-    @checks.has_permissions(kick_members=True)
+    @commands.has_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.cooldown(2, 1, type=commands.BucketType.user)
     async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
@@ -150,7 +150,7 @@ class Mod(Cog):
         await ctx.success(f"{str(member)} has been successfully kicked out!")
 
     @commands.command()
-    @checks.has_permissions(ban_members=True)
+    @commands.has_permissions(ban_members=True)
     @commands.cooldown(2, 1, type=commands.BucketType.user)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
@@ -168,7 +168,7 @@ class Mod(Cog):
         await ctx.success(f"{str(member)} has been successfully banned!")
 
     @commands.command()
-    @checks.has_permissions(ban_members=True)
+    @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.cooldown(2, 1, type=commands.BucketType.user)
     async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
