@@ -134,6 +134,7 @@ class ScrimManager(Cog, name="esports"):
                 leader_id=ctx.author.id,
                 team_name=teamname,
                 num=numb + 1,
+                members = [m.id for m in message.mentions],
                 jump_url=message.jump_url,
             )
 
