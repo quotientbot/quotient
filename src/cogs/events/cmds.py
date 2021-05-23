@@ -1,11 +1,23 @@
 from models import Autorole, ArrayRemove
-from core import Cog, Quotient
+from core import Cog, Quotient, Context
 import discord
 
 
 class CmdEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    async def bot_check(self, ctx: Context):
+        if ctx.author.id in ctx.config.DEVS:
+            return True
+
+        if ctx.bot.lockdown == True:
+            return False
+
+        if not ctx.guild:
+            return False
+
+        return True
 
     @Cog.listener(name="on_member_join")
     async def on_autorole(self, member: discord.Member):
