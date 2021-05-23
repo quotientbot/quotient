@@ -14,6 +14,20 @@ class Votes(Cog):
         return self.bot.get_cog("Reminders")
 
     @Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        """we grant users voter, premium role if they join later."""
+        if not member.guild or not member.guild.id == self.bot.server.id:
+            return
+
+        votecheck = await models.Votes.get_or_none(user_id=member.id)
+        if votecheck is not None and votecheck.is_voter:
+            await member.add_roles(discord.Object(id=self.bot.config.VOTER_ROLE))
+
+        premiumcheck = await models.User.get_or_none(user_id=member.id)
+        if premiumcheck is not None and premiumcheck.is_premium:
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
+
+    @Cog.listener()
     async def on_vote(self, record: models.Votes):
         await models.Votes.filter(user_id=record.user_id).update(notified=True)
         await self.reminders.create_timer(record.expire_time, "vote", user_id=record.user_id)
@@ -51,3 +65,7 @@ class Votes(Cog):
                 pass
 
         await models.Votes.filter(user_id=user_id).update(is_voter=False)
+
+    @Cog.listener()
+    async def on_premium_purchase(self, record):
+        pass
