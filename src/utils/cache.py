@@ -1,10 +1,10 @@
-from models import Guild
+import models
 
 
 async def cache(bot):
     # until we implement redis
 
-    records = await Guild.all()
+    records = await models.Guild.all()
     bot.guild_data = {}
 
     for record in records:

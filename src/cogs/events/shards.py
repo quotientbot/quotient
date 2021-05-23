@@ -20,15 +20,15 @@ class ShardEvents(Cog, name="Shard Events"):
 
     @Cog.listener()
     async def on_shard_ready(self, shard_id):
-        print(Fore.GREEN + f"Launched shard #{shard_id}.")
+        print(Fore.YELLOW + f"[SHARD] Launched shard #{shard_id}.")
         await self.webhook.send(f"{emote.check} Launched shard #{shard_id} | Total Shards: {len(self.bot.shards)}.")
 
     @Cog.listener()
     async def on_shard_resumed(self, shard_id):
-        print(Fore.GREEN + f"Reconnected shard #{shard_id}.")
+        print(Fore.YELLOW + f"[SHARD] Reconnected shard #{shard_id}.")
         await self.webhook.send(f"{emote.check} Reconnected shard #{shard_id}.")
 
     @Cog.listener()
     async def on_shard_disconnect(self, shard_id):
-        print(Fore.RED + f"Shard #{shard_id} died.")
+        print(Fore.RED + f"[SHARD] Shard #{shard_id} died.")
         await self.webhook.send(f"{emote.error} Shard #{shard_id} died.")

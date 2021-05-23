@@ -1,6 +1,6 @@
 from .functions import *
 import discord, config
-from utils import Pages
+from utils import Pages, get_ipm
 
 from core import Cog, Quotient
 from discord.ext import commands
@@ -29,12 +29,14 @@ class HelpCommand(commands.HelpCommand):
         embed = discord.Embed(color=discord.Color(config.COLOR))
         for idx in cats:
             embed.add_field(
-                inline=False, name=idx.qualified_name, value=", ".join(map(lambda x: f"`{x}`", idx.get_commands()))
+                inline=False,
+                name=idx.qualified_name.title(),
+                value=", ".join(map(lambda x: f"`{x}`", idx.get_commands())),
             )
 
         cmds = sum(1 for i in self.context.bot.walk_commands())
 
-        embed.set_footer(text="Total Commands: {}".format(cmds))
+        embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
         await ctx.send(embed=embed)
 
     async def send_group_help(self, group):

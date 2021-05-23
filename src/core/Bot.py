@@ -3,12 +3,16 @@ from colorama import Fore, Style, init
 from discord.ext import commands
 from tortoise import Tortoise
 from .Context import Context
+from datetime import datetime
+from utils import cache, IST
 from typing import NoReturn
 import aiohttp, asyncio, os
 import config, asyncpg
-from utils import cache
+
+import itertools
 import traceback
 import discord
+import mystbin
 
 init(autoreset=True)
 intents = Intents.default()
@@ -38,6 +42,10 @@ class Quotient(commands.AutoShardedBot):
         self.loop = asyncio.get_event_loop()
         self.config = config
         self.color = config.COLOR
+        self.start_time = datetime.now(tz=IST)
+        self.cmd_invokes = 0
+        self.binclient = mystbin.Client()
+        self.lockdown = False
 
         for ext in self.config.EXTENSIONS:
             try:
@@ -62,6 +70,18 @@ class Quotient(commands.AutoShardedBot):
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
 
+    async def get_prefix(self, message: discord.Message) -> str:
+        if message.guild is None:
+            prefix = config.PREFIX
+
+        else:
+            try:
+                prefix = self.guild_data[message.guild.id]["prefix"]
+            except KeyError:
+                prefix = config.PREFIX
+
+        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+
     async def close(self) -> NoReturn:
         await super().close()
         await self.session.close()
@@ -73,6 +93,9 @@ class Quotient(commands.AutoShardedBot):
             return
 
         await self.invoke(ctx)
+
+    async def on_command(self, ctx):
+        self.cmd_invokes += 1
 
     async def on_ready(self):  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
@@ -91,3 +114,38 @@ class Quotient(commands.AutoShardedBot):
         embed.set_footer(text=embed_footer)
 
         return embed
+
+    def get_cog(self, name):  # making cogs insensitive
+        cogs = {key.lower() if isinstance(key, str) else key: value for key, value in self.cogs.items()}
+        return cogs.get(name.lower())
+
+    async def is_owner(self, user):
+        if await super().is_owner(user):
+            return True
+
+        return user.id in config.DEVS
+
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id):
+        """Looks up a member in cache or fetches if not found."""
+
+        member = guild.get_member(member_id)
+        if member is not None:
+            return member
+
+        shard = self.get_shard(guild.shard_id)
+        if shard.is_ws_ratelimited():
+            try:
+                member = await guild.fetch_member(member_id)
+            except discord.HTTPException:
+                return None
+            else:
+                return member
+
+        members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
+        if not members:
+            return None
+        return members[0]
+
+    @property
+    def server(self):
+        return self.get_guild(746337818388987967)

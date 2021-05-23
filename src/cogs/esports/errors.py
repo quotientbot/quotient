@@ -1,16 +1,19 @@
-import discord
+import discord, io
 from core import Cog
+from prettytable import PrettyTable
 from utils import find_team, emote
 from models import TagCheck
 from discord.ext import commands
-from models import Scrim, Timer, BannedTeam, ReservedSlot
+from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney
 
 
 class ScrimError(commands.CommandError):
     pass
 
+
 class TourneyError(commands.CommandError):
     pass
+
 
 # well yeah the name is SMError but this cog serve much more than just that.
 
@@ -22,6 +25,46 @@ class SMError(Cog):
     def red_embed(self, description: str):
         embed = discord.Embed(color=discord.Color.red(), description=description)
         return embed
+
+    @Cog.listener()
+    async def on_tourney_registration_deny(self, message: discord.Message, type: str, tourney: Tourney):
+        logschan = tourney.logschan
+        await message.add_reaction("\N{CROSS MARK}")
+        e = discord.Embed(
+            color=discord.Color.red(),
+            description=f"Registraion of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
+        )
+
+        if type == "mentioned_bots":
+            await message.reply(
+                embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
+                delete_after=5,
+            )
+            e.description += f"Mentioned Bots."
+
+        elif type == "insufficient_mentions":
+            await message.reply(
+                embed=self.red_embed(
+                    f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
+                ),
+                delete_after=5,
+            )
+            e.description += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
+
+        elif type == "banned":
+            await message.reply(
+                embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                delete_after=5,
+            )
+            e.description += f"They are banned from scrims."
+
+        if logschan is not None:
+            if logschan.permissions_for(logschan.guild.me).embed_links:
+                return await logschan.send(embed=e)
+            else:
+                # The bot will not be able to send embeds to this channel because of lack of permission.
+                text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
+                return await logschan.send(text)
 
     @Cog.listener()
     async def on_scrim_registration_deny(self, message: discord.Message, type: str, scrim: Scrim):
@@ -65,9 +108,69 @@ class SMError(Cog):
                 return await logschan.send(text)
 
     @Cog.listener()
+    async def on_tourney_log(self, type: str, tourney: Tourney, **kwargs):
+        """
+        Same as on_scrim_log but for tourneys
+        """
+        logschan = tourney.logschan
+        role = tourney.role
+        tourney_open_role = tourney.open_role
+        registration_channel = tourney.registration_channel
+        modrole = tourney.modrole
+
+        imp = False
+
+        if type == "closed":
+            permission_updated = kwargs.get("permission_updated")
+            embed = discord.Embed(
+                color=discord.Color(0x00B1FF),
+                description=f"Registration closed for {tourney_open_role.mention} in {registration_channel.mention}(TourneyID: `{tourney.id}`)",
+            )
+            if not permission_updated:
+                imp = True
+                embed.color = discord.Color.red()
+                embed.description += f"\nI couldn't close {registration_channel.mention}."
+
+        elif type == "reg_success":
+            message = kwargs.get("message")
+            role_added = kwargs.get("role_added")
+
+            confirmation = tourney.confirm_channel
+            if confirmation is not None:
+                slot = kwargs.get("assigned_slot")
+                num = kwargs.get("num")
+                e = discord.Embed(
+                    color=self.bot.color,
+                    description=f"**{num}) TEAM [{slot.team_name.upper()}]({message.jump_url})**\n",
+                )
+                if len(message.mentions) > 0:
+                    e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
+
+                await confirmation.send(embed=e)
+
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
+            )
+            if role_added is False:
+                imp = True
+                embed.color = discord.Color.red()
+                embed.description += f"\nUnfortunately I couldn't give them {role.mention}."
+
+        if logschan != None and logschan.permissions_for(logschan.guild.me).send_messages:
+            await logschan.send(
+                content=modrole.mention if modrole != None and imp is True else None,
+                embed=embed,
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
+        else:
+            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
+            return await logschan.send(text)
+
+    @Cog.listener()
     async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
         """
-        A listener that is dispatched everytime registration starts or ends.
+        A listener that is dispatched everytime registration starts/ends or a registration is accepted.
         """
         logschan = scrim.logschan
         role = scrim.role
@@ -93,6 +196,15 @@ class SMError(Cog):
                 color=discord.Color(0x00B1FF),
                 description=f"Registration closed for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist {scrim.id} edit` to edit the slotlist.",
             )
+            x = PrettyTable()
+            x.field_names = ["Slot", "Team Name", "Leader", "Jump URL"]
+            for i in await scrim.teams_registered:
+                member = scrim.guild.get_member(i.user_id)
+                x.add_row([i.num, i.team_name, str(member), i.jump_url])
+
+            if logschan is not None:
+                fp = io.BytesIO(str(x).encode())
+                return await logschan.send(file=discord.File(fp, filename="slotlist.txt"))
 
             if not permission_updated:
                 imp = True

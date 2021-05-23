@@ -1,15 +1,15 @@
-
+from core import Cog, Quotient, Context
 from datetime import datetime, timedelta
 import discord, asyncio, asyncpg
 from discord.ext import commands
 from models import Timer
-from utils.constants import IST
+from utils import IST
 
 
-class Reminders(commands.Cog):
+class Reminders(Cog, name="reminders"):
     """Reminders to do something."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Quotient):
         self.bot = bot
         self._have_data = asyncio.Event(loop=bot.loop)
         self._current_timer = None
@@ -19,11 +19,7 @@ class Reminders(commands.Cog):
         self._task.cancel()
 
     async def get_active_timer(self, *, days=7):
-        return (
-            await Timer.filter(expires__lte=datetime.now(tz=IST) + timedelta(days=days))
-            .order_by("expires")
-            .first()
-        )
+        return await Timer.filter(expires__lte=datetime.now(tz=IST) + timedelta(days=days)).order_by("expires").first()
 
     async def wait_for_active_timers(self, *, days=7):
         timer = await self.get_active_timer(days=days)
@@ -40,9 +36,7 @@ class Reminders(commands.Cog):
         # delete the timer
         deleted = await Timer.filter(pk=timer.id, expires=timer.expires).delete()
 
-        if (
-            deleted == 0
-        ):  # Probably a task is already deleted or its expire time changed.
+        if deleted == 0:  # Probably a task is already deleted or its expire time changed.
             return
 
         # dispatch the event

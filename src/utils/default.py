@@ -1,5 +1,14 @@
 import re
 from typing import Union
+from datetime import datetime
+from unicodedata import normalize as nm
+from .constants import IST
+from itertools import islice
+
+
+def get_chunks(iterable, size):
+    it = iter(iterable)
+    return iter(lambda: tuple(islice(it, size)), ())
 
 
 def find_team(message):
@@ -12,7 +21,8 @@ def find_team(message):
 
     teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
 
-    return f"Team {teamname.title()}" if teamname else f"{author}'s team"
+    teamname = f"Team {teamname.title()}" if teamname else f"{author}'s team"
+    return nm("NFKC", teamname)
 
 
 def regional_indicator(c: str) -> str:
@@ -36,3 +46,11 @@ async def aenumerate(asequence, start=0):
     async for elem in asequence:
         yield n, elem
         n += 1
+
+
+def get_ipm(bot):
+    """Returns Quotient's cmds invoke rate per minute"""
+    time = (datetime.now(tz=IST) - bot.start_time).total_seconds()
+    per_second = bot.cmd_invokes / time
+    per_minute = per_second * 60
+    return per_minute

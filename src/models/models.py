@@ -1,35 +1,37 @@
 from .fields import *
 from .functions import *
-from utils.constants import LogType
+from utils import constants
 from tortoise import fields, models
 import config, discord
+
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes")
 
 
 class Guild(models.Model):
     class Meta:
         table = "guild_data"
 
-    guild_id = fields.BigIntField(pk=True)  # This fieldname will be changed soon!
+    guild_id = fields.BigIntField(pk=True, index=True)
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
     embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
-    bot_master = BigIntArrayField(default=list)  # they can use all quo cmds even if they don't have required permissions
+    bot_master = BigIntArrayField(default=list, index=True)
     mute_role = fields.BigIntField(null=True)
     muted_members = BigIntArrayField(default=list)
     tag_enabled_for_everyone = fields.BooleanField(default=True)  # ye naam maine ni rkha sachi
-    emoji_stealer_channel = fields.BigIntField(null=True)
-    emoji_stealer_message = fields.BigIntField(null=True)
+    emoji_stealer_channel = fields.BigIntField(null=True, index=True)
+    emoji_stealer_message = fields.BigIntField(null=True, index=True)
     is_premium = fields.BooleanField(default=False)
     made_premium_by = fields.BigIntField(null=True)
     premium_end_time = fields.DatetimeField(null=True)
     premium_notified = fields.BooleanField(default=False)  # this is useful, I just don't remember where :c
     public_profile = fields.BooleanField(default=True)  # whether to list the server on global leaderboards
-    private_channel = fields.BigIntField(null=True)
+    private_channel = fields.BigIntField(null=True, index=True)
     private_webhook = fields.TextField(null=True)
-    disabled_channels = BigIntArrayField(default=list)  # channels where bot won't reply to cmds
-    disabled_commands = CharVarArrayField(default=list)
-    disabled_users = BigIntArrayField(default=list)
-    censored = CharVarArrayField(default=list)  # will shift this to automod
+    disabled_channels = BigIntArrayField(default=list, index=True)  # channels where bot won't reply to cmds
+    disabled_commands = CharVarArrayField(default=list, index=True)
+    disabled_users = BigIntArrayField(default=list, index=True)
+    censored = CharVarArrayField(default=list, index=True)  # will shift this to automod
 
     @property
     def _guild(self):
@@ -51,8 +53,8 @@ class User(models.Model):
     class Meta:
         table = "user_data"
 
-    user_id = fields.BigIntField(pk=True)
-    is_premium = fields.BooleanField(default=False)
+    user_id = fields.BigIntField(pk=True, index=True)
+    is_premium = fields.BooleanField(default=False, index=True)
     premium_expire_time = fields.DatetimeField(null=True)
     made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
     premiums = fields.IntField(default=0)
@@ -69,13 +71,12 @@ class Logging(models.Model):
         table = "logging"
 
     id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
+    guild_id = fields.BigIntField(index=True)
     channel_id = fields.BigIntField()
-    color = fields.IntField(discord.Color(0x2F3136).value)  # modlogs m noi
+    color = fields.IntField(default=0x2F3136)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
-    ignored_channels = BigIntArrayField(default=list)
-    type = fields.CharEnumField(LogType, max_length=12)
+    type = fields.CharEnumField(constants.LogType, max_length=12, index=True)
 
     @property
     def channel(self):
@@ -124,3 +125,59 @@ class Timer(models.Model):
 
 
 # ************************************************************************************************
+class Snipes(models.Model):
+    class Meta:
+        table = "snipes"
+
+    # since it isn't recomended to create index on tables which are updated very frequently,
+    # I am not sure if I should create an Index on channel_id :c
+    id = fields.BigIntField(pk=True)
+    author_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    content = fields.TextField()
+    delete_time = fields.DatetimeField(auto_now=True)
+    nsfw = fields.BooleanField(default=False)
+
+    @property
+    def author(self):
+        return self.bot.get_user(self.author_id)
+
+
+# ************************************************************************************************
+class Autorole(models.Model):
+    class Meta:
+        table = "autoroles"
+
+    guild_id = fields.BigIntField(pk=True, index=True)
+    humans = BigIntArrayField(default=list)
+    bots = BigIntArrayField(default=list)
+
+    @property
+    def _guild(self) -> Optional[discord.Guild]:
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def human_roles(self):
+        if self._guild is not None:
+            return tuple(map(lambda x: getattr(self._guild.get_role(x), "mention", "Deleted"), self.humans))
+
+    @property
+    def bot_roles(self):
+        if self._guild is not None:
+            return tuple(map(lambda x: getattr(self._guild.get_role(x), "mention", "Deleted"), self.bots))
+
+
+# ************************************************************************************************
+
+
+class Votes(models.Model):
+    class Meta:
+        table = "votes"
+
+    user_id = fields.BigIntField(pk=True)
+    is_voter = fields.BooleanField(delete=False, index=True)
+    expire_time = fields.DatetimeField(null=True)
+    reminder = fields.BooleanField(default=False)
+    notified = fields.BooleanField(default=False, index=True)
+    public_profile = fields.BooleanField(default=True)
+    total_votes = fields.IntField(default=0)
