@@ -49,7 +49,8 @@ class Guild(models.Model):
 
     # ************************************************************************************************
 
-#TODO: make manytomany field in user_data for redeem codes.
+
+# TODO: make manytomany field in user_data for redeem codes.
 class User(models.Model):
     class Meta:
         table = "user_data"
@@ -212,7 +213,6 @@ class Premium(models.Model):
     is_notified = fields.BooleanField(default=False, null=True)
 
 
-
 class Redeem(models.Model):
     class Meta:
         table = "redeem_codes"
@@ -222,5 +222,5 @@ class Redeem(models.Model):
     created_at = fields.DatetimeField(auto_now=True)
     expire_time = fields.DatetimeField()
     is_used = fields.BooleanField(default=False)
-    used_by = fields.BigIntField()
-    used_at = fields.DatetimeField()
+    used_by = fields.BigIntField(null=True)
+    used_at = fields.DatetimeField(null=True)
