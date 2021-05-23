@@ -1,6 +1,6 @@
 from .fields import *
 from .functions import *
-from utils.constants import LogType
+from utils import constants
 from tortoise import fields, models
 import config, discord
 
@@ -76,7 +76,7 @@ class Logging(models.Model):
     color = fields.IntField(default=0x2F3136)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
-    type = fields.CharEnumField(LogType, max_length=12, index=True)
+    type = fields.CharEnumField(constants.LogType, max_length=12, index=True)
 
     @property
     def channel(self):

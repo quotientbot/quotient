@@ -1,9 +1,11 @@
-from models import Scrim, Tourney
 from typing import Optional
 from discord.ext import commands
 from PIL import ImageColor
 import discord, re
 import contextlib
+import models
+
+__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "ScrimID", "TourneyID")
 
 
 class ColorConverter(commands.Converter):
@@ -87,13 +89,13 @@ class MemberID(commands.Converter):
 
 
 class ScrimID(commands.Converter):
-    async def convert(self, ctx, argument) -> Optional[Scrim]:
+    async def convert(self, ctx, argument) -> Optional[models.Scrim]:
         if not argument.isdigit():
             raise commands.BadArgument(
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
             )
 
-        scrim = await Scrim.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
+        scrim = await models.Scrim.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
         if scrim is None:
             raise commands.BadArgument(
                 f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
@@ -103,13 +105,13 @@ class ScrimID(commands.Converter):
 
 
 class TourneyID(commands.Converter):
-    async def convert(self, ctx, argument) -> Optional[Tourney]:
+    async def convert(self, ctx, argument) -> Optional[models.Tourney]:
         if not argument.isdigit():
             raise commands.BadArgument(
                 (f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
             )
 
-        tourney = await Tourney.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
+        tourney = await models.Tourney.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
         if tourney is None:
             raise commands.BadArgument(
                 f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`"
