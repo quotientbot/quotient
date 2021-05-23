@@ -2,6 +2,19 @@ from discord.ext import commands
 from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
 from .exceptions import *
+from models import User
+
+
+def is_premium_user():
+    async def predicate(ctx):
+        check = await User.get_or_none(user_id=ctx.author.id)
+        if not check or check.is_premium is False:
+            raise NotPremiumUser()
+
+        else:
+            return True
+
+    return commands.check(predicate)
 
 
 def can_use_sm():

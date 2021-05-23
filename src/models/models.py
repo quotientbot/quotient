@@ -49,7 +49,7 @@ class Guild(models.Model):
 
     # ************************************************************************************************
 
-
+#TODO: make manytomany field in user_data for redeem codes.
 class User(models.Model):
     class Meta:
         table = "user_data"
@@ -210,6 +210,7 @@ class Premium(models.Model):
     username = fields.CharField(max_length=200, null=True)
     email = fields.CharField(max_length=200, null=True)
     is_notified = fields.BooleanField(default=False, null=True)
+
 
 
 class Redeem(models.Model):

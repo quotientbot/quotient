@@ -1,6 +1,10 @@
 from discord.ext import commands
 
 
+class NotPremiumUser(commands.CheckFailure):
+    pass
+
+
 class InputError(commands.CommandError):
     pass
 
