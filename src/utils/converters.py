@@ -116,3 +116,5 @@ class TourneyID(commands.Converter):
             raise commands.BadArgument(
                 f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`"
             )
+
+        return tourney

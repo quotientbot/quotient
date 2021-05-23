@@ -60,16 +60,30 @@ class Quomisc(Cog, name="quomisc"):
         )
 
     @commands.command()
-    async def prefix(self, ctx, *, new_prefix: Optional[str]):
-        pass
+    async def support(self, ctx):
+        """
+        Get the invite link of our support server.
+        """
+        await ctx.send(self.bot.config.SERVER)
 
     @commands.command()
-    async def color(self, ctx, *, new_color: Optional[ColorConverter]):
-        pass
+    async def invite(self, ctx):
+        """Invite ME : )"""
+        embed = ctx.embed.default(ctx)
+        embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
+        await ctx.send(embed=embed)
 
-    @commands.command()
-    async def footer(self, ctx, *, new_footer: Optional[str]):
-        pass
+    # @commands.command()
+    # async def prefix(self, ctx, *, new_prefix: Optional[str]):
+    #     pass
+
+    # @commands.command()
+    # async def color(self, ctx, *, new_color: Optional[ColorConverter]):
+    #     pass
+
+    # @commands.command()
+    # async def footer(self, ctx, *, new_footer: Optional[str]):
+    #     pass
 
 
 def setup(bot):
