@@ -54,7 +54,7 @@ class User(models.Model):
         table = "user_data"
 
     user_id = fields.BigIntField(pk=True, index=True)
-    is_premium = fields.BooleanField(default=False)
+    is_premium = fields.BooleanField(default=False, index=True)
     premium_expire_time = fields.DatetimeField(null=True)
     made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
     premiums = fields.IntField(default=0)
@@ -168,3 +168,16 @@ class Autorole(models.Model):
 
 
 # ************************************************************************************************
+
+
+class Votes(models.Model):
+    class Meta:
+        table = "votes"
+
+    user_id = fields.BigIntField(pk=True)
+    is_voter = fields.BooleanField(delete=False, index=True)
+    expire_time = fields.DateTimeField(null=True)
+    reminder = fields.BooleanField(default=False)
+    notified = fields.BooleanField(default=False, index=True)
+    public_profile = fields.BooleanField(default=True)
+    total_votes = fields.IntegerField(default=0)
