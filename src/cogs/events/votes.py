@@ -1,4 +1,5 @@
 from discord import Webhook, AsyncWebhookAdapter
+from datetime import datetime, timedelta
 from core import Cog, Quotient
 from utils import constants
 import models, discord
@@ -67,5 +68,55 @@ class Votes(Cog):
         await models.Votes.filter(user_id=user_id).update(is_voter=False)
 
     @Cog.listener()
-    async def on_premium_purchase(self, record):
+    async def on_premium_purchase(self, record: models.Premium):
+        await models.Premium.filter(order_id=record.order_id).update(is_notified=True)
+        member = self.bot.server.get_member(record.user_id)
+        if member is not None:
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They voted for me.")
+
+        member = member if member is not None else await self.bot.fetch_user(record.user_id)
+
+        await self.hook.send(
+            content=f"{str(member)} just purchased Quotient Premium!",
+            username="premium-logs",
+            avatar_url=self.bot.config.PREMIUM_AVATAR,
+        )
+
+        embed = discord.Embed(
+            color=self.bot.color,
+            title="Premium Purchase Successful",
+            description=f"{constants.random_greeting()} {member.mention},\nThanks for purchasing Quotient Premium.\nYou have now access to all Premium Perks and A special role in our server.",
+        )
+        if member not in self.bot.server.members:
+            embed.description += f"\n\nI notice you are not in our support server. Join it by [clicking here]({self.bot.config.SERVER_LINK}) to get special role."
+
+        embed.description += f"You can upgrade a server by using `qboost` command in that server or you can use `qhelp premium` command to get a list of commands related to Quotient Premium."
+
+        try:
+            await member.send(embed=embed)
+        except:
+            pass
+
+        # we create a timer to remind the user that their premium is expiring soon and a timer of the actual expire_time
+        await self.reminders.create_timer(
+            datetime.now(tz=constants.IST) + timedelta(days=26), "user_premium_reminder", user_id=record.user_id
+        )
+        await self.reminders.create_timer(
+            datetime.now(tz=constants.IST) + timedelta(days=30), "user_premium", user_id=record.user_id
+        )
+
+    @Cog.listener()
+    async def on_user_premium_reminder_timer_complete(self, timer: models.Timer):
+        pass
+
+    @Cog.listener()
+    async def on_server_premium_reminder_timer_complete(self, timer: models.Timer):
+        pass
+
+    @Cog.listener()
+    async def on_server_premium_timer_complete(self, timer: models.Timer):
+        pass
+
+    @Cog.listener()
+    async def on_user_premium_timer_complete(self, timer: models.Timer):
         pass
