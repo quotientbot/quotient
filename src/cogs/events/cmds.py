@@ -1,4 +1,4 @@
-from models import Autorole, ArrayRemove, Stats
+from models import Autorole, ArrayRemove
 from core import Cog, Quotient, Context
 import discord
 

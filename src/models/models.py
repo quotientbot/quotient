@@ -5,7 +5,7 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem", "Stats")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem")
 
 
 class Guild(models.Model):
