@@ -232,14 +232,3 @@ class Redeem(models.Model):
 
 
 # ************************************************************************************************
-
-
-class Stats(models.Model):
-    class Meta:
-        table = "cmd_stats"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    user_id = fields.BigIntField()
-    cmd = fields.CharField(max_length=100)
-    uses = fields.IntField(default=0)

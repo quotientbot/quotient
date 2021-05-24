@@ -26,12 +26,27 @@ class CmdEvents(Cog):
         else:
             cmd = ctx.command.name
 
-        record = await Stats.filter(guild_id=ctx.guild.id, user_id=ctx.author.id, cmd=cmd).first()
+        record = await ctx.db.fetchval(
+            "SELECT uses FROM cmd_stats WHERE guild_id = $1 AND user_id = $2 AND cmd = $3 ",
+            ctx.guild.id,
+            ctx.author.id,
+            cmd,
+        )
         if record:
-            await Stats.filter(guild_id=ctx.guild.id, user_id=ctx.author.id, cmd=cmd).update(uses=record.uses + 1)
-
+            await ctx.db.execute(
+                "UPDATE cmd_stats SET uses = uses + 1 WHERE guild_id = $1 AND user_id = $2 AND cmd = $3",
+                ctx.guild.id,
+                ctx.author.id,
+                cmd,
+            )
         else:
-            await Stats.create(guild_id=ctx.guild.id, user_id=ctx.author.id, cmd=cmd, uses=1)
+            await ctx.db.execute(
+                "INSERT INTO cmd_stats (guild_id , user_id , cmd , uses) VALUES ($1, $2, $3, $4) ",
+                ctx.guild.id,
+                ctx.author.id,
+                cmd,
+                1,
+            )
 
     @Cog.listener(name="on_member_join")
     async def on_autorole(self, member: discord.Member):
