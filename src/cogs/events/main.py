@@ -1,6 +1,7 @@
-from models import Guild, Tourney, Scrim, Autorole
+from models import Guild, Tourney, Scrim, Autorole, TMSlot
 from core import Cog, Quotient
 import discord, config
+from discord.ext import commands
 
 
 class MainEvents(Cog, name="Main Events"):

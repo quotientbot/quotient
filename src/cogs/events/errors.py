@@ -118,4 +118,4 @@ class Errors(Cog):
             return
 
         else:  # will setup logging later
-            return
+            raise err

@@ -1,4 +1,5 @@
 import models
+import config
 
 
 async def cache(bot):
@@ -10,6 +11,6 @@ async def cache(bot):
     for record in records:
         bot.guild_data[record.guild_id] = {
             "prefix": record.prefix,
-            "color": record.embed_color,
-            "footer": record.embed_footer,
+            "color": record.embed_color or config.COLOR,
+            "footer": record.embed_footer or config.FOOTER,
         }
