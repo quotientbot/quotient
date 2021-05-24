@@ -1,10 +1,11 @@
+from attr import field
 from .fields import *
 from .functions import *
 from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem")
 
 
 class Guild(models.Model):
@@ -49,6 +50,7 @@ class Guild(models.Model):
     # ************************************************************************************************
 
 
+# TODO: make manytomany field in user_data for redeem codes.
 class User(models.Model):
     class Meta:
         table = "user_data"
@@ -60,7 +62,7 @@ class User(models.Model):
     premiums = fields.IntField(default=0)
     premium_notified = fields.BooleanField(default=False)
     public_profile = fields.BooleanField(default=True)
-    badges = CharVarArrayField(default=list)
+    # badges = CharVarArrayField(default=list)
 
 
 # ************************************************************************************************
@@ -131,6 +133,11 @@ class Snipes(models.Model):
 
     # since it isn't recomended to create index on tables which are updated very frequently,
     # I am not sure if I should create an Index on channel_id :c
+
+    # I have read about it a lot and I learnt a lot too, yes I understand select speed matters with commands like snipe but because,
+    # this table is gonna be updated very very frequently, I will not create index here because this will very badly affect the insert,
+    # update and delete queries and ultimately the whole database performance.
+    # I will leave the above comment as it is with a hope that it might be helpful for anyone reading it.
     id = fields.BigIntField(pk=True)
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
@@ -181,3 +188,39 @@ class Votes(models.Model):
     notified = fields.BooleanField(default=False, index=True)
     public_profile = fields.BooleanField(default=True)
     total_votes = fields.IntField(default=0)
+
+
+# ************************************************************************************************
+
+
+class Premium(models.Model):
+    class Meta:
+        table = "premium_logs"
+
+    order_id = fields.CharField(max_length=50, pk=True)
+    user_id = fields.BigIntField()
+    payment_id = fields.CharField(max_length=50, null=True)
+    payment_time = fields.DatetimeField(null=True)
+    plan_1 = fields.IntField(default=0, null=True)
+    plan_2 = fields.IntField(default=0, null=True)
+    plan_3 = fields.IntField(default=0, null=True)
+    amount = fields.IntField(default=0, null=True)
+    token = fields.TextField(null=True)
+    is_done = fields.BooleanField(default=False, null=True)
+    order_time = fields.DatetimeField(null=True)
+    username = fields.CharField(max_length=200, null=True)
+    email = fields.CharField(max_length=200, null=True)
+    is_notified = fields.BooleanField(default=False, null=True)
+
+
+class Redeem(models.Model):
+    class Meta:
+        table = "redeem_codes"
+
+    user_id = fields.BigIntField()
+    code = fields.CharField(max_length=50, pk=True, index=True)
+    created_at = fields.DatetimeField(auto_now=True)
+    expire_time = fields.DatetimeField()
+    is_used = fields.BooleanField(default=False)
+    used_by = fields.BigIntField(null=True)
+    used_at = fields.DatetimeField(null=True)

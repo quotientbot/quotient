@@ -85,6 +85,10 @@ def day_today():
     return dtm.datetime.now().strftime("%A").lower()
 
 
+def strtime(target):
+    return target.strftime("%d-%b-%Y %I:%M %p")
+
+
 class plural:
     def __init__(self, value):
         self.value = value

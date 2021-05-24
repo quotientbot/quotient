@@ -1,4 +1,4 @@
-from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
+from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process , cannot_take_registration
 from utils import (
     default,
     time,
@@ -21,7 +21,7 @@ from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError, TourneyError
-from core import Cog, Quotient
+from core import Cog, Quotient, Context
 from prettytable import PrettyTable
 
 import discord
@@ -44,6 +44,14 @@ class ScrimManager(Cog, name="esports"):
         self.bot.loop.create_task(self.fill_registration_channels())
         self.bot.loop.create_task(self.registration_worker())
         self.bot.loop.create_task(self.tourney_registration_worker())
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, (ScrimError, TourneyError)):
+            return await ctx.error(error)
+
+    async def add_role_and_reaction(self, ctx, role):
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await ctx.author.add_roles(role)
 
     async def fill_registration_channels(self):
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
@@ -89,12 +97,9 @@ class ScrimManager(Cog, name="esports"):
 
             await scrim.assigned_slots.add(slot)
 
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            try:
-                await ctx.author.add_roles(scrim.role)
-                role_given = True
-            except:
-                role_given = False
+            self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
+
+            role_given = True
 
             self.bot.dispatch(
                 "scrim_log",
@@ -130,17 +135,14 @@ class ScrimManager(Cog, name="esports"):
                 leader_id=ctx.author.id,
                 team_name=teamname,
                 num=numb + 1,
+                members=[m.id for m in message.mentions],
                 jump_url=message.jump_url,
             )
 
             await tourney.assigned_slots.add(slot)
 
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            try:
-                await ctx.author.add_roles(tourney.role)
-                role_given = True
-            except:
-                role_given = False
+            self.bot.loop.create_task(self.add_role_and_reaction(ctx, tourney.role))
+            role_given = True
 
             self.bot.dispatch(
                 "tourney_log",
@@ -262,6 +264,9 @@ class ScrimManager(Cog, name="esports"):
         if tourney.started_at is None:
             return
 
+        if not message.guild.me.guild_permissions.manage_roles or tourney.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
+            return await cannot_take_registration(message,'tourney',tourney)
+
         if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
 
@@ -275,9 +280,7 @@ class ScrimManager(Cog, name="esports"):
 
     @commands.Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
-        # if not message.guild or message.author.bot:
-        #     return
-        if message.author == self.bot.user:
+        if not message.guild or message.author.bot:
             return
 
         channel_id = message.channel.id
@@ -299,12 +302,11 @@ class ScrimManager(Cog, name="esports"):
             # Registration isn't opened yet.
             return
 
-        # if scrim.required_mentions and not all(
-        #     map(lambda m: not m.bot, message.mentions)
-        # ):  # mentioned bots
-        #     return self.bot.dispatch(
-        #         "scrim_registration_deny", message, "mentioned_bots", scrim
-        #     )
+        if not message.guild.me.guild_permissions.manage_roles or scrim.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
+            return await cannot_take_registration(message,'scrim',scrim)
+
+        if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
+            return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
 
         elif not len(message.mentions) >= scrim.required_mentions:
             return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
@@ -323,12 +325,6 @@ class ScrimManager(Cog, name="esports"):
         """
         await ctx.send_help(ctx.command)
 
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, ScrimError) or isinstance(error, TourneyError):
-            return await ctx.send(error)
-
-        raise error
-
     def config_embed(self, value, description: str):
         embed = discord.Embed(
             color=discord.Color(config.COLOR),
@@ -342,8 +338,9 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="setup")
     @checks.can_use_sm()
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
     @commands.max_concurrency(1, BucketType.guild)
-    async def s_setup(self, ctx):
+    async def s_setup(self, ctx: Context):
         """
         Setup Scrims Manager for a channel.
         Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
@@ -351,8 +348,12 @@ class ScrimManager(Cog, name="esports"):
 
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
-        if count == 3:
-            raise ScrimError("You can't host more than 3 scrims concurrently.")
+        guild = await Guild.get(guild_id=ctx.guild.id)
+
+        if count == 3 and not guild.is_premium:
+            raise ScrimError(
+                f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n{self.bot.config.WEBSITE}/premium"
+            )
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -461,7 +462,6 @@ class ScrimManager(Cog, name="esports"):
         description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
 
         confirm = await ctx.prompt(description, title=title)
-        confirm = True
         if not confirm:
             await ctx.send("Ok, Aborting!")
         else:
@@ -519,6 +519,7 @@ class ScrimManager(Cog, name="esports"):
     # ************************************************************************************************
 
     @smanager.command(name="edit")
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim_id: ScrimID):
         """
@@ -531,6 +532,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="days")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_days(self, ctx, *, scrim_id: ScrimID):
         """
         Edit open days for a scrim.
@@ -544,6 +546,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="close")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True)
     async def s_close(self, ctx, scrim_id: ScrimID):
         """
         Close a scrim immediately, even if the slots aren't full.
@@ -563,6 +566,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="config")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_config(self, ctx):
         """
         Get config of all the scrims you have setup.
@@ -605,7 +609,7 @@ class ScrimManager(Cog, name="esports"):
         scrim = scrim_id
         valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
-        display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim_id} scrim`"
+        display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim.id} scrim`"
 
         if not option or option.lower() not in valid_opt:
             return await ctx.send(display_msg)
@@ -677,6 +681,7 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_edit(self, ctx, scrim_id: ScrimID):
         """
         Edit a slotlist
@@ -686,6 +691,7 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
         """
         Get image version of a slotlist.
@@ -694,6 +700,9 @@ class ScrimManager(Cog, name="esports"):
         embed, file = await scrim.create_slotlist_img()
         embed.color = ctx.bot.color
 
+        await ctx.send(
+            "This command is currently under beta so you may encounter bugs."
+        )  # seperate msg so that user can delete it if they want
         await ctx.send(embed=embed, file=file)
 
     # ************************************************************************************************
@@ -725,7 +734,7 @@ class ScrimManager(Cog, name="esports"):
 
         if user.id in await scrim.banned_user_ids():
             return await ctx.send(
-                f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim_id} {str(user)}` to unban them."
+                f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
             )
 
         if time != None:
@@ -762,7 +771,7 @@ class ScrimManager(Cog, name="esports"):
 
         ban = await scrim.banned_teams.filter(user_id=user.id).first()
         await BannedTeam.filter(id=ban.id).delete()
-        await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim_id}`)")
+        await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
 
     @smanager.group(name="reserve", invoke_without_command=True)
     async def s_reserve(self, ctx):
@@ -777,6 +786,7 @@ class ScrimManager(Cog, name="esports"):
         Add a team to the reserved list temporarily or permanently.
         """
         scrim = scrim_id
+
         def check(message: discord.Message):
             return message.author == ctx.author and ctx.channel == message.channel
 
@@ -793,7 +803,7 @@ class ScrimManager(Cog, name="esports"):
 
         if member.id in await scrim.reserved_user_ids():
             return await ctx.send(
-                f"{str(member)} is already in the reserved list.\n\nIf you would like to remove them , use: `{ctx.prefix}smanager reserve add {scrim_id}`"
+                f"{str(member)} is already in the reserved list.\n\nIf you would like to remove them , use: `{ctx.prefix}smanager reserve add {scrim.id}`"
             )
 
         await ctx.send(embed=discord.Embed(color=config.COLOR, description=f"What is {member}'s team name?"))
@@ -814,7 +824,7 @@ class ScrimManager(Cog, name="esports"):
             )
 
             return await ctx.success(
-                f"Successfully reserved **{team_name}** in Scrim (`{scrim_id}`) for {human_timedelta(expire_time )}"
+                f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`) for {human_timedelta(expire_time )}"
             )
         await ctx.send(f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`).")
 
@@ -826,12 +836,12 @@ class ScrimManager(Cog, name="esports"):
         scrim = scrim_id
         if not member.id in await scrim.reserved_user_ids():
             return await ctx.send(
-                f"**{member}** is not reserved.\n\nYou can reserve their team with: `{ctx.prefix}smanager reserve add {scrim_id}`"
+                f"**{member}** is not reserved.\n\nYou can reserve their team with: `{ctx.prefix}smanager reserve add {scrim.id}`"
             )
 
         team = await scrim.reserved_slots.filter(user_id=member.id).first()
         await ReservedSlot.filter(id=team.id).delete()
-        await ctx.success(f"Successfully deleted {member}'s reserved slot from Scrim (`{scrim_id}`)")
+        await ctx.success(f"Successfully deleted {member}'s reserved slot from Scrim (`{scrim.id}`)")
 
     @s_reserve.command(name="list", aliases=("all",))
     async def s_reverse_list(self, ctx, scrim_id: ScrimID):
@@ -848,7 +858,7 @@ class ScrimManager(Cog, name="esports"):
             owner = ctx.guild.get_member(user.user_id) or self.bot.get_user(user.user_id)
             users += f"`{idx:02d}`| {user.team_name.title()} ({getattr(owner,'mention','Not Found')})\n"
 
-        embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim_id}")
+        embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
         await ctx.send(embed=embed)
 
     # ************************************************************************************************
@@ -943,6 +953,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="create", aliases=("setup",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def t_create(self, ctx):
         """
         Create or setup tournaments
@@ -1009,7 +1020,7 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send(
             embed=self.tcembed(
                 5,
-                "How many total slots are there? (Can't be more than 5000 or less than 10.)",
+                "How many total slots are there? (Can't be more than 5000 or less than 1.)",
             )
         )
 
@@ -1031,7 +1042,6 @@ class ScrimManager(Cog, name="esports"):
         description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
 
         confirm = await ctx.prompt(description, title=title)
-        confirm = True
         if not confirm:
             await ctx.send("Ok, Aborting!")
         else:
@@ -1087,6 +1097,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="config")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_config(self, ctx):
         """Get config of all running tourneys"""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
@@ -1133,6 +1144,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_group(self, ctx, tourney_id: TourneyID, group_size: int = 20):
         """Get groups of the tournament."""
 
@@ -1158,6 +1170,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="data")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_data(self, ctx, tourney_id: TourneyID):
         """Get all the data that Quotient collected for a tourney."""
         tourney = tourney_id
@@ -1190,6 +1203,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="list", aliases=("all",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_list(self, ctx):
         """A list of all running tournaments."""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
@@ -1213,7 +1227,7 @@ class ScrimManager(Cog, name="esports"):
         tourney = tourney_id
         slot = await tourney.assigned_slots.filter(leader_id=user.id).first()
         if not slot:
-            raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney_id}`)")
+            raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney.id}`)")
 
         prompt = await ctx.prompt(f"**{slot.team_name}** ({user.mention}) slot will be deleted.")
         if prompt:
@@ -1225,6 +1239,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="edit")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney_id: TourneyID):
         """Edit a tournament's config."""
 
@@ -1233,12 +1248,13 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="start")
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_start(self, ctx, tourney_id: TourneyID):
         """Start a tournament."""
         tourney = tourney_id
 
         if tourney.started_at != None:
-            raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already open.")
+            raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already open.")
 
         channel = tourney.registration_channel
         open_role = tourney.open_role
@@ -1249,13 +1265,13 @@ class ScrimManager(Cog, name="esports"):
             raise TourneyError(f"I need `manage channels` permission in **{channel}**")
 
         elif open_role is None:
-            raise TourneyError(f"I can not find open role for Tourney (`{tourney_id}`)")
+            raise TourneyError(f"I can not find open role for Tourney (`{tourney.id}`)")
 
-        prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney_id}`)?")
+        prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney.id}`)?")
         if prompt:
             channel_update = await toggle_channel(channel, open_role, True)
             self.tourney_channels.add(channel.id)
-            await Tourney.filter(pk=tourney_id).update(started_at=datetime.now(tz=IST), closed_at=None)
+            await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
             await channel.send("**Registration is now Open!**")
             await ctx.message.add_reaction(emote.check)
         else:
@@ -1263,12 +1279,13 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()
+    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_stop(self, ctx, tourney_id: TourneyID):
         """Stop / Pause a tournament."""
         tourney = tourney_id
-        
+
         if tourney.closed_at != None:
-            raise TourneyError(f"Tourney (`{tourney_id}`)'s registration is already closed.")
+            raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already closed.")
 
         channel = tourney.registration_channel
         open_role = tourney.open_role
@@ -1279,15 +1296,15 @@ class ScrimManager(Cog, name="esports"):
             raise TourneyError(f"I need `manage channels` permission in **{channel}**")
 
         elif open_role is None:
-            raise TourneyError(f"I can not find open role for Tourney (`{tourney_id}`)")
+            raise TourneyError(f"I can not find open role for Tourney (`{tourney.id}`)")
 
         prompt = await ctx.prompt(
-            f"Are you sure you want to stop registrations for Tourney (`{tourney_id}`)?\n>You can start them later with `{ctx.prefix}tourney start {tourney_id}` command"
+            f"Are you sure you want to stop registrations for Tourney (`{tourney.id}`)?\n>You can start them later with `{ctx.prefix}tourney start {tourney_id}` command"
         )
         if prompt:
             channel_update = await toggle_channel(channel, open_role, False)
             await channel.send(f"Registration is now closed.")
-            await Tourney.filter(pk=tourney_id).update(started_at=None, closed_at=datetime.now(tz=IST))
+            await Tourney.filter(pk=tourney.id).update(started_at=None, closed_at=datetime.now(tz=IST))
             await ctx.message.add_reaction(emote.check)
         else:
             await ctx.success("OK!")
@@ -1299,11 +1316,11 @@ class ScrimManager(Cog, name="esports"):
         tourney = tourney_id
         if user.id in tourney.banned_users:
             return await ctx.send(
-                f"**{str(user)}** is already banned from the tourney.\n\nUse `{ctx.prefix}tourney unban {tourney_id} {str(user)}` to unban them."
+                f"**{str(user)}** is already banned from the tourney.\n\nUse `{ctx.prefix}tourney unban {tourney.id} {str(user)}` to unban them."
             )
 
-        await Tourney.filter(pk=tourney_id).update(banned_users=ArrayAppend("banned_users", user.id))
-        await ctx.success(f"**{str(user)}** has been successfully banned from Tourney (`{tourney_id}`)")
+        await Tourney.filter(pk=tourney.id).update(banned_users=ArrayAppend("banned_users", user.id))
+        await ctx.success(f"**{str(user)}** has been successfully banned from Tourney (`{tourney.id}`)")
 
     @tourney.command(name="unban")
     @checks.can_use_tm()
@@ -1312,11 +1329,11 @@ class ScrimManager(Cog, name="esports"):
         tourney = tourney_id
         if user.id not in tourney.banned_users:
             return await ctx.send(
-                f"**{str(user)}** is not banned the tourney.\n\nUse `{ctx.prefix}tourney ban {tourney_id} {str(user)}` to ban them."
+                f"**{str(user)}** is not banned the tourney.\n\nUse `{ctx.prefix}tourney ban {tourney.id} {str(user)}` to ban them."
             )
 
-        await Tourney.filter(pk=tourney_id).update(banned_users=ArrayRemove("banned_users", user.id))
-        await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney_id}`)")
+        await Tourney.filter(pk=tourney.id).update(banned_users=ArrayRemove("banned_users", user.id))
+        await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney.id}`)")
 
 
 def setup(bot):

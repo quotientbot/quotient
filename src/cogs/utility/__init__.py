@@ -106,30 +106,30 @@ class Utility(Cog, name="utility"):
         embed.add_field(name="Bots", value=bots, inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def snipe(self, ctx, *, channel: Optional[discord.TextChannel]):
-        """Snipe last deleted message of a channel."""
+    # @commands.command()
+    # @commands.bot_has_permissions(embed_links=True)
+    # async def snipe(self, ctx, *, channel: Optional[discord.TextChannel]):
+    #     """Snipe last deleted message of a channel."""
 
-        channel = channel or ctx.channel
+    #     channel = channel or ctx.channel
 
-        snipe = await Snipes.filter(channel_id=channel.id).order_by("delete_time").first()
-        if not snipe:
-            return await ctx.send(f"There's nothing to snipe :c")
+    #     snipe = await Snipes.filter(channel_id=channel.id).order_by("delete_time").first()
+    #     if not snipe:
+    #         return await ctx.send(f"There's nothing to snipe :c")
 
-        elif snipe.nsfw and not channel.is_nsfw():
-            return await ctx.send(f"The snipe is marked NSFW but the current channel isn't.")
+    #     elif snipe.nsfw and not channel.is_nsfw():
+    #         return await ctx.send(f"The snipe is marked NSFW but the current channel isn't.")
 
-        content = (
-            snipe.content
-            if len(snipe.content) < 128
-            else f"[Click me to see]({str(await ctx.bot.binclient.post(snipe.content))})"
-        )
-        embed = self.bot.embed(ctx)
-        embed.description = f"Message sent by **{snipe.author}** was deleted in {channel.mention}"
-        embed.add_field(name="**__Message Content__**", value=content)
-        embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
-        await ctx.send(embed=embed)
+    #     content = (
+    #         snipe.content
+    #         if len(snipe.content) < 128
+    #         else f"[Click me to see]({str(await ctx.bot.binclient.post(snipe.content))})"
+    #     )
+    #     embed = self.bot.embed(ctx)
+    #     embed.description = f"Message sent by **{snipe.author}** was deleted in {channel.mention}"
+    #     embed.add_field(name="**__Message Content__**", value=content)
+    #     embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
+    #     await ctx.send(embed=embed)
 
 
 def setup(bot):
