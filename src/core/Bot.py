@@ -102,7 +102,7 @@ class Quotient(commands.AutoShardedBot):
         print(Fore.CYAN + f"Spawned {len(self.shards)} Shards")
 
     def embed(self, ctx: Context, **kwargs):
-        """This is how we deliver features like custom footer and cutom color :)"""
+        """This is how we deliver features like custom footer and custom color :)"""
         embed_color = self.guild_data[ctx.guild.id]["color"]
         embed_footer = self.guild_data[ctx.guild.id]["footer"]
         kwargs.update(color=kwargs.pop("color", embed_color))
