@@ -1,6 +1,6 @@
 import asyncio
 import dateparser
-from datetime import datetime
+from datetime import datetime, timedelta
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 from .exceptions import InputError
 from utils.constants import IST
@@ -130,7 +130,11 @@ async def time_input(ctx, check, timeout=120, delete_after=False):
             if delete_after:
                 await safe_delete(message)
 
+            if datetime.now(tz=IST) > parsed:
+                parsed = parsed + timedelta(hours=24)
+
             return parsed
+
         except TypeError:
             raise InputError("This isn't valid time format.")
 

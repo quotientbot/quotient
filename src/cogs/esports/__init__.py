@@ -1,4 +1,11 @@
-from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process , cannot_take_registration
+from .utils import (
+    toggle_channel,
+    scrim_end_process,
+    postpone_scrim,
+    is_valid_scrim,
+    tourney_end_process,
+    cannot_take_registration,
+)
 from utils import (
     default,
     time,
@@ -264,8 +271,12 @@ class ScrimManager(Cog, name="esports"):
         if tourney.started_at is None:
             return
 
-        if not message.guild.me.guild_permissions.manage_roles or tourney.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
-            return await cannot_take_registration(message,'tourney',tourney)
+        if (
+            not message.guild.me.guild_permissions.manage_roles
+            or tourney.role > message.guild.me.top_role
+            or not message.channel.permissions_for(message.channel.guild.me).add_reactions
+        ):
+            return await cannot_take_registration(message, "tourney", tourney)
 
         if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
@@ -302,8 +313,12 @@ class ScrimManager(Cog, name="esports"):
             # Registration isn't opened yet.
             return
 
-        if not message.guild.me.guild_permissions.manage_roles or scrim.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
-            return await cannot_take_registration(message,'scrim',scrim)
+        if (
+            not message.guild.me.guild_permissions.manage_roles
+            or scrim.role > message.guild.me.top_role
+            or not message.channel.permissions_for(message.channel.guild.me).add_reactions
+        ):
+            return await cannot_take_registration(message, "scrim", scrim)
 
         if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
