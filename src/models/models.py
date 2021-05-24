@@ -5,7 +5,7 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem", "Stats")
 
 
 class Guild(models.Model):
@@ -229,3 +229,17 @@ class Redeem(models.Model):
     is_used = fields.BooleanField(default=False)
     used_by = fields.BigIntField(null=True)
     used_at = fields.DatetimeField(null=True)
+
+
+# ************************************************************************************************
+
+
+class Stats(models.Model):
+    class Meta:
+        table = "cmd_stats"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    user_id = fields.BigIntField()
+    cmd = fields.CharField(max_length=100)
+    uses = fields.IntField(default=0)
