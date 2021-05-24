@@ -25,13 +25,18 @@ class Errors(Cog):
         elif isinstance(err, commands.NotOwner):
             return await ctx.send("Hmmm!😷")
 
+        elif isinstance(err, exceptions.NotSetup):
+            return await ctx.error(
+                f"This command requires you to have Quotient's private channel.\nKindly run `{ctx.prefix}setup` and try again."
+            )
+
         elif isinstance(err, exceptions.NotPremiumUser):
             return await ctx.error(
                 f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
             )
 
         elif isinstance(err, exceptions.InputError):
-            await ctx.error(err)
+            return await ctx.error(err)
 
         elif isinstance(err, exceptions.SMNotUsable):
             return await ctx.error(

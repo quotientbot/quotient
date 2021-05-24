@@ -2,7 +2,19 @@ from discord.ext import commands
 from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
 from .exceptions import *
-from models import User
+from models import User, Guild
+
+
+def has_done_setup():
+    async def predicate(ctx):
+        check = await Guild.get_or_none(pk=ctx.guild.id)
+        if not check.private_ch:
+            raise NotSetup()
+
+        else:
+            return True
+
+    return commands.check(predicate)
 
 
 def is_premium_user():

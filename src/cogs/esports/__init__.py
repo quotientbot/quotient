@@ -338,6 +338,7 @@ class ScrimManager(Cog, name="esports"):
 
     @smanager.command(name="setup")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
     @commands.max_concurrency(1, BucketType.guild)
     async def s_setup(self, ctx: Context):
@@ -953,6 +954,7 @@ class ScrimManager(Cog, name="esports"):
 
     @tourney.command(name="create", aliases=("setup",))
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def t_create(self, ctx):
         """

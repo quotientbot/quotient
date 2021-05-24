@@ -1,6 +1,10 @@
 from discord.ext import commands
 
 
+class NotSetup(commands.CheckFailure):
+    pass
+
+
 class NotPremiumUser(commands.CheckFailure):
     pass
 

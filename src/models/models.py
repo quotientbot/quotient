@@ -44,6 +44,11 @@ class Guild(models.Model):
             return self._guild.get_role(self.mute_role)
 
     @property
+    def private_ch(self):
+        if self._guild is not None:
+            return self._guild.get_channel(self.private_channel)
+
+    @property
     def muted(self):
         return tuple(map(self.bot.get_user, self.muted_members))
 

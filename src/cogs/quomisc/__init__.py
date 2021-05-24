@@ -1,11 +1,13 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
+from models import Guild
 from collections import Counter
 from typing import Optional
 from glob import glob
 from .dev import *
 import inspect
+import discord
 import os
 
 
@@ -67,11 +69,63 @@ class Quomisc(Cog, name="quomisc"):
         await ctx.send(self.bot.config.SERVER)
 
     @commands.command()
-    async def invite(self, ctx):
+    async def invite(self, ctx: Context):
         """Invite ME : )"""
         embed = self.bot.embed(ctx)
         embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         await ctx.send(embed=embed)
+
+    async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
+        support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
+        invite_link = f"[Invite Me]({ctx.config.BOT_INVITE})"
+        vote_link = f"[Vote]({ctx.config.WEBSITE}/vote)"
+        source = f"[Source]({ctx.config.REPOSITORY})"
+
+        guild = ctx.guild
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+            ctx.author: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+        }
+        channel = await guild.create_text_channel(
+            "quotient-private", overwrites=overwrites, reason=f"Made by {str(ctx.author)}"
+        )
+        webhook = await channel.create_webhook(
+            name="Quotient", avatar=await ctx.me.avatar_url.read(), reason=f"Made by {str(ctx.author)}"
+        )
+        await Guild.filter(guild_id=ctx.guild.id).update(private_channel=channel.id, private_webhook=webhook.url)
+
+        e = self.bot.embed(ctx)
+        e.add_field(
+            name="**What is this channel for?**",
+            inline=False,
+            value="This channel is made for Quotient to send important announcements and activities that need your attention. If anything goes wrong with any of my functionality I will notify you here. Important announcements from the developer will be sent directly here too.\n\nYou can test my commands in this channel if you like. Kindly don't delete it , some of my commands won't work without this channel.",
+        )
+        e.add_field(
+            name="**__Important Links__**", value=f"{support_link} | {invite_link} | {vote_link} | {source}", inline=False
+        )
+        m = await channel.send(embed=e)
+        await m.pin()
+
+        return channel
+
+    @commands.command(name="setup")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_webhooks=True)
+    async def setup_cmd(self, ctx: Context):
+        """
+        Setup Quotient in the current sever.
+        This creates a private channel in the server. You can rename that if you like.
+        Quotient requires manage channels and manage wehooks permissions for this to work.
+        You must have manage server permission.
+        """
+        record = await Guild.get(guild_id=ctx.guild.id)
+        if record.private_ch is not None:
+            return await ctx.error(f"You already have a private channel ({record.private_ch.mention})")
+
+        else:
+            channel = await self.make_private_channel(ctx)
+            await ctx.success(f"Created {channel.mention}")
 
     # @commands.command()
     # async def prefix(self, ctx, *, new_prefix: Optional[str]):
