@@ -1,9 +1,11 @@
 import discord, io
 from core import Cog
+from .utils import purge_roles, purge_channels
 from prettytable import PrettyTable
-from utils import find_team, emote
+from utils import find_team, emote, IST
 from models import TagCheck
 from discord.ext import commands
+from datetime import datetime, timedelta
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney
 
 
@@ -324,7 +326,15 @@ class SMError(Cog):
 
     @Cog.listener()
     async def on_scrim_autoclean_timer_complete(self, timer: Timer):
-        ...
+        reminders = self.bot.get_cog("Reminders")
+        await reminders.create_timer(datetime.now(tz=IST) + timedelta(hours=24), "scrim_autoclean")
+
+        records = await Scrim.filter(stoggle=True, autoclean=True).all()
+        channels = map(lambda x: x.registration_channel, records)
+        roles = map(lambda x: x.role, records)
+
+        self.bot.loop.create_task(purge_channels(channels))
+        self.bot.loop.create_task(purge_roles(roles))
 
     @Cog.listener()
     async def on_scrim_cmd_log(self, **kwargs):

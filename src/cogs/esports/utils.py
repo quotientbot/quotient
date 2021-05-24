@@ -141,3 +141,22 @@ async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     )
 
     ctx.bot.dispatch("tourney_log", "closed", tourney, permission_updated=channel_update)
+
+
+async def purge_channels(channels):
+    for channel in channels:
+        if channel != None and channel.permissions_for(channel.guild.me).manage_messages:
+            try:
+                await channel.purge(limit=100, check=lambda x: not x.pinned)
+            except:
+                continue
+
+
+async def purge_roles(roles):
+    for role in roles:
+        if role != None and role.guild.me.guild_permissions.manage_roles:
+            for member in role.members:
+                try:
+                    await member.remove_roles(role, reason="Scrims Manager Auto Role Remove in progress!")
+                except:
+                    continue
