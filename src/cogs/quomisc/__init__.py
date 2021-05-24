@@ -69,7 +69,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def invite(self, ctx):
         """Invite ME : )"""
-        embed = ctx.embed.default(ctx)
+        embed = self.bot.embed(ctx)
         embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         await ctx.send(embed=embed)
 

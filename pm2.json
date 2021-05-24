@@ -3,7 +3,7 @@
     {
       "name": "quotient",
       "autorestart": true,
-      "watch": true,
+      "watch": false,
       "ignore_watch": ["logs"],
       "script": "./src/bot.py",
       "interpreter": "python3",
