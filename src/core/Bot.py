@@ -28,7 +28,7 @@ print(Fore.RED + "-----------------------------------------------------")
 class Quotient(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            command_prefix=("!"),
+            command_prefix=("q", "Q"),
             intents=intents,
             max_messages=1000,
             strip_after_prefix=True,
