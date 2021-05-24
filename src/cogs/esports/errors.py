@@ -32,7 +32,7 @@ class SMError(Cog):
         await message.add_reaction("\N{CROSS MARK}")
         e = discord.Embed(
             color=discord.Color.red(),
-            description=f"Registraion of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
+            description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
         )
 
         if type == "mentioned_bots":
@@ -73,7 +73,7 @@ class SMError(Cog):
         await message.add_reaction("\N{CROSS MARK}")
         e = discord.Embed(
             color=discord.Color.red(),
-            description=f"Registraion of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
+            description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
         )
 
         if type == "mentioned_bots":
