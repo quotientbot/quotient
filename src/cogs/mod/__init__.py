@@ -1,8 +1,8 @@
-from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
+from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember
+from utils import ActionReason, MemberID, BannedMember, emote
 import typing
 import discord
 import re
@@ -187,6 +187,216 @@ class Mod(Cog):
             await ctx.send(f"Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}.")
         else:
             await ctx.success(f"Unbanned {member.user} (ID: {member.user.id}).")
+
+    @commands.group(invoke_without_command=True, aliases=["addrole", "giverole"])
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def role(self, ctx, role: discord.Role, members: commands.Greedy[discord.Member]):
+        """
+        Add a role to one or multiple users.
+        """
+        if await role_checker(ctx, role):
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+            failed = []
+            for m in members:
+                if not role in m.roles:
+                    try:
+                        await m.add_roles(role, reason=reason)
+                    except:
+                        failed.append(str(m))
+                        continue
+
+            if len(failed) > 0:
+                return await ctx.error(f"Unfortunately, I couldn't add roles to:\n{', '.join(failed)}")
+            else:
+                await ctx.message.add_reaction(emote.check)
+
+    @role.command(name="humans")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def role_humans(self, ctx, *, role: discord.Role):
+        """Add a role to all human users."""
+        if await role_checker(ctx, role):
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?",
+                message=f"{role.mention} will be added to all human users in the server.",
+            )
+            if prompt:
+                members = filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} humans..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.add_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+
+    @role.command(name="bots")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def role_bots(self, ctx, *, role: discord.Role):
+        if await role_checker(ctx, role):
+            """Add a role to all bot users."""
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?", message=f"{role.mention} will be added to all bots in the server."
+            )
+            if prompt:
+                members = filter(lambda x: x.bot and role not in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} bots..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.add_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} bots.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
+
+    @role.command(name="all")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def role_all(self, ctx, *, role: discord.Role):
+        """Add a role to everyone on the server"""
+        if await role_checker(ctx, role):
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?", message=f"{role.mention} will be added to everyone in the server."
+            )
+            if prompt:
+                members = filter(lambda x: role not in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} members..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.add_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+
+    @commands.group(invoke_without_command=True, aliases=["removerole", "takerole"])
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def rrole(self, ctx, role: discord.Role, members: commands.Greedy[discord.Member]):
+        """Remove a role from one or multiple users."""
+        if await role_checker(ctx, role):
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+            failed = []
+            for m in members:
+                if role in m.roles:
+                    try:
+                        await m.remove_roles(role, reason=reason)
+                    except:
+                        failed.append(str(m))
+                        continue
+
+            if len(failed) > 0:
+                return await ctx.error(f"Unfortunately, I couldn't remove roles from:\n{', '.join(failed)}")
+            else:
+                await ctx.message.add_reaction(emote.check)
+
+    @rrole.command(name="humans")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def rrole_humans(self, ctx, *, role: discord.Role):
+        """Remove a role from all human users."""
+        if await role_checker(ctx, role):
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?",
+                message=f"{role.mention} will be removed from all human users in the server.",
+            )
+            if prompt:
+                members = filter(lambda x: not x.bot and role in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} humans..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.remove_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+
+    @rrole.command(name="bots")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def rrole_bots(self, ctx, *, role: discord.Role):
+        """Remove a role from all the bots."""
+        if await role_checker(ctx, role):
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?",
+                message=f"{role.mention} will be removed from all bot users in the server.",
+            )
+            if prompt:
+                members = filter(lambda x: x.bot and role in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} bots..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.remove_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} bots.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
+
+    @rrole.command(name="all")
+    @commands.has_guild_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def rrole_all(self, ctx, *, role: discord.Role):
+        """Remove a role from everyone on the server."""
+        if await role_checker(ctx, role):
+            prompt = await ctx.prompt(
+                title="Are you sure want to do this?",
+                message=f"{role.mention} will be removed from everyone in the server.",
+            )
+            if prompt:
+                members = filter(lambda x: role in x.roles, ctx.guild.members)
+                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} members..."))
+                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+                failed = 0
+                for m in members:
+                    try:
+                        await m.remove_roles(role, reason=reason)
+                    except:
+                        failed += 1
+                        continue
+
+                if failed > 0:
+                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
+
+                else:
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
 
 def setup(bot):

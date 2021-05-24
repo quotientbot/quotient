@@ -1,10 +1,24 @@
-from typing import NoReturn
+from typing import NoReturn, Union
 from models import Scrim, Tourney
 from datetime import datetime, timedelta
 from utils import constants
 import discord
 import humanize
 import config
+
+
+async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
+    logschan = obj.logschan
+    if logschan is not None and logschan.permissions_for(message.guild.me).embed_links:
+        embed = discord.Embed(
+            color=discord.Color.red(), description=f"**Registration couldn't be accepted in {message.channel.mention}**"
+        )
+        embed.description += f"\nPossible reasons are:\n> I don't have add reaction permission in the channel\n> I don't have manage_roles permission in the server\n> My top role({message.guild.me.top_role.mention}) is below {obj.role.mention}"
+        await logschan.send(
+            content=getattr(obj.modrole, "mention", None),
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(roles=True),
+        )
 
 
 async def is_valid_scrim(bot, scrim) -> bool:

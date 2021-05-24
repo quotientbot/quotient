@@ -1,4 +1,4 @@
-from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process
+from .utils import toggle_channel, scrim_end_process, postpone_scrim, is_valid_scrim, tourney_end_process , cannot_take_registration
 from utils import (
     default,
     time,
@@ -49,6 +49,10 @@ class ScrimManager(Cog, name="esports"):
         if isinstance(error, (ScrimError, TourneyError)):
             return await ctx.error(error)
 
+    async def add_role_and_reaction(self, ctx, role):
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await ctx.author.add_roles(role)
+
     async def fill_registration_channels(self):
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
         self.registration_channels = set()
@@ -93,12 +97,9 @@ class ScrimManager(Cog, name="esports"):
 
             await scrim.assigned_slots.add(slot)
 
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            try:
-                await ctx.author.add_roles(scrim.role)
-                role_given = True
-            except:
-                role_given = False
+            self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
+
+            role_given = True
 
             self.bot.dispatch(
                 "scrim_log",
@@ -134,18 +135,14 @@ class ScrimManager(Cog, name="esports"):
                 leader_id=ctx.author.id,
                 team_name=teamname,
                 num=numb + 1,
-                members = [m.id for m in message.mentions],
+                members=[m.id for m in message.mentions],
                 jump_url=message.jump_url,
             )
 
             await tourney.assigned_slots.add(slot)
 
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            try:
-                await ctx.author.add_roles(tourney.role)
-                role_given = True
-            except:
-                role_given = False
+            self.bot.loop.create_task(self.add_role_and_reaction(ctx, tourney.role))
+            role_given = True
 
             self.bot.dispatch(
                 "tourney_log",
@@ -267,6 +264,9 @@ class ScrimManager(Cog, name="esports"):
         if tourney.started_at is None:
             return
 
+        if not message.guild.me.guild_permissions.manage_roles or tourney.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
+            return await cannot_take_registration(message,'tourney',tourney)
+
         if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
 
@@ -301,6 +301,9 @@ class ScrimManager(Cog, name="esports"):
         if scrim.opened_at is None:
             # Registration isn't opened yet.
             return
+
+        if not message.guild.me.guild_permissions.manage_roles or scrim.role > message.guild.me.top_role or not message.channel.permissions_for(message.channel.guild.me).add_reactions:
+            return await cannot_take_registration(message,'scrim',scrim)
 
         if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
@@ -459,7 +462,6 @@ class ScrimManager(Cog, name="esports"):
         description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
 
         confirm = await ctx.prompt(description, title=title)
-        confirm = True
         if not confirm:
             await ctx.send("Ok, Aborting!")
         else:
@@ -1040,7 +1042,6 @@ class ScrimManager(Cog, name="esports"):
         description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
 
         confirm = await ctx.prompt(description, title=title)
-        confirm = True
         if not confirm:
             await ctx.send("Ok, Aborting!")
         else:
