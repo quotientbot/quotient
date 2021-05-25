@@ -1,6 +1,7 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
 import sys, importlib, os, re
+from utils import emote
 import subprocess
 import asyncio
 
@@ -35,8 +36,6 @@ class Dev(Cog):
                 continue
 
             if root.startswith("cogs/"):
-                # A submodule is a directory inside the main cog directory for
-                # my purposes
                 ret.append((root.count("/") - 1, root.replace("/", ".")))
 
         # For reload order, the submodules should be reloaded first
@@ -55,8 +54,7 @@ class Dev(Cog):
 
         async with ctx.typing():
             stdout, stderr = await self.run_process("git pull")
-
-        if stdout.startswith("Already up-to-date."):
+        if stdout.startswith("Already up to date."):
             return await ctx.send(stdout)
 
         modules = self.find_modules_from_git(stdout)
@@ -72,20 +70,20 @@ class Dev(Cog):
                 try:
                     actual_module = sys.modules[module]
                 except KeyError:
-                    statuses.append((ctx.tick(None), module))
+                    statuses.append((emote.error, module))
                 else:
                     try:
                         importlib.reload(actual_module)
                     except Exception as e:
-                        statuses.append((ctx.tick(False), module))
+                        statuses.append((emote.xmark, module))
                     else:
-                        statuses.append((ctx.tick(True), module))
+                        statuses.append((emote.check, module))
             else:
                 try:
                     self.reload_or_load_extension(module)
                 except commands.ExtensionError:
-                    statuses.append((ctx.tick(False), module))
+                    statuses.append((emote.xmark, module))
                 else:
-                    statuses.append((ctx.tick(True), module))
+                    statuses.append((emote.check, module))
 
         await ctx.send("\n".join(f"{status}: `{module}`" for status, module in statuses))
