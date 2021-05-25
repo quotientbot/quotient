@@ -2,12 +2,14 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
 from models import Guild
+from utils import emote, get_ipm, strtime, human_timedelta
 from collections import Counter
 from typing import Optional
 from glob import glob
 from .dev import *
-import inspect
+import inspect, time
 import discord
+import psutil
 import os
 
 
@@ -127,6 +129,87 @@ class Quomisc(Cog, name="quomisc"):
             channel = await self.make_private_channel(ctx)
             await ctx.success(f"Created {channel.mention}")
 
+    @commands.command()
+    async def stats(self, ctx):
+        """Quotient's statistics"""
+        query = "SELECT SUM(uses) FROM cmd_stats;"
+        total_uses = await ctx.db.fetchval(query)
+        user_invokes = (
+            await ctx.db.fetchval(
+                "SELECT SUM(uses) FROM cmd_stats WHERE user_id=$1 AND guild_id = $2",
+                ctx.author.id,
+                ctx.guild.id,
+            )
+            or 0
+        )
+
+        server_invokes = (
+            await ctx.db.fetchval(
+                "SELECT SUM(uses) FROM cmd_stats WHERE guild_id=$1",
+                ctx.guild.id,
+            )
+            or 0
+        )
+
+        memory = psutil.virtual_memory().total >> 20
+        mem_usage = psutil.virtual_memory().used >> 20
+        cpu = str(psutil.cpu_percent())
+        members = sum(g.member_count for g in self.bot.guilds)
+
+        chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
+
+        embed = self.bot.embed(
+            ctx,
+            title="Official Bot Server Invite",
+            url=ctx.config.SERVER_LINK,
+            description=f"Quotient has been up for `{self.get_bot_uptime(brief=False)}`."
+            f"\nTotal of `{total_uses} commands` have been invoked and `{server_invokes} commands` were invoked in this server,"
+            f" out of which `{user_invokes} commands` were invoked by you.\nBot can see `{len(self.bot.guilds)} guilds`, "
+            f"`{members} users` and `{len(self.bot.users)} users` are cached.",
+        )
+
+        embed.add_field(name="System", value=f"**RAM**: {mem_usage}/{memory} MB\n**CPU:** {cpu}% used")
+        embed.add_field(
+            name="Channels",
+            value="{} `{} channels`\n{} `{} channels`".format(
+                emote.TextChannel,
+                chnl_count[discord.ChannelType.text],
+                emote.VoiceChannel,
+                chnl_count[discord.ChannelType.voice],
+            ),
+        )
+        embed.set_footer(
+            text=f"Websocket latency: {round(self.bot.latency * 1000, 2)}ms | IPM: {round(get_ipm(ctx.bot), 2)}"
+        )
+        await ctx.send(embed=embed)
+
+    def get_bot_uptime(self, *, brief=False):
+        return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
+
+    @commands.command()
+    async def uptime(self, ctx):
+        """Do you wonder when did we last restart Quotient?"""
+        await ctx.send(
+            f"**Uptime:** {self.get_bot_uptime(brief=False)}\n**Last Restart:** {strtime(self.bot.start_time)}"
+        )
+
+    @commands.command()
+    async def ping(self, ctx: Context):
+        """Check how the bot is doing"""
+
+        ping_at = time.monotonic()
+        message = await ctx.send("Pinging...")
+        diff = "%.2f" % (1000 * (time.monotonic() - ping_at))
+
+        emb = ctx.bot.embed(ctx)
+        emb.add_field(name="Ping", value=f"`{diff} ms`")
+        emb.add_field(
+            name="Latency",
+            value=f"`{round(self.bot.latency*1000, 2)} ms`",
+        )
+
+        await message.edit(content=None, embed=emb)
+
     # @commands.command()
     # async def prefix(self, ctx, *, new_prefix: Optional[str]):
     #     pass
@@ -140,6 +223,6 @@ class Quomisc(Cog, name="quomisc"):
     #     pass
 
 
-def setup(bot):
+def setup(bot) -> None:
     bot.add_cog(Quomisc(bot))
     bot.add_cog(Dev(bot))

@@ -28,7 +28,7 @@ print(Fore.RED + "-----------------------------------------------------")
 class Quotient(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            command_prefix=("q", "Q"),
+            command_prefix=self.get_prefix,
             intents=intents,
             max_messages=1000,
             strip_after_prefix=True,
@@ -70,14 +70,13 @@ class Quotient(commands.AutoShardedBot):
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
 
-    # async def get_prefix(self, message: discord.Message) -> str:
-    #     if message.guild is None:
-    #         prefix = config.PREFIX
+    async def get_prefix(self, message: discord.Message) -> str:
+        if self.user.id == 765159200204128266:
+            prefix = "!"
+        else:
+            prefix = config.PREFIX
 
-    #     else:
-    #         prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
-
-    #     return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
     async def close(self) -> NoReturn:
         await super().close()
