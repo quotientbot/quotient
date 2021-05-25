@@ -422,7 +422,7 @@ class Mod(Cog):
         await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
 
         if duration is None:  # we don't want to store if duration is None.
-            return await ctx.send_m(f"Locked down **{channel.name}**")
+            return await ctx.success(f"Locked down **{channel.name}**")
 
         await Lockdown.create(
             guild_id=ctx.guild.id,
@@ -436,12 +436,109 @@ class Mod(Cog):
         )
         await ctx.success(f"Locked down **{channel}** for {human_timedelta(duration.dt,source= timer.created)}")
 
-    @lock.command()
-    async def category(self, ctx, category: discord.CategoryChannel, duration: Optional[FutureTime]):
-        check = await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.category, channel_id=category.id)
-
+    @lock.command(name="server", aliases=("guild",))
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @commands.has_permissions(manage_guild=True)
+    async def lock_server(self, ctx, duration: Optional[FutureTime]):
+        check = await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.guild).first()
         if check is not None:
-            return await ctx.error(f"**{category}** is already locked.")
+            text = f"Server is already locked."
+            if check.expire_time:
+                text += f"\n\nTime Remaining: {human_timedelta(check.expire_time)}"
+            return await ctx.error(text)
+
+        channels = list(filter(lambda x: x.overwrites_for(ctx.guild.default_role).send_messages, ctx.guild.channels))
+        mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
+        # len list would use additional memory so : )
+
+        if not (len(channels)):
+            return await ctx.error(f"@everyone doesn't have `send_messages` enabled in any channel.")
+
+        elif not mine:
+            return await ctx.error(
+                f"`{sum(1 for i in channels)} channels` have send messages enabled. But unfortunately I don't permission to edit any of them."
+            )
+
+        prompt = await ctx.prompt(
+            f"`{sum(1 for i in channels)} channels` have send messages enabled for @everyone,\nI have permissions to modify `{mine} channels`.",
+            title="Do you want me to continue?",
+        )
+        if not prompt:
+            return await ctx.success(f"Alright, aborting.")
+
+        await ctx.send(f"Kindly wait.. {emote.loading}", delete_after=3)
+
+        success, failed = [], 0
+        reason = f"Action done by -> {str(ctx.author)} ({ctx.author.id})"
+        for channel in channels:
+            overwrite = channel.overwrites_for(ctx.guild.default_role)
+            overwrite.send_messages = False
+
+            try:
+                await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite, reason=reason)
+                success.append(channel.id)
+            except:
+                failed += 1
+                continue
+
+        await Lockdown.create(
+            guild_id=ctx.guild.id,
+            type=LockType.guild,
+            channel_id=ctx.channel.id,
+            author_id=ctx.author.id,
+            channel_ids=success,
+            expire_time=duration.dt,
+        )
+
+        if duration is None:
+            return await ctx.success(f"Locked down `{len(success)} channels` (Failed: `{failed}`)")
+
+        timer = await self.bot.reminders.create_timer(
+            duration.dt, "lockdown", _type=LockType.guild.value, guild_id=ctx.guild.id
+        )
+        await ctx.success(
+            f"Locked down `{len(success)} channels` (Failed: `{failed}`) for {human_timedelta(duration.dt, source=timer.created)}"
+        )
+
+    @commands.group(aliases=("unlockdown",), invoke_without_command=True)
+    async def unlock(self, ctx, *, channel: Optional[discord.TextChannel]):
+        channel = channel or ctx.channel
+
+        if not channel.permissions_for(ctx.me).manage_channels:
+            return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
+
+        elif not channel.permissions_for(ctx.author).manage_channels:
+            return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
+
+        perms = channel.overwrites_for(ctx.guild.default_role)
+        perms.send_messages = True
+        await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+
+        await ctx.success(f"Unlocked **{channel}**")
+
+        await Lockdown.filter(channel_id=channel.id, type=LockType.channel).delete()
+
+    @unlock.command(name="server", aliases=("guild",))
+    async def unlock_guild(self, ctx):
+        check = await Lockdown.get_or_none(guild_id=ctx.guild.id, type=LockType.guild).first()
+        if not check:
+            return await ctx.error(f"The server is not locked.")
+
+        success = 0
+        for channel in check.channels:
+            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+
+                perms = channel.overwrites_for(channel.guild.default_role)
+                perms.send_messages = True
+                await channel.set_permissions(
+                    channel.guild.default_role, overwrite=perms, reason="Lockdown timer complete!"
+                )
+                success += 1
+
+        await ctx.success(
+            f"Successfully unlocked `{success}` channels. (`{sum(1 for i in check.channels)}` were locked.)"
+        )
+        await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.guild).delete()
 
 
 def setup(bot):

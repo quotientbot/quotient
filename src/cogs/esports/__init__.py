@@ -271,6 +271,9 @@ class ScrimManager(Cog, name="esports"):
         if tourney.started_at is None:
             return
 
+        if tourney.modrole in message.author.roles:
+            return
+
         if (
             not message.guild.me.guild_permissions.manage_roles
             or tourney.role > message.guild.me.top_role
@@ -311,6 +314,9 @@ class ScrimManager(Cog, name="esports"):
 
         if scrim.opened_at is None:
             # Registration isn't opened yet.
+            return
+
+        if scrim.modrole in message.author.roles:
             return
 
         if (
