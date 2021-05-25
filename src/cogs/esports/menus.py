@@ -191,11 +191,7 @@ class ConfigEditMenu(menus.Menu):
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
         ping_role = getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
-        open_role = (
-            getattr(scrim.open_role, "mention", "`Role Deleted!`")
-            if scrim.open_role_id
-            else "@everyone"
-        )
+        open_role = getattr(scrim.open_role, "mention", "`Role Deleted!`") if scrim.open_role_id else "@everyone"
 
         embed = discord.Embed(color=discord.Color(config.COLOR))
         embed.title = f"Edit Scrims Configuration: {scrim.id}"
@@ -211,6 +207,7 @@ class ConfigEditMenu(menus.Menu):
             "Auto-clean": ("`No!`", "`Yes!`")[scrim.autoclean],
             "Ping Role": ping_role,
             "Open Role": open_role,
+            "Multi Register": ("`No!`", "`Yes!`")[scrim.multiregister],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -337,7 +334,7 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("H"))
     async def change_cleanup(self, payload):
-        await self.update_scrim(cleanup=not self.scrim.autoclean)
+        await self.update_scrim(autoclean=not self.scrim.autoclean)
 
     @menus.button(regional_indicator("I"))
     async def change_ping_role(self, payload):
@@ -363,6 +360,10 @@ class ConfigEditMenu(menus.Menu):
 
         await inputs.safe_delete(msg)
         await self.update_scrim(open_role_id=role.id)
+
+    @menus.button(regional_indicator("K"))
+    async def change_multiregister(self, payload):
+        await self.update_scrim(multiregister=not self.scrim.multiregister)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):

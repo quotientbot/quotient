@@ -5,6 +5,7 @@ from .utils import (
     is_valid_scrim,
     tourney_end_process,
     cannot_take_registration,
+    get_slots,
 )
 from utils import (
     default,
@@ -335,6 +336,9 @@ class ScrimManager(Cog, name="esports"):
         elif message.author.id in await scrim.banned_user_ids():
             return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
 
+        elif message.author.id in get_slots(await scrim.assigned_slots.all()) and not scrim.multiregister:
+            return self.bot.dispatch("scrim_registration_deny", message, "multiregister", scrim)
+
         self.queue.put_nowait(QueueMessage(scrim, message))
 
     # ************************************************************************************************
@@ -629,7 +633,7 @@ class ScrimManager(Cog, name="esports"):
         Toggle on/off things for a scrim.
         """
         scrim = scrim_id
-        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist")
+        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist","multiregister")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
         display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim.id} scrim`"
 
@@ -666,6 +670,10 @@ class ScrimManager(Cog, name="esports"):
         elif option.lower() == "autoslotlist":
             await Scrim.filter(pk=scrim.id).update(autoslotlist=not (scrim.autoslotlist))
             await ctx.success(f"Autopost-slotlist turned {'OFF' if scrim.autoslotlist else 'ON'}!")
+
+        elif option.lower() == "multiregister":
+            await Scrim.filter(pk=scrim.id).update(multiregister=not (scrim.multiregister))
+            await ctx.success(f"Multiple registerations turned {'OFF' if scrim.multiregister else 'ON'}!")
 
     # ************************************************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)

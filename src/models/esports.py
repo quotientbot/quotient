@@ -105,6 +105,7 @@ class Scrim(models.Model):
     autoclean = fields.BooleanField(default=False)
     autoslotlist = fields.BooleanField(default=True)
     ping_role_id = fields.BigIntField(null=True)
+    multiregister = fields.BooleanField(default=False)
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
     open_days = EnumArrayField(Day, default=Day.__iter__)
@@ -185,11 +186,6 @@ class Scrim(models.Model):
     def teams_registered(self):  # This should be awaited
         return self.assigned_slots.order_by("num").all()
 
-    async def user_registered(self):
-        async for members in self.teams_registered.only("members"):
-            for member_id in members:
-                yield member_id
-
     async def reserved_user_ids(self):
         return (i.user_id for i in await self.reserved_slots.all())
 
@@ -204,22 +200,22 @@ class Scrim(models.Model):
         return embed, channel
 
     async def create_slotlist_img(self) -> Union[discord.Embed, discord.File]:
-        '''
+        """
         This is done! Now do whatever you can : )
-        '''
+        """
         slots = await self.teams_registered
-        embed = discord.Embed(title=self.name + " Slotlist Image")    
-        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"        
+        embed = discord.Embed(title=self.name + " Slotlist Image")
+        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"
         ###############################################################################
 
         # NOTE - Run the bot from the src folder. I mean make your path inside src
         # TODO - FIX THIS PATH THING
 
         ###############################################################################
-       
+
         bgx = 300
         bgy = 300
-        bg = Image.new('RGBA', (300, bgy))
+        bg = Image.new("RGBA", (300, bgy))
         font_size = 16
         font = ImageFont.truetype(font_path, font_size)
         draw = ImageDraw.Draw(bg)
@@ -229,15 +225,15 @@ class Scrim(models.Model):
         imgs = []
         count = 1
         for slot in slots:
-            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + 30], fill='#2e2e2e')
-            draw.text([x_rect + 10, y_rect+5], f'Slot {slot.num:02}  |  {slot.team_name}', font=font, fill='white')
+            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + 30], fill="#2e2e2e")
+            draw.text([x_rect + 10, y_rect + 5], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
             y_rect += 40
             if count % 6 == 0:
                 imgs.append(bg)
                 x_rect = 10
                 y_rect = 0
-                bg = Image.new('RGBA', (300, bgy))
-                font = ImageFont.truetype('Ubuntu-Regular.ttf', font_size)
+                bg = Image.new("RGBA", (300, bgy))
+                font = ImageFont.truetype("Ubuntu-Regular.ttf", font_size)
                 draw = ImageDraw.Draw(bg)
             count += 1
 
@@ -247,11 +243,11 @@ class Scrim(models.Model):
 
         for img in imgs:
             imgbyt = io.BytesIO()
-            img.save(imgbyt, 'PNG')
+            img.save(imgbyt, "PNG")
             imgbyt.seek(0)
-            file = discord.File(imgbyt, 'slotlist.png')
+            file = discord.File(imgbyt, "slotlist.png")
 
-            embed.set_image(url='attachment://slotlist.png')
+            embed.set_image(url="attachment://slotlist.png")
             files.append(file)
 
         return files

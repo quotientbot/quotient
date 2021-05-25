@@ -101,6 +101,13 @@ class SMError(Cog):
             )
             e.description += f"They are banned from scrims."
 
+        elif type == "multiregister":
+            await message.reply(
+                embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
+                delete_after=5,
+            )
+            e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
+
         if logschan is not None:
             if logschan.permissions_for(logschan.guild.me).embed_links:
                 return await logschan.send(embed=e)

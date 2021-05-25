@@ -7,6 +7,11 @@ import humanize
 import config
 
 
+def get_slots(slots):
+    for slot in slots:
+        yield slot.user_id
+
+
 async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
     logschan = obj.logschan
     if logschan is not None and logschan.permissions_for(message.guild.me).embed_links:
