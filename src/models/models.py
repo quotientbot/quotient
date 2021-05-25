@@ -242,8 +242,10 @@ class Lockdown(models.Model):
     guild_id = fields.BigIntField(index=True)
     type = fields.CharEnumField(constants.LockType, max_length=20)
     role_id = fields.BigIntField(null=True)
+    channel_id = fields.BigIntField(null=True)
     channel_ids = BigIntArrayField(default=list, index=True)
     expire_time = fields.DatetimeField(null=True)
+    author_id = fields.BigIntField()
 
     @property
     def _guild(self):

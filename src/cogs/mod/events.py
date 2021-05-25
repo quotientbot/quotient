@@ -21,7 +21,7 @@ class ModEvents(Cog):
     async def on_lockdown_timer_complete(self, timer: Timer):
         _type = timer.kwargs["_type"]
 
-        if _type == LockType.channel.value:
+        if _type == LockType.channel.value:  # TODO:check database here too
             channel_id = timer.kwargs["channel_id"]
 
             channel = self.bot.get_channel(channel_id)
@@ -31,3 +31,4 @@ class ModEvents(Cog):
             perms = channel.overwrites_for(channel.guild.default_role)
             perms.send_messages = True
             await channel.set_permissions(channel.guild.default_role, overwrite=perms, reason="Lockdown timer complete!")
+            await Lockdown.filter(channel_id=channel.id).delete()

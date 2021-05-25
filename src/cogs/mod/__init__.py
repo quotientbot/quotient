@@ -404,9 +404,7 @@ class Mod(Cog):
     async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
         """Lock a channel , category or the whole server."""
         channel = channel or ctx.channel
-        check = await Lockdown.filter(
-            guild_id=ctx.guild.id, channel_ids__contains=channel.id, type=LockType.channel
-        ).first()
+        check = await Lockdown.filter(guild_id=ctx.guild.id, channel_id=channel.id, type=LockType.channel).first()
 
         if check != None:
             return await ctx.error(
@@ -415,6 +413,9 @@ class Mod(Cog):
 
         if not channel.permissions_for(ctx.me).manage_channels:
             return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
+
+        elif not channel.permissions_for(ctx.author).manage_channels:
+            return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
 
         perms = channel.overwrites_for(ctx.guild.default_role)
         perms.send_messages = False
@@ -427,13 +428,20 @@ class Mod(Cog):
             guild_id=ctx.guild.id,
             type=LockType.channel,
             expire_time=duration.dt,
-            channel_ids=[channel.id],
+            channel_id=channel.id,
+            author_id=ctx.author.id,
         )
         timer = await self.bot.reminders.create_timer(
             duration.dt, "lockdown", _type=LockType.channel.value, channel_id=channel.id
         )
         await ctx.success(f"Locked down **{channel}** for {human_timedelta(duration.dt,source= timer.created)}")
 
+    @lock.command()
+    async def category(self, ctx, category: discord.CategoryChannel, duration: Optional[FutureTime]):
+        check = await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.category, channel_id=category.id)
+
+        if check is not None:
+            return await ctx.error(f"**{category}** is already locked.")
 
 
 def setup(bot):
