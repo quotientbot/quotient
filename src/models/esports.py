@@ -204,56 +204,57 @@ class Scrim(models.Model):
         return embed, channel
 
     async def create_slotlist_img(self) -> Union[discord.Embed, discord.File]:
-        """
-        This isn't done fully yet. Please dont do any shit
-        """
+        '''
+        This is done! Now do whatever you can : )
+        '''
         slots = await self.teams_registered
-        embed = discord.Embed(title=self.name + " Slotlist Image")
-        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"
+        embed = discord.Embed(title=self.name + " Slotlist Image")    
+        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"        
+        ###############################################################################
 
+        # NOTE - Run the bot from the src folder. I mean make your path inside src
+        # TODO - FIX THIS PATH THING
+
+        ###############################################################################
+       
         bgx = 300
         bgy = 300
-        bg = Image.new("RGBA", (300, bgy))
+        bg = Image.new('RGBA', (300, bgy))
         font_size = 16
         font = ImageFont.truetype(font_path, font_size)
         draw = ImageDraw.Draw(bg)
 
         x_rect = 10
         y_rect = 0
-
-        final_y = 0
-        slot_count = 0
-        offset_y = 30
-        mult6 = False
+        imgs = []
+        count = 1
         for slot in slots:
-            if len(slots) > 6:
-                bgy = y_rect
-                bgx = 300
-                offset_y = 20
-                font = ImageFont.truetype(font_path, 14)
-                mult6 = True
-            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + offset_y], fill="#2e2e2e")
-            if mult6:
-                draw.text([x_rect, y_rect], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
-            else:
-                draw.text([x_rect, y_rect + 5], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
-            if bgy < 300:
-                bgy += y_rect + 20
-            if len(slots) > 6:
-                y_rect += 25
-            else:
-                y_rect += 40
+            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + 30], fill='#2e2e2e')
+            draw.text([x_rect + 10, y_rect+5], f'Slot {slot.num:02}  |  {slot.team_name}', font=font, fill='white')
+            y_rect += 40
+            if count % 6 == 0:
+                imgs.append(bg)
+                x_rect = 10
+                y_rect = 0
+                bg = Image.new('RGBA', (300, bgy))
+                font = ImageFont.truetype('Ubuntu-Regular.ttf', font_size)
+                draw = ImageDraw.Draw(bg)
+            count += 1
 
-            slot_count += 1
+        imgs.append(bg)
 
-        bg = bg.resize((bgx, bgy), Image.ANTIALIAS)
-        imgbyt = io.BytesIO()
-        bg.save(imgbyt, "PNG")
-        imgbyt.seek(0)
-        file = discord.File(imgbyt, "slotlist.png")
+        files = []
 
-        embed.set_image(url="attachment://slotlist.png")
-        return embed, file
+        for img in imgs:
+            imgbyt = io.BytesIO()
+            img.save(imgbyt, 'PNG')
+            imgbyt.seek(0)
+            file = discord.File(imgbyt, 'slotlist.png')
+
+            embed.set_image(url='attachment://slotlist.png')
+            files.append(file)
+
+        return files
 
 
 class BaseSlot(models.Model):
