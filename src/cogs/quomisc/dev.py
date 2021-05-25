@@ -87,3 +87,18 @@ class Dev(Cog):
                     statuses.append((emote.check, module))
 
         await ctx.send("\n".join(f"{status}: `{module}`" for status, module in statuses))
+
+    @commands.command()
+    async def broadcast(self, ctx, *, msg):
+        records = await self.bot.db.fetch("SELECT private_channel FROM guild_data WHERE private_channel IS NOT NULL")
+        success, failed = 0, 0
+        for record in records:
+            channel = self.bot.get_channel(record["private_channel"])
+            if channel != None and channel.permissions_for(channel.guild.me).send_messages:
+                try:
+                    await channel.send(msg)
+                    success += 1
+                except:
+                    failed += 1
+
+        await ctx.send(f"Sent {success}: {failed}")
