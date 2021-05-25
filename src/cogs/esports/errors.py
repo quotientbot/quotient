@@ -350,4 +350,8 @@ class SMError(Cog):
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
         # will delete scrim/tournament if its registration channel.
-        ...
+        await Scrim.filter(registration_channel_id=channel.id).delete()
+        await Tourney.filter(registration_channel_id=channel.id).delete()
+        await TagCheck.filter(channel_id=channel.id).delete()
+
+        # TODO: inform server mods
