@@ -5,7 +5,7 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem")
+__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem", "Lockdown")
 
 
 class Guild(models.Model):
@@ -232,3 +232,28 @@ class Redeem(models.Model):
 
 
 # ************************************************************************************************
+
+
+class Lockdown(models.Model):
+    class Meta:
+        table = "lockdown"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField(index=True)
+    type = fields.CharEnumField(constants.LockType, max_length=20)
+    role_id = fields.BigIntField(null=True)
+    channel_ids = BigIntArrayField(default=list, index=True)
+    expire_time = fields.DatetimeField(null=True)
+
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def roles(self):
+        if self._guild is not None:
+            return self._guild.get_role(self.role_id)
+
+    @property
+    def channels(self):
+        return map(self.bot.get_channel, self.channel_ids)

@@ -35,6 +35,13 @@ class LogType(Enum):
     ping = "ping"  # someone pinged someone (ye sbse jruri h )
 
 
+class LockType(Enum):
+    channel = "channel"
+    guild = "guild"
+    category = "category"
+    maintenance = "maintenance"
+
+
 def random_greeting():
     greetings = [
         "Hello, sunshine!",

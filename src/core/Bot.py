@@ -145,3 +145,7 @@ class Quotient(commands.AutoShardedBot):
     @property
     def server(self):
         return self.get_guild(746337818388987967)
+
+    @property
+    def reminders(self):  # since we use it a lot
+        return self.get_cog("Reminders")

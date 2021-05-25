@@ -1,9 +1,11 @@
+from utils.time import human_timedelta
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
+from models import Lockdown, ArrayAppend
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote
-import typing
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, LockType
+from typing import Optional, Union
 import discord
 import re
 
@@ -41,7 +43,7 @@ class Mod(Cog):
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
     @commands.has_permissions(manage_messages=True)
-    async def clear(self, ctx, Choice: typing.Union[discord.Member, int], Amount: int = None):
+    async def clear(self, ctx, Choice: Union[discord.Member, int], Amount: int = None):
         """
         An all in one purge command.
         Choice can be a Member or a number
@@ -397,6 +399,41 @@ class Mod(Cog):
 
                 else:
                     await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+
+    @commands.group(invoke_without_command=True, aliases=("lockdown",))
+    async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
+        """Lock a channel , category or the whole server."""
+        channel = channel or ctx.channel
+        check = await Lockdown.filter(
+            guild_id=ctx.guild.id, channel_ids__contains=channel.id, type=LockType.channel
+        ).first()
+
+        if check != None:
+            return await ctx.error(
+                f"**{channel}** is already locked.\n\nTime Remaining: {human_timedelta(check.expire_time)}"
+            )
+
+        if not channel.permissions_for(ctx.me).manage_channels:
+            return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
+
+        perms = channel.overwrites_for(ctx.guild.default_role)
+        perms.send_messages = False
+        await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+
+        if duration is None:  # we don't want to store if duration is None.
+            return await ctx.send_m(f"Locked down **{channel.name}**")
+
+        await Lockdown.create(
+            guild_id=ctx.guild.id,
+            type=LockType.channel,
+            expire_time=duration.dt,
+            channel_ids=[channel.id],
+        )
+        timer = await self.bot.reminders.create_timer(
+            duration.dt, "lockdown", _type=LockType.channel.value, channel_id=channel.id
+        )
+        await ctx.success(f"Locked down **{channel}** for {human_timedelta(duration.dt,source= timer.created)}")
+
 
 
 def setup(bot):
