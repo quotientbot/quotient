@@ -712,14 +712,14 @@ class ScrimManager(Cog, name="esports"):
         """
         Get image version of a slotlist.
         """
-        scrim = scrim_id
-        embed, file = await scrim.create_slotlist_img()
-        embed.color = ctx.bot.color
+        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
+        if scrim is None:
+            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
-        await ctx.send(
-            "This command is currently under beta so you may encounter bugs."
-        )  # seperate msg so that user can delete it if they want
-        await ctx.send(embed=embed, file=file)
+        files = await scrim.create_slotlist_img()
+        # await ctx.send(embed=embed, file=file)
+        for file in files:
+            await ctx.send(file=file)
 
     # ************************************************************************************************
     @smanager.command(name="delete")
