@@ -6,6 +6,7 @@ from .utils import (
     tourney_end_process,
     cannot_take_registration,
     get_slots,
+    get_tourney_slots
 )
 from utils import (
     default,
@@ -290,6 +291,9 @@ class ScrimManager(Cog, name="esports"):
 
         elif message.author.id in tourney.banned_users:
             return self.bot.dispatch("tourney_registration_deny", message, "banned", tourney)
+
+        elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
+            return self.bot.dispatch("tourney_registration_deny", message, "multiregister", tourney)
 
         self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
 
@@ -633,7 +637,7 @@ class ScrimManager(Cog, name="esports"):
         Toggle on/off things for a scrim.
         """
         scrim = scrim_id
-        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist","multiregister")
+        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist", "multiregister")
         display = ",".join(map(lambda s: f"`{s}`", valid_opt))
         display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim.id} scrim`"
 

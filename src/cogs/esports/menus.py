@@ -399,6 +399,7 @@ class TourneyEditor(menus.Menu):
             "Mentions": f"`{tourney.required_mentions:,}`",
             "Slots": f"`{tourney.total_slots:,}`",
             "Open Role": open_role,
+            "Multi Register": ("`No!`", "`Yes!`")[tourney.multiregister],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -516,6 +517,11 @@ class TourneyEditor(menus.Menu):
         await inputs.safe_delete(msg)
         await self.update_tourney(open_role_id=role.id)
 
+    @menus.button(regional_indicator("H"))
+    async def change_multiregister(self, payload):
+        await self.update_tourney(multiregister=not self.tourney.multiregister)
+
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
         self.stop()
+        

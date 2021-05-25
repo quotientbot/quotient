@@ -25,6 +25,7 @@ class Tourney(models.Model):
     total_slots = fields.IntField()
     banned_users = BigIntArrayField(default=list)
     host_id = fields.BigIntField()
+    multiregister = fields.BooleanField(default=False)
     started_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
     open_role_id = fields.BigIntField(null=True)

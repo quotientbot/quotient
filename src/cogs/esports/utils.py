@@ -12,6 +12,11 @@ def get_slots(slots):
         yield slot.user_id
 
 
+def get_tourney_slots(slots):
+    for slot in slots:
+        yield slot.leader_id
+
+
 async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
     logschan = obj.logschan
     if logschan is not None and logschan.permissions_for(message.guild.me).embed_links:
