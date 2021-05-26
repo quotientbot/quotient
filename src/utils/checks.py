@@ -6,7 +6,7 @@ from models import User, Guild
 
 
 def has_done_setup():
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         check = await Guild.get_or_none(pk=ctx.guild.id)
         if not check.private_ch:
             raise NotSetup()
@@ -18,8 +18,8 @@ def has_done_setup():
 
 
 def is_premium_guild():
-    async def predictate(ctx):
-        check = await Guild.get_or_none(guild_id=ctx.guild_id)
+    async def predictate(ctx: Context):
+        check = await Guild.get_or_none(guild_id=ctx.guild.id)
         if not check or check.is_premium is False:
             raise NotPremiumGuild()
 
@@ -30,7 +30,7 @@ def is_premium_guild():
 
 
 def is_premium_user():
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         check = await User.get_or_none(user_id=ctx.author.id)
         if not check or check.is_premium is False:
             raise NotPremiumUser()
@@ -46,7 +46,7 @@ def can_use_sm():
     Returns True if the user has manage roles or scrim-mod role in the server.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "scrims-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
         else:
@@ -60,7 +60,7 @@ def can_use_tm():
     Returns True if the user has manage roles or scrim-mod role in the server.
     """
 
-    async def predicate(ctx):
+    async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "tourney-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
         else:
@@ -81,7 +81,7 @@ async def has_any_role_check(ctx: Context, *roles: Union[str, int]) -> bool:
         return False
 
 
-async def check_guild_permissions(ctx, perms, *, check=all):
+async def check_guild_permissions(ctx: Context, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
         return True
@@ -107,7 +107,7 @@ def is_admin():
     return commands.check(pred)
 
 
-async def check_permissions(ctx, perms, *, check=all):
+async def check_permissions(ctx: Context, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
     if is_owner:
         return True
