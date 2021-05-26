@@ -1,3 +1,4 @@
+from discord.ext.commands.core import command
 from utils.time import human_timedelta
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
@@ -519,6 +520,8 @@ class Mod(Cog):
         await Lockdown.filter(channel_id=channel.id, type=LockType.channel).delete()
 
     @unlock.command(name="server", aliases=("guild",))
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_guild_permissions(manage_channels=True)
     async def unlock_guild(self, ctx):
         check = await Lockdown.get_or_none(guild_id=ctx.guild.id, type=LockType.guild).first()
         if not check:
@@ -540,7 +543,119 @@ class Mod(Cog):
         )
         await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.guild).delete()
 
+    @commands.group(invoke_without_command=True)
+    async def maintenance(self, ctx: Context):
+        """Maintenance ON/ OFF for the server."""
+        await ctx.send_help(ctx.command)
 
-def setup(bot):
+    @maintenance.command(name="on")
+    @commands.has_permissions(administrator=True)
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    async def maintenace_on(self, ctx: Context, *, role: discord.Role = None):
+        role = role or ctx.guild.default_role
+        check = await Lockdown.filter(type=LockType.maintenance, guild_id=ctx.guild.id, role_id=role.id).first()
+        if check:
+            return await ctx.error(f"The server is already under maintenance for **{role}**")
+
+        channels = list(filter(lambda x: x.overwrites_for(role).send_messages, ctx.guild.channels))
+        mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
+        # len list would use additional memory so : )
+
+        if not (len(channels)):
+            return await ctx.error(f"**{role}** doesn't have `read_messages` enabled in any channel.")
+
+        elif not mine:
+            return await ctx.error(
+                f"`{sum(1 for i in channels)} channels` have read messages enabled. But unfortunately I don't permission to edit any of them."
+            )
+
+        prompt = await ctx.prompt(
+            f"`{sum(1 for i in channels)} channels` have read messages enabled for **{role}**,\nI have permissions to modify `{mine} channels`.",
+            title="Do you want me to continue?",
+        )
+        if not prompt:
+            return await ctx.success(f"Alright, aborting.")
+
+        await ctx.send(f"Kindly wait.. {emote.loading}", delete_after=3)
+
+        success, failed = [], 0
+        reason = f"Action done by -> {str(ctx.author)} ({ctx.author.id})"
+        for channel in channels:
+            overwrite = channel.overwrites_for(role)
+            overwrite.read_messages = False
+
+            try:
+                await channel.set_permissions(role, overwrite=overwrite, reason=reason)
+                success.append(channel.id)
+            except:
+                failed += 1
+                continue
+
+        await ctx.success(f"Updated settings for `{len(success)} channels`.(`{failed}` failed)")
+        if len(success):
+            await Lockdown.create(
+                guild_id=ctx.guild.id,
+                type=LockType.maintenance,
+                channel_id=ctx.channel.id,
+                author_id=ctx.author.id,
+                role_id=role.id,
+                channel_ids=success,
+            )
+
+        prompt = await ctx.prompt(f"Do you want me to make maintenance channels?")
+
+        if prompt:
+            overwrites = {
+                role: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+                ctx.guild.me: discord.PermissionOverwrite(
+                    read_messages=True, send_messages=True, read_message_history=True
+                ),
+            }
+            await ctx.guild.create_text_channel("maintenance-chat", overwrites=overwrites, reason=reason)
+            await ctx.guild.create_voice_channel("maintenance-vc", overwrites=overwrites, reason=reason)
+            await ctx.success(f"Done")
+
+        else:
+            await ctx.success(f"Ok! Aborting")
+
+    @maintenance.command(name="off")
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @commands.has_permissions(administrator=True)
+    async def maintenance_off(self, ctx: Context, *, role: discord.Role = None):
+        role = role or ctx.guild.default_role
+
+        check = await Lockdown.filter(type=LockType.maintenance, guild_id=ctx.guild.id, role_id=role.id).first()
+        if not check:
+            return await ctx.error(f"The server not under maintenance for **{role}**")
+        
+        success = 0
+        for channel in check.channels:
+            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+
+                perms = channel.overwrites_for(role)
+                perms.read_messages = True
+                await channel.set_permissions(role, overwrite=perms, reason="Lockdown timer complete!")
+                success += 1
+
+        await ctx.success(
+            f"Successfully changed settings for `{success}` channels. (`{sum(1 for i in check.channels)}` were hidden.)"
+        )
+
+        await Lockdown.filter(type=LockType.maintenance, guild_id=ctx.guild.id, role_id=role.id).delete()
+
+        tc = discord.utils.get(ctx.guild.channels, name="maintenance-chat")
+        vc = discord.utils.get(ctx.guild.channels, name="maintenance-vc")
+
+        if tc and vc:
+            prompt = await ctx.prompt(message=f"Do you want me to delete maintenance channels?")
+            if prompt:
+                await tc.delete()
+                await vc.delete()
+                await ctx.success(f"Success")
+            else:
+                await ctx.success(f"OK!")
+
+
+def setup(bot) -> None:
     bot.add_cog(Mod(bot))
     bot.add_cog(ModEvents(bot))
