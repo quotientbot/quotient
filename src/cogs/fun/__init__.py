@@ -14,6 +14,12 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def automeme(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        Get the latest and trendy memes served in your server in a definite timespan.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
+
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -26,6 +32,11 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autofact(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        Want to boost your general knowledge? This command will help you by sending facts automatically.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -38,6 +49,12 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autoquote(self, ctx: Context, *, channel: discord.TextChannel):
+
+        """
+        Need something to boost your life up? This command will send worth reading quotes automatically
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -50,6 +67,11 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autojoke(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        Want to laugh like hell? Get some really funny jokes automatically.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -62,6 +84,11 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autonsfw(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        Ohh so you are an adult now! So here is some automatic nsfw to rest your liver.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -77,6 +104,12 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autoadvice(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        I will take care of everything don't worry honey. I am a consultant too. Get some automatic advises.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
+
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -89,6 +122,11 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autopoem(self, ctx: Context, *, channel: discord.TextChannel):
+        """
+        Get some nice poetry automatically.
+        Must have `manage server` permissions.
+        Bot must have `manage webhooks` permission.
+        """
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
@@ -101,6 +139,9 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autotoggle(self, ctx: Context, eventype: str = None):
+        """
+        Toggle ON/OFF any autoevent.
+        """
         valids = (
             "automeme",
             "autofact",
@@ -134,8 +175,13 @@ class Fun(Cog):
         await ctx.success(f"{eventype.title()} turned {'ON' if not(check.toggle) else 'OFF'}!")
 
     @commands.command()
+    @checks.is_premium_guild()
     @commands.has_permissions(manage_guild=True)
     async def autointerval(self, ctx: Context, eventype: str = None):
+        """
+        Change the interval of automatic commands.
+        Must have `manage server` permissions and the server must be premium.
+        """
         valids = (
             "automeme",
             "autofact",
@@ -151,6 +197,7 @@ class Fun(Cog):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autoconfig(self, ctx: Context):
+        """Get config for autocommands."""
         records = await Autoevent.filter(guild_id=ctx.guild.id)
         if not len(records):
             return await ctx.error(
