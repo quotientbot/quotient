@@ -293,3 +293,17 @@ class Autoevent(models.Model):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
+
+
+# ************************************************************************************************
+
+
+# class AFK(models.Model):
+#     class Meta:
+#         table = "afk"
+
+#     user_id = fields.BigIntField(pk=True)
+#     message = fields.CharField(max_length=200)
+#     is_afk = fields.BooleanField(default=True)
+#     afk_time = fields.DatetimeField(auto_now=True)
+#     ignored = BigIntArrayField(default=list)

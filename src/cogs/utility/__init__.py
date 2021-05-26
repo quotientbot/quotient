@@ -1,4 +1,3 @@
-from discord import permissions
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Snipes
