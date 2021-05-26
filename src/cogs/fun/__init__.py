@@ -2,9 +2,9 @@ from models.models import Autoevent
 from .helper import insert_or_update_config
 from core import Cog, Context, Quotient
 from discord.ext import commands
-from utils import EventType, emote, checks
+from utils import EventType, emote, checks, simple_convert
 from .funevents import *
-import discord
+import discord, asyncio
 
 
 class Fun(Cog):
@@ -194,6 +194,42 @@ class Fun(Cog):
 
         displayable_options = ",".join(map(lambda s: f"`{s}`", valids))
 
+        if eventype is None:
+            return await ctx.send(
+                f"For what do you want to set interval?\nValid options are: {displayable_options}.\n\nExample: `{ctx.prefix}autointerval automeme`"
+            )
+
+        eventype = eventype.lower()
+
+        if eventype not in valids:
+            return await ctx.send(
+                f"What you chose isn't a valid option mate!\nChoose from: {displayable_options}.\n\nExample: `{ctx.prefix}autointerval autonsfw`"
+            )
+
+        real = eventype[4:]
+        check = await Autoevent.filter(guild_id=ctx.guild.id, type=EventType(real)).first()
+        if not check:
+            return await ctx.error(
+                f"You haven't setup {eventype.lower()} yet.\n\nDo it like `{ctx.prefix}{eventype.lower()} #{ctx.channel.name}`"
+            )
+
+        await ctx.send(
+            f"What do you want the interval between {eventype.title()} to be?\n\nExample: Enter `15m` for 15 minutes."
+        )
+
+        def check(msg: discord.Message):
+            return ctx.author == msg.author and ctx.channel == msg.channel
+
+        try:
+            msg = await self.bot.wait_for("message", timeout=60, check=check)
+            interval = simple_convert(msg.content)
+        except asyncio.TimeoutError:
+            return await ctx.error(f"Time's up! Be little fast")
+
+        interval = round(interval / 60)
+        await Autoevent.filter(guild_id=ctx.guild.id, type=EventType(real)).update(interval=interval)
+        await ctx.success(f"Updated {eventype.title()} interval (`{interval} minutes`)")
+
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def autoconfig(self, ctx: Context):
@@ -207,7 +243,7 @@ class Fun(Cog):
         text = "**`Toggle`  |  `Type`  |  `Channel`  |  `Interval`**\n\n"
         for idx, record in enumerate(records, start=1):
             emoji = emote.settings_yes if record.toggle else emote.settings_no
-            text += f"`{idx:02d}` {emoji} **{record.type.value.title()}** {getattr(record.channel , 'mention', '`Channel Deleted!`')} `{record.interval} mins`"
+            text += f"`{idx:02d}` {emoji} **{record.type.value.title()}** {getattr(record.channel , 'mention', '`Channel Deleted!`')} `{record.interval} mins`\n"
 
         embed = self.bot.embed(ctx, description=text, title="Autoevents Config")
         await ctx.send(embed=embed)

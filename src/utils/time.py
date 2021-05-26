@@ -1,6 +1,8 @@
 import re
 import parsedatetime as pdt
+from discord.ext import commands
 import datetime as dtm
+from .regex import TIME_REGEX
 from utils import checks, IST
 from dateutil.relativedelta import relativedelta
 
@@ -176,3 +178,21 @@ def human_timedelta(dt, *, source=None, accuracy=3, brief=False, suffix=True):
             return human_join(output, final="and") + suffix
         else:
             return " ".join(output) + suffix
+
+
+time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
+
+
+def simple_convert(argument):
+    args = argument.lower()
+    matches = re.findall(TIME_REGEX, args)
+    time = 0
+    for key, value in matches:
+        try:
+            time += time_dict[value] * float(key)
+        except KeyError:
+            raise commands.BadArgument(f"{value} is an invalid time key! h|m|s|d are valid arguments")
+        except ValueError:
+            raise commands.BadArgument(f"{key} is not a number!")
+
+    return round(time)
