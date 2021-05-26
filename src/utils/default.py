@@ -11,6 +11,17 @@ def get_chunks(iterable, size):
     return iter(lambda: tuple(islice(it, size)), ())
 
 
+def split_list(data: list, per_list: int):
+    data = list(data)
+
+    new = []
+
+    for i in range(0, len(data), per_list):
+        new.append(data[i : i + per_list])
+
+    return new
+
+
 def find_team(message):
     """Finds team name from a message"""
     content = message.content.lower()

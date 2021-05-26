@@ -35,6 +35,7 @@ class Quotient(commands.AutoShardedBot):
             case_insensitive=True,
             chunk_guilds_at_startup=False,
             allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
+            activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
 
@@ -74,7 +75,7 @@ class Quotient(commands.AutoShardedBot):
         if self.user.id == 765159200204128266:
             prefix = "!"
         else:
-            prefix = config.PREFIX
+            prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
@@ -145,3 +146,7 @@ class Quotient(commands.AutoShardedBot):
     @property
     def server(self):
         return self.get_guild(746337818388987967)
+
+    @property
+    def reminders(self):  # since we use it a lot
+        return self.get_cog("Reminders")

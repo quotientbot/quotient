@@ -20,7 +20,7 @@ class HelpCommand(commands.HelpCommand):
         ctx = self.context
         cats = []
 
-        hidden = ("HelpCog",)
+        hidden = ("HelpCog", "Dev")
         for cog, cmds in mapping.items():
             if cog and not cog.qualified_name in hidden:
                 if await self.filter_commands(cmds, sort=True):

@@ -1,8 +1,8 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
-from models import Guild
-from utils import emote, get_ipm, strtime, human_timedelta
+from models import Guild, Votes
+from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from collections import Counter
 from typing import Optional
 from glob import glob
@@ -210,17 +210,56 @@ class Quomisc(Cog, name="quomisc"):
 
         await message.edit(content=None, embed=emb)
 
-    # @commands.command()
-    # async def prefix(self, ctx, *, new_prefix: Optional[str]):
-    #     pass
+    @commands.command()
+    async def voteremind(self, ctx: Context):
+        check = await Votes.get_or_none(user_id=ctx.author.id)
+        if check:
+            await Votes.filter(user_id=ctx.author.id).update(reminder=not (check.reminder))
+            await ctx.success(f"Turned vote-reminder {'ON' if not(check.reminder) else 'OFF'}!")
+        else:
+            await Votes.create(user_id=ctx.author.id, reminder=True)
+            await ctx.success(f"Turned vote-reminder ON!")
 
-    # @commands.command()
-    # async def color(self, ctx, *, new_color: Optional[ColorConverter]):
-    #     pass
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    async def prefix(self, ctx, *, new_prefix: str):
 
-    # @commands.command()
-    # async def footer(self, ctx, *, new_footer: Optional[str]):
-    #     pass
+        if len(new_prefix) > 5:
+            return await ctx.error(f"Prefix cannot contain more than 5 characters.")
+
+        self.bot.guild_data[ctx.guild.id]["prefix"] = new_prefix
+        await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
+        await ctx.success(f"Updated server prefix to: `{new_prefix}`")
+
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    @checks.is_premium_guild()
+    async def color(self, ctx, *, new_color: ColorConverter):
+        color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
+
+        self.bot.guild_data[ctx.guild.id]["color"] = color
+        await Guild.filter(guild_id=ctx.guild.id).update(embed_color=color)
+        await ctx.success(f"Updated server color.")
+
+    @commands.command()
+    @checks.is_premium_guild()
+    @commands.has_permissions(manage_guild=True)
+    async def footer(self, ctx, *, new_footer: str):
+        if len(new_footer) > 50:
+            return await ctx.success(f"Footer cannot contain more than 50 characters.")
+
+        self.bot.guild_data[ctx.guild.id]["footer"] = new_footer
+        await Guild.filter(guild_id=ctx.guild.id).update(embed_footer=new_footer)
+        await ctx.send(f"Updated server footer.")
+
+    @commands.command(aliases=["modules", "exts"])
+    async def extensions(self, ctx):
+        """List of modules that work at a current time."""
+        exts = split_list(self.bot.cogs, 3)
+        length = max([len(element) for row in exts for element in row])
+        rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
+        embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
+        await ctx.send(embed=embed)
 
 
 def setup(bot) -> None:

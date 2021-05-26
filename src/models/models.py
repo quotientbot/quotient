@@ -5,7 +5,20 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem")
+__all__ = (
+    "Guild",
+    "User",
+    "Logging",
+    "Tag",
+    "Timer",
+    "Snipes",
+    "Autorole",
+    "Votes",
+    "Premium",
+    "Redeem",
+    "Lockdown",
+    "Autoevent",
+)
 
 
 class Guild(models.Model):
@@ -187,7 +200,7 @@ class Votes(models.Model):
         table = "votes"
 
     user_id = fields.BigIntField(pk=True)
-    is_voter = fields.BooleanField(delete=False, index=True)
+    is_voter = fields.BooleanField(default=False, index=True)
     expire_time = fields.DatetimeField(null=True)
     reminder = fields.BooleanField(default=False)
     notified = fields.BooleanField(default=False, index=True)
@@ -232,3 +245,51 @@ class Redeem(models.Model):
 
 
 # ************************************************************************************************
+
+
+class Lockdown(models.Model):
+    class Meta:
+        table = "lockdown"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField(index=True)
+    type = fields.CharEnumField(constants.LockType, max_length=20)
+    role_id = fields.BigIntField(null=True)
+    channel_id = fields.BigIntField(null=True)
+    channel_ids = BigIntArrayField(default=list, index=True)
+    expire_time = fields.DatetimeField(null=True)
+    author_id = fields.BigIntField()
+
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def roles(self):
+        if self._guild is not None:
+            return self._guild.get_role(self.role_id)
+
+    @property
+    def channels(self):
+        return map(self.bot.get_channel, self.channel_ids)
+
+
+# ************************************************************************************************
+
+
+class Autoevent(models.Model):
+    class Meta:
+        table = "autoevents"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    type = fields.CharEnumField(constants.EventType, max_length=30)
+    channel_id = fields.BigIntField()
+    webhook = fields.CharField(max_length=200, index=True)
+    toggle = fields.BooleanField(default=True)
+    interval = fields.IntField(default=30)
+    send_time = fields.DatetimeField(index=True)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)

@@ -1,5 +1,8 @@
 # for tortoise-orm
 
+from config import KSOFT_TOKEN
+
+
 TORTOISE = {}
 
 # for asyncpg connection
@@ -16,7 +19,6 @@ FOOTER = "quo is lub!"  # default footer
 
 
 DEVS = ()  # mrko b lagne laga hai tuple better hai
-
 
 # LOGS
 SHARD_LOG = ""

@@ -1,9 +1,11 @@
+from utils.time import human_timedelta
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
+from models import Lockdown, ArrayAppend
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote
-import typing
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, LockType
+from typing import Optional, Union
 import discord
 import re
 
@@ -41,7 +43,7 @@ class Mod(Cog):
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
     @commands.has_permissions(manage_messages=True)
-    async def clear(self, ctx, Choice: typing.Union[discord.Member, int], Amount: int = None):
+    async def clear(self, ctx, Choice: Union[discord.Member, int], Amount: int = None):
         """
         An all in one purge command.
         Choice can be a Member or a number
@@ -222,8 +224,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be added to all human users in the server.",
             )
             if prompt:
-                members = filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} humans..."))
+                members = list(filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -249,8 +251,8 @@ class Mod(Cog):
                 title="Are you sure want to do this?", message=f"{role.mention} will be added to all bots in the server."
             )
             if prompt:
-                members = filter(lambda x: x.bot and role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} bots..."))
+                members = list(filter(lambda x: x.bot and role not in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -276,8 +278,8 @@ class Mod(Cog):
                 title="Are you sure want to do this?", message=f"{role.mention} will be added to everyone in the server."
             )
             if prompt:
-                members = filter(lambda x: role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} members..."))
+                members = list(filter(lambda x: role not in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -325,8 +327,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from all human users in the server.",
             )
             if prompt:
-                members = filter(lambda x: not x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} humans..."))
+                members = list(filter(lambda x: not x.bot and role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -353,8 +355,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from all bot users in the server.",
             )
             if prompt:
-                members = filter(lambda x: x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} bots..."))
+                members = list(filter(lambda x: x.bot and role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -381,8 +383,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from everyone in the server.",
             )
             if prompt:
-                members = filter(lambda x: role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} members..."))
+                members = list(filter(lambda x: role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -397,6 +399,146 @@ class Mod(Cog):
 
                 else:
                     await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+
+    @commands.group(invoke_without_command=True, aliases=("lockdown",))
+    async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
+        """Lock a channel , category or the whole server."""
+        channel = channel or ctx.channel
+        check = await Lockdown.filter(guild_id=ctx.guild.id, channel_id=channel.id, type=LockType.channel).first()
+
+        if check != None:
+            return await ctx.error(
+                f"**{channel}** is already locked.\n\nTime Remaining: {human_timedelta(check.expire_time)}"
+            )
+
+        if not channel.permissions_for(ctx.me).manage_channels:
+            return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
+
+        elif not channel.permissions_for(ctx.author).manage_channels:
+            return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
+
+        perms = channel.overwrites_for(ctx.guild.default_role)
+        perms.send_messages = False
+        await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+
+        if duration is None:  # we don't want to store if duration is None.
+            return await ctx.success(f"Locked down **{channel.name}**")
+
+        await Lockdown.create(
+            guild_id=ctx.guild.id,
+            type=LockType.channel,
+            expire_time=duration.dt,
+            channel_id=channel.id,
+            author_id=ctx.author.id,
+        )
+        timer = await self.bot.reminders.create_timer(
+            duration.dt, "lockdown", _type=LockType.channel.value, channel_id=channel.id
+        )
+        await ctx.success(f"Locked down **{channel}** for {human_timedelta(duration.dt,source= timer.created)}")
+
+    @lock.command(name="server", aliases=("guild",))
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    @commands.has_permissions(manage_guild=True)
+    async def lock_server(self, ctx, duration: Optional[FutureTime]):
+        check = await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.guild).first()
+        if check is not None:
+            text = f"Server is already locked."
+            if check.expire_time:
+                text += f"\n\nTime Remaining: {human_timedelta(check.expire_time)}"
+            return await ctx.error(text)
+
+        channels = list(filter(lambda x: x.overwrites_for(ctx.guild.default_role).send_messages, ctx.guild.channels))
+        mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
+        # len list would use additional memory so : )
+
+        if not (len(channels)):
+            return await ctx.error(f"@everyone doesn't have `send_messages` enabled in any channel.")
+
+        elif not mine:
+            return await ctx.error(
+                f"`{sum(1 for i in channels)} channels` have send messages enabled. But unfortunately I don't permission to edit any of them."
+            )
+
+        prompt = await ctx.prompt(
+            f"`{sum(1 for i in channels)} channels` have send messages enabled for @everyone,\nI have permissions to modify `{mine} channels`.",
+            title="Do you want me to continue?",
+        )
+        if not prompt:
+            return await ctx.success(f"Alright, aborting.")
+
+        await ctx.send(f"Kindly wait.. {emote.loading}", delete_after=3)
+
+        success, failed = [], 0
+        reason = f"Action done by -> {str(ctx.author)} ({ctx.author.id})"
+        for channel in channels:
+            overwrite = channel.overwrites_for(ctx.guild.default_role)
+            overwrite.send_messages = False
+
+            try:
+                await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite, reason=reason)
+                success.append(channel.id)
+            except:
+                failed += 1
+                continue
+
+        await Lockdown.create(
+            guild_id=ctx.guild.id,
+            type=LockType.guild,
+            channel_id=ctx.channel.id,
+            author_id=ctx.author.id,
+            channel_ids=success,
+            expire_time=duration.dt,
+        )
+
+        if duration is None:
+            return await ctx.success(f"Locked down `{len(success)} channels` (Failed: `{failed}`)")
+
+        timer = await self.bot.reminders.create_timer(
+            duration.dt, "lockdown", _type=LockType.guild.value, guild_id=ctx.guild.id
+        )
+        await ctx.success(
+            f"Locked down `{len(success)} channels` (Failed: `{failed}`) for {human_timedelta(duration.dt, source=timer.created)}"
+        )
+
+    @commands.group(aliases=("unlockdown",), invoke_without_command=True)
+    async def unlock(self, ctx, *, channel: Optional[discord.TextChannel]):
+        channel = channel or ctx.channel
+
+        if not channel.permissions_for(ctx.me).manage_channels:
+            return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
+
+        elif not channel.permissions_for(ctx.author).manage_channels:
+            return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
+
+        perms = channel.overwrites_for(ctx.guild.default_role)
+        perms.send_messages = True
+        await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+
+        await ctx.success(f"Unlocked **{channel}**")
+
+        await Lockdown.filter(channel_id=channel.id, type=LockType.channel).delete()
+
+    @unlock.command(name="server", aliases=("guild",))
+    async def unlock_guild(self, ctx):
+        check = await Lockdown.get_or_none(guild_id=ctx.guild.id, type=LockType.guild).first()
+        if not check:
+            return await ctx.error(f"The server is not locked.")
+
+        success = 0
+        for channel in check.channels:
+            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+
+                perms = channel.overwrites_for(channel.guild.default_role)
+                perms.send_messages = True
+                await channel.set_permissions(
+                    channel.guild.default_role, overwrite=perms, reason="Lockdown timer complete!"
+                )
+                success += 1
+
+        await ctx.success(
+            f"Successfully unlocked `{success}` channels. (`{sum(1 for i in check.channels)}` were locked.)"
+        )
+        await Lockdown.filter(guild_id=ctx.guild.id, type=LockType.guild).delete()
 
 
 def setup(bot):
