@@ -2,7 +2,7 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
 from models import Guild, Votes
-from utils import emote, get_ipm, strtime, human_timedelta
+from utils import emote, get_ipm, strtime, human_timedelta, split_list
 from collections import Counter
 from typing import Optional
 from glob import glob
@@ -231,6 +231,15 @@ class Quomisc(Cog, name="quomisc"):
     # @commands.command()
     # async def footer(self, ctx, *, new_footer: Optional[str]):
     #     pass
+
+    @commands.command(aliases=["modules", "exts"])
+    async def extensions(self, ctx):
+        """List of modules that work at a current time."""
+        exts = split_list(self.bot.cogs, 3)
+        length = max([len(element) for row in exts for element in row])
+        rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
+        embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
+        await ctx.send(embed=embed)
 
 
 def setup(bot) -> None:
