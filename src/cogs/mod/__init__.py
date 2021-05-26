@@ -552,6 +552,11 @@ class Mod(Cog):
     @commands.has_permissions(administrator=True)
     @commands.bot_has_guild_permissions(manage_channels=True)
     async def maintenace_on(self, ctx: Context, *, role: discord.Role = None):
+        """
+        Turn ON maintenance mode.
+        You can turn on maintenance for a specific role too , the default role is everyone.
+        This will hide all the channels where `role` has `read_messages` permission enabled.
+        """
         role = role or ctx.guild.default_role
         check = await Lockdown.filter(type=LockType.maintenance, guild_id=ctx.guild.id, role_id=role.id).first()
         if check:
@@ -622,12 +627,16 @@ class Mod(Cog):
     @commands.bot_has_guild_permissions(manage_channels=True)
     @commands.has_permissions(administrator=True)
     async def maintenance_off(self, ctx: Context, *, role: discord.Role = None):
+        """
+        Turn OFF maintenance mode.
+        If you turned ON maintenance mode for a specific role , you need to mention it here too.
+        """
         role = role or ctx.guild.default_role
 
         check = await Lockdown.filter(type=LockType.maintenance, guild_id=ctx.guild.id, role_id=role.id).first()
         if not check:
             return await ctx.error(f"The server not under maintenance for **{role}**")
-        
+
         success = 0
         for channel in check.channels:
             if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
