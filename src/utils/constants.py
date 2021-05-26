@@ -42,6 +42,16 @@ class LockType(Enum):
     maintenance = "maintenance"
 
 
+class EventType(Enum):
+    meme = "meme"
+    fact = "fact"
+    quote = "quote"
+    joke = "joke"
+    nsfw = "nsfw"
+    advice = "advice"
+    poem = "poem"
+
+
 def random_greeting():
     greetings = [
         "Hello, sunshine!",
