@@ -2,7 +2,7 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
 from models import Guild, Votes
-from utils import emote, get_ipm, strtime, human_timedelta, split_list
+from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from collections import Counter
 from typing import Optional
 from glob import glob
@@ -231,13 +231,26 @@ class Quomisc(Cog, name="quomisc"):
         await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
         await ctx.success(f"Updated server prefix to: `{new_prefix}`")
 
-    # @commands.command()
-    # async def color(self, ctx, *, new_color: Optional[ColorConverter]):
-    #     pass
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    @checks.is_premium_guild()
+    async def color(self, ctx, *, new_color: ColorConverter):
+        color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
 
-    # @commands.command()
-    # async def footer(self, ctx, *, new_footer: Optional[str]):
-    #     pass
+        self.bot.guild_data[ctx.guild.id]["color"] = color
+        await Guild.filter(guild_id=ctx.guild.id).update(embed_color=color)
+        await ctx.success(f"Updated server color.")
+
+    @commands.command()
+    @checks.is_premium_guild()
+    @commands.has_permissions(manage_guild=True)
+    async def footer(self, ctx, *, new_footer: str):
+        if len(new_footer) > 50:
+            return await ctx.success(f"Footer cannot contain more than 50 characters.")
+
+        self.bot.guild_data[ctx.guild.id]["footer"] = new_footer
+        await Guild.filter(guild_id=ctx.guild.id).update(embed_footer=new_footer)
+        await ctx.send(f"Updated server footer.")
 
     @commands.command(aliases=["modules", "exts"])
     async def extensions(self, ctx):
