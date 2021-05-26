@@ -289,3 +289,7 @@ class Autoevent(models.Model):
     toggle = fields.BooleanField(default=True)
     interval = fields.IntField(default=30)
     send_time = fields.DatetimeField(index=True)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)

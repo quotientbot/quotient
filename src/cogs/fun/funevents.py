@@ -32,7 +32,7 @@ class Funevents(Cog):
         for key, group in itertools.groupby(records, key=lambda rec: rec.type):
             self.bot.loop.create_task(self.handle_event(key, list(group)))
 
-        to_update = [record.id for record in records]
+        to_update = [record.id for record in records]  # apparently we can't use a generator here :c
         # now , can tortoise-orm do this?
         await self.bot.db.execute(
             "UPDATE autoevents set send_time = autoevents.send_time + autoevents.interval * interval '1 minute' where autoevents.id = any($1::bigint[])",
