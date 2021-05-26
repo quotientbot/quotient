@@ -4,7 +4,7 @@ from models import Autoevent
 from discord.ext import tasks
 import itertools
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 __all__ = ("Funevents",)
