@@ -225,7 +225,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} humans..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -252,7 +252,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: x.bot and role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} bots..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -279,7 +279,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Adding role to {len(members)} members..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -328,7 +328,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: not x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} humans..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -356,7 +356,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} bots..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -384,7 +384,7 @@ class Mod(Cog):
             )
             if prompt:
                 members = filter(lambda x: role in x.roles, ctx.guild.members)
-                await ctx.send(embed=ctx.embed.default(ctx, description=f"Removing role from {len(members)} members..."))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
