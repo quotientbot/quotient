@@ -1,7 +1,7 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Snipes
-from models import Autorole, ArrayAppend, ArrayRemove
+from models import Autorole, ArrayAppend, ArrayRemove, Tag
 from utils import checks, human_timedelta
 from typing import Optional
 import discord
@@ -131,6 +131,58 @@ class Utility(Cog, name="utility"):
     #     embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
     #     await ctx.send(embed=embed)
 
+    ####################
+    
+    @commands.group(invoke_without_command=True)
+    async def tag(self, ctx: Context, *, TagName = None):
+        # TODO: Add support for attachments with text.
+        # TODO: Make tag usages work actually, am lazy.
+        
+        if TagName is None:
+            return await ctx.send_help(ctx.command)
+        
+        record = await Tag.get_or_none(guild_id=ctx.guild.id)
+        
+        if record is None:
+            return await ctx.error(f"No tag **{TagName}** found.\nCreate one with the `{ctx.prefix}tag create` command.")
+        
+        nsfw = record["is_nsfw"]
+        content = record["content"]
+        embed = record["is_embed"]
+        
+        if not ctx.channel.is_nsfw() and nsfw is True:
+            return await ctx.error("This tag can only be used in NSFW channels.", delete_after=5)
+        
+        if embed is True:
+            embed_msg = discord.Embed(**content)
+            return await ctx.send(embed = embed_msg, reference = ctx.replied_reference)
+        
+    @tag.command(name="make")
+    async def make_tag(self, ctx):
+        # Will get back to dis later in lyf.
+        ...
+        
+    @tag.command(name="claim")
+    async def claim_tag(self, ctx, *, tag = None):
+        if tag is None:
+            return await ctx.send_help(ctx.command)
+        
+    @tag.command(name="create")
+    async def create_tag_command(self, ctx, *, args):
+        
+        args = args.partition(", ")
+        tag_name = args[2].lower().strip()
+        
+        first_word, _, _ = tag_name.partition(' ')
+        root = ctx.bot.get_command('tag')
+        
+        if first_word in root.all_commands:
+            return await ctx.error("abey saale bot ko chutiya banyega?")
+        
+        await ctx.success(f"name = {args[0]} content = {args[2]}")
+        
+        
+    
 
 def setup(bot):
     bot.add_cog(Utility(bot))
