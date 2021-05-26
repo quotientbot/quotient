@@ -1,9 +1,11 @@
+from discord import Webhook, AsyncWebhookAdapter
 from utils import EventType, IST
 from core import Cog, Quotient
 from models import Autoevent
 from discord.ext import tasks
 import itertools
-
+import discord
+import json
 from datetime import datetime
 
 
@@ -18,9 +20,86 @@ class Funevents(Cog):
     def cog_unload(self):
         self.autoevent_dispatcher.cancel()
 
+    async def request_json(self, uri, **kwargs):
+        resp = await self.bot.session.get(uri, **kwargs)
+        try:
+            return await resp.json()
+        except json.JSONDecodeError as e:
+            print(f"Something wrong happened: {e}")
+
     async def handle_event(self, _type, records):
         if _type == EventType.meme:
-            print("automeme bruh")
+            URL = "https://api.ksoft.si/images/random-meme"
+            data = await self.request_json(URL, headers={"Authorization": self.bot.config.KSOFT_TOKEN})
+            embed = discord.Embed(color=self.bot.color, url=data["source"], title=data["title"])
+            embed.set_image(url=data["image_url"])
+            embed.set_footer(text="👍 {} | 💬 {}".format(data["upvotes"], data["comments"]))
+
+        elif _type == EventType.fact:
+            URL = "https://happy-meme-a.glitch.me/fact"
+            data = await self.request_json(URL)
+            embed = discord.Embed(color=self.bot.color, title=f"{data['fact']}")
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+
+        elif _type == EventType.quote:
+            URL = "https://api.quotable.io/random"
+            data = await self.request_json(URL)
+            embed = discord.Embed(color=self.bot.color, title=f"{data['content']}")
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+            embed.set_author(name=f"Author: {data['author']}")
+
+        elif _type == EventType.joke:
+            URL = "https://official-joke-api.appspot.com/random_joke"
+            data = await self.request_json(URL)
+            embed = discord.Embed(color=self.bot.color)
+            embed.description = f"**`Setup:`** {data['setup']}\n**`Punchline:`** ||{data['punchline']}||"
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+
+        elif _type == EventType.nsfw:
+            URL = "https://api.ksoft.si/images/random-nsfw"
+            data = await self.request_json(URL, headers={"Authorization": self.bot.config.KSOFT_TOKEN})
+
+            embed = discord.Embed(color=self.bot.color, url=data["source"], title=data["title"])
+            embed.set_image(url=data["image_url"])
+            embed.set_footer(text="👍 {} | 💬 {}".format(data["upvotes"], data["comments"]))
+
+        elif _type == EventType.advice:
+            res = await self.bot.session.get("https://api.adviceslip.com/advice", headers={"Accept": "application/json"})
+            data = await res.json(content_type="text/html")
+
+            embed = discord.Embed(color=self.bot.color, title=f"{data['slip']['advice']}")
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+
+        elif _type == EventType.poem:
+            URL = "https://www.poemist.com/api/v1/randompoems"
+            data = await self.request_json(URL)
+
+            if not len(data[0]["content"]) > 2000:
+                poem = data[0]["content"]
+            else:
+                post = await self.bot.binclient.post(data[0]["content"])
+                poem = post.url
+
+            embed = discord.Embed(color=self.bot.color, title=f"Title: {data[0]['title']}", description=poem)
+            embed.set_author(name=f"Author: {data[0]['poet']['name']}", url=data[0]["poet"]["url"])
+
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+
+        else:
+            return print("Unhandled Type...", _type)
+
+        for record in records:
+            try:
+                webhook = Webhook.from_url(record.webhook, adapter=AsyncWebhookAdapter(self.bot.session))
+                self.bot.loop.create_task(
+                    webhook.send(
+                        embed=embed,
+                        username=f"Quotient | Auto{_type.value}",
+                        avatar_url=self.bot.user.avatar_url,
+                    )
+                )
+            except:
+                continue
 
     @tasks.loop(seconds=60)
     async def autoevent_dispatcher(self):
