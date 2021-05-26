@@ -14,7 +14,7 @@ class MainEvents(Cog, name="Main Events"):
         await self.bot.wait_until_ready()
         await self.bot.get_channel(844178791735885824).connect()
 
-    # incomplete, I know
+    # incomplete?, I know
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         await Guild.create(guild_id=guild.id)
@@ -27,7 +27,10 @@ class MainEvents(Cog, name="Main Events"):
         await Scrim.filter(guild_id=guild.id).delete()
         await Tourney.filter(guild_id=guild.id).delete()
         await Autorole.filter(guild_id=guild.id).delete()
-        self.bot.guild_data.pop(guild.id)
+        try:
+            self.bot.guild_data.pop(guild.id)
+        except KeyError:
+            pass
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):

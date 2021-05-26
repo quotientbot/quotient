@@ -4,6 +4,7 @@ from PIL import ImageColor
 import discord, re
 import contextlib
 import models
+from .exceptions import InvalidColor
 
 __all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "ScrimID", "TourneyID")
 
@@ -30,7 +31,7 @@ class ColorConverter(commands.Converter):
         if result:
             return result
 
-        raise commands.BadArgument(f"Could not find any color that matches this: `{arg}`.")
+        raise InvalidColor(arg)
 
 
 class BannedMember(commands.Converter):

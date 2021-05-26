@@ -5,6 +5,10 @@ class NotSetup(commands.CheckFailure):
     pass
 
 
+class InvalidColor(commands.CommandError):
+    pass
+
+
 class NotPremiumGuild(commands.CheckFailure):
     pass
 

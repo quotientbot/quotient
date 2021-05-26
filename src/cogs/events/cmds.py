@@ -11,7 +11,7 @@ class CmdEvents(Cog):
         if ctx.author.id in ctx.config.DEVS:
             return True
 
-        if ctx.bot.lockdown == True:
+        if self.bot.lockdown == True:
             return False
 
         if not ctx.guild:

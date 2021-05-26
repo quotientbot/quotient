@@ -96,10 +96,10 @@ class Quotient(commands.AutoShardedBot):
 
     async def on_ready(self):  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
-        print(Fore.BLUE + f"Logged in as {self.user.name}({self.user.id})")
-        print(Fore.BLUE + f"Currently in {len(self.guilds)} Guilds")
-        print(Fore.BLUE + f"Connected to {len(self.users)} Users")
-        print(Fore.CYAN + f"Spawned {len(self.shards)} Shards")
+        print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
+        print(Fore.BLUE + f"[Quotient] Currently in {len(self.guilds)} Guilds")
+        print(Fore.BLUE + f"[Quotient] Connected to {len(self.users)} Users")
+        print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
 
     def embed(self, ctx: Context, **kwargs):
         """This is how we deliver features like custom footer and custom color :)"""

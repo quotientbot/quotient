@@ -1,10 +1,12 @@
+from discord import permissions
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Snipes
 from models import Autorole, ArrayAppend, ArrayRemove
-from utils import checks, human_timedelta
+from utils import checks, human_timedelta, ColorConverter, emote
 from typing import Optional
 import discord
+import re
 
 
 class Utility(Cog, name="utility"):
@@ -13,7 +15,7 @@ class Utility(Cog, name="utility"):
 
     @commands.group(invoke_without_command=True)
     @checks.is_mod()
-    async def autorole(self, ctx, off: str = None):
+    async def autorole(self, ctx: Context, off: str = None):
         """
         Manage Quotient's autoroles.
         """
@@ -106,6 +108,49 @@ class Utility(Cog, name="utility"):
         embed.add_field(name="Bots", value=bots, inline=False)
         await ctx.send(embed=embed)
 
+    @commands.command()
+    @commands.cooldown(1, 5, type=commands.BucketType.user)
+    async def firstmsg(self, ctx, *, channel: discord.TextChannel = None):
+        """Get the link to first message of current or any other channel."""
+        channel = channel or ctx.channel
+        messages = await channel.history(limit=1, oldest_first=True).flatten()
+        return await ctx.send(f"Here's the link to first message of {channel.mention}:\n{messages[0].jump_url}")
+
+    @commands.command(name="embed")
+    @commands.has_permissions(manage_messages=True)
+    async def embed_send(self, ctx: Context, channel: discord.TextChannel, color: ColorConverter, *, text: str):
+        """
+        Generated and sends embed to specified channel. Use qqe <message> for quick embeds
+        Tip: You can send hyperlinks too. Example: `[anytext](any link)`
+        """
+        if not channel.permissions_for(ctx.me).embed_links:
+            return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
+
+        embed = discord.Embed(color=color, description=text)
+        await ctx.send(embed=embed)
+        prompt = await ctx.prompt(
+            "Should I deliver it?",
+        )
+
+        if prompt:
+            await channel.send(embed=embed)
+            await ctx.success(f"Successfully delivered.")
+
+        else:
+            await ctx.success("Ok Aborting")
+
+    @commands.command(name="quickembed", aliases=["qe"])
+    @commands.has_permissions(manage_messages=True, embed_links=True)
+    @commands.bot_has_permissions(manage_messages=True, embed_links=True)
+    async def quick_embed_command(self, ctx: Context, *, text: str):
+        """
+        Generates quick embeds.
+        Tip: You can send hyperlinks too. Example: `[anytext](any link)`
+        """
+        embed = self.bot.embed(ctx, description=text)
+        await ctx.send(embed=embed)
+        await ctx.message.delete()
+
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
     # async def snipe(self, ctx, *, channel: Optional[discord.TextChannel]):
@@ -132,5 +177,5 @@ class Utility(Cog, name="utility"):
     #     await ctx.send(embed=embed)
 
 
-def setup(bot):
+def setup(bot) -> None:
     bot.add_cog(Utility(bot))

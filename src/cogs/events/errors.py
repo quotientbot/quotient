@@ -30,6 +30,11 @@ class Errors(Cog):
                 f"This command requires you to have Quotient's private channel.\nKindly run `{ctx.prefix}setup` and try again."
             )
 
+        elif isinstance(err, exceptions.InvalidColor):
+            return await ctx.error(
+                f"`{err}` doesn't seem to be a valid color, \nPick a shade from [here](https://www.google.com/search?q=color+picker)"
+            )
+
         elif isinstance(err, exceptions.NotPremiumUser):
             return await ctx.error(
                 f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
