@@ -2,6 +2,7 @@ from .helper import insert_or_update_config
 from core import Cog, Context, Quotient
 from discord.ext import commands
 from utils import EventType
+from .funevents import *
 import discord
 
 
@@ -111,3 +112,4 @@ class Fun(Cog):
 
 def setup(bot) -> None:
     bot.add_cog(Fun(bot))
+    bot.add_cog(Funevents(bot))

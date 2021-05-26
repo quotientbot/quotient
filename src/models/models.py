@@ -283,9 +283,9 @@ class Autoevent(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    type = fields.CharField(max_length=10)
+    type = fields.CharEnumField(constants.EventType, max_length=30)
     channel_id = fields.BigIntField()
-    webhook = fields.TextField(index=True)
+    webhook = fields.CharField(max_length=200, index=True)
     toggle = fields.BooleanField(default=True)
-    interval = fields.IntegerField(default=30)
+    interval = fields.IntField(default=30)
     send_time = fields.DatetimeField(index=True)
