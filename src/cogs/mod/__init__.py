@@ -224,7 +224,7 @@ class Mod(Cog):
                 message=f"{role.mention} will be added to all human users in the server.",
             )
             if prompt:
-                members = filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members)
+                members = list(filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members))
                 await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
@@ -251,8 +251,8 @@ class Mod(Cog):
                 title="Are you sure want to do this?", message=f"{role.mention} will be added to all bots in the server."
             )
             if prompt:
-                members = filter(lambda x: x.bot and role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {sum(1 for i in members)} bots..."))
+                members = list(filter(lambda x: x.bot and role not in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -266,7 +266,7 @@ class Mod(Cog):
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} bots.")
 
                 else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {sum(1 for i in members)} bots.")
+                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
 
     @role.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -278,8 +278,8 @@ class Mod(Cog):
                 title="Are you sure want to do this?", message=f"{role.mention} will be added to everyone in the server."
             )
             if prompt:
-                members = filter(lambda x: role not in x.roles, ctx.guild.members)
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {sum(1 for i in members)} members..."))
+                members = list(filter(lambda x: role not in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -293,7 +293,7 @@ class Mod(Cog):
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
 
                 else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {sum(1 for i in members)} members.")
+                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=["removerole", "takerole"])
     @commands.has_guild_permissions(manage_roles=True)
@@ -327,8 +327,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from all human users in the server.",
             )
             if prompt:
-                members = filter(lambda x: not x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {sum(1 for i in members)} humans..."))
+                members = list(filter(lambda x: not x.bot and role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} humans..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -342,7 +342,7 @@ class Mod(Cog):
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
 
                 else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {sum(1 for i in members)} members.")
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @rrole.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
@@ -355,8 +355,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from all bot users in the server.",
             )
             if prompt:
-                members = filter(lambda x: x.bot and role in x.roles, ctx.guild.members)
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {sum(1 for i in members)} bots..."))
+                members = list(filter(lambda x: x.bot and role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} bots..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -370,7 +370,7 @@ class Mod(Cog):
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} bots.")
 
                 else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {sum(1 for i in members)} bots.")
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
 
     @rrole.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -383,8 +383,8 @@ class Mod(Cog):
                 message=f"{role.mention} will be removed from everyone in the server.",
             )
             if prompt:
-                members = filter(lambda x: role in x.roles, ctx.guild.members)
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {sum(1 for i in members)} members..."))
+                members = list(filter(lambda x: role in x.roles, ctx.guild.members))
+                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} members..."))
                 reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
                 failed = 0
                 for m in members:
@@ -398,7 +398,7 @@ class Mod(Cog):
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
 
                 else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {sum(1 for i in members)} members.")
+                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=("lockdown",))
     async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
