@@ -1,7 +1,7 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from utils import ColorConverter
-from models import Guild
+from models import Guild, Votes
 from utils import emote, get_ipm, strtime, human_timedelta
 from collections import Counter
 from typing import Optional
@@ -209,6 +209,16 @@ class Quomisc(Cog, name="quomisc"):
         )
 
         await message.edit(content=None, embed=emb)
+
+    @commands.command()
+    async def voteremind(self, ctx: Context):
+        check = await Votes.get_or_none(user_id=ctx.author.id)
+        if check:
+            await Votes.filter(user_id=ctx.author.id).update(reminder=not (check.reminder))
+            await ctx.success(f"Turned vote-reminder {'ON' if not(check.reminder) else 'OFF'}!")
+        else:
+            await Votes.create(user_id=ctx.author.id, reminder=True)
+            await ctx.success(f"Turned vote-reminder ON!")
 
     # @commands.command()
     # async def prefix(self, ctx, *, new_prefix: Optional[str]):

@@ -200,7 +200,7 @@ class Votes(models.Model):
         table = "votes"
 
     user_id = fields.BigIntField(pk=True)
-    is_voter = fields.BooleanField(delete=False, index=True)
+    is_voter = fields.BooleanField(default=False, index=True)
     expire_time = fields.DatetimeField(null=True)
     reminder = fields.BooleanField(default=False)
     notified = fields.BooleanField(default=False, index=True)
