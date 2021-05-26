@@ -5,7 +5,20 @@ from utils import constants
 from tortoise import fields, models
 import config, discord
 
-__all__ = ("Guild", "User", "Logging", "Tag", "Timer", "Snipes", "Autorole", "Votes", "Premium", "Redeem", "Lockdown")
+__all__ = (
+    "Guild",
+    "User",
+    "Logging",
+    "Tag",
+    "Timer",
+    "Snipes",
+    "Autorole",
+    "Votes",
+    "Premium",
+    "Redeem",
+    "Lockdown",
+    "Autoevent",
+)
 
 
 class Guild(models.Model):
@@ -259,3 +272,20 @@ class Lockdown(models.Model):
     @property
     def channels(self):
         return map(self.bot.get_channel, self.channel_ids)
+
+
+# ************************************************************************************************
+
+
+class Autoevent(models.Model):
+    class Meta:
+        table = "autoevents"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    type = fields.CharField(max_length=10)
+    channel_id = fields.BigIntField()
+    webhook = fields.TextField()
+    toggle = fields.BooleanField(default=True)
+    interval = fields.IntegerField(default=30)
+    send_time = fields.DatetimeField()
