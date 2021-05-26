@@ -2,7 +2,7 @@ from models.models import Autoevent
 from .helper import insert_or_update_config
 from core import Cog, Context, Quotient
 from discord.ext import commands
-from utils import EventType, emote
+from utils import EventType, emote, checks
 from .funevents import *
 import discord
 
@@ -99,6 +99,7 @@ class Fun(Cog):
             await ctx.success(f"Autopeom record updated!")
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
     async def autotoggle(self, ctx: Context, eventype: str = None):
         valids = (
             "automeme",
@@ -133,6 +134,22 @@ class Fun(Cog):
         await ctx.success(f"{eventype.title()} turned {'ON' if not(check.toggle) else 'OFF'}!")
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    async def autointerval(self, ctx: Context, eventype: str = None):
+        valids = (
+            "automeme",
+            "autofact",
+            "autoquote",
+            "autojoke",
+            "autonsfw",
+            "autoadvice",
+            "autopoem",
+        )
+
+        displayable_options = ",".join(map(lambda s: f"`{s}`", valids))
+
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
     async def autoconfig(self, ctx: Context):
         records = await Autoevent.filter(guild_id=ctx.guild.id)
         if not len(records):
@@ -147,10 +164,6 @@ class Fun(Cog):
 
         embed = self.bot.embed(ctx, description=text, title="Autoevents Config")
         await ctx.send(embed=embed)
-
-    @commands.command()
-    async def autointerval(self, ctx: Context, eventype: str = None):
-        pass
 
 
 def setup(bot) -> None:

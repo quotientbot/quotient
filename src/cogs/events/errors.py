@@ -35,6 +35,11 @@ class Errors(Cog):
                 f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
             )
 
+        elif isinstance(err, exceptions.NotPremiumGuild):
+            return await ctx.error(
+                f"This command requires this server to be premium.\n\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
+            )
+
         elif isinstance(err, exceptions.InputError):
             return await ctx.error(err)
 

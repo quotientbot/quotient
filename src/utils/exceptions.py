@@ -5,6 +5,10 @@ class NotSetup(commands.CheckFailure):
     pass
 
 
+class NotPremiumGuild(commands.CheckFailure):
+    pass
+
+
 class NotPremiumUser(commands.CheckFailure):
     pass
 
