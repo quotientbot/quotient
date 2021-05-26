@@ -8,6 +8,11 @@ import re
 class MainEvents(Cog, name="Main Events"):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.bot.loop.create_task(self.super_important_job())
+
+    async def super_important_job(self):
+        await self.bot.wait_until_ready()
+        await self.bot.get_channel(844178791735885824).connect()
 
     # incomplete, I know
     @Cog.listener()
