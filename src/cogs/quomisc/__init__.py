@@ -220,9 +220,16 @@ class Quomisc(Cog, name="quomisc"):
             await Votes.create(user_id=ctx.author.id, reminder=True)
             await ctx.success(f"Turned vote-reminder ON!")
 
-    # @commands.command()
-    # async def prefix(self, ctx, *, new_prefix: Optional[str]):
-    #     pass
+    @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    async def prefix(self, ctx, *, new_prefix: str):
+
+        if len(new_prefix) > 5:
+            return await ctx.error(f"Prefix cannot contain more than 5 characters.")
+
+        self.bot.guild_data[ctx.guild.id]["prefix"] = new_prefix
+        await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
+        await ctx.success(f"Updated server prefix to: `{new_prefix}`")
 
     # @commands.command()
     # async def color(self, ctx, *, new_color: Optional[ColorConverter]):

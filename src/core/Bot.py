@@ -74,7 +74,7 @@ class Quotient(commands.AutoShardedBot):
         if self.user.id == 765159200204128266:
             prefix = "!"
         else:
-            prefix = config.PREFIX
+            prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
