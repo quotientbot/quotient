@@ -176,7 +176,7 @@ class Premium(Cog):
     @commands.bot_has_permissions(embed_links=True)
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
-        await ctx.send("https://media.discordapp.net/attachments/782161513825042462/846044796841099314/unknown.png")
+        await ctx.send("https://media.discordapp.net/attachments/782161513825042462/847105244647129198/unknown.png")
 
 
 def setup(bot) -> None:
