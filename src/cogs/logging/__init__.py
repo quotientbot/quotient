@@ -7,6 +7,8 @@ from models import Logging as LM
 from utils import emote, checks
 from .events import *
 import discord
+import aiohttp
+import json
 
 
 class Logging(Cog, name="logging"):

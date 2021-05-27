@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+
+from discord import channel
 from core import Quotient, Cog, Context
 from discord.utils import escape_markdown
 from utils import IST, LogType
@@ -32,7 +34,7 @@ class LoggingEvents(Cog):
 
         print(_type)
         embed, channel = await self.handle_event(_type, **kwargs)
-
+        print(embed, channel)
         if embed is not None and channel is not None:
             await channel.send(embed=embed)
 
@@ -43,16 +45,18 @@ class LoggingEvents(Cog):
             subtype = kwargs.get("subtype")
             message = kwargs.get("message")
 
-            check = await check_permissions(message.guild)
-            if not check:
-                return
-
             channel, color = await get_channel(_type, message.guild)
             if not channel:
                 return
 
+            print(channel, color)
+
+            # check = await check_permissions(_type, message.guild, channel)
+            # if not check:
+            #     return
+            print("permissions check")
             if subtype == "single":
-                audit_log_entry = await audit_entry(message.guild, discord.AuditLogAction.message_delete)
+                audit_log_entry = (await audit_entry(message.guild, discord.AuditLogAction.message_delete))[0]
 
                 deleted_by = (
                     f"{message.author.mention}"
@@ -71,11 +75,12 @@ class LoggingEvents(Cog):
 
                 cont = escape_markdown(message.content)
 
-                embed.add_field(name="Message:", value=cont, inline=False)
+                embed.add_field(name="Message:", value=cont or f"*[Content Unavailable]*", inline=False)
 
                 if message.attachments:
                     embed.set_image(url=message.attachments[0].proxy_url)
 
+                print(embed, channel)
                 return embed, channel
 
             elif subtype == "bulk":
