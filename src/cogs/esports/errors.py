@@ -162,7 +162,11 @@ class SMError(Cog):
                 if len(message.mentions) > 0:
                     e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
 
-                await confirmation.send(embed=e)
+                await confirmation.send(
+                    content=message.author.mention,
+                    embed=e,
+                    allowed_mentions=discord.AllowedMentions(users=True),
+                )
 
             embed = discord.Embed(
                 color=discord.Color.green(),
