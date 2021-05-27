@@ -6,7 +6,7 @@ from .utils import (
     tourney_end_process,
     cannot_take_registration,
     get_slots,
-    get_tourney_slots
+    get_tourney_slots,
 )
 from utils import (
     default,
@@ -720,6 +720,9 @@ class ScrimManager(Cog, name="esports"):
         """
         Edit a slotlist
         """
+        if not len(await scrim_id.teams_registered):
+            return await ctx.error("Nobody registered yet!")
+
         menu = SlotEditor(scrim=scrim_id)
         await menu.start(ctx)
 
@@ -730,9 +733,10 @@ class ScrimManager(Cog, name="esports"):
         """
         Get image version of a slotlist.
         """
-        scrim = await Scrim.get_or_none(pk=scrim_id, guild_id=ctx.guild.id)
-        if scrim is None:
-            raise ScrimError(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+        scrim = scrim_id
+
+        if not len(await scrim.teams_registered):
+            return await ctx.error("Nobody registered yet!")
 
         files = await scrim.create_slotlist_img()
         # await ctx.send(embed=embed, file=file)
