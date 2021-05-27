@@ -72,6 +72,9 @@ class Quotient(commands.AutoShardedBot):
             model.bot = self
 
     async def get_prefix(self, message: discord.Message) -> str:
+        if not message.guild:
+            return
+
         if self.user.id == 765159200204128266:
             prefix = "!"
         else:
