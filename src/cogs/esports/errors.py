@@ -335,7 +335,7 @@ class SMError(Cog):
 
         team_name = find_team(message)
 
-        await message.add_reaction((emote.xmark, emote.check)[react_bool])
+        await message.add_reaction(("❌", "✅")[react_bool])
 
         if react_bool:
             embed = discord.Embed(color=self.bot.config.COLOR)
