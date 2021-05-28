@@ -1004,11 +1004,11 @@ class ScrimManager(Cog, name="esports"):
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
-                raise ScrimError("Alright, reverting all process.")
+                raise TourneyError("Alright, reverting all process.")
 
             return message.author == ctx.author and ctx.channel == message.channel
 
-        tourney = await Tourney(
+        tourney = Tourney(
             guild_id=ctx.guild.id,
             host_id=ctx.author.id,
         )
