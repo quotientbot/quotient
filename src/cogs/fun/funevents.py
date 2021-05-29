@@ -73,6 +73,9 @@ class Funevents(Cog):
         elif _type == EventType.poem:
             URL = "https://www.poemist.com/api/v1/randompoems"
             data = await self.request_json(URL)
+            if data[0]["content"] is None:
+                return
+
             if not len(data[0]["content"]) > 2000:
                 poem = data[0]["content"]
             else:
