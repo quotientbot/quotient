@@ -5,10 +5,10 @@ from tortoise import Tortoise
 from .Context import Context
 from datetime import datetime
 from utils import cache, IST
-from typing import NoReturn
+from typing import NoReturn, Optional
 import aiohttp, asyncio, os
 import config, asyncpg
-
+from .Cog import Cog
 import itertools
 import traceback
 import discord
@@ -97,14 +97,14 @@ class Quotient(commands.AutoShardedBot):
     async def on_command(self, ctx):
         self.cmd_invokes += 1
 
-    async def on_ready(self):  # yes we love colors and colorama
+    async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
         print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
         print(Fore.BLUE + f"[Quotient] Currently in {len(self.guilds)} Guilds")
         print(Fore.BLUE + f"[Quotient] Connected to {len(self.users)} Users")
         print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
 
-    def embed(self, ctx: Context, **kwargs):
+    def embed(self, ctx: Context, **kwargs) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
         embed_color = self.guild_data[ctx.guild.id]["color"]
         embed_footer = self.guild_data[ctx.guild.id]["footer"]
@@ -115,17 +115,17 @@ class Quotient(commands.AutoShardedBot):
 
         return embed
 
-    def get_cog(self, name):  # making cogs insensitive
+    def get_cog(self, name) -> Optional[Cog]:  # making cogs insensitive
         cogs = {key.lower() if isinstance(key, str) else key: value for key, value in self.cogs.items()}
         return cogs.get(name.lower())
 
-    async def is_owner(self, user):
+    async def is_owner(self, user) -> bool:
         if await super().is_owner(user):
             return True
 
         return user.id in config.DEVS
 
-    async def get_or_fetch_member(self, guild: discord.Guild, member_id):
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id) -> Optional[discord.Member]:
         """Looks up a member in cache or fetches if not found."""
 
         member = guild.get_member(member_id)
@@ -147,9 +147,9 @@ class Quotient(commands.AutoShardedBot):
         return members[0]
 
     @property
-    def server(self):
+    def server(self) -> Optional[discord.Guild]:
         return self.get_guild(746337818388987967)
 
     @property
-    def reminders(self):  # since we use it a lot
+    def reminders(self) -> Optional[Cog]:  # since we use it a lot
         return self.get_cog("Reminders")
