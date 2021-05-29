@@ -103,7 +103,7 @@ class Votes(Cog):
         timer = await self.reminders.create_timer(
             datetime.now(tz=constants.IST) + timedelta(days=26), "user_premium_reminder", user_id=record.user_id
         )
-        print(timer)
+        print(timer.id)
         await self.reminders.create_timer(
             datetime.now(tz=constants.IST) + timedelta(days=30), "user_premium", user_id=record.user_id
         )
@@ -114,17 +114,16 @@ class Votes(Cog):
         user_id = timer.kwargs["user_id"]
         record = await models.User.get(user_id=user_id)
         if not record.premium_expire_time < datetime.now(tz=constants.IST) + timedelta(days=4):
+            print("returning")
             return  # this means they have already renewed
 
         user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
         if user is not None:
-            embed = discord.Embed(color=discord.Color.red(), title="Quotient Premium Ending Soon")
-            embed.description(
-                f"{constants.random_greeting()},\nThis is to remind you that your quotient premium is going to end very soon. You can [click here]({self.bot.config.WEBSITE}/premium) to renew. \n\nPremium will expire on `{strtime(record.premium_expire_time)}`"
-            )
+            em = discord.Embed(color=discord.Color.red(), title="Quotient Premium Ending Soon")
+            em.description = f"{constants.random_greeting()},\nThis is to remind you that your quotient premium is going to end very soon. You can [click here]({self.bot.config.WEBSITE}/premium) to renew. \n\nPremium will expire on `{strtime(record.premium_expire_time)}`"
 
             try:
-                await user.send(embed=embed)
+                await user.send(embed=em)
             except:
                 pass
 
@@ -154,4 +153,17 @@ class Votes(Cog):
 
     @Cog.listener()
     async def on_user_premium_timer_complete(self, timer: models.Timer):
-        pass
+        user_id = timer.kwargs["user_id"]
+        record = await models.User.get(user_id)
+        if timer.expires != record.premium_expire_time:
+            return
+
+        await models.User.filter(user_id=user_id).update(is_premium=False, made_premium=[], premiums=0)
+        user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
+        if user is not None:
+            embed = discord.Embed(color=discord.Color.red(), title="Quotient Premium Ended!")
+            embed.description = f"This is to inform you that your subscription of Quotient Premium has been ended,\nYou can purchase awesome Quotient-Premium again [here]({self.bot.congig.WEBSITE}/premium)"
+            try:
+                await user.send(embed=embed)
+            except:
+                pass
