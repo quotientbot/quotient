@@ -206,7 +206,7 @@ class Scrim(models.Model):
         """
         slots = await self.teams_registered
         embed = discord.Embed(title=self.name + " Slotlist Image")
-        font_path = f"{Path.cwd()}/data/font/Ubuntu-Regular.ttf"
+        font_path = (Path("./data/font/")).__str__()
         ###############################################################################
 
         # NOTE - Run the bot from the src folder. I mean make your path inside src
@@ -218,7 +218,7 @@ class Scrim(models.Model):
         bgy = 300
         bg = Image.new("RGBA", (300, bgy))
         font_size = 16
-        font = ImageFont.truetype(font_path, font_size)
+        font = ImageFont.truetype(font_path + "Ubuntu-Regular.ttf", font_size)
         draw = ImageDraw.Draw(bg)
 
         x_rect = 10
