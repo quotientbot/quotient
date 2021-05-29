@@ -1,6 +1,7 @@
 from discord import Webhook, AsyncWebhookAdapter
 from datetime import datetime, timedelta
 from core import Cog, Quotient
+from models.models import Autoevent
 from utils import constants
 import models, discord
 
@@ -149,7 +150,39 @@ class Votes(Cog):
 
     @Cog.listener()
     async def on_server_premium_timer_complete(self, timer: models.Timer):
-        pass
+        guild_id = timer.kwargs["guild_id"]
+        record = await models.Guild.get_or_none(guild_id)
+        if not record:
+            return
+
+        if timer.expires != record.premium_end_time:
+            return
+
+        await models.Guild.filter(guild_id=guild_id).update(is_premium=False)
+        guild = self.bot.get_guild(guild_id)
+        if guild != None:
+            embed = discord.Embed(color=discord.Color.red(), title="Server Premium Ended!")
+            embed.description = f"This is to inform you that Quotient Premium subscription of your server has been ended.\nYou can purchase awesome Quotient-Premium again [here]({self.bot.config.WEBSITE}/premium)"
+            try:
+                await guild.owner.send(embed=embed)
+            except:
+                pass
+
+        # we are gonna remove extra scrims , tourneys , color , etc
+        scrims = (await models.Scrim.filter(guild_id=guild_id).all())[3:]
+        tourneys = (await models.Tourney.filter(guild_id=guild_id).all())[2:]
+
+        if len(scrims):
+            await models.Scrim.filter(id__in=(scrim.id for scrim in scrims)).delete()
+
+        if len(tourneys):
+            await models.Tourney.filter(id__in=(tourney.id for tourney in tourneys)).delete()
+
+        # TODO: remove this from cache too maybe
+        await models.Guild.filter(guild_id=guild_id).update(
+            embed_color=self.bot.color, embed_footer=self.bot.config.FOOTER
+        )
+        await Autoevent.filter(guild_id=guild_id).update(interval=30)
 
     @Cog.listener()
     async def on_user_premium_timer_complete(self, timer: models.Timer):
@@ -167,3 +200,7 @@ class Votes(Cog):
                 await user.send(embed=embed)
             except:
                 pass
+
+        member = self.bot.server.get_member(user_id)
+        if member != None:
+            await member.remove_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
