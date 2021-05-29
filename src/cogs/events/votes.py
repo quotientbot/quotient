@@ -111,11 +111,9 @@ class Votes(Cog):
 
     @Cog.listener()
     async def on_user_premium_reminder_timer_complete(self, timer: models.Timer):
-        print("reminder complete")
         user_id = timer.kwargs["user_id"]
         record = await models.User.get(user_id=user_id)
         if not record.premium_expire_time < datetime.now(tz=constants.IST) + timedelta(days=4):
-            print("returning")
             return  # this means they have already renewed
 
         user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
