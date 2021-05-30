@@ -65,11 +65,25 @@ class ReserveEditor(menus.Menu):
         await inputs.safe_delete(msg)
 
         if to_reserve not in available:
-            return await self.ctx.error(f"You cannot reserve this slot.",delete_after=4)
+            return await self.ctx.error(f"You cannot reserve this slot.", delete_after=4)
 
+        msg = await self.ctx.send(
+            "For which user do you wish to reserve a slot?\nThis is needed to add scrims role to them when registration start.",
+        )
+
+        member = await inputs.member_input(self.ctx, check, delete_after=True)
+
+        if not member:
+            return await self.ctx.error(f"That's not a valid member.", delete_after=4)
+
+        if member.id in await self.scrim.reserved_user_ids():
+            return await self.ctx.error(f"{str(member)} is already in the reserved list.", delete_after=4)
+
+        await self.ctx.send(f"What is {member}'s team name?")
+        team_name = await inputs.string_input(self.ctx, check, delete_after=True)
+
+        await self.ctx.send("For how much time should I reserve the slot for them?")
         
-
-
     @menus.button(emote.remove)
     async def remove_reserved_slot(self, payload):
         available = await already_reserved(self.scrim)
