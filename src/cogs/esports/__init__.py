@@ -811,11 +811,12 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
 
     @smanager.group(name="reserve", invoke_without_command=True)
-    async def s_reserve(self, ctx):
+    async def s_reserve(self, ctx, scrim_id: ScrimID):
         """
         Add / Remove a team from the reserved list
         """
-        await ctx.send_help(ctx.command)
+        menu = ReserveEditor(scrim=scrim_id)
+        await menu.start(ctx)
 
     @s_reserve.command(name="add")
     async def s_reserve_add(self, ctx, scrim_id: ScrimID, time: FutureTime = None):

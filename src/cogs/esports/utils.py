@@ -18,11 +18,12 @@ def get_tourney_slots(slots):
 
 
 async def already_reserved(scrim: Scrim):
-    pass
+    return list(i.num for i in await scrim.reserved_slots.all())
 
 
 async def available_to_reserve(scrim: Scrim):
-    pass
+    reserved = await already_reserved(scrim)
+    return list(i for i in scrim.available_to_reserve if i not in reserved)
 
 
 async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
