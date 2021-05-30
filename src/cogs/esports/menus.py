@@ -39,22 +39,6 @@ class ReserveEditor(menus.Menu):
     async def remove_reserved_slot(self, payload):
         pass
 
-    @menus.button(emote.edit)
-    async def edit_slot(self, payload):
-        available = await already_reserved(self.scrim)
-        msg = await self.ctx.send(
-            f"Following are the slots which are already reserved. Which of them do you want to edit?\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
-        )
-        to_Edit = await inputs.integer_input(
-            self.ctx,
-            self.check,
-            delete_after=True,
-            limits=(None, None),
-        )
-
-        await inputs.safe_delete(msg)
-        # do something
-
     @menus.button("🔢")
     async def edit_start_from(self, payload):
         m = await self.ctx.send(
