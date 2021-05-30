@@ -261,6 +261,7 @@ class BaseSlot(models.Model):
         abstract = True
 
     id = fields.IntField(pk=True)
+    num = fields.IntField()
     user_id = fields.BigIntField()
     team_name = fields.TextField(null=True)
     members = ArrayField(fields.BigIntField(), default=list)
@@ -270,7 +271,6 @@ class AssignedSlot(BaseSlot):
     class Meta:
         table = "sm.assigned_slots"
 
-    num = fields.IntField()
     jump_url = fields.TextField(null=True)
 
 

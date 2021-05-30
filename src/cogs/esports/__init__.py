@@ -18,9 +18,13 @@ from utils import (
     human_timedelta,
     get_chunks,
 )
+<<<<<<< HEAD
 
 from .converters import *
 
+=======
+from .converters import ScrimID, TourneyID
+>>>>>>> f18cb19d2c5e1333d48712a6ce60befae6039671
 from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
@@ -38,8 +42,6 @@ import asyncio
 import config
 from .menus import *
 from typing import NamedTuple
-
-# TODO: a seprate class to check scrim_id in cmd args
 
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
@@ -812,11 +814,12 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
 
     @smanager.group(name="reserve", invoke_without_command=True)
-    async def s_reserve(self, ctx):
+    async def s_reserve(self, ctx, scrim_id: ScrimID):
         """
         Add / Remove a team from the reserved list
         """
-        await ctx.send_help(ctx.command)
+        menu = ReserveEditor(scrim=scrim_id)
+        await menu.start(ctx)
 
     @s_reserve.command(name="add")
     async def s_reserve_add(self, ctx, scrim_id: ScrimID, time: FutureTime = None):

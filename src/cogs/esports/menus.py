@@ -20,12 +20,27 @@ class ReserveEditor(menus.Menu):
         self.scrim = scrim
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
-    async def initial_embed():
-        embed = discord.Embed()
+    async def initial_embed(self):
+        reserves = await self.scrim.reserved_slots.all()
+        embed = discord.Embed(color=self.bot.color)
+
+        to_show = []
+        for i in self.scrim.available_to_reserve:
+            check = [j.team_name for j in reserves if j.num == i]
+
+            if len(check):
+                info = check[0]
+            else:
+                info = "❌"
+
+            to_show.append(f"Slot {i:02}  -->  {info}\n")
+
+        embed.description = f"```{''.join(to_show)}```\n\n{emote.add} | Reserve a slot\n{emote.remove} | Remove a reserved slot\n🔢 | Edit the first slot number\n✅ | Save and Abort"
+
         return embed
 
     async def send_initial_message(self, ctx, channel):
-        return await channel.send(await self.initial_embed())
+        return await channel.send(embed=await self.initial_embed())
 
     async def refresh(self):
         self.scrim = await Scrim.get(pk=self.scrim.id)
@@ -48,6 +63,12 @@ class ReserveEditor(menus.Menu):
         )
 
         await inputs.safe_delete(msg)
+
+        if to_reserve not in available:
+            return await self.ctx.error(f"You cannot reserve this slot.",delete_after=4)
+
+        
+
 
     @menus.button(emote.remove)
     async def remove_reserved_slot(self, payload):
