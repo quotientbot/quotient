@@ -17,6 +17,7 @@ __all__ = (
     "Redeem",
     "Lockdown",
     "Autoevent",
+    "CommandStats",
 )
 
 
@@ -306,3 +307,14 @@ class Autoevent(models.Model):
 #     is_afk = fields.BooleanField(default=True)
 #     afk_time = fields.DatetimeField(auto_now=True)
 #     ignored = BigIntArrayField(default=list)
+
+
+class CommandStats(models.Model):
+    class Meta:
+        table = "cmd_stats"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    user_id = fields.BigIntField()
+    cmd = fields.TextField()
+    uses = fields.IntField(defualt=0)

@@ -1,3 +1,4 @@
+import asyncio
 import io
 from .fields import *
 import discord
@@ -7,6 +8,7 @@ from tortoise import models, fields
 from constants import Day
 from pathlib import Path
 from .functions import *
+from utils import split_list
 
 __all__ = ("Tourney", "TMSlot", "Scrim", "AssignedSlot", "ReservedSlot", "BannedTeam", "TagCheck")
 
@@ -205,53 +207,42 @@ class Scrim(models.Model):
         This is done! Now do whatever you can : )
         """
         slots = await self.teams_registered
-        embed = discord.Embed(title=self.name + " Slotlist Image")
-        font_path = (Path("./data/font/")).__str__()
-        ###############################################################################
 
-        # NOTE - Run the bot from the src folder. I mean make your path inside src
-        # TODO - FIX THIS PATH THING
+        def wrapper():
+            font = ImageFont.truetype(str(Path.cwd() / "data" / "font" / "Ubuntu-Regular.ttf"), 16)
+            rects = []
 
-        ###############################################################################
+            for slot in slots:
+                image = Image.new("RGBA", (290, 30), "#2e2e2e")
+                draw = ImageDraw.Draw(image)
+                draw.text((10, 5), f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
+                rects.append(image)
 
-        bgx = 300
-        bgy = 300
-        bg = Image.new("RGBA", (300, bgy))
-        font_size = 16
-        font = ImageFont.truetype(font_path + "Ubuntu-Regular.ttf", font_size)
-        draw = ImageDraw.Draw(bg)
+            # We will add 10 slots in a image.
+            images = []
+            for group in split_list(rects, 10):
+                size = (
+                    290,
+                    len(group) * 40,
+                )
+                image = Image.new("RGBA", size)
+                x = 0
+                y = 0
 
-        x_rect = 10
-        y_rect = 0
-        imgs = []
-        count = 1
-        for slot in slots:
-            draw.rectangle([x_rect, y_rect, bgx - 10, y_rect + 30], fill="#2e2e2e")
-            draw.text([x_rect + 10, y_rect + 5], f"Slot {slot.num:02}  |  {slot.team_name}", font=font, fill="white")
-            y_rect += 40
-            if count % 6 == 0:
-                imgs.append(bg)
-                x_rect = 10
-                y_rect = 0
-                bg = Image.new("RGBA", (300, bgy))
-                font = ImageFont.truetype("Ubuntu-Regular.ttf", font_size)
-                draw = ImageDraw.Draw(bg)
-            count += 1
+                for rect in group:
+                    image.paste(rect, (x, y))
+                    y += rect.size[1] + 10
 
-        imgs.append(bg)
+                img_bytes = io.BytesIO()
+                image.save(img_bytes, "PNG")
+                img_bytes.seek(0)
+                images.append(discord.File(img_bytes, "slot_list.png"))
 
-        files = []
+            return images
 
-        for img in imgs:
-            imgbyt = io.BytesIO()
-            img.save(imgbyt, "PNG")
-            imgbyt.seek(0)
-            file = discord.File(imgbyt, "slotlist.png")
-
-            embed.set_image(url="attachment://slotlist.png")
-            files.append(file)
-
-        return files
+        return await asyncio.get_event_loop().run_in_executor(
+            None, wrapper
+        )  # As pillow is blocking, we will process image in executor
 
 
 class BaseSlot(models.Model):
