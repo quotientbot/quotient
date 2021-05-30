@@ -317,4 +317,4 @@ class CommandStats(models.Model):
     guild_id = fields.BigIntField()
     user_id = fields.BigIntField()
     cmd = fields.TextField()
-    uses = fields.IntField(defualt=0)
+    uses = fields.IntField(default=0)
