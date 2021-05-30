@@ -1,7 +1,7 @@
 from typing import NoReturn, Union
 from models import Scrim, Tourney
 from datetime import datetime, timedelta
-from utils import constants
+import constants
 import discord
 import humanize
 import config

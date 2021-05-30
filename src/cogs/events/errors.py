@@ -1,7 +1,8 @@
 import discord
 import traceback
 from core import Cog, Quotient
-from utils import exceptions, random_greeting
+from utils import exceptions
+from constants import random_greeting
 from discord.ext import commands
 from discord.ext.commands import errors
 

@@ -1,12 +1,12 @@
-from PIL import Image, ImageFont, ImageDraw
-from typing import Optional, Union, List
-from tortoise import models, fields
-from utils.constants import Day
-from pathlib import Path
-from .functions import *
+import io
 from .fields import *
 import discord
-import io
+from PIL import Image, ImageFont, ImageDraw
+from typing import Optional, Union
+from tortoise import models, fields
+from constants import Day
+from pathlib import Path
+from .functions import *
 
 __all__ = ("Tourney", "TMSlot", "Scrim", "AssignedSlot", "ReservedSlot", "BannedTeam", "TagCheck")
 

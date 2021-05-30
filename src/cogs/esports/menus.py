@@ -5,6 +5,7 @@ import string
 from models import Scrim, AssignedSlot, Tourney
 from utils import *
 from models.functions import *
+import constants
 from .errors import ScrimError, TourneyError
 
 
@@ -524,4 +525,3 @@ class TourneyEditor(menus.Menu):
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
         self.stop()
-        

@@ -2,7 +2,6 @@ from tortoise.fields.base import Field
 from typing import List, Any, Optional, Union, Type
 from tortoise.models import Model
 from enum import Enum
-import inspect
 
 
 class BigIntArrayField(Field, list):

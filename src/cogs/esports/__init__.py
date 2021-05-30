@@ -12,8 +12,6 @@ from utils import (
     default,
     time,
     day_today,
-    IST,
-    Day,
     inputs,
     checks,
     FutureTime,
@@ -22,6 +20,7 @@ from utils import (
     ScrimID,
     TourneyID,
 )
+from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 

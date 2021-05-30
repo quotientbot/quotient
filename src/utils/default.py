@@ -2,7 +2,7 @@ import re
 from typing import Union
 from datetime import datetime
 from unicodedata import normalize as nm
-from .constants import IST
+from constants import IST
 from itertools import islice
 
 

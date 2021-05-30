@@ -1,4 +1,5 @@
-from utils import LogType, ColorConverter
+from utils import ColorConverter
+from constants import LogType
 from core import Quotient, Cog, Context
 from discord.ext import commands
 from .dispatchers import *
@@ -7,8 +8,6 @@ from models import Logging as LM
 from utils import emote, checks
 from .events import *
 import discord
-import aiohttp
-import json
 
 
 class Logging(Cog, name="logging"):

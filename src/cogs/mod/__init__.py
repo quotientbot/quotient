@@ -1,11 +1,11 @@
-from discord.ext.commands.core import command
 from utils.time import human_timedelta
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
-from models import Lockdown, ArrayAppend
+from models import Lockdown
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, LockType
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime
+from constants import LockType
 from typing import Optional, Union
 import discord
 import re

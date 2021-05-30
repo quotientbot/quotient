@@ -3,7 +3,7 @@ import dateparser
 from datetime import datetime, timedelta
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 from .exceptions import InputError
-from utils.constants import IST
+from constants import IST
 import discord
 
 

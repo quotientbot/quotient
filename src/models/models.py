@@ -1,7 +1,6 @@
-from attr import field
 from .fields import *
 from .functions import *
-from utils import constants
+import constants
 from tortoise import fields, models
 import config, discord
 
