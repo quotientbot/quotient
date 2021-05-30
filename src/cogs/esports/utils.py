@@ -21,6 +21,10 @@ async def already_reserved(scrim: Scrim):
     pass
 
 
+async def available_to_reserve(scrim: Scrim):
+    pass
+
+
 async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
     logschan = obj.logschan
     if logschan is not None and logschan.permissions_for(message.guild.me).embed_links:

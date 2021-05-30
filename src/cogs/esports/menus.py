@@ -7,7 +7,7 @@ from utils import *
 from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
-from .utils import already_reserved
+from .utils import already_reserved, available_to_reserve
 
 
 class ReserveEditor(menus.Menu):
@@ -33,9 +33,9 @@ class ReserveEditor(menus.Menu):
 
     @menus.button(emote.add)
     async def reserve_a_slot(self, payload):
-        available = await already_reserved(self.scrim)
+        available = await available_to_reserve(self.scrim)
         if not len(available):
-            return await self.ctx.error("No slots left to reserve.", delete_after=10)
+            return await self.ctx.error("No slots left to reserve.", delete_after=4)
 
         msg = await self.ctx.send(
             f"Which slot do you wish to reserve? Choose from:\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
@@ -51,7 +51,21 @@ class ReserveEditor(menus.Menu):
 
     @menus.button(emote.remove)
     async def remove_reserved_slot(self, payload):
-        pass
+        available = await already_reserved(self.scrim)
+        if not len(available):
+            return await self.ctx.error("There are 0 reserved slots.", delete_after=4)
+
+        msg = await self.ctx.send(
+            f"Which slot do you wish to remove from reserved? Choose from:\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
+        )
+        slot = await inputs.integer_input(
+            self.ctx,
+            self.check,
+            delete_after=True,
+            limits=(None, None),
+        )
+
+        await inputs.safe_delete(msg)
 
     @menus.button("🔢")
     async def edit_start_from(self, payload):
