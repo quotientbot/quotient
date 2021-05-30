@@ -1,52 +1,15 @@
 from tortoise.fields.base import Field
-from typing import List, Any, Optional, Union, Type
-from tortoise.models import Model
-from enum import Enum
+from typing import Any
 
-
-class BigIntArrayField(Field, list):
-    SQL_TYPE = "bigint[]"
-
-    def to_db_value(self, value: Any, instance: Union[Type[Model], Model]) -> Any:
-        return value
-
-    def to_python_value(self, value: Any) -> Optional[List[int]]:
-        return value
-
-
-class IntArrayField(Field, list):
-    SQL_TYPE = "integer[]"
-
-    def to_db_value(self, value: Any, instance: Union[Type[Model], Model]) -> Any:
-        return value
-
-    def to_python_value(self, value: Any) -> Optional[List[int]]:
-        return value
-
-
-class CharVarArrayField(Field, list):
-    SQL_TYPE = "character varying[]"
-
-    def to_db_value(self, value: Any, instance: Union[Type[Model], Model]) -> Any:
-        return value
-
-    def to_python_value(self, value: Any) -> Optional[List[int]]:
-        return value
-
-
-class EnumArrayField(Field, str):
-    def __init__(self, enum_class: Enum, **kwargs: Any) -> None:
-        self.enum_class = enum_class
+# Those fields were redundant its time to use this.
+class ArrayField(Field, list):
+    def __init__(self, field: Field, **kwargs) -> None:
         super().__init__(**kwargs)
-
-    SQL_TYPE = "varchar[]"
-
-    def to_db_value(self, value: Any, instance: "Union[Type[Model], Model]") -> Any:
-        # if inspect.isclass(value) and issubclass(value, Enum):
-        # value = value()  This shouldn't be called, I am keeping this for future reference.
-        #     pass
-
-        return [str(val.value) for val in value]
+        self.sub_field = field
+        self.SQL_TYPE = "%s[]" % field.SQL_TYPE
 
     def to_python_value(self, value: Any) -> Any:
-        return [self.enum_class(val) for val in value]
+        return list(map(self.sub_field.to_python_value, value))
+
+    def to_db_value(self, value: Any, instance: Any) -> Any:
+        return [self.sub_field.to_db_value(val, instance) for val in value]
