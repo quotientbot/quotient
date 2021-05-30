@@ -3,6 +3,7 @@ from .functions import *
 import constants
 from tortoise import fields, models
 import config, discord
+from typing import Optional
 
 __all__ = (
     "Guild",
@@ -29,9 +30,9 @@ class Guild(models.Model):
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
     embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
-    bot_master = BigIntArrayField(default=list, index=True)
+    bot_master = ArrayField(fields.BigIntField(), default=list, index=True)
     mute_role = fields.BigIntField(null=True)
-    muted_members = BigIntArrayField(default=list)
+    muted_members = ArrayField(fields.BigIntField(), default=list)
     tag_enabled_for_everyone = fields.BooleanField(default=True)  # ye naam maine ni rkha sachi
     emoji_stealer_channel = fields.BigIntField(null=True, index=True)
     emoji_stealer_message = fields.BigIntField(null=True, index=True)
@@ -42,10 +43,12 @@ class Guild(models.Model):
     public_profile = fields.BooleanField(default=True)  # whether to list the server on global leaderboards
     private_channel = fields.BigIntField(null=True, index=True)
     private_webhook = fields.TextField(null=True)
-    disabled_channels = BigIntArrayField(default=list, index=True)  # channels where bot won't reply to cmds
-    disabled_commands = CharVarArrayField(default=list, index=True)
-    disabled_users = BigIntArrayField(default=list, index=True)
-    censored = CharVarArrayField(default=list, index=True)  # will shift this to automod
+    disabled_channels = ArrayField(
+        fields.BigIntField(), default=list, index=True
+    )  # channels where bot won't reply to cmds
+    disabled_commands = ArrayField(fields.TextField(), default=list)
+    disabled_users = ArrayField(fields.BigIntField(), index=True, default=list)
+    censored = ArrayField(fields.TextField(), default=list, index=True)  # will shift this to automod
 
     @property
     def _guild(self):
@@ -76,7 +79,7 @@ class User(models.Model):
     user_id = fields.BigIntField(pk=True, index=True)
     is_premium = fields.BooleanField(default=False, index=True)
     premium_expire_time = fields.DatetimeField(null=True)
-    made_premium = BigIntArrayField(default=list)  # a list of servers this user boosted
+    made_premium = ArrayField(fields.BigIntField(), default=list)  # a list of servers this user boosted
     premiums = fields.IntField(default=0)
     premium_notified = fields.BooleanField(default=False)
     public_profile = fields.BooleanField(default=True)
@@ -174,8 +177,8 @@ class Autorole(models.Model):
         table = "autoroles"
 
     guild_id = fields.BigIntField(pk=True, index=True)
-    humans = BigIntArrayField(default=list)
-    bots = BigIntArrayField(default=list)
+    humans = ArrayField(fields.BigIntField(), default=list)
+    bots = ArrayField(fields.BigIntField(), default=list)
 
     @property
     def _guild(self) -> Optional[discord.Guild]:
@@ -256,7 +259,7 @@ class Lockdown(models.Model):
     type = fields.CharEnumField(constants.LockType, max_length=20)
     role_id = fields.BigIntField(null=True)
     channel_id = fields.BigIntField(null=True)
-    channel_ids = BigIntArrayField(default=list, index=True)
+    channel_ids = ArrayField(fields.BigIntField(), default=list, index=True)
     expire_time = fields.DatetimeField(null=True)
     author_id = fields.BigIntField()
 

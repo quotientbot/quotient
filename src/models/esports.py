@@ -2,13 +2,13 @@ import asyncio
 import io
 from .fields import *
 import discord
+import utils
 from PIL import Image, ImageFont, ImageDraw
 from typing import Optional, Union
 from tortoise import models, fields
 from constants import Day
 from pathlib import Path
 from .functions import *
-from utils import split_list
 
 __all__ = ("Tourney", "TMSlot", "Scrim", "AssignedSlot", "ReservedSlot", "BannedTeam", "TagCheck")
 
@@ -25,7 +25,7 @@ class Tourney(models.Model):
     role_id = fields.BigIntField()
     required_mentions = fields.IntField()
     total_slots = fields.IntField()
-    banned_users = BigIntArrayField(default=list)
+    banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
     multiregister = fields.BooleanField(default=False)
     started_at = fields.DatetimeField(null=True)
@@ -84,7 +84,7 @@ class TMSlot(models.Model):
     num = fields.IntField()
     team_name = fields.TextField()
     leader_id = fields.BigIntField()
-    members = BigIntArrayField(default=list)
+    members = ArrayField(fields.BigIntField(), default=list)
     jump_url = fields.TextField(null=True)
 
 
@@ -101,7 +101,7 @@ class Scrim(models.Model):
     role_id = fields.BigIntField(null=True)
     required_mentions = fields.IntField()
     start_from = fields.IntField(default=1)
-    available_slots = IntArrayField(default=list)  # smallint[] would have done but nvm
+    available_slots = ArrayField(fields.IntField(), default=list)
     total_slots = fields.IntField()
     host_id = fields.BigIntField()
     open_time = fields.DatetimeField()
@@ -113,7 +113,8 @@ class Scrim(models.Model):
     multiregister = fields.BooleanField(default=False)
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
-    open_days = EnumArrayField(Day, default=Day.__iter__)
+
+    open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
@@ -230,7 +231,7 @@ class Scrim(models.Model):
 
             # We will add 10 slots in a image.
             images = []
-            for group in split_list(rects, 10):
+            for group in utils.split_list(rects, 10):
                 size = (
                     290,
                     len(group) * 40,
@@ -263,7 +264,7 @@ class BaseSlot(models.Model):
     num = fields.IntField()
     user_id = fields.BigIntField()
     team_name = fields.TextField(null=True)
-    members = BigIntArrayField(default=list)
+    members = ArrayField(fields.BigIntField(), default=list)
 
 
 class AssignedSlot(BaseSlot):
