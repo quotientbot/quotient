@@ -18,13 +18,8 @@ from utils import (
     human_timedelta,
     get_chunks,
 )
-<<<<<<< HEAD
 
-from .converters import *
-
-=======
 from .converters import ScrimID, TourneyID
->>>>>>> f18cb19d2c5e1333d48712a6ce60befae6039671
 from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
