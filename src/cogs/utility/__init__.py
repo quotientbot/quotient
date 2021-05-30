@@ -1,9 +1,9 @@
 from core import Cog, Quotient, Context
 from discord.ext import commands
-from models import Snipes
+from models import Tag
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, human_timedelta, ColorConverter, emote, Pages
-from .functions import TagName, create_tag, increment_usage
+from utils import checks, ColorConverter, Pages, strtime
+from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
 import config
@@ -177,228 +177,189 @@ class Utility(Cog, name="utility"):
     #     embed.add_field(name="**__Message Content__**", value=content)
     #     embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
     #     await ctx.send(embed=embed)
-    
+
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx, *, name: TagName(lower=True)):
-        
+    async def tag(self, ctx: Context, *, name: Optional[TagName(lower=True)]):
+
         if name is None:
             return await ctx.send_help(ctx.command)
-        query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
-        record = await ctx.db.fetchrow(query, name, ctx.guild.id)
-        
+
+        record = await Tag.get_or_none(guild_id=ctx.guild.id, name=name)
+
         if record is None:
             return await ctx.error(f"No tag **{name}** found.\nCreate one with the `{ctx.prefix}tag create` command.")
-        
-        nsfw = record["is_nsfw"]
-        content = record["content"]
-        embed = record["is_embed"]
-        usage = record["usage"]
-        
-        if not ctx.channel.is_nsfw() and nsfw is True:
-            return await ctx.error("This tag can only be used in NSFW channels.", delete_after=5)
-        
-        if embed is True:
-            dict = json.loads(content)
 
-            await increment_usage(ctx, name, usage)
-            return await ctx.send(embed=discord.Embed.from_dict(dict), reference = ctx.replied_reference)
-        
-        await ctx.send(content)
-        await increment_usage(ctx, name, usage)
-        
-    @tag.command(name="all", aliases=["list"])
+        if not ctx.channel.is_nsfw() and record.is_nsfw:
+            return await ctx.error("This tag can only be used in NSFW channels.")
+
+        if record.is_embed is True:
+            dict = json.loads(record.content)
+            return await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
+
+        await ctx.send(record.content, reference=ctx.replied_reference)
+        await increment_usage(ctx, name)
+
+    @tag.command(name="all", aliases=("list",))
     async def all_tags(self, ctx):
-        tag = await Tag.filter(guild_id = ctx.guild.id)
-        
+        tags = await Tag.filter(guild_id=ctx.guild.id)
+
+        if not len(tags):
+            return await ctx.error("This server doesn't have any tags.")
+
         tag_list = []
-        for tags in tag:
-            tag_list.append(f"{tag.index(tags) + 1}. {tags.name} (ID: {tags.id})\n")
-            
-        paginator = Pages(ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=5, show_entry_count=True)
-        
+        for idx, tag in enumerate(tags, start=1):
+            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
+
+        paginator = Pages(
+            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
+        )
         await paginator.paginate()
-    
-    @tag.command(name="info", aliases= ["stats", "information"])
-    async def tag_info(self, ctx, *, tag):
-        
-        record = await ctx.db.fetchrow("SELECT * FROM tags WHERE guild_id = $1 and name = $2", ctx.guild.id, tag)
-        
-        if record is None:
-            return await ctx.error('nahi exist kara')
-        
-        id = record["id"]
-        is_embed = record["is_embed"]
-        is_nsfw = record["is_nsfw"]
-        owner_id = record["owner_id"]
-        usage = record["usage"]
-        
-        embed = discord.Embed(title=f"Stats for tag {tag}", color=discord.Color(config.COLOR))
-        embed.title = tag
-        embed.timestamp = record['created_at']
-        embed.set_footer(text='Tag created at')
-        
-        user = self.bot.get_user(owner_id) or (await self.bot.fetch_user(owner_id))
+
+    @tag.command(name="info", aliases=("stats",))
+    async def tag_info(self, ctx, *, tag: TagConverter):
+        embed = self.bot.embed(ctx, title=f"Stats for tag {tag.name}")
+
+        user = self.bot.get_user(tag.owner_id) or await self.bot.fetch_user(tag.owner_id)
+
         embed.set_author(name=str(user), icon_url=user.avatar_url)
-        
-        embed.add_field(name='Owner', value=f'<@{owner_id}>')
-        embed.add_field(name='ID:', value=id)
-        embed.add_field(name='Uses', value=usage)
-        embed.add_field(name='NSFW', value="No" if is_nsfw is False else "Yes")
-        embed.add_field(name='Embed', value="No" if is_embed is False else "Yes")
-        
+
+        embed.add_field(name="Owner", value=getattr(user, "mention", "Invalid User!"))
+        embed.add_field(name="ID:", value=id)
+        embed.add_field(name="Uses", value=tag.usage)
+        embed.add_field(name="NSFW", value="No" if not tag.is_nsfw else "Yes")
+        embed.add_field(name="Embed", value="No" if not tag.is_embed else "Yes")
+        embed.set_footer(text=f"Created At: {strtime(tag.created_at)}")
         await ctx.send(embed=embed)
-        
-        
-    @tag.command(name="make")
-    async def make_tag(self, ctx):
-        # i am lazy for this one.
-        ...
-        
+
     @tag.command(name="claim")
-    async def claim_tag(self, ctx, *, tag:TagName):
+    async def claim_tag(self, ctx, *, tag: TagConverter):
         """Koi tag le jayega pata bhi nhi chalega tujhe gandu."""
-        
-        if tag is None:
-            return await ctx.send_help(ctx.command)
-        
-        id = await ctx.db.fetchval("SELECT owner_id FROM tags WHERE guild_id = $1 and name = $2", ctx.guild.id, tag)
-        
-        if id is None:
-            return await ctx.error('nahi exist kara')
-        
-        member = await self.bot.get_or_fetch_member(ctx.guild, id)
-        
+
+        member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
+
         if member is not None:
-            return await ctx.send('maalik ghar par hai')
-        
-        await ctx.db.execute('UPDATE tags SET owner_id = $1 WHERE guild_id = $2 AND name = $3', ctx.author.id, ctx.guild.id, tag)
-        await ctx.success("mil gya tujhe")
-        
-        
+            return await ctx.send(f"The owner of this tag ({tag.owner}) is still in the server.")
+
+        await Tag.filter(name=tag.name, guild_id=ctx.guild.id).update(owner_id=ctx.author.id)
+        await ctx.success("Transfered tag ownership to you.")
+
     @tag.command(name="create")
-    async def create_tag_command(self, ctx, name: TagName, *, content = ""):
+    async def create_tag_command(self, ctx, name: TagName, *, content=""):
         if len(ctx.message.attachments) > 1:
-            return await ctx.error("1 se zaada nhi ")
-        
+            return await ctx.error("You cannot create tag with more than one attachment.")
+
         if len(ctx.message.attachments) == 1:
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
-        await create_tag(ctx, name, content)
-        
-    @tag.command(name="delete", aliases = ["del"])
-    async def delete_tag(self, ctx, *, name):
-        
-        query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
-        owner = await ctx.bot.db.execute(query_one, name, ctx.guild.id)
-        if owner != ctx.author.id:
-            return await ctx.error("gand mara")
-        
-        query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
-        record = await ctx.db.fetchrow(query, name, ctx.guild.id)
-        
-        if record is None:
-            return await ctx.error("nhi hai tag not found")
-        
-        query_two = "DELETE FROM tags WHERE guild_id = $1 AND name= $2"
-        await ctx.bot.db.execute(query_two, ctx.guild.id, name)
-        await ctx.success("ho gya bc")
-        
-        
+        if len(content) > 1990:
+            return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
+
+        # if await is_valid_name(ctx,name):
+        # await Tag.create(name=name , content = content, guild_id = ctx.guild.id, )
+
+        # await ctx.success(f"Created Tag (ID: `{tag.id}`)")
+
+    @tag.command(name="delete", aliases=["del"])
+    async def delete_tag(self, ctx, *, tag_name: TagConverter):
+        tag = tag_name
+        if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+            return await ctx.error(f"This tag doesn't belong to you.")
+
+        await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=ctx.author.id).delete()
+        await ctx.success(f"Deleted {tag_name.name}")
+
     @tag.command(name="transfer")
     async def transfer_tag(self, ctx, member: discord.Member, *, tag):
-        
+
         query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
         owner = await ctx.bot.db.fetchval(query_one, tag, ctx.guild.id)
-        
+
         if owner != ctx.author.id:
             return await ctx.error("gand mara")
-        
+
         query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
         record = await ctx.db.fetchrow(query, tag, ctx.guild.id)
-        
+
         if record is None:
             return await ctx.error("nhi hai tag not found")
-        
+
         query_second = "UPDATE tags SET owner_id = $1 WHERE name = $2 AND guild_id = $3"
         await ctx.db.execute(query_second, member.id, tag, ctx.guild.id)
         await ctx.success("Done bc")
-        
+
     @tag.command("nsfw")
     async def nsfw_status_toggle(self, ctx, *, tag):
-        
+
         query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
         owner = await ctx.bot.db.execute(query_one, tag, ctx.guild.id)
         if owner != ctx.author.id:
             return await ctx.error("gand mara")
-        
+
         query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
         record = await ctx.db.fetchrow(query, tag, ctx.guild.id)
-        
+
         if record is None:
             return await ctx.error("nhi hai tag not found")
-        
+
         nsfw_status = record["is_nsfw"]
         if nsfw_status is False:
             query_nsfw = "UPDATE tags SET is_nsfw = $1 WHERE guild_id = $2 AND name = $3"
             await ctx.bot.db.execute(query_nsfw, True, ctx.guild.id, tag)
             return await ctx.success("ho gya")
-        
+
         query_nsfw = "UPDATE tags SET is_nsfw = $1 WHERE guild_id = $2 AND name = $3"
         await ctx.bot.db.execute(query_nsfw, False, ctx.guild.id, tag)
         return await ctx.success("ho gya")
-        
 
     @tag.command(name="purge")
     async def purge_tags(self, ctx, member: discord.Member):
-        
+
         query = "SELECT COUNT(*) FROM tags WHERE guild_id=$1 AND owner_id=$2;"
         count = await ctx.db.fetchrow(query, ctx.guild.id, member.id)
         count = count[0]
 
         if count == 0:
-            return await ctx.error(f'hai hi nhi XD')
-        
+            return await ctx.error(f"hai hi nhi XD")
+
         query = "DELETE FROM tags WHERE guild_id=$1 AND owner_id=$2;"
         await ctx.db.execute(query, ctx.guild.id, member.id)
-        await ctx.success('ho gya bc')
-        
-        
+        await ctx.success("ho gya bc")
+
     @tag.command(name="edit")
-    async def edit_tag(self, ctx, name:TagName, *, content):
-        
+    async def edit_tag(self, ctx, name: TagName, *, content):
+
         query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
         owner = await ctx.bot.db.execute(query_one, name, ctx.guild.id)
-        
+
         if owner is None:
             return await ctx.error("nhi mila")
-        
+
         if owner != ctx.author.id:
             return await ctx.error("gand mara")
-        
+
         query = "UPDATE tags SET content = $1 WHERE name = $2 AND guild_id = $3"
         await ctx.db.execute(query, content, name, ctx.guild.id)
         await ctx.success("ho gya bc")
-        
-        
+
     @tag.command(name="search")
     async def search_tag(self, ctx, *, name):
         if len(name) < 3:
             return await ctx.error("abey 3 likj le")
-        
-        tag = await Tag.filter(guild_id = ctx.guild.id, name__icontains=name)
+
+        tag = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
         if tag is None:
             return await ctx.error("No tags found.")
-        
+
         tag_names = []
         for tags in tag:
             tag_names.append(f"{tag.index(tags) + 1}. {tags.name} (ID: {tags.id})\n")
-            
-        
-        paginator = Pages(ctx, title="Total tags: {}".format(len(tag_names)), entries=tag_names, per_page=5, show_entry_count=True)
-        
-        await paginator.paginate()
 
+        paginator = Pages(
+            ctx, title="Total tags: {}".format(len(tag_names)), entries=tag_names, per_page=5, show_entry_count=True
+        )
+
+        await paginator.paginate()
 
 
 def setup(bot) -> None:

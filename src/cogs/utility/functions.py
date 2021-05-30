@@ -1,4 +1,5 @@
 from discord.ext import commands
+from core import Context
 from models import Tag
 
 
@@ -26,7 +27,11 @@ class TagName(commands.clean_content):
         return converted if not self.lower else lower
 
 
-async def create_tag(ctx, name, content, is_embed=False, is_nsfw=False):
+class TagConverter(commands.Converter):
+    pass
+
+
+async def create_tag(ctx: Context, name: str, content: str, is_embed=False, is_nsfw=False):
 
     query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
     record = await ctx.bot.db.fetchrow(query, name, ctx.guild.id)
@@ -46,8 +51,15 @@ async def create_tag(ctx, name, content, is_embed=False, is_nsfw=False):
     await ctx.error("pehle se bana hai")
 
 
-async def increment_usage(ctx, name, usage):
-    usage += 1
+async def is_valid_name(ctx: Context, name: str) -> bool:
+    tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
 
-    query = "UPDATE tags SET usage = $1 WHERE guild_id = $2 AND name = $3"
-    await ctx.bot.db.execute(query, usage, ctx.guild.id, name)
+    if tag:
+        return False
+    else:
+        return True
+
+
+async def increment_usage(ctx: Context, name) -> None:
+    query = "UPDATE tags SET usage = usage + 1 WHERE guild_id = $1 AND name = $2"
+    await ctx.db.execute(query, ctx.guild.id, name)
