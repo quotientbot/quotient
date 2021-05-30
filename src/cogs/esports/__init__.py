@@ -17,9 +17,8 @@ from utils import (
     FutureTime,
     human_timedelta,
     get_chunks,
-    ScrimID,
-    TourneyID,
 )
+from .converters import ScrimID, TourneyID
 from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
@@ -37,8 +36,6 @@ import asyncio
 import config
 from .menus import *
 from typing import NamedTuple
-
-# TODO: a seprate class to check scrim_id in cmd args
 
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
