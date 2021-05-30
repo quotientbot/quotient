@@ -1,7 +1,6 @@
-from discord import permissions
 from models import Logging
 from typing import Optional
-from utils import LogType
+from constants import LogType
 import discord
 
 

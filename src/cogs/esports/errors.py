@@ -2,8 +2,9 @@ import discord, io
 from core import Cog
 from .utils import purge_roles, purge_channels
 from prettytable import PrettyTable
-from utils import find_team, emote, IST
+from utils import find_team
 from models import TagCheck
+from constants import IST
 from discord.ext import commands
 from datetime import datetime, timedelta
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney

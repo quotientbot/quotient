@@ -1,12 +1,10 @@
+import discord
 from datetime import datetime, timedelta
-
-from discord import channel
-from core import Quotient, Cog, Context
+from core import Quotient, Cog
 from discord.utils import escape_markdown
-from utils import IST, LogType
+from constants import IST, LogType
 from models import Snipes
 from .functions import *
-import discord
 
 __all__ = ("LoggingEvents",)
 

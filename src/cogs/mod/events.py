@@ -1,6 +1,6 @@
-from core import Cog, Quotient, Context
+from core import Cog, Quotient
 from models import Timer, Lockdown
-from utils import LockType
+from constants import LockType
 import discord
 
 __all__ = ("ModEvents",)

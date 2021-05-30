@@ -1,6 +1,6 @@
 from models import Guild, Tourney, Scrim, Autorole, TMSlot
 from core import Cog, Quotient
-from utils import random_greeting
+from constants import random_greeting
 import discord, config
 import re
 

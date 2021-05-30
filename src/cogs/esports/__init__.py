@@ -12,8 +12,6 @@ from utils import (
     default,
     time,
     day_today,
-    IST,
-    Day,
     inputs,
     checks,
     FutureTime,
@@ -22,6 +20,7 @@ from utils import (
     ScrimID,
     TourneyID,
 )
+from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 
@@ -726,22 +725,22 @@ class ScrimManager(Cog, name="esports"):
         menu = SlotEditor(scrim=scrim_id)
         await menu.start(ctx)
 
-    # @s_slotlist.command(name="image")
-    # @checks.can_use_sm()
-    # @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    # async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
-    #     """
-    #     Get image version of a slotlist.
-    #     """
-    #     scrim = scrim_id
+    @s_slotlist.command(name="image")
+    @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, attach_files=True)
+    async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
+        """
+        Get image version of a slotlist.
+        """
+        scrim = scrim_id
 
-    #     if not len(await scrim.teams_registered):
-    #         return await ctx.error("Nobody registered yet!")
+        if not len(await scrim.teams_registered):
+            return await ctx.error("Nobody registered yet!")
 
-    #     files = await scrim.create_slotlist_img()
-    #     # await ctx.send(embed=embed, file=file)
-    #     for file in files:
-    #         await ctx.send(file=file)
+        files = await scrim.create_slotlist_img()
+        # await ctx.send(embed=embed, file=file)
+        for file in files:
+            await ctx.send(file=file)
 
     # ************************************************************************************************
     @smanager.command(name="delete")

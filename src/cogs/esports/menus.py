@@ -5,6 +5,7 @@ import string
 from models import Scrim, AssignedSlot, Tourney
 from utils import *
 from models.functions import *
+import constants
 from .errors import ScrimError, TourneyError
 
 

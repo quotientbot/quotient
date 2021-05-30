@@ -2,7 +2,7 @@ from discord import Webhook, AsyncWebhookAdapter
 from datetime import datetime, timedelta
 from core import Cog, Quotient
 from models.models import Autoevent
-from utils import constants
+import constants
 import models, discord
 
 from utils.time import strtime

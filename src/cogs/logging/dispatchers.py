@@ -1,6 +1,6 @@
 from core import Quotient, Cog, Context
 from models import Logging
-from utils import LogType
+from constants import LogType
 import discord
 
 __all__ = ("LoggingDispatchers",)
