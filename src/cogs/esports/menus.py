@@ -7,6 +7,7 @@ from utils import *
 from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
+from .utils import already_reserved
 
 
 class ReserveEditor(menus.Menu):
@@ -40,7 +41,19 @@ class ReserveEditor(menus.Menu):
 
     @menus.button(emote.edit)
     async def edit_slot(self, payload):
-        pass
+        available = await already_reserved(self.scrim)
+        msg = await self.ctx.send(
+            f"Following are the slots which are already reserved. Which of them do you want to edit?\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
+        )
+        to_Edit = await inputs.integer_input(
+            self.ctx,
+            self.check,
+            delete_after=True,
+            limits=(None, None),
+        )
+
+        await inputs.safe_delete(msg)
+        # do something
 
     @menus.button("🔢")
     async def edit_start_from(self, payload):
@@ -51,7 +64,7 @@ class ReserveEditor(menus.Menu):
             self.ctx,
             self.check,
             delete_after=True,
-            limits=(None, None),
+            limits=(1, self.scrim.total_slots),
         )
 
         await inputs.safe_delete(m)
