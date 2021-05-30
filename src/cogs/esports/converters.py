@@ -1,35 +1,35 @@
 from discord.ext import commands
 from typing import Optional
+
+import tortoise.exceptions
 from models import *
 
 
 class ScrimID(commands.Converter):
     async def convert(self, ctx, argument) -> Optional[Scrim]:
-        if not argument.isdigit():
-            raise commands.BadArgument(
-                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
-            )
+        try:
+            argument = int(argument)
+        except ValueError:
+            pass
+        else:
+            try:
+                return await Scrim.get(pk=argument)
+            except tortoise.exceptions.DoesNotExist:
+                pass
 
-        scrim = await Scrim.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
-        if scrim is None:
-            raise commands.BadArgument(
-                f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`"
-            )
-
-        return scrim
+        raise commands.BadArgument(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
 
 class TourneyID(commands.Converter):
     async def convert(self, ctx, argument) -> Optional[Tourney]:
-        if not argument.isdigit():
-            raise commands.BadArgument(
-                (f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
-            )
+        try:
+            argument = int(argument)
+        except ValueError:
+            pass
+        else:
+            try:
+                return await Tourney.get(pk=argument)
+            except tortoise.exceptions.DoesNotExist:
+                pass
 
-        tourney = await Tourney.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
-        if tourney is None:
-            raise commands.BadArgument(
-                f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`"
-            )
-
-        return tourney
+        raise commands.BadArgument(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")

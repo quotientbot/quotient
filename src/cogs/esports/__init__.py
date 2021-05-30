@@ -17,9 +17,10 @@ from utils import (
     FutureTime,
     human_timedelta,
     get_chunks,
-    ScrimID,
-    TourneyID,
 )
+
+from .converters import *
+
 from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
