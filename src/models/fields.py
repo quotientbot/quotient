@@ -15,6 +15,16 @@ class BigIntArrayField(Field, list):
         return value
 
 
+class IntArrayField(Field, list):
+    SQL_TYPE = "integer[]"
+
+    def to_db_value(self, value: Any, instance: Union[Type[Model], Model]) -> Any:
+        return value
+
+    def to_python_value(self, value: Any) -> Optional[List[int]]:
+        return value
+
+
 class CharVarArrayField(Field, list):
     SQL_TYPE = "character varying[]"
 

@@ -98,6 +98,8 @@ class Scrim(models.Model):
     slotlist_message_id = fields.BigIntField(null=True)
     role_id = fields.BigIntField(null=True)
     required_mentions = fields.IntField()
+    start_from = fields.IntField(default=1)
+    available_slots = IntArrayField(default=list)  # smallint[] would have done but nvm
     total_slots = fields.IntField()
     host_id = fields.BigIntField()
     open_time = fields.DatetimeField()
@@ -147,6 +149,14 @@ class Scrim(models.Model):
             return self.guild.get_member(self.host_id)
 
         return self.bot.get_user(self.host_id)
+
+    @property
+    def available_to_reserve(self):
+        """
+        gives a range obj of available slots to reserve.
+        this isn't true because some slots might be already reserved , we will sort them later
+        """
+        return range(self.start_from, self.total_slots + self.start_from)
 
     @property
     def banned_users(self):
