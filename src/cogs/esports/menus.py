@@ -8,6 +8,60 @@ from models.functions import *
 from .errors import ScrimError, TourneyError
 
 
+class ReserveEditor(menus.Menu):
+    def __init__(self, *, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    async def initial_embed():
+        embed = discord.Embed()
+        return embed
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(await self.initial_embed())
+
+    async def refresh(self):
+        self.scrim = await Scrim.get(pk=self.scrim.id)
+        await self.message.edit(embed=await self.initial_embed())
+
+    @menus.button(emote.add)
+    async def reserve_a_slot(self, payload):
+        pass
+
+    @menus.button(emote.remove)
+    async def remove_reserved_slot(self, payload):
+        pass
+
+    @menus.button(emote.edit)
+    async def edit_slot(self, payload):
+        pass
+
+    @menus.button("🔢")
+    async def edit_start_from(self, payload):
+        m = await self.ctx.send(
+            "From which slot do you want me to start slotlist?\n\nThis can be any number between 1 and 20."
+        )
+        start_from = await inputs.integer_input(
+            self.ctx,
+            self.check,
+            delete_after=True,
+            limits=(None, None),
+        )
+
+        await inputs.safe_delete(m)
+        await Scrim.filter(id=self.scrim.id).update(start_from=start_from)
+        await self.refresh()
+
+    @menus.button("✅")
+    async def on_save(self, payload):
+        self.stop()
+
+
 class Points(menus.Menu):
     def __init__(self, *, scrim: Scrim):
         super().__init__(
@@ -524,4 +578,3 @@ class TourneyEditor(menus.Menu):
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
         self.stop()
-        
