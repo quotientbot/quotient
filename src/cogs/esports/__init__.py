@@ -1,3 +1,9 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Cog, Quotient, Context
+
 from .utils import (
     toggle_channel,
     scrim_end_process,
@@ -29,7 +35,6 @@ from discord import AllowedMentions
 from discord.ext import commands
 
 from .errors import ScrimError, SMError, TourneyError
-from core import Cog, Quotient, Context
 from prettytable import PrettyTable
 
 import discord
