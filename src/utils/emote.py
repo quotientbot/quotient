@@ -8,6 +8,11 @@ scrimscheck = "<:scrimscheck:839554647861755946>"
 scrimsxmark = "<:scrimscross:839554689778712576>"
 
 
+add = "<:add:844825523003850772>"
+remove = "<:remove:844825861295046661>"
+edit = "<:edit:844826616735727616>"
+
+
 error = "❗"
 
 server = "<:server:775586933396078612>"
@@ -45,9 +50,7 @@ VoiceChannel = "<:voice:815827186116198430>"
 TextChannel = "<:text:815827264679706624>"
 category = "<:category:815831557507776583>"
 pain = "<:blobpain:831771526368985098>"
-settings_yes = (
-    "<:settings_mark_off:815169498319159337><:settings_check_on:815169424566517791>"
-)
+settings_yes = "<:settings_mark_off:815169498319159337><:settings_check_on:815169424566517791>"
 settings_no = "<:set_no_on:815169465259786241><:set_yes_off:815169360393404436>"
 
 
