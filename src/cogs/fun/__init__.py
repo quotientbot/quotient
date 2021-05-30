@@ -95,7 +95,7 @@ class Fun(Cog):
         if channel.is_nsfw() == False:
             return await ctx.error("The channel is not NSFW.")
 
-        record = await insert_or_update_config(ctx, EventType.meme, channel)
+        record = await insert_or_update_config(ctx, EventType.nsfw, channel)
         if not record:
             await ctx.success(f"AutoNSFW enabled successfully!")
         else:
