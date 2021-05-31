@@ -18,7 +18,7 @@ class Fun(Cog):
         """
         Get the latest and trendy memes served in your server in a definite timespan.
         Must have `manage server` permissions.
-        Bot must have `manage webhooks` permission.
+        Bot must have `manage webhooks` permission
         """
 
         if not channel.permissions_for(ctx.me).manage_webhooks:
