@@ -304,7 +304,18 @@ class Utility(Cog, name="utility"):
     @tag.command(name="edit")
     async def edit_tag(self, ctx, name: TagName, *, content):
         """Edit a tag"""
-        pass
+        tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
+        if not tag:
+            return await ctx.error(f"Tag name is invalid.")
+
+        if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+            return await ctx.error(f"This tag doesn't belong to you.")
+
+        if len(content) > 1990:
+            return await ctx.error(f"Tag content cannot exceed 1990 characters.")
+
+        await Tag.filter(id=tag.id).update(content=content)
+        await ctx.success(f"Tag updated.")
 
     @tag.command(name="search")
     async def search_tag(self, ctx, *, name):
