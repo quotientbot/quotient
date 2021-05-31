@@ -189,7 +189,8 @@ class Utility(Cog, name="utility"):
 
         if name.is_embed is True:
             dict = json.loads(name.content)
-            return await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
+            await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
+            return await increment_usage(ctx, name.name)
 
         await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
@@ -278,7 +279,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"This tag doesn't belong to you.")
 
         await Tag.filter(id=tag.id).update(owner_id=member.id)
-        await ctx.success("Transfer successfull.")
+        await ctx.success("Transfer successful.")
 
     @tag.command("nsfw")
     async def nsfw_status_toggle(self, ctx, *, tag: TagConverter):
@@ -298,7 +299,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"{member} doesn't own any tag.")
 
         await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).delete()
-        await ctx.success("Deleted all tags")
+        await ctx.success(f"Deleted **{count}** {'tag' if count == 1 else 'tags'} by **{member}**.")
 
     @tag.command(name="edit")
     async def edit_tag(self, ctx, name: TagName, *, content):
