@@ -1,5 +1,6 @@
 from discord import Webhook, AsyncWebhookAdapter
-from utils import EventType, IST
+from utils import  IST
+from constants import EventType
 from core import Cog, Quotient
 from models import Autoevent
 from discord.ext import tasks

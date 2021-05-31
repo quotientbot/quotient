@@ -2,7 +2,8 @@ from models.models import Autoevent
 from .helper import insert_or_update_config
 from core import Cog, Context, Quotient
 from discord.ext import commands
-from utils import EventType, emote, checks, simple_convert
+from utils import emote, checks, simple_convert
+from constants import EventType
 from .funevents import *
 import discord, asyncio
 
