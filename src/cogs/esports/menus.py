@@ -3,6 +3,7 @@ from discord.ext import menus
 from discord.ext.menus import Button
 import string
 from models import Scrim, AssignedSlot, Tourney
+from models.esports import ReservedSlot
 from utils import *
 from models.functions import *
 import constants
@@ -50,7 +51,7 @@ class ReserveEditor(menus.Menu):
     async def reserve_a_slot(self, payload):
         available = await available_to_reserve(self.scrim)
         if not len(available):
-            return await self.ctx.error("No slots left to reserve.", delete_after=4)
+            return await self.ctx.error("No slots left to reserve.", delete_after=3)
 
         msg = await self.ctx.send(
             f"Which slot do you wish to reserve? Choose from:\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
@@ -65,30 +66,53 @@ class ReserveEditor(menus.Menu):
         await inputs.safe_delete(msg)
 
         if to_reserve not in available:
-            return await self.ctx.error(f"You cannot reserve this slot.", delete_after=4)
+            return await self.ctx.error(f"You cannot reserve this slot.", delete_after=3)
 
         msg = await self.ctx.send(
             "For which user do you wish to reserve a slot?\nThis is needed to add scrims role to them when registration start.",
         )
 
-        member = await inputs.member_input(self.ctx, check, delete_after=True)
-
+        member = await inputs.member_input(self.ctx, self.check, delete_after=True)
         if not member:
-            return await self.ctx.error(f"That's not a valid member.", delete_after=4)
+            return await self.ctx.error(f"That's not a valid member.", delete_after=3)
 
         if member.id in await self.scrim.reserved_user_ids():
-            return await self.ctx.error(f"{str(member)} is already in the reserved list.", delete_after=4)
+            return await self.ctx.error(f"{str(member)} is already in the reserved list.", delete_after=3)
 
-        await self.ctx.send(f"What is {member}'s team name?")
-        team_name = await inputs.string_input(self.ctx, check, delete_after=True)
+        await inputs.safe_delete(msg)
 
-        await self.ctx.send("For how much time should I reserve the slot for them?")
-        
+        msg = await self.ctx.send(f"What is {member}'s team name?")
+        team_name = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+
+        msg = await self.ctx.send(
+            "For how much time should I reserve the slot for them?\n\nEnter `none` if you don't want to set time."
+        )
+        duration = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        if not duration.lower() == "none":
+            duration = FutureTime(duration)
+            future = duration.dt
+
+        else:
+            future = None
+
+        await inputs.safe_delete(msg)
+        slot = await ReservedSlot.create(num=to_reserve, user_id=member.id, team_name=team_name, expires=future)
+        await self.scrim.reserved_slots.add(slot)
+
+        if future:
+            await self.ctx.bot.reminders.create_timer(
+                future.dt, "scrim_reserve", scrim_id=self.scrim.id, user_id=member.id, team_name=team_name, num=to_reserve
+            )
+
+        await self.refresh()
+
     @menus.button(emote.remove)
     async def remove_reserved_slot(self, payload):
         available = await already_reserved(self.scrim)
         if not len(available):
-            return await self.ctx.error("There are 0 reserved slots.", delete_after=4)
+            return await self.ctx.error("There are 0 reserved slots.", delete_after=3)
 
         msg = await self.ctx.send(
             f"Which slot do you wish to remove from reserved? Choose from:\n\n{', '.join(map(lambda x: f'`{x}`', available))}"
@@ -101,6 +125,13 @@ class ReserveEditor(menus.Menu):
         )
 
         await inputs.safe_delete(msg)
+
+        if slot not in available:
+            return await self.ctx.error(f"This is not a reserved slot.", delete_after=3)
+
+        slot = await self.scrim.reserved_slots.filter(num=slot).first()
+        await ReservedSlot.filter(id=slot.id).delete()
+        await self.refresh()
 
     @menus.button("🔢")
     async def edit_start_from(self, payload):

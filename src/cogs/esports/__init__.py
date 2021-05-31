@@ -812,66 +812,6 @@ class ScrimManager(Cog, name="esports"):
         menu = ReserveEditor(scrim=scrim)
         await menu.start(ctx)
 
-    @s_reserve.command(name="add")
-    async def s_reserve_add(self, ctx, scrim: ScrimConverter, time: FutureTime = None):
-        """
-        Add a team to the reserved list temporarily or permanently.
-        """
-
-        def check(message: discord.Message):
-            return message.author == ctx.author and ctx.channel == message.channel
-
-        msg = await ctx.send(
-            embed=discord.Embed(
-                color=config.COLOR,
-                description="For which user do you wish to reserve a slot?\nThis is needed to add scrims role to them when registration start.",
-            )
-        )
-        member = await inputs.member_input(ctx, check, delete_after=True)
-
-        if not member:
-            return await ctx.error(f"That's not a valid member.")
-
-        if member.id in await scrim.reserved_user_ids():
-            return await ctx.send(
-                f"{str(member)} is already in the reserved list.\n\nIf you would like to remove them , use: `{ctx.prefix}smanager reserve add {scrim.id}`"
-            )
-
-        await ctx.send(embed=discord.Embed(color=config.COLOR, description=f"What is {member}'s team name?"))
-        team_name = await inputs.string_input(ctx, check, delete_after=True)
-
-        if time != None:
-            expire_time = time.dt
-        else:
-            expire_time = None
-
-        slot = await ReservedSlot.create(user_id=member.id, team_name=team_name, expires=expire_time)
-        await scrim.reserved_slots.add(slot)
-
-        if expire_time:
-            await self.reminders.create_timer(
-                expire_time, "scrim_reserve", scrim_id=scrim.id, user_id=member.id, team_name=team_name
-            )
-
-            return await ctx.success(
-                f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`) for {human_timedelta(expire_time )}"
-            )
-        await ctx.send(f"Successfully reserved **{team_name}** in Scrim (`{scrim.id}`).")
-
-    @s_reserve.command(name="remove")
-    async def s_reserve_remove(self, ctx, scrim: ScrimConverter, *, member: discord.User):
-        """
-        Remove a reserved team from reserved list.
-        """
-        if not member.id in await scrim.reserved_user_ids():
-            return await ctx.send(
-                f"**{member}** is not reserved.\n\nYou can reserve their team with: `{ctx.prefix}smanager reserve add {scrim.id}`"
-            )
-
-        team = await scrim.reserved_slots.filter(user_id=member.id).first()
-        await ReservedSlot.filter(id=team.id).delete()
-        await ctx.success(f"Successfully deleted {member}'s reserved slot from Scrim (`{scrim.id}`)")
-
     @s_reserve.command(name="list", aliases=("all",))
     async def s_reverse_list(self, ctx, scrim: ScrimConverter):
         """
@@ -883,7 +823,9 @@ class ScrimManager(Cog, name="esports"):
         users = ""
         for idx, user in enumerate(await scrim.reserved_slots.all(), start=1):
             owner = ctx.guild.get_member(user.user_id) or self.bot.get_user(user.user_id)
-            users += f"`{idx:02d}`| {user.team_name.title()} ({getattr(owner,'mention','Not Found')})\n"
+            users += (
+                f"`{idx:02d}`| {user.team_name.title()} ({getattr(owner,'mention','Not Found')}) [Slot: {user.num}]\n"
+            )
 
         embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
         await ctx.send(embed=embed)
