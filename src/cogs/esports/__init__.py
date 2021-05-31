@@ -819,7 +819,7 @@ class ScrimManager(Cog, name="esports"):
         """
         Add / Remove a team from the reserved list
         """
-        menu = ReserveEditor(scrim=scrim)
+        menu = ReserveEditorMenu(scrim=scrim)
         await menu.start(ctx)
 
     @s_reserve.command(name="list", aliases=("all",))

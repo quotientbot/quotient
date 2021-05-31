@@ -11,7 +11,7 @@ from .errors import ScrimError, TourneyError
 from .utils import already_reserved, available_to_reserve
 
 
-class ReserveEditor(menus.Menu):
+class ReserveEditorMenu(menus.Menu):
     def __init__(self, *, scrim: Scrim):
         super().__init__(
             timeout=60,
