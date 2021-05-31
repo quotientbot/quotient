@@ -98,8 +98,12 @@ class ScrimManager(Cog, name="esports"):
 
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
+            
+            try:
+                slot_num = scrim.available_slots[0]
+            except:
+                continue #this will never happen though
 
-            slot_num = scrim.available_slots[0]
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=teamname,
