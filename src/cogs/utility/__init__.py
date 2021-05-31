@@ -221,7 +221,7 @@ class Utility(Cog, name="utility"):
         embed.set_author(name=str(user), icon_url=user.avatar_url)
 
         embed.add_field(name="Owner", value=getattr(user, "mention", "Invalid User!"))
-        embed.add_field(name="ID:", value=id)
+        embed.add_field(name="ID:", value=tag.id)
         embed.add_field(name="Uses", value=tag.usage)
         embed.add_field(name="NSFW", value="No" if not tag.is_nsfw else "Yes")
         embed.add_field(name="Embed", value="No" if not tag.is_embed else "Yes")
