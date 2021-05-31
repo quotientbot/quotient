@@ -22,14 +22,14 @@ class InvalidColor(QuotientError):
 class NotPremiumGuild(QuotientError):
     def __init__(self):
         super().__init__(
-            f"This command requires this server to be premium.\n\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
+            "This command requires this server to be premium.\n\nCheckout Quotient Premium [here]({ctx.bot.config.WEBSITE}/premium)"
         )
 
 
 class NotPremiumUser(QuotientError):
     def __init__(self):
         super().__init__(
-            f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
+            "This command requires you to be a premium user.\nCheckout Quotient Premium [here]({ctx.bot.config.WEBSITE}/premium)"
         )
 
 
