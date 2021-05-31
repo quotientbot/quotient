@@ -4,6 +4,7 @@ import constants
 from tortoise import fields, models
 import config, discord
 from typing import Optional
+from .redis_cache import model_cache
 
 __all__ = (
     "Guild",
@@ -67,6 +68,11 @@ class Guild(models.Model):
     @property
     def muted(self):
         return tuple(map(self.bot.get_user, self.muted_members))
+
+    @classmethod
+    @model_cache("guild_data")
+    async def from_cache(cls, guild_id: int):
+        return await cls.get(guild_id=guild_id)
 
     # ************************************************************************************************
 
