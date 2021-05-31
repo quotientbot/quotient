@@ -2,7 +2,7 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Tag
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, strtime
+from utils import checks, ColorConverter, Pages, strtime, plural
 from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
@@ -190,9 +190,9 @@ class Utility(Cog, name="utility"):
         if name.is_embed is True:
             dict = json.loads(name.content)
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
-            return await increment_usage(ctx, name.name)
 
-        await ctx.send(name.content, reference=ctx.replied_reference)
+        else:
+            await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
@@ -299,7 +299,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"{member} doesn't own any tag.")
 
         await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).delete()
-        await ctx.success(f"Deleted **{count}** {'tag' if count == 1 else 'tags'} by **{member}**.")
+        await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
     async def edit_tag(self, ctx, name: TagName, *, content):
