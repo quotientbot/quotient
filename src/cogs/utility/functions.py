@@ -27,8 +27,19 @@ class TagName(commands.clean_content):
         return converted if not self.lower else lower
 
 
-class TagConverter(commands.Converter):
-    pass
+class TagConverter(commands.Converter, Tag):
+    async def convert(self, ctx, argument: str):
+        try:
+            argument = int(argument)
+            tag = await Tag.get_or_none(id=argument, guild_id=ctx.guild.id)
+
+        except ValueError:
+            tag = await Tag.get_or_none(guild_id=ctx.guild.id, name=argument)
+
+        if not tag:
+            raise commands.BadArgument(f"{argument} is not a valid Tag Name or ID.")
+
+        return tag
 
 
 async def create_tag(ctx: Context, name: str, content: str, is_embed=False, is_nsfw=False):
