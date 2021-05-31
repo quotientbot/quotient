@@ -99,17 +99,17 @@ class ScrimManager(Cog, name="esports"):
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
 
-            assigned_slots = await scrim.assigned_slots.all().count()
-
+            slot_num = scrim.available_slots[0]
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=teamname,
-                num=assigned_slots + 1,
+                num=slot_num,
                 jump_url=message.jump_url,
             )
 
             await scrim.assigned_slots.add(slot)
 
+            await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
             self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
 
             role_given = True
@@ -122,7 +122,7 @@ class ScrimManager(Cog, name="esports"):
                 role_added=role_given,
             )
 
-            if scrim.total_slots == assigned_slots + 1:
+            if len(scrim.available_slots) == 1:
                 await scrim_end_process(ctx, scrim)
 
     async def tourney_registration_worker(self):
@@ -214,14 +214,23 @@ class ScrimManager(Cog, name="esports"):
 
         await scrim.assigned_slots.clear()
 
-        async for slot in scrim.reserved_slots.all():
-            count = await scrim.assigned_slots.all().count()
+        # here we insert a list of slots we can give for the registration.
+        # we insert only the empty slots not the reserved ones to avoid extra queries during creation of slots for reserved users.
+        # await Scrim.filter(id=scrim.id).update(available_slots=await available_to_reserve(scrim))
 
+        await self.bot.db.execute(
+            """
+            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
+            """,
+            await available_to_reserve(scrim),
+            scrim.id,
+        )
+        async for slot in scrim.reserved_slots.all():
             assinged_slot = await AssignedSlot.create(
+                num=slot.num,
                 user_id=slot.user_id,
                 team_name=slot.team_name,
                 jump_url=None,
-                num=count + 1,
             )
 
             await scrim.assigned_slots.add(assinged_slot)
