@@ -192,7 +192,7 @@ class Utility(Cog, name="utility"):
             return await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
         await ctx.send(name.content, reference=ctx.replied_reference)
-        await increment_usage(ctx, name)
+        await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
     async def all_tags(self, ctx):
@@ -253,11 +253,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
 
         if await is_valid_name(ctx, name):
-            tag = await Tag.create(
-                name=name,
-                content=content,
-                guild_id=ctx.guild.id,
-            )
+            tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
 
             await ctx.success(f"Created Tag (ID: `{tag.id}`)")
 
