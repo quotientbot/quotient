@@ -6,6 +6,8 @@ from constants import random_greeting
 from discord.ext import commands
 from discord.ext.commands import errors
 
+errors.CommandError
+
 
 class Errors(Cog):
     def __init__(self, bot: Quotient):
@@ -26,46 +28,8 @@ class Errors(Cog):
         elif isinstance(err, commands.NotOwner):
             return await ctx.send("Hmmm!😷")
 
-        elif isinstance(err, exceptions.NotSetup):
-            return await ctx.error(
-                f"This command requires you to have Quotient's private channel.\nKindly run `{ctx.prefix}setup` and try again."
-            )
-
-        elif isinstance(err, exceptions.InvalidColor):
-            return await ctx.error(
-                f"`{err}` doesn't seem to be a valid color, \nPick a shade from [here](https://www.google.com/search?q=color+picker)"
-            )
-
-        elif isinstance(err, exceptions.NotPremiumUser):
-            return await ctx.error(
-                f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
-            )
-
-        elif isinstance(err, exceptions.NotPremiumGuild):
-            return await ctx.error(
-                f"This command requires this server to be premium.\n\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
-            )
-
-        elif isinstance(err, exceptions.InputError):
-            return await ctx.error(err)
-
-        elif isinstance(err, exceptions.SMNotUsable):
-            return await ctx.error(
-                f"You need either the `scrims-mod` role or `manage_guild` permissions to use scrims manager."
-            )
-
-        elif isinstance(err, exceptions.TMNotUsable):
-            return await ctx.error(
-                f"You need either the `tourney-mod` role or `manage_guild` permissions to use tourney manager."
-            )
-
-        elif isinstance(err, exceptions.PastTime):
-            return await ctx.send(
-                f"The time you entered seems to be in past.\n\nKindly try again, use times like: `tomorrow` , `friday 9pm`"
-            )
-
-        elif isinstance(err, exceptions.InvalidTime):
-            return await ctx.send(f"The time you entered seems to be invalid.\n\nKindly try again.")
+        elif isinstance(err, exceptions.QuotientError):
+            return await ctx.error(err.__str__().format(ctx=ctx))
 
         elif isinstance(err, errors.MissingRequiredArgument):
             return await ctx.send(

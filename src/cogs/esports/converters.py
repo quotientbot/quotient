@@ -5,7 +5,7 @@ import tortoise.exceptions
 from models import *
 
 
-class ScrimID(commands.Converter):
+class ScrimID(commands.Converter, Scrim):
     async def convert(self, ctx, argument) -> Optional[Scrim]:
         try:
             argument = int(argument)

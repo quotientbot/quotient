@@ -481,14 +481,14 @@ class ScrimManager(Cog, name="esports"):
 
         registration_channel = scrim.registration_channel
 
-        fields = [
+        fields = (
             f"Registration Channel: {registration_channel.mention}",
             f"Slotlist Channel: {scrim.slotlist_channel.mention}",
             f"Role: {scrim.role.mention}",
             f"Minimum Mentions: {scrim.required_mentions}",
             f"Slots: {scrim.total_slots}",
             f"Open Time: {time(scrim.open_time)}",
-        ]
+        )
 
         title = "Are these correct?"
         description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
@@ -691,57 +691,52 @@ class ScrimManager(Cog, name="esports"):
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
-    async def s_slotlist_send(self, ctx, scrim_id: ScrimID):
+    async def s_slotlist_send(self, ctx, scrim: ScrimID):
         """
         Send a slotlist.
         """
-        scrim = scrim_id
-        if not len(await scrim.teams_registered):
+
+        if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
         else:
             embed, channel = await scrim.create_slotlist()
             embed.color = ctx.bot.color
-
             await ctx.send(embed=embed)
             prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
             if prompt:
-                if channel != None and channel.permissions_for(ctx.me).send_messages:
+                if channel is not None and channel.permissions_for(ctx.me).send_messages:
                     await channel.send(embed=embed)
                     await ctx.success(f"Slotlist sent successfully!")
                 else:
                     await ctx.error(f"I can't send messages in {channel}")
-
             else:
                 await ctx.success(f"Ok!")
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_slotlist_edit(self, ctx, scrim_id: ScrimID):
+    async def s_slotlist_edit(self, ctx, scrim: ScrimID):
         """
         Edit a slotlist
         """
-        if not len(await scrim_id.teams_registered):
+        if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
-        menu = SlotEditor(scrim=scrim_id)
+        menu = SlotEditor(scrim=scrim)
         await menu.start(ctx)
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    async def s_slotlist_image(self, ctx, scrim_id: ScrimID):
+    async def s_slotlist_image(self, ctx, scrim: ScrimID):
         """
         Get image version of a slotlist.
         """
-        scrim = scrim_id
-
-        if not len(await scrim.teams_registered):
+        if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
         files = await scrim.create_slotlist_img()
-        # await ctx.send(embed=embed, file=file)
         for file in files:
             await ctx.send(file=file)
 
@@ -851,7 +846,6 @@ class ScrimManager(Cog, name="esports"):
         team_name = await inputs.string_input(ctx, check, delete_after=True)
 
         if time != None:
-
             expire_time = time.dt
         else:
             expire_time = None

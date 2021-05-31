@@ -1,37 +1,62 @@
 from discord.ext import commands
 
 
-class NotSetup(commands.CheckFailure):
+class QuotientError(commands.CheckFailure):
     pass
 
 
-class InvalidColor(commands.CommandError):
+class NotSetup(QuotientError):
+    def __init__(self):
+        super().__init__(
+            "This command requires you to have Quotient's private channel.\nKindly run `{ctx.prefix}setup` and try again."
+        )
+
+
+class InvalidColor(QuotientError):
+    def __init__(self, argument):
+        super().__init__(
+            f"`{argument}` doesn't seem to be a valid color, \nPick a shade from [here](https://www.google.com/search?q=color+picker)"
+        )
+
+
+class NotPremiumGuild(QuotientError):
+    def __init__(self):
+        super().__init__(
+            f"This command requires this server to be premium.\n\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
+        )
+
+
+class NotPremiumUser(QuotientError):
+    def __init__(self):
+        super().__init__(
+            f"This command requires you to be a premium user.\nCheckout Quotient Premium [here]({self.bot.config.WEBSITE}/premium)"
+        )
+
+
+class InputError(QuotientError):
     pass
 
 
-class NotPremiumGuild(commands.CheckFailure):
-    pass
+class SMNotUsable(QuotientError):
+    def __init__(self):
+        super().__init__(f"You need either the `scrims-mod` role or `manage_guild` permissions to use scrims manager.")
 
 
-class NotPremiumUser(commands.CheckFailure):
-    pass
+class TMNotUsable(QuotientError):
+    def __init__(self):
+        super().__init__(f"You need either the `tourney-mod` role or `manage_guild` permissions to use tourney manager.")
 
 
-class InputError(commands.CommandError):
-    pass
+class PastTime(QuotientError):
+    def __init__(self):
+        super().__init__(
+            f"The time you entered seems to be in past.\n\nKindly try again, use times like: `tomorrow` , `friday 9pm`"
+        )
 
 
-class SMNotUsable(commands.CheckFailure):
-    pass
+TimeInPast = PastTime
 
 
-class TMNotUsable(commands.CheckFailure):
-    pass
-
-
-class PastTime(commands.CheckFailure):
-    pass
-
-
-class InvalidTime(commands.CheckFailure):
-    pass
+class InvalidTime(QuotientError):
+    def __init__(self):
+        super().__init__(f"The time you entered seems to be invalid.\n\nKindly try again.")

@@ -11,7 +11,9 @@ async def safe_delete(message):
     try:
         await message.delete()
     except (discord.Forbidden, discord.NotFound):
-        return
+        return False
+    else:
+        return True
 
 
 async def channel_input(ctx, check, timeout=120, delete_after=False):
