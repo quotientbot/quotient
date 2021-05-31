@@ -179,7 +179,7 @@ class Utility(Cog, name="utility"):
     #     await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx: Context, *, name: Optional[TagName(lower=True)]):
+    async def tag(self, ctx: Context, *, name: TagName(lower=True) = None):
 
         if name is None:
             return await ctx.send_help(ctx.command)

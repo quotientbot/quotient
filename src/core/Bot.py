@@ -58,9 +58,12 @@ class Quotient(commands.AutoShardedBot):
                 print(Fore.RED + f"[WARNING] Could not load extension {ext}: {tbe}")
         print(Fore.RED + "-----------------------------------------------------")
 
+    @property
+    def db(self):
+        return Tortoise.get_connection("default")._pool
+
     async def init_quo(self):
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.db = await asyncpg.create_pool(**config.POSTGRESQL)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
         await cache(self)
