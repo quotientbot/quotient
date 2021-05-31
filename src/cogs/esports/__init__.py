@@ -1304,6 +1304,11 @@ class ScrimManager(Cog, name="esports"):
         await Tourney.filter(pk=tourney.id).update(banned_users=ArrayRemove("banned_users", user.id))
         await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney.id}`)")
 
+    @commands.command()
+    async def format(self, ctx, *, registration_form):
+        """Get your reg-format in a reusable form."""
+        await ctx.send(f"```{registration_form}```")
+
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
