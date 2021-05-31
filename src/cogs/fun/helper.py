@@ -1,5 +1,6 @@
 from models import Autoevent
-from utils import EventType, IST
+from utils import IST
+from constants import EventType
 from datetime import datetime
 from core import Context
 import discord
