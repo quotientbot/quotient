@@ -2,7 +2,7 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Tag
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, strtime
+from utils import checks, ColorConverter, Pages, strtime, plural
 from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
@@ -179,28 +179,25 @@ class Utility(Cog, name="utility"):
     #     await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx: Context, *, name: TagName(lower=True) = None):
-
+    async def tag(self, ctx: Context, *, name: TagConverter = None):
+        """Call a tag with its name or id"""
         if name is None:
             return await ctx.send_help(ctx.command)
 
-        record = await Tag.get_or_none(guild_id=ctx.guild.id, name=name)
-
-        if record is None:
-            return await ctx.error(f"No tag **{name}** found.\nCreate one with the `{ctx.prefix}tag create` command.")
-
-        if not ctx.channel.is_nsfw() and record.is_nsfw:
+        if name.is_nsfw and not ctx.channel.is_nsfw():
             return await ctx.error("This tag can only be used in NSFW channels.")
 
-        if record.is_embed is True:
-            dict = json.loads(record.content)
-            return await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
+        if name.is_embed is True:
+            dict = json.loads(name.content)
+            await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
-        await ctx.send(record.content, reference=ctx.replied_reference)
-        await increment_usage(ctx, name)
+        else:
+            await ctx.send(name.content, reference=ctx.replied_reference)
+        await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
     async def all_tags(self, ctx):
+        """Get all tags owned by the server."""
         tags = await Tag.filter(guild_id=ctx.guild.id)
 
         if not len(tags):
@@ -217,6 +214,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="info", aliases=("stats",))
     async def tag_info(self, ctx, *, tag: TagConverter):
+        """Information about a tag"""
         embed = self.bot.embed(ctx, title=f"Stats for tag {tag.name}")
 
         user = self.bot.get_user(tag.owner_id) or await self.bot.fetch_user(tag.owner_id)
@@ -224,7 +222,7 @@ class Utility(Cog, name="utility"):
         embed.set_author(name=str(user), icon_url=user.avatar_url)
 
         embed.add_field(name="Owner", value=getattr(user, "mention", "Invalid User!"))
-        embed.add_field(name="ID:", value=id)
+        embed.add_field(name="ID:", value=tag.id)
         embed.add_field(name="Uses", value=tag.usage)
         embed.add_field(name="NSFW", value="No" if not tag.is_nsfw else "Yes")
         embed.add_field(name="Embed", value="No" if not tag.is_embed else "Yes")
@@ -233,7 +231,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="claim")
     async def claim_tag(self, ctx, *, tag: TagConverter):
-        """Koi tag le jayega pata bhi nhi chalega tujhe gandu."""
+        """Claim if tag if its owner has left."""
 
         member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
 
@@ -245,6 +243,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="create")
     async def create_tag_command(self, ctx, name: TagName, *, content=""):
+        """Create a new tag"""
         if len(ctx.message.attachments) > 1:
             return await ctx.error("You cannot create tag with more than one attachment.")
 
@@ -254,13 +253,17 @@ class Utility(Cog, name="utility"):
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
 
-        # if await is_valid_name(ctx,name):
-        # await Tag.create(name=name , content = content, guild_id = ctx.guild.id, )
+        if await is_valid_name(ctx, name):
+            tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
 
-        # await ctx.success(f"Created Tag (ID: `{tag.id}`)")
+            await ctx.success(f"Created Tag (ID: `{tag.id}`)")
+
+        else:
+            await ctx.error(f"Tag Name is already taken.")
 
     @tag.command(name="delete", aliases=["del"])
     async def delete_tag(self, ctx, *, tag_name: TagConverter):
+        """Delete a tag"""
         tag = tag_name
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error(f"This tag doesn't belong to you.")
@@ -269,96 +272,66 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {tag_name.name}")
 
     @tag.command(name="transfer")
-    async def transfer_tag(self, ctx, member: discord.Member, *, tag):
+    async def transfer_tag(self, ctx, member: discord.Member, *, tag: TagConverter):
+        """Transfer the ownership of a tag."""
 
-        query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
-        owner = await ctx.bot.db.fetchval(query_one, tag, ctx.guild.id)
+        if tag.owner_id != ctx.author.id:
+            return await ctx.error(f"This tag doesn't belong to you.")
 
-        if owner != ctx.author.id:
-            return await ctx.error("gand mara")
-
-        query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
-        record = await ctx.db.fetchrow(query, tag, ctx.guild.id)
-
-        if record is None:
-            return await ctx.error("nhi hai tag not found")
-
-        query_second = "UPDATE tags SET owner_id = $1 WHERE name = $2 AND guild_id = $3"
-        await ctx.db.execute(query_second, member.id, tag, ctx.guild.id)
-        await ctx.success("Done bc")
+        await Tag.filter(id=tag.id).update(owner_id=member.id)
+        await ctx.success("Transfer successful.")
 
     @tag.command("nsfw")
-    async def nsfw_status_toggle(self, ctx, *, tag):
+    async def nsfw_status_toggle(self, ctx, *, tag: TagConverter):
+        """Toggle NSFW for a tag."""
+        if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+            return await ctx.error(f"This tag doesn't belong to you.")
 
-        query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
-        owner = await ctx.bot.db.execute(query_one, tag, ctx.guild.id)
-        if owner != ctx.author.id:
-            return await ctx.error("gand mara")
-
-        query = "SELECT * FROM tags WHERE name = $1 AND guild_id = $2"
-        record = await ctx.db.fetchrow(query, tag, ctx.guild.id)
-
-        if record is None:
-            return await ctx.error("nhi hai tag not found")
-
-        nsfw_status = record["is_nsfw"]
-        if nsfw_status is False:
-            query_nsfw = "UPDATE tags SET is_nsfw = $1 WHERE guild_id = $2 AND name = $3"
-            await ctx.bot.db.execute(query_nsfw, True, ctx.guild.id, tag)
-            return await ctx.success("ho gya")
-
-        query_nsfw = "UPDATE tags SET is_nsfw = $1 WHERE guild_id = $2 AND name = $3"
-        await ctx.bot.db.execute(query_nsfw, False, ctx.guild.id, tag)
-        return await ctx.success("ho gya")
+        await Tag.filter(id=tag.id).update(is_nsfw=not (tag.is_nsfw))
+        await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
 
     @tag.command(name="purge")
     async def purge_tags(self, ctx, member: discord.Member):
+        """Delete all the tags of a member"""
 
-        query = "SELECT COUNT(*) FROM tags WHERE guild_id=$1 AND owner_id=$2;"
-        count = await ctx.db.fetchrow(query, ctx.guild.id, member.id)
-        count = count[0]
+        count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
+        if not count:
+            return await ctx.error(f"{member} doesn't own any tag.")
 
-        if count == 0:
-            return await ctx.error(f"hai hi nhi XD")
-
-        query = "DELETE FROM tags WHERE guild_id=$1 AND owner_id=$2;"
-        await ctx.db.execute(query, ctx.guild.id, member.id)
-        await ctx.success("ho gya bc")
+        await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).delete()
+        await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
     async def edit_tag(self, ctx, name: TagName, *, content):
+        """Edit a tag"""
+        tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
+        if not tag:
+            return await ctx.error(f"Tag name is invalid.")
 
-        query_one = "SELECT owner_id FROM tags WHERE name = $1 AND guild_id = $2"
-        owner = await ctx.bot.db.execute(query_one, name, ctx.guild.id)
+        if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+            return await ctx.error(f"This tag doesn't belong to you.")
 
-        if owner is None:
-            return await ctx.error("nhi mila")
+        if len(content) > 1990:
+            return await ctx.error(f"Tag content cannot exceed 1990 characters.")
 
-        if owner != ctx.author.id:
-            return await ctx.error("gand mara")
-
-        query = "UPDATE tags SET content = $1 WHERE name = $2 AND guild_id = $3"
-        await ctx.db.execute(query, content, name, ctx.guild.id)
-        await ctx.success("ho gya bc")
+        await Tag.filter(id=tag.id).update(content=content)
+        await ctx.success(f"Tag updated.")
 
     @tag.command(name="search")
     async def search_tag(self, ctx, *, name):
-        if len(name) < 3:
-            return await ctx.error("abey 3 likj le")
+        """Search in all your tags."""
+        tags = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
-        tag = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
-
-        if tag is None:
+        if not len(tags):
             return await ctx.error("No tags found.")
 
-        tag_names = []
-        for tags in tag:
-            tag_names.append(f"{tag.index(tags) + 1}. {tags.name} (ID: {tags.id})\n")
+        tag_list = []
+        for idx, tag in enumerate(tags, start=1):
+            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
 
         paginator = Pages(
-            ctx, title="Total tags: {}".format(len(tag_names)), entries=tag_names, per_page=5, show_entry_count=True
+            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
         )
-
         await paginator.paginate()
 
 
