@@ -2,15 +2,12 @@ from discord import AllowedMentions, Intents
 from colorama import Fore, Style, init
 from discord.ext import commands
 from tortoise import Tortoise
-
-from models.models import Guild
-from models.redis_cache import RedisCache
 from .Context import Context
 from datetime import datetime
 from utils import cache, IST
 from typing import NoReturn, Optional
 import aiohttp, asyncio, os
-import config
+import config, asyncpg
 from .Cog import Cog
 import itertools
 import traceback
@@ -31,7 +28,7 @@ print(Fore.RED + "-----------------------------------------------------")
 class Quotient(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(
-            command_prefix=None,
+            command_prefix=self.get_prefix,
             intents=intents,
             max_messages=1000,
             strip_after_prefix=True,
@@ -69,7 +66,6 @@ class Quotient(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
-        await RedisCache.init("redis://localhost:6379")
         await cache(self)
 
         # TODO: create an autoclean timer or separate it per scrim maybe
@@ -81,14 +77,11 @@ class Quotient(commands.AutoShardedBot):
     async def get_prefix(self, message: discord.Message) -> str:
         if not message.guild:
             return
+
         if self.user.id == 765159200204128266:
             prefix = "!"
         else:
-            # prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
-            record = await Guild.from_cache(
-                message.guild.id
-            )  # To invalidate this cache, one should do  `await Guild.from_cache.invalidate(message.guild.id)`
-            prefix = record.prefix
+            prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
