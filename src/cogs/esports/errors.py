@@ -295,7 +295,7 @@ class SMError(Cog):
 
         scrim = await Scrim.get_or_none(pk=scrim_id)
         if scrim is None:
-            await scrim.delete()
+            return
 
         guild = scrim.guild
         if not guild:
@@ -305,6 +305,10 @@ class SMError(Cog):
             return
 
         team = await scrim.reserved_slots.filter(user_id=user_id).first()
+
+        if team.expires != timer.expires:
+            return
+
         await ReservedSlot.filter(id=team.id).delete()
 
         logschan = scrim.logschan

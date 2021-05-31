@@ -102,8 +102,9 @@ class ReserveEditor(menus.Menu):
         await self.scrim.reserved_slots.add(slot)
 
         if future:
+            print(duration.dt)
             await self.ctx.bot.reminders.create_timer(
-                future.dt, "scrim_reserve", scrim_id=self.scrim.id, user_id=member.id, team_name=team_name, num=to_reserve
+                future, "scrim_reserve", scrim_id=self.scrim.id, user_id=member.id, team_name=team_name, num=to_reserve
             )
 
         await self.refresh()

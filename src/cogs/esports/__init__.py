@@ -814,6 +814,7 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
 
     @smanager.group(name="reserve", invoke_without_command=True)
+    @commands.max_concurrency(1, BucketType.guild)
     async def s_reserve(self, ctx, scrim: ScrimConverter):
         """
         Add / Remove a team from the reserved list
