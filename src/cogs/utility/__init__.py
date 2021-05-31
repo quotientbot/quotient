@@ -1,3 +1,4 @@
+from discord import message
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Tag
@@ -129,6 +130,8 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
 
         embed = discord.Embed(color=color, description=text)
+        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+            embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         prompt = await ctx.prompt(
             "Should I deliver it?",
@@ -150,6 +153,8 @@ class Utility(Cog, name="utility"):
         Tip: You can send hyperlinks too. Example: `[anytext](any link)`
         """
         embed = self.bot.embed(ctx, description=text)
+        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+            embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         await ctx.message.delete()
 
