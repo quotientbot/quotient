@@ -355,6 +355,7 @@ class ConfigEditMenu(menus.Menu):
             "Ping Role": ping_role,
             "Open Role": open_role,
             "Multi Register": ("`No!`", "`Yes!`")[scrim.multiregister],
+            "Slotlist Start from": scrim.start_from,
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -511,6 +512,21 @@ class ConfigEditMenu(menus.Menu):
     @menus.button(regional_indicator("K"))
     async def change_multiregister(self, payload):
         await self.update_scrim(multiregister=not self.scrim.multiregister)
+
+    @menus.button(regional_indicator("L"))
+    async def change_start_from(self, payload):
+        m = await self.ctx.send(
+            "From which slot do you want me to start slotlist?\n\nThis can be any number between 1 and 20."
+        )
+        start_from = await inputs.integer_input(
+            self.ctx,
+            self.check,
+            delete_after=True,
+            limits=(1, self.scrim.total_slots),
+        )
+
+        await inputs.safe_delete(m)
+        await self.update_scrim(start_from=start_from)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
