@@ -220,7 +220,7 @@ class Scrim(models.Model):
         slots = await self.teams_registered
 
         def wrapper():
-            font = ImageFont.truetype(str(Path.cwd() / "data" / "font" / "Ubuntu-Regular.ttf"), 16)
+            font = ImageFont.truetype(str(Path.cwd() / "src" / "data" / "font" / "Ubuntu-Regular.ttf"), 16)
             rects = []
 
             for slot in slots:
