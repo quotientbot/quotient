@@ -261,7 +261,7 @@ class BaseSlot(models.Model):
         abstract = True
 
     id = fields.IntField(pk=True)
-    num = fields.IntField()
+    num = fields.IntField(null=True)  # this will never be null but there are already records in the table so
     user_id = fields.BigIntField()
     team_name = fields.TextField(null=True)
     members = ArrayField(fields.BigIntField(), default=list)
