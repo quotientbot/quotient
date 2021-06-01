@@ -1,3 +1,8 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from ..cogs.reminder import Reminders
 from discord import AllowedMentions, Intents
 from colorama import Fore, Style, init
 from discord.ext import commands
@@ -123,14 +128,18 @@ class Quotient(commands.AutoShardedBot):
 
         return user.id in config.DEVS
 
-    async def get_or_fetch_member(self, guild: discord.Guild, member_id) -> Optional[discord.Member]:
+    async def get_or_fetch_member(
+        self,
+        guild: discord.Guild,
+        member_id: int,
+    ) -> Optional[discord.Member]:
         """Looks up a member in cache or fetches if not found."""
-
         member = guild.get_member(member_id)
         if member is not None:
             return member
 
         shard = self.get_shard(guild.shard_id)
+
         if shard.is_ws_ratelimited():
             try:
                 member = await guild.fetch_member(member_id)
@@ -139,15 +148,15 @@ class Quotient(commands.AutoShardedBot):
             else:
                 return member
 
-        members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
-        if not members:
-            return None
-        return members[0]
+        members = await guild.query_members(limit=1, user_ids=(member_id,), cache=True)
+
+        if len(members) > 1:
+            return members[0]
 
     @property
     def server(self) -> Optional[discord.Guild]:
         return self.get_guild(746337818388987967)
 
     @property
-    def reminders(self) -> Optional[Cog]:  # since we use it a lot
+    def reminders(self) -> Reminders:  # since we use it a lot
         return self.get_cog("Reminders")
