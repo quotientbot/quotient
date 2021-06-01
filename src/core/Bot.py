@@ -150,7 +150,7 @@ class Quotient(commands.AutoShardedBot):
 
         members = await guild.query_members(limit=1, user_ids=(member_id,), cache=True)
 
-        if len(members) > 1:
+        if len(members) > 0:
             return members[0]
 
     @property
