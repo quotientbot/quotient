@@ -38,7 +38,6 @@ class Quotient(commands.AutoShardedBot):
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
-
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
         self.config = config
@@ -47,6 +46,7 @@ class Quotient(commands.AutoShardedBot):
         self.cmd_invokes = 0
         self.binclient = mystbin.Client()
         self.lockdown = False
+        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         for ext in self.config.EXTENSIONS:
             try:
@@ -115,12 +115,7 @@ class Quotient(commands.AutoShardedBot):
 
         embed = discord.Embed(**kwargs)
         embed.set_footer(text=embed_footer)
-
         return embed
-
-    def get_cog(self, name) -> Optional[Cog]:  # making cogs insensitive
-        cogs = {key.lower() if isinstance(key, str) else key: value for key, value in self.cogs.items()}
-        return cogs.get(name.lower())
 
     async def is_owner(self, user) -> bool:
         if await super().is_owner(user):

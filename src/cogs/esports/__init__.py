@@ -50,7 +50,7 @@ QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord
 TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
 
 
-class ScrimManager(Cog, name="esports"):
+class ScrimManager(Cog, name="Esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.queue = asyncio.Queue()
