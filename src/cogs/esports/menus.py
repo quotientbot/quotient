@@ -31,7 +31,9 @@ class SlotlistFormatMenu(menus.Menu):
             embed = discord.Embed.from_dict(edict)
 
         else:
-            embed = discord.Embed(description="some desc")
+            embed = discord.Embed()
+
+        embed.description = "```Slot No.  -->  Team Name\n```" * 5
         return embed
 
     def desc_embed(self):
@@ -55,20 +57,58 @@ class SlotlistFormatMenu(menus.Menu):
         return await channel.send(embed=self.desc_embed())
 
     async def refresh(self):
-        self.scrim = await Scrim.get(pk=self.scrim.id)
-        await self.message.edit(embed=await self.initial_embed())
+        try:
+            await self.msg.edit(embed=self.cur_embed)
+        except:
+            self.stop()
+
+    async def cembed(self, description):
+        return await self.ctx.send(
+            embed=discord.Embed(
+                color=discord.Color(config.COLOR),
+                title=f"🛠️ Scrims Manager",
+                description=description,
+            ).set_footer(text="Enter 'none' if you want to remove the field.")
+        )
 
     @menus.button(regional_indicator("T"))
     async def set_title(self, payload):
-        msg = await self.ctx.send(f"")
+        msg = await self.cembed(f"What do you want the title to be?\n\nTitle cannot exceed 256 characters.")
+
+        title = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        if len(title) > 256:
+            return await self.ctx.error(f"Title cannot exceed 256 characters.")
+
+        await inputs.safe_delete(msg)
+        if title.lower() == "none":
+            self.cur_embed.title = None
+        else:
+            self.cur_embed.title = title
+        await self.refresh()
 
     @menus.button(regional_indicator("D"))
     async def set_description(self, payload):
-        pass
+        msg = await self.cembed(
+            f"What do you want the description to be?\n\n This will be added below the slotlist. This cannot exceed 1000 characters."
+        )
+
+        description = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        if len(description) > 1000:
+            return await self.ctx.error(f"Description cannot contain more than 1000 characters.")
+
+        await inputs.safe_delete(msg)
+
+        if description.lower() == "none":
+            self.cur_embed.description = "```Slot No.  -->  Team Name\n```" * 5
+
+        self.cur_embed.description += "\n\n{}".format(description)
+        await self.refresh()
 
     @menus.button(regional_indicator("F"))
     async def set_footer(self, payload):
-        pass
+        msg = await self.cur_embed(f"What do you want the footer text to be?\n\nThis cannot exceed 2048 characters.")
+        footer = await inputs.safe_delete()
 
     @menus.button(regional_indicator("U"))
     async def set_url(self, payload):
