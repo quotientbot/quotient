@@ -1,3 +1,5 @@
+import json
+from unicodedata import decomposition
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -9,6 +11,88 @@ from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
 from .utils import already_reserved, available_to_reserve
+
+
+class SlotlistFormatMenu(menus.Menu):
+    def __init__(self, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.msg = None
+        self.cur_embed = discord.Embed()
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    def initial_embed(self):
+        if self.scrim.slotlist_format:
+            edict = json.loads(self.scrim.slotlist_format)
+            embed = discord.Embed.from_dict(edict)
+
+        else:
+            embed = discord.Embed(description="some desc")
+        return embed
+
+    def desc_embed(self):
+        embed = discord.Embed(title="Slotlist Format Editor")
+        embed.description = (
+            "🇹 | Set Title\n"
+            "🇩 | Set Description\n"
+            "🇫 | Set Footer\n"
+            "🇺 | Set URL\n"
+            "🇦 | Set Author\n"
+            "⏲️ | Add Timestamp\n"
+            "🖼️ | Set Image\n"
+            "📸 | Set Thumbnail\n"
+            "✅ | Save and Abort\n"
+        )
+        return embed
+
+    async def send_initial_message(self, ctx, channel):
+        self.cur_embed = self.initial_embed()
+        self.msg = await channel.send(embed=self.cur_embed)
+        return await channel.send(embed=self.desc_embed())
+
+    async def refresh(self):
+        self.scrim = await Scrim.get(pk=self.scrim.id)
+        await self.message.edit(embed=await self.initial_embed())
+
+    @menus.button(regional_indicator("T"))
+    async def set_title(self, payload):
+        msg = await self.ctx.send(f"")
+
+    @menus.button(regional_indicator("D"))
+    async def set_description(self, payload):
+        pass
+
+    @menus.button(regional_indicator("F"))
+    async def set_footer(self, payload):
+        pass
+
+    @menus.button(regional_indicator("U"))
+    async def set_url(self, payload):
+        pass
+
+    @menus.button(regional_indicator("A"))
+    async def set_author(self, payload):
+        pass
+
+    @menus.button("⏲️")
+    async def add_timestamp(self, payload):
+        pass
+
+    @menus.button("🖼️")
+    async def add_image(self, payload):
+        pass
+
+    @menus.button("📸")
+    async def add_thumbnail(self, payload):
+        pass
+
+    @menus.button("✅")
+    async def save_and_abort(self, payload):
+        pass
 
 
 class ReserveEditorMenu(menus.Menu):

@@ -115,6 +115,7 @@ class Scrim(models.Model):
     open_role_id = fields.BigIntField(null=True)
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
+    slotlist_format = fields.TextField(null=True)
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")

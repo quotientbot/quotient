@@ -12,7 +12,7 @@ class ScrimConverter(Converter, Scrim):
             pass
         else:
             try:
-                return await Scrim.get(pk=argument)
+                return await Scrim.get(pk=argument, guild_id=ctx.guild.id)
             except tortoise.exceptions.DoesNotExist:
                 pass
 
@@ -27,7 +27,7 @@ class TourneyConverter(Converter, Tourney):
             pass
         else:
             try:
-                return await Tourney.get(pk=argument)
+                return await Tourney.get(pk=argument, guild_id=ctx.guild.id)
             except tortoise.exceptions.DoesNotExist:
                 pass
 

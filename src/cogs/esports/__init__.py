@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+from unicodedata import decomposition
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -98,11 +99,11 @@ class ScrimManager(Cog, name="esports"):
 
             if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
                 continue
-            
+
             try:
                 slot_num = scrim.available_slots[0]
             except:
-                continue #this will never happen though
+                continue  # this will never happen though
 
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
@@ -739,6 +740,13 @@ class ScrimManager(Cog, name="esports"):
         menu = SlotEditor(scrim=scrim)
         await menu.start(ctx)
 
+    @s_slotlist.command(name="format")
+    @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
+    async def s_slotlist_format(self, ctx, scrim: ScrimConverter):
+        menu = SlotlistFormatMenu(scrim=scrim)
+        await menu.start(ctx)
+
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
@@ -860,6 +868,7 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send_help(ctx.command)
 
     @tagcheck.command(name="set")
+    @commands.has_permissions(manage_guild=True)
     async def tagcheck_set(self, ctx, channel: discord.TextChannel, mentions=0):
         """
         Set a channel for tagcheck.
@@ -881,6 +890,7 @@ class ScrimManager(Cog, name="esports"):
         await ctx.success(f"Successfully set **{channel}** as a tagcheck channel.")
 
     @tagcheck.command(name="config")
+    @commands.has_permissions(manage_guild=True)
     async def tagcheck_config(self, ctx):
         """
         Get tagcheck config.
@@ -899,6 +909,7 @@ class ScrimManager(Cog, name="esports"):
         await ctx.send(embed=embed)
 
     @tagcheck.command(name="remove", aliases=("stop", "delete"))
+    @commands.has_permissions(manage_guild=True)
     async def tagcheck_remove(self, ctx):
 
         check = await TagCheck.get_or_none(pk=ctx.guild.id)
