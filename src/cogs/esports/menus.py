@@ -1,5 +1,4 @@
-import json
-from unicodedata import decomposition
+import json, aiohttp
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -23,6 +22,7 @@ class SlotlistFormatMenu(menus.Menu):
         self.scrim = scrim
         self.msg = None
         self.cur_embed = discord.Embed()
+
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     def initial_embed(self):
@@ -42,9 +42,7 @@ class SlotlistFormatMenu(menus.Menu):
             "🇹 | Set Title\n"
             "🇩 | Set Description\n"
             "🇫 | Set Footer\n"
-            "🇺 | Set URL\n"
-            "🇦 | Set Author\n"
-            "⏲️ | Add Timestamp\n"
+            "🌈 | Set embed color \n"
             "🖼️ | Set Image\n"
             "📸 | Set Thumbnail\n"
             "✅ | Save and Abort\n"
@@ -77,7 +75,7 @@ class SlotlistFormatMenu(menus.Menu):
 
         title = await inputs.string_input(self.ctx, self.check, delete_after=True)
         if len(title) > 256:
-            return await self.ctx.error(f"Title cannot exceed 256 characters.")
+            return await self.ctx.error(f"Title cannot exceed 256 characters.", delete_after=3)
 
         await inputs.safe_delete(msg)
         if title.lower() == "none":
@@ -95,7 +93,7 @@ class SlotlistFormatMenu(menus.Menu):
         description = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
         if len(description) > 1000:
-            return await self.ctx.error(f"Description cannot contain more than 1000 characters.")
+            return await self.ctx.error(f"Description cannot contain more than 1000 characters.", delete_after=3)
 
         await inputs.safe_delete(msg)
 
@@ -107,32 +105,89 @@ class SlotlistFormatMenu(menus.Menu):
 
     @menus.button(regional_indicator("F"))
     async def set_footer(self, payload):
-        msg = await self.cur_embed(f"What do you want the footer text to be?\n\nThis cannot exceed 2048 characters.")
-        footer = await inputs.safe_delete()
+        msg = await self.cembed(f"What do you want the footer text to be?\n\nThis cannot exceed 2048 characters.")
+        footer = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
-    @menus.button(regional_indicator("U"))
-    async def set_url(self, payload):
-        pass
+        await inputs.safe_delete(msg)
 
-    @menus.button(regional_indicator("A"))
-    async def set_author(self, payload):
-        pass
+        if footer.lower() == "none":
+            self.cur_embed.set_footer(text=None)
 
-    @menus.button("⏲️")
-    async def add_timestamp(self, payload):
-        pass
+        else:
+            self.cur_embed.set_footer(text=footer)
+
+        await self.refresh()
+
+    @menus.button("🌈")
+    async def set_color(self, payload):
+        msg = await self.cembed(f"What color do you want to give the embed?")
+        color = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        await inputs.safe_delete(msg)
+
+        color = await ColorConverter().convert(self.ctx, color)
+        self.cur_embed.color = color
+        await self.refresh()
 
     @menus.button("🖼️")
     async def add_image(self, payload):
-        pass
+        msg = await self.cembed(f"Enter the Image URL you want to set.")
+        image = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
-    @menus.button("📸")
+        await inputs.safe_delete(msg)
+
+        if image.lower() == "none":
+            self.cur_embed.set_image(url=None)
+        else:
+            try:
+                image_formats = ("image/png", "image/jpeg", "image/jpg")
+                res = await self.bot.session.get(image)
+                if res.headers["content-type"] in image_formats:
+                    check = True
+
+                else:
+                    check = False
+
+            except aiohttp.client_exceptions.InvalidURL:
+                return await self.ctx.error(f"This is not a valid Image URL", delete_after=3)
+
+            if not check:
+                return await self.ctx.error(f"The URL didn't contain a valid Image format.", delete_after=3)
+            self.cur_embed.set_image(url=image)
+            await self.refresh()
+
+    @menus.button("📸")  # a lot of redundancy? yes, will deal with later
     async def add_thumbnail(self, payload):
-        pass
+        msg = await self.cembed(f"Enter the Image URL you want to set as thumbnail.")
+        image = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+
+        if image.lower() == "none":
+            self.cur_embed.set_image(url=None)
+        else:
+            try:
+                image_formats = ("image/png", "image/jpeg", "image/jpg")
+                res = await self.bot.session.get(image)
+                if res.headers["content-type"] in image_formats:
+                    check = True
+
+                else:
+                    check = False
+
+            except aiohttp.client_exceptions.InvalidURL:
+                return await self.ctx.error(f"This is not a valid Image URL", delete_after=3)
+
+            if not check:
+                return await self.ctx.error(f"The URL didn't contain a valid Image format.", delete_after=3)
+
+            self.cur_embed.set_thumbnail(url=image)
+            await self.refresh()
 
     @menus.button("✅")
     async def save_and_abort(self, payload):
-        pass
+        self.cur_embed.description = self.cur_embed.description.replace("```Slot No.  -->  Team Name\n```" * 5, "")
+        edict = self.cur_embed.to_dict()
+        await self.ctx.send(edict)
 
 
 class ReserveEditorMenu(menus.Menu):
