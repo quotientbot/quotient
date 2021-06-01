@@ -187,7 +187,12 @@ class SlotlistFormatMenu(menus.Menu):
     async def save_and_abort(self, payload):
         self.cur_embed.description = self.cur_embed.description.replace("```Slot No.  -->  Team Name\n```" * 5, "")
         edict = self.cur_embed.to_dict()
-        await self.ctx.send(edict)
+
+        await Scrim.filter(id=self.scrim.id).update(slotlist_format=str(edict))
+
+        await self.ctx.success(f"Updated the slotlist format.", delete_after=3)
+
+        self.stop()
 
 
 class ReserveEditorMenu(menus.Menu):
