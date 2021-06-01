@@ -41,6 +41,8 @@ async def role_input(ctx, check, timeout=120, hierarchy=True, delete_after=False
         raise InputError("You failed to select a role in time. Try again!")
 
     else:
+        if role.managed:
+            raise InputError(f"Role is an integrated role and cannot be added manually.")
         if hierarchy is True:
             if role > ctx.me.top_role:
                 raise InputError(
