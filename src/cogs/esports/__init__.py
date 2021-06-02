@@ -739,7 +739,6 @@ class ScrimManager(Cog, name="Esports"):
 
         else:
             embed, channel = await scrim.create_slotlist()
-            embed.color = ctx.bot.color
             await ctx.send(embed=embed)
             prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
             if prompt:
