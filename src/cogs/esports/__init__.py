@@ -613,6 +613,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="config")
     @checks.can_use_sm()
+    @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_config(self, ctx):
         """
@@ -729,6 +730,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
+    @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_edit(self, ctx, scrim: ScrimConverter):
         """
@@ -742,6 +744,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
+    @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_format(self, ctx, scrim: ScrimConverter):
         menu = SlotlistFormatMenu(scrim=scrim)
@@ -749,6 +752,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
+    @commands.cooldown(10, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def s_slotlist_image(self, ctx, scrim: ScrimConverter):
         """
@@ -954,8 +958,8 @@ class ScrimManager(Cog, name="Esports"):
         Create or setup tournaments
         """
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
-
-        if count == 2:
+        guild = await Guild.get(guild_id=ctx.guild.id)
+        if count == 2 and not guild.is_premium:
             raise TourneyError("You can't have more than 2 tournaments concurrently.")
 
         def check(message: discord.Message):

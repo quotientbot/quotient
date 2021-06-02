@@ -68,7 +68,7 @@ class Votes(Cog):
             except:
                 pass
 
-        await models.Votes.filter(user_id=user_id).update(is_voter=False)
+        await models.Votes.filter(user_id=user_id).update(is_voter=False, notified=False)
 
     @Cog.listener()
     async def on_premium_purchase(self, record: models.Premium):

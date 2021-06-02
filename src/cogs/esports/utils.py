@@ -131,15 +131,15 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
 
     if scrim.autoslotlist and len(await scrim.teams_registered):
-        time_taken = closed_at - opened_at
-        delta = datetime.now() - timedelta(seconds=time_taken.total_seconds())
+        # time_taken = closed_at - opened_at
+        # delta = datetime.now() - timedelta(seconds=time_taken.total_seconds())
 
-        time_taken = humanize.precisedelta(delta)
+        # time_taken = humanize.precisedelta(delta)
 
         embed, channel = await scrim.create_slotlist()
 
-        embed.set_footer(text="Registration took: {0}".format(time_taken))
-        embed.color = config.COLOR
+        # embed.set_footer(text="Registration took: {0}".format(time_taken))
+        # embed.color = config.COLOR
 
         if channel != None and channel.permissions_for(ctx.me).send_messages:
             slotmsg = await channel.send(embed=embed)

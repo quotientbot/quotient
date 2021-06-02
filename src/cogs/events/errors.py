@@ -77,10 +77,6 @@ class Errors(Cog):
             return
 
         elif isinstance(err, commands.MissingPermissions):
-            is_owner = await ctx.bot.is_owner(ctx.author)
-            if is_owner is True:
-                return await ctx.reinvoke()
-
             permissions = ", ".join([f"{permission}" for permission in err.missing_perms])
             await ctx.error(f"You lack **`{permissions}`** permissions to run this command.")
 

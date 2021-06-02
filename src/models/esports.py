@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 from .fields import *
 import discord
 import utils
@@ -207,14 +208,29 @@ class Scrim(models.Model):
     async def banned_user_ids(self):
         return (i.user_id for i in await self.banned_teams.all())
 
+    # async def create_slotlist(self):
+    #     slots = await self.teams_registered
+    #     description = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
+    #     embed = discord.Embed(title=self.name + " Slotlist", description=f"```{description}```")
+    #     channel = self.slotlist_channel
+    #     return embed, channel
+
     async def create_slotlist(self):
-        slots = await self.teams_registered
-        description = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
-        embed = discord.Embed(title=self.name + " Slotlist", description=f"```{description}```")
+        slots = set(await self.teams_registered)
+        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
+
+        if self.slotlist_format != None:
+            format = json.loads(self.slotlist_format)
+
+            embed = discord.Embed.from_dict(format)
+            embed.description = f"```{desc}```{embed.description if embed.description else ''}"
+
+        else:
+            embed = discord.Embed(title=self.name + " Slotlist", description=f"```{desc}```", color=self.bot.color)
         channel = self.slotlist_channel
         return embed, channel
 
-    async def create_slotlist_img(self) -> Union[discord.Embed, discord.File]:
+    async def create_slotlist_img(self):
         """
         This is done! Now do whatever you can : )
         """
@@ -248,7 +264,7 @@ class Scrim(models.Model):
                 img_bytes = io.BytesIO()
                 image.save(img_bytes, "PNG")
                 img_bytes.seek(0)
-                images.append(discord.File(img_bytes, "slot_list.png"))
+                images.append(discord.File(img_bytes, "slotlist.png"))
 
             return images
 

@@ -33,7 +33,9 @@ class SlotlistFormatMenu(menus.Menu):
         else:
             embed = discord.Embed()
 
-        embed.description = "```Slot No.  -->  Team Name\n```" * 5
+        slotstr = "```Slot No.  -->  Team Name\n```"
+        embed.description = f"{slotstr * 5}\n\n{embed.description if embed.description else ''}"
+
         return embed
 
     def desc_embed(self):
@@ -100,7 +102,7 @@ class SlotlistFormatMenu(menus.Menu):
         if description.lower() == "none":
             self.cur_embed.description = "```Slot No.  -->  Team Name\n```" * 5
 
-        self.cur_embed.description += "\n\n{}".format(description)
+        self.cur_embed.description += description
         await self.refresh()
 
     @menus.button(regional_indicator("F"))
@@ -139,7 +141,7 @@ class SlotlistFormatMenu(menus.Menu):
             self.cur_embed.set_image(url=None)
         else:
             try:
-                image_formats = ("image/png", "image/jpeg", "image/jpg")
+                image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
                 res = await self.bot.session.get(image)
                 if res.headers["content-type"] in image_formats:
                     check = True
@@ -166,7 +168,7 @@ class SlotlistFormatMenu(menus.Menu):
             self.cur_embed.set_image(url=None)
         else:
             try:
-                image_formats = ("image/png", "image/jpeg", "image/jpg")
+                image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
                 res = await self.bot.session.get(image)
                 if res.headers["content-type"] in image_formats:
                     check = True
@@ -188,7 +190,7 @@ class SlotlistFormatMenu(menus.Menu):
         self.cur_embed.description = self.cur_embed.description.replace("```Slot No.  -->  Team Name\n```" * 5, "")
         edict = self.cur_embed.to_dict()
 
-        await Scrim.filter(id=self.scrim.id).update(slotlist_format=str(edict))
+        await Scrim.filter(id=self.scrim.id).update(slotlist_format=str(edict).replace("'", '"'))
 
         await self.ctx.success(f"Updated the slotlist format.", delete_after=3)
 
