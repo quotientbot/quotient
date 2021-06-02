@@ -769,6 +769,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_format(self, ctx, scrim: ScrimConverter):
+        """Set a default format for scrim slotlist."""
         menu = SlotlistFormatMenu(scrim=scrim)
         await menu.start(ctx)
 
