@@ -216,7 +216,7 @@ class Scrim(models.Model):
     #     return embed, channel
 
     async def create_slotlist(self):
-        slots = set(await self.teams_registered)
+        slots = await self.teams_registered
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
 
         if self.slotlist_format != None:

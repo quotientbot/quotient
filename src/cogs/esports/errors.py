@@ -1,5 +1,9 @@
 import discord, io
+
+from tortoise.fields.relational import NoneAwaitable
 from core import Cog
+from models.esports import AssignedSlot
+from models.functions import ArrayAppend
 from .utils import purge_roles, purge_channels
 from prettytable import PrettyTable
 from utils import find_team
@@ -371,3 +375,13 @@ class SMError(Cog):
         await TagCheck.filter(channel_id=channel.id).delete()
 
         # TODO: inform server mods
+
+    @Cog.listener()
+    async def on_scrim_registration_delete(self, scrim: Scrim, message: discord.Message, slot):
+        self.bot.loop.create_task(message.author.remove_roles(scrim.role))
+        await AssignedSlot.filter(id=slot.id).delete()
+        await Scrim.filter(id=scrim.id).update(available_slots=ArrayAppend("available_slots", slot.num))
+        if scrim.logschan != None:
+            embed = discord.Embed(color=discord.Color.red())
+            embed.description = f"Slot of {message.author.mention} was deleted from Scrim: {scrim.id}, because their registration was deleted from {message.channel.mention}"
+            await scrim.logschan.send(embed=embed)

@@ -371,10 +371,20 @@ class ScrimManager(Cog, name="Esports"):
             return
 
         if message.channel.id in self.registration_channels:
-            check = await Scrim.get_or_none(registration_channel_id=message.channel.id)
-            if not check:
+            scrim = await Scrim.get_or_none(registration_channel_id=message.channel.id)
+            if not scrim or not scrim.opened_at:  # either scrim doesn't exist or it is closed.
                 return
-            self.bot.dispatch("")
+
+            if not message.author.id in (user.user_id for user in await scrim.assigned_slots.all()):
+                return
+
+            slot = [slot for slot in await scrim.assigned_slots.all() if slot.user_id == message.author.id]
+            if not len(slot): # means their registration was denied 
+                return
+            else:
+                slot = slot[0]
+
+            self.bot.dispatch("scrim_registration_delete",scrim,message,slot)
 
     # ************************************************************************************************
 
