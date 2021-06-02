@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "autoevents" (
     "channel_id" BIGINT NOT NULL,
     "webhook" VARCHAR(200) NOT NULL,
     "toggle" BOOL NOT NULL  DEFAULT True,
-    "interval" INT NOT NULL  DEFAULT 30,
+    "interval" INT NOT NULL  aaDEFAULT 30,
     "send_time" TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS "idx_autoevents_webhook_1b2e4f" ON "autoevents" ("webhook");

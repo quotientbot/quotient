@@ -365,6 +365,19 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
+    @Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
+        if not message.guild or message.author.bot:
+            return
+
+        if message.channel.id in self.registration_channels:
+            check = await Scrim.get_or_none(registration_channel_id=message.channel.id)
+            if not check:
+                return
+            self.bot.dispatch("")
+
+    # ************************************************************************************************
+
     @commands.group(aliases=("s", "sm"), invoke_without_command=True)
     async def smanager(self, ctx):
         """

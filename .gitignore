@@ -5,5 +5,4 @@ env/*
 .venv/*
 config.py
 *.log
-
-
+migrations/
