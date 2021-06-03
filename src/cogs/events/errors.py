@@ -16,7 +16,7 @@ class Errors(Cog):
     @Cog.listener()
     async def on_command_error(self, ctx, err):
 
-        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.NotFound)
+        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.errors.NotFound)
 
         if isinstance(err, ignored):
             return
