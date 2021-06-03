@@ -92,7 +92,7 @@ class Funevents(Cog):
             return print("Unhandled Type...", _type)
 
         for record in records:
-            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden, discord.errors.NotFound):
                 webhook = Webhook.from_url(record.webhook, adapter=AsyncWebhookAdapter(self.bot.session))
                 self.bot.loop.create_task(
                     webhook.send(
