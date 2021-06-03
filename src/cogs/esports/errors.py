@@ -9,6 +9,7 @@ from prettytable import PrettyTable
 from utils import find_team
 from models import TagCheck
 from constants import IST
+from contextlib import suppress
 from discord.ext import commands
 from datetime import datetime, timedelta
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney
@@ -326,30 +327,31 @@ class SMError(Cog):
             await logschan.send(embed=embed)
 
     @Cog.listener()
-    async def on_tagcheck_message(self, message):
+    async def on_tagcheck_message(self, message: discord.Message):
         tagcheck = await TagCheck.get_or_none(channel_id=message.channel.id)
 
         modrole = tagcheck.modrole
         if modrole != None and modrole in message.author.roles:
             return
 
-        react_bool = True
-        if tagcheck.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
-            react_bool = False
-            await message.reply("Kindly mention your real teammate.", delete_after=5)
+        with suppress(discord.Forbidden, discord.NotFound):
+            react_bool = True
+            if tagcheck.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
+                react_bool = False
+                await message.reply("Kindly mention your real teammate.", delete_after=5)
 
-        elif not len(message.mentions) >= tagcheck.required_mentions:
-            react_bool = False
-            await message.reply(f"You need to mention `{tagcheck.required_mentions} teammates`.", delete_after=5)
+            elif not len(message.mentions) >= tagcheck.required_mentions:
+                react_bool = False
+                await message.reply(f"You need to mention `{tagcheck.required_mentions} teammates`.", delete_after=5)
 
-        team_name = find_team(message)
+            team_name = find_team(message)
 
-        await message.add_reaction(("❌", "✅")[react_bool])
+            await message.add_reaction(("❌", "✅")[react_bool])
 
-        if react_bool:
-            embed = discord.Embed(color=self.bot.config.COLOR)
-            embed.description = f"Team Name: {team_name}\nPlayer(s): {(', '.join(m.mention for m in message.mentions)) if message.mentions else message.author.mention}"
-            await message.reply(embed=embed)
+            if react_bool:
+                embed = discord.Embed(color=self.bot.config.COLOR)
+                embed.description = f"Team Name: {team_name}\nPlayer(s): {(', '.join(m.mention for m in message.mentions)) if message.mentions else message.author.mention}"
+                await message.reply(embed=embed)
 
     @Cog.listener()
     async def on_scrim_autoclean_timer_complete(self, timer: Timer):
