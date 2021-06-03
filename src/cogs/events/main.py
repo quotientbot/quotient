@@ -19,6 +19,7 @@ class MainEvents(Cog, name="Main Events"):
     # incomplete?, I know
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
+        await self.bot.wait_until_ready()
         await Guild.create(guild_id=guild.id)
         self.bot.guild_data[guild.id] = {"prefix": "q", "color": self.bot.color, "footer": config.FOOTER}
         await guild.chunk()
@@ -36,6 +37,7 @@ class MainEvents(Cog, name="Main Events"):
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
+        await self.bot.wait_until_ready()
         check = await Guild.get_or_none(guild_id=guild.id)
         if check and not check.is_premium:
             await Guild.filter(guild_id=guild.id).delete()
