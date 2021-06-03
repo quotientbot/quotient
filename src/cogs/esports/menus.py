@@ -1,3 +1,4 @@
+from ast import literal_eval
 import json, aiohttp
 import config
 from discord.ext import menus
@@ -27,7 +28,7 @@ class SlotlistFormatMenu(menus.Menu):
 
     def initial_embed(self):
         if self.scrim.slotlist_format:
-            edict = json.loads(self.scrim.slotlist_format)
+            edict = literal_eval(self.scrim.slotlist_format)
             embed = discord.Embed.from_dict(edict)
 
         else:
