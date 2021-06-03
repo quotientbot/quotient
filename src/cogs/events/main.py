@@ -1,6 +1,7 @@
 from models import Guild, Tourney, Scrim, Autorole
 from discord import Webhook, AsyncWebhookAdapter
 from core import Cog, Quotient
+from contextlib import suppress
 from constants import random_greeting
 import discord, config
 import re
@@ -28,8 +29,10 @@ class MainEvents(Cog, name="Main Events"):
             name="__**General Info**__",
             value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
         )
-        webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
-        await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+
+        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+            await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
@@ -51,8 +54,9 @@ class MainEvents(Cog, name="Main Events"):
             name="__**General Info**__",
             value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
         )
-        webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
-        await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+            await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):

@@ -2,6 +2,7 @@ from discord import Webhook, AsyncWebhookAdapter
 from datetime import datetime, timedelta
 from core import Cog, Quotient
 from models.models import Autoevent
+from contextlib import suppress
 import constants
 import models, discord
 
@@ -40,10 +41,10 @@ class Votes(Cog):
             await member.add_roles(discord.Object(id=self.bot.config.VOTER_ROLE), reason="They voted for me.")
 
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
-
-        await self.hook.send(
-            content=f"{str(member)} just voted!", username="vote-logs", avatar_url=self.bot.user.avatar_url
-        )
+        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            await self.hook.send(
+                content=f"{str(member)} just voted!", username="vote-logs", avatar_url=self.bot.user.avatar_url
+            )
 
     @Cog.listener()
     async def on_vote_timer_complete(self, timer: models.Timer):
@@ -79,11 +80,12 @@ class Votes(Cog):
 
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
 
-        await self.hook.send(
-            content=f"{str(member)} just purchased Quotient Premium!",
-            username="premium-logs",
-            avatar_url=self.bot.config.PREMIUM_AVATAR,
-        )
+        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            await self.hook.send(
+                content=f"{str(member)} just purchased Quotient Premium!",
+                username="premium-logs",
+                avatar_url=self.bot.config.PREMIUM_AVATAR,
+            )
 
         embed = discord.Embed(
             color=self.bot.color,
