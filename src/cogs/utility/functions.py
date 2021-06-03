@@ -52,7 +52,7 @@ async def create_tag(ctx: Context, name: str, content: str, is_embed=False, is_n
         await Tag.create(
             guild_id=ctx.guild.id,
             name=name,
-            content=(str(content).replace("'", '"')),
+            content=str(content),
             owner_id=ctx.author.id,
             is_nsfw=is_nsfw,
             is_embed=is_embed,

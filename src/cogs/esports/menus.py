@@ -195,7 +195,7 @@ class SlotlistFormatMenu(menus.Menu):
         self.cur_embed.description = self.cur_embed.description.replace("```Slot No.  -->  Team Name\n```" * 5, "")
         edict = self.cur_embed.to_dict()
 
-        await Scrim.filter(id=self.scrim.id).update(slotlist_format=str(edict).replace("'", '"'))
+        await Scrim.filter(id=self.scrim.id).update(slotlist_format=str(edict))
 
         await self.ctx.success(f"Updated the slotlist format.", delete_after=3)
 

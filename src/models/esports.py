@@ -10,6 +10,7 @@ from tortoise import models, fields
 from constants import Day
 from pathlib import Path
 from .functions import *
+from ast import literal_eval as leval
 
 __all__ = ("Tourney", "TMSlot", "Scrim", "AssignedSlot", "ReservedSlot", "BannedTeam", "TagCheck")
 
@@ -220,7 +221,7 @@ class Scrim(models.Model):
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
 
         if self.slotlist_format != None:
-            format = json.loads(self.slotlist_format)
+            format = leval(self.slotlist_format)
 
             embed = discord.Embed.from_dict(format)
             embed.description = f"```{desc}```{embed.description if embed.description else ''}"

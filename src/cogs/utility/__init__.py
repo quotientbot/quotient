@@ -1,14 +1,13 @@
-from discord import message
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from models import Tag
+from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
 from utils import checks, ColorConverter, Pages, strtime, plural
 from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
 import config
-import json
 import re
 
 
@@ -193,7 +192,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error("This tag can only be used in NSFW channels.")
 
         if name.is_embed is True:
-            dict = json.loads(name.content)
+            dict = leval(name.content)
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
         else:
