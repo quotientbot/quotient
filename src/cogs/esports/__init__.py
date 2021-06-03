@@ -1,12 +1,10 @@
 from __future__ import annotations
 import typing
-from unicodedata import decomposition
-
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 from core import Cog, Context
-
+from contextlib import suppress
 from .utils import (
     toggle_channel,
     scrim_end_process,
@@ -64,8 +62,9 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.error(error)
 
     async def add_role_and_reaction(self, ctx, role):
-        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        await ctx.author.add_roles(role)
+        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+            await ctx.author.add_roles(role)
 
     async def fill_registration_channels(self):
         records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
