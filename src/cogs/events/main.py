@@ -19,46 +19,46 @@ class MainEvents(Cog, name="Main Events"):
     # incomplete?, I know
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        await self.bot.wait_until_ready()
-        await Guild.create(guild_id=guild.id)
-        self.bot.guild_data[guild.id] = {"prefix": "q", "color": self.bot.color, "footer": config.FOOTER}
-        await guild.chunk()
+        with suppress(AttributeError):
+            await Guild.create(guild_id=guild.id)
+            self.bot.guild_data[guild.id] = {"prefix": "q", "color": self.bot.color, "footer": config.FOOTER}
+            await guild.chunk()
 
-        embed = discord.Embed(color=discord.Color.green(), title=f"I've joined a guild ({guild.member_count})")
-        embed.set_thumbnail(url=guild.icon_url)
-        embed.add_field(
-            name="__**General Info**__",
-            value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
-        )
+            embed = discord.Embed(color=discord.Color.green(), title=f"I've joined a guild ({guild.member_count})")
+            embed.set_thumbnail(url=guild.icon_url)
+            embed.add_field(
+                name="__**General Info**__",
+                value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
+            )
 
-        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-            webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
-            await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+                webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        await self.bot.wait_until_ready()
-        check = await Guild.get_or_none(guild_id=guild.id)
-        if check and not check.is_premium:
-            await Guild.filter(guild_id=guild.id).delete()
+        with suppress(AttributeError):
+            check = await Guild.get_or_none(guild_id=guild.id)
+            if check and not check.is_premium:
+                await Guild.filter(guild_id=guild.id).delete()
 
-        await Scrim.filter(guild_id=guild.id).delete()
-        await Tourney.filter(guild_id=guild.id).delete()
-        await Autorole.filter(guild_id=guild.id).delete()
-        try:
-            self.bot.guild_data.pop(guild.id)
-        except KeyError:
-            pass
+            await Scrim.filter(guild_id=guild.id).delete()
+            await Tourney.filter(guild_id=guild.id).delete()
+            await Autorole.filter(guild_id=guild.id).delete()
+            try:
+                self.bot.guild_data.pop(guild.id)
+            except KeyError:
+                pass
 
-        embed = discord.Embed(color=discord.Color.red(), title=f"I have left a guild ({guild.member_count})")
-        embed.set_thumbnail(url=guild.icon_url)
-        embed.add_field(
-            name="__**General Info**__",
-            value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
-        )
-        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-            webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
-            await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+            embed = discord.Embed(color=discord.Color.red(), title=f"I have left a guild ({guild.member_count})")
+            embed.set_thumbnail(url=guild.icon_url)
+            embed.add_field(
+                name="__**General Info**__",
+                value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
+            )
+            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+                webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
