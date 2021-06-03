@@ -25,7 +25,7 @@ class TourneyError(commands.CommandError):
 
 # well yeah the name is SMError but this cog serve much more than just that.
 
-
+# TODO: enum for error types
 class SMError(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -37,97 +37,99 @@ class SMError(Cog):
     @Cog.listener()
     async def on_tourney_registration_deny(self, message: discord.Message, type: str, tourney: Tourney):
         logschan = tourney.logschan
-        await message.add_reaction("\N{CROSS MARK}")
-        e = discord.Embed(
-            color=discord.Color.red(),
-            description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
-        )
-
-        if type == "mentioned_bots":
-            await message.reply(
-                embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
-                delete_after=5,
+        with suppress(discord.NotFound):
+            await message.add_reaction("\N{CROSS MARK}")
+            e = discord.Embed(
+                color=discord.Color.red(),
+                description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
             )
-            e.description += f"Mentioned Bots."
 
-        elif type == "insufficient_mentions":
-            await message.reply(
-                embed=self.red_embed(
-                    f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
-                ),
-                delete_after=5,
-            )
-            e.description += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
+            if type == "mentioned_bots":
+                await message.reply(
+                    embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
+                    delete_after=5,
+                )
+                e.description += f"Mentioned Bots."
 
-        elif type == "banned":
-            await message.reply(
-                embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
-                delete_after=5,
-            )
-            e.description += f"They are banned from scrims."
+            elif type == "insufficient_mentions":
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
+                    ),
+                    delete_after=5,
+                )
+                e.description += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
 
-        elif type == "multiregister":
-            await message.reply(
-                embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
-                delete_after=5,
-            )
-            e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `tourney edit {tourney.id}`"
+            elif type == "banned":
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                    delete_after=5,
+                )
+                e.description += f"They are banned from scrims."
 
-        if logschan is not None:
-            if logschan.permissions_for(logschan.guild.me).embed_links:
-                return await logschan.send(embed=e)
-            else:
-                # The bot will not be able to send embeds to this channel because of lack of permission.
-                text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
-                return await logschan.send(text)
+            elif type == "multiregister":
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
+                    delete_after=5,
+                )
+                e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `tourney edit {tourney.id}`"
+
+            if logschan is not None:
+                if logschan.permissions_for(logschan.guild.me).embed_links:
+                    return await logschan.send(embed=e)
+                else:
+                    # The bot will not be able to send embeds to this channel because of lack of permission.
+                    text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
+                    return await logschan.send(text)
 
     @Cog.listener()
     async def on_scrim_registration_deny(self, message: discord.Message, type: str, scrim: Scrim):
+
         logschan = scrim.logschan
-
-        await message.add_reaction("\N{CROSS MARK}")
-        e = discord.Embed(
-            color=discord.Color.red(),
-            description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
-        )
-
-        if type == "mentioned_bots":
-            await message.reply(
-                embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
-                delete_after=5,
+        with suppress(discord.NotFound):
+            await message.add_reaction("\N{CROSS MARK}")
+            e = discord.Embed(
+                color=discord.Color.red(),
+                description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
             )
-            e.description += f"Mentioned Bots."
 
-        elif type == "insufficient_mentions":
-            await message.reply(
-                embed=self.red_embed(
-                    f"{str(message.author)}, **`{scrim.required_mentions} mentions`** are required for successful registration."
-                ),
-                delete_after=5,
-            )
-            e.description += f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
+            if type == "mentioned_bots":
+                await message.reply(
+                    embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
+                    delete_after=5,
+                )
+                e.description += f"Mentioned Bots."
 
-        elif type == "banned":
-            await message.reply(
-                embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
-                delete_after=5,
-            )
-            e.description += f"They are banned from scrims."
+            elif type == "insufficient_mentions":
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, **`{scrim.required_mentions} mentions`** are required for successful registration."
+                    ),
+                    delete_after=5,
+                )
+                e.description += f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
 
-        elif type == "multiregister":
-            await message.reply(
-                embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
-                delete_after=5,
-            )
-            e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
+            elif type == "banned":
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                    delete_after=5,
+                )
+                e.description += f"They are banned from scrims."
 
-        if logschan is not None:
-            if logschan.permissions_for(logschan.guild.me).embed_links:
-                return await logschan.send(embed=e)
-            else:
-                # The bot will not be able to send embeds to this channel because of lack of permission.
-                text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
-                return await logschan.send(text)
+            elif type == "multiregister":
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
+                    delete_after=5,
+                )
+                e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
+
+            if logschan is not None:
+                if logschan.permissions_for(logschan.guild.me).embed_links:
+                    return await logschan.send(embed=e)
+                else:
+                    # The bot will not be able to send embeds to this channel because of lack of permission.
+                    text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
+                    return await logschan.send(text)
 
     @Cog.listener()
     async def on_tourney_log(self, type: str, tourney: Tourney, **kwargs):
