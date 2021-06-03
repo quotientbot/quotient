@@ -39,7 +39,7 @@ class SlotlistFormatMenu(menus.Menu):
         return embed
 
     def desc_embed(self):
-        embed = discord.Embed(title="Slotlist Format Editor")
+        embed = discord.Embed(title="Slotlist Format Editor", color=config.COLOR)
         embed.description = (
             "🇹 | Set Title\n"
             "🇩 | Set Description\n"
@@ -47,6 +47,7 @@ class SlotlistFormatMenu(menus.Menu):
             "🌈 | Set embed color \n"
             "🖼️ | Set Image\n"
             "📸 | Set Thumbnail\n"
+            "❌ | Don't Save and Abort\n"
             "✅ | Save and Abort\n"
         )
         return embed
@@ -184,6 +185,10 @@ class SlotlistFormatMenu(menus.Menu):
 
             self.cur_embed.set_thumbnail(url=image)
             await self.refresh()
+
+    @menus.button("❌")
+    async def donot_save(self, payload):
+        self.stop()
 
     @menus.button("✅")
     async def save_and_abort(self, payload):
