@@ -562,7 +562,7 @@ class Mod(Cog):
         if check:
             return await ctx.error(f"The server is already under maintenance for **{role}**")
 
-        channels = list(filter(lambda x: x.overwrites_for(role).send_messages, ctx.guild.channels))
+        channels = list(filter(lambda x: x.overwrites_for(role).read_messages, ctx.guild.channels))
         mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
         # len list would use additional memory so : )
 

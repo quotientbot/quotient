@@ -6,7 +6,7 @@ from models import Timer
 from utils import IST
 
 
-class Reminders(Cog, name="reminders"):
+class Reminders(Cog):
     """Reminders to do something."""
 
     def __init__(self, bot: Quotient):

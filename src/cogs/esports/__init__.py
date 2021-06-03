@@ -88,47 +88,53 @@ class ScrimManager(Cog, name="Esports"):
 
     async def registration_worker(self):
         while True:
-            queue_message: QueueMessage = await self.queue.get()
-            scrim, message = queue_message.scrim, queue_message.message
-
-            ctx = await self.bot.get_context(message)
-
-            teamname = default.find_team(message)
-
-            scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instance
-
-            if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
-                continue
-
             try:
-                slot_num = scrim.available_slots[0]
-            except:
-                continue  # this will never happen though
+                queue_message: QueueMessage = await self.queue.get()
+                scrim, message = queue_message.scrim, queue_message.message
 
-            slot = await AssignedSlot.create(
-                user_id=ctx.author.id,
-                team_name=teamname,
-                num=slot_num,
-                jump_url=message.jump_url,
-            )
+                ctx = await self.bot.get_context(message)
 
-            await scrim.assigned_slots.add(slot)
+                teamname = default.find_team(message)
 
-            await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
-            self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
+                scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instance
 
-            role_given = True
+                if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
+                    continue
 
-            self.bot.dispatch(
-                "scrim_log",
-                "reg_success",
-                scrim,
-                message=ctx.message,
-                role_added=role_given,
-            )
+                try:
+                    slot_num = scrim.available_slots[0]
+                except:
+                    continue  # this will never happen though
 
-            if len(scrim.available_slots) == 1:
-                await scrim_end_process(ctx, scrim)
+                slot = await AssignedSlot.create(
+                    user_id=ctx.author.id,
+                    team_name=teamname,
+                    num=slot_num,
+                    jump_url=message.jump_url,
+                )
+
+                await scrim.assigned_slots.add(slot)
+
+                await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
+                self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
+
+                role_given = True
+
+                self.bot.dispatch(
+                    "scrim_log",
+                    "reg_success",
+                    scrim,
+                    message=ctx.message,
+                    role_added=role_given,
+                )
+
+                if len(scrim.available_slots) == 1:
+                    await scrim_end_process(ctx, scrim)
+
+            except Exception:  # I know something's breaking the loop and I know no better way to find out.
+                user = self.bot.get_user(548163406537162782)
+                await user.send(Exception)
+                continue
 
     async def tourney_registration_worker(self):
         while True:
@@ -379,12 +385,12 @@ class ScrimManager(Cog, name="Esports"):
                 return
 
             slot = [slot for slot in await scrim.assigned_slots.all() if slot.user_id == message.author.id]
-            if not len(slot): # means their registration was denied 
+            if not len(slot):  # means their registration was denied
                 return
             else:
                 slot = slot[0]
 
-            self.bot.dispatch("scrim_registration_delete",scrim,message,slot)
+            self.bot.dispatch("scrim_registration_delete", scrim, message, slot)
 
     # ************************************************************************************************
 

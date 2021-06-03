@@ -82,7 +82,7 @@ class SlotlistFormatMenu(menus.Menu):
 
         await inputs.safe_delete(msg)
         if title.lower() == "none":
-            self.cur_embed.title = None
+            self.cur_embed.title = discord.Embed.Empty
         else:
             self.cur_embed.title = title
         await self.refresh()
@@ -114,7 +114,7 @@ class SlotlistFormatMenu(menus.Menu):
         await inputs.safe_delete(msg)
 
         if footer.lower() == "none":
-            self.cur_embed.set_footer(text=None)
+            self.cur_embed.set_footer(text=discord.Embed.Empty)
 
         else:
             self.cur_embed.set_footer(text=footer)
@@ -139,7 +139,7 @@ class SlotlistFormatMenu(menus.Menu):
         await inputs.safe_delete(msg)
 
         if image.lower() == "none":
-            self.cur_embed.set_image(url=None)
+            self.cur_embed.set_image(url=discord.Embed.Empty)
         else:
             try:
                 image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
@@ -166,7 +166,7 @@ class SlotlistFormatMenu(menus.Menu):
         await inputs.safe_delete(msg)
 
         if image.lower() == "none":
-            self.cur_embed.set_image(url=None)
+            self.cur_embed.set_image(url=discord.Embed.Empty)
         else:
             try:
                 image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
