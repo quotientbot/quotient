@@ -1,4 +1,5 @@
-from models import Guild, Tourney, Scrim, Autorole, TMSlot
+from models import Guild, Tourney, Scrim, Autorole
+from discord import Webhook, AsyncWebhookAdapter
 from core import Cog, Quotient
 from constants import random_greeting
 import discord, config
@@ -21,9 +22,21 @@ class MainEvents(Cog, name="Main Events"):
         self.bot.guild_data[guild.id] = {"prefix": "q", "color": self.bot.color, "footer": config.FOOTER}
         await guild.chunk()
 
+        embed = discord.Embed(color=discord.Color.green(), title=f"I've joined a guild ({guild.member_count})")
+        embed.set_thumbnail(url=guild.icon_url)
+        embed.add_field(
+            name="__**General Info**__",
+            value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
+        )
+        webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+        await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        await Guild.filter(guild_id=guild.id).delete()
+        check = await Guild.get_or_none(guild_id=guild.id)
+        if check and not check.is_premium:
+            await Guild.filter(guild_id=guild.id).delete()
+
         await Scrim.filter(guild_id=guild.id).delete()
         await Tourney.filter(guild_id=guild.id).delete()
         await Autorole.filter(guild_id=guild.id).delete()
@@ -31,6 +44,15 @@ class MainEvents(Cog, name="Main Events"):
             self.bot.guild_data.pop(guild.id)
         except KeyError:
             pass
+
+        embed = discord.Embed(color=discord.Color.red(), title=f"I have left a guild ({guild.member_count})")
+        embed.set_thumbnail(url=guild.icon_url)
+        embed.add_field(
+            name="__**General Info**__",
+            value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
+        )
+        webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+        await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -40,7 +62,7 @@ class MainEvents(Cog, name="Main Events"):
 
     @Cog.listener()
     async def on_mention(self, ctx):
-        prefix = "q"
+        prefix = self.bot.guild_data[ctx.guild.id]["prefix"] or "q"
         await ctx.send(
             f"{random_greeting()}, You seem lost. Are you?\n"
             f"Current prefix for this server is: `{prefix}`.\n\nUse it like: `{prefix}help`"
