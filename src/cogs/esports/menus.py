@@ -102,9 +102,10 @@ class SlotlistFormatMenu(menus.Menu):
         await inputs.safe_delete(msg)
 
         if description.lower() == "none":
+            print('none')
             self.cur_embed.description = "```Slot No.  -->  Team Name\n```" * 5
-
-        self.cur_embed.description += description
+        else:
+            self.cur_embed.description += description
         await self.refresh()
 
     @menus.button(regional_indicator("F"))

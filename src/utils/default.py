@@ -24,16 +24,17 @@ def split_list(data: list, per_list: int):
 
 def find_team(message):
     """Finds team name from a message"""
-    content = message.content.lower()
+    content = message.content
     author = message.author
     teamname = re.search(r"team.*", content)
     if teamname is None:
         return f"{author}'s team"
 
-    teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
+    # teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
+    teamname = re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
 
     teamname = f"Team {teamname.title()}" if teamname else f"{author}'s team"
-    return nm("NFKC", teamname)
+    return teamname
 
 
 def regional_indicator(c: str) -> str:

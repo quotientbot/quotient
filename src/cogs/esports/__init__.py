@@ -31,7 +31,7 @@ from .converters import ScrimConverter, TourneyConverter
 from constants import Day, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
-
+from unicodedata import normalize as nm
 from datetime import timedelta, datetime
 from discord import AllowedMentions
 from discord.ext import commands
@@ -355,8 +355,10 @@ class ScrimManager(Cog, name="Esports"):
         ):
             return await cannot_take_registration(message, "scrim", scrim)
 
+        message.content = nm("NFKC", message.content.lower())
+
         if scrim.teamname_compulsion:
-            teamname = re.search(r"team.*", message.content.lower())
+            teamname = re.search(r"team.*", message.content)
             if not teamname or not teamname.group().strip():
                 return self.bot.dispatch("scrim_registration_deny", message, "teamname_compulsion", scrim)
 
@@ -1086,7 +1088,7 @@ class ScrimManager(Cog, name="Esports"):
             tourney_mod = discord.utils.get(ctx.guild.roles, name="tourney-mod")
 
             if tourney_mod is None:
-                tourney_mod = await ctx.guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
+                tourney_mod = await ctx.guild.create_role(name="tourney-mod", color=0x00FFB3, reason=reason)
 
             overwrite = tourney.registration_channel.overwrites_for(ctx.guild.default_role)
             overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
