@@ -10,9 +10,10 @@ from discord.ext import commands
 from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember
+from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
 from .functions import TagName, increment_usage, TagConverter, is_valid_name
 from typing import Optional
+from contextlib import suppress
 import discord
 import asyncio
 import config
@@ -120,7 +121,7 @@ class Utility(Cog, name="utility"):
 
     @commands.command()
     @commands.cooldown(1, 5, type=commands.BucketType.user)
-    async def firstmsg(self, ctx, *, channel: discord.TextChannel = None):
+    async def firstmsg(self, ctx: Context, *, channel: discord.TextChannel = None):
         """Get the link to first message of current or any other channel."""
         channel = channel or ctx.channel
         messages = await channel.history(limit=1, oldest_first=True).flatten()
@@ -362,36 +363,61 @@ class Utility(Cog, name="utility"):
         )
         await paginator.paginate()
 
-    @commands.group(invoke_without_subcommand=True)
-    async def category(self, ctx):
+    @commands.group(invoke_without_command=True)
+    async def category(self, ctx: Context):
         """hide , delete , unhide or even nuke a category"""
         await ctx.send_help(ctx.command)
 
     @category.command(name="delete")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def category_delete(self, ctx, *, category):
+    async def category_delete(self, ctx: Context, *, category: QuoCategory):
         """Delete a category and all the channels under it."""
-        pass
+        if not len(category.channels):
+            return await ctx.error(f"**{category}** doesn't have any channels.")
+
+        prompt = await ctx.prompt(
+            message=f"All channels under the category `{category}` will be deleted.\n**Are you sure you want to continue?**"
+        )
+        if prompt:
+            failed = 0
+            success = 0
+            for channel in category.channels:
+                try:
+                    await channel.delete()
+                    success += 1
+                except:
+                    failed += 1
+                    continue
+
+            await category.delete()
+
+            with suppress(
+                discord.Forbidden, commands.ChannelNotFound, discord.NotFound, commands.CommandInvokeError
+            ):  # yes all these will be raised if the channel is from ones we deleted earlier.
+                await ctx.success(f"Successfully deleted category. (Deleted: `{success}`, Failed: `{failed}`)")
+
+        else:
+            await ctx.simple(f"Ok Aborting.")
 
     @category.command(name="hide")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def category_hide(self, ctx, *, category):
+    async def category_hide(self, ctx: Context, *, category: QuoCategory):
         """Hide a category and all its channels"""
         pass
 
     @category.command(name="unhide")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def category_unhide(self, ctx, *, category):
+    async def category_unhide(self, ctx: Context, *, category: QuoCategory):
         """Unhide a hidden category and all its channels."""
         pass
 
     @category.command(name="nuke")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def category_nuke(self, ctx, *, category):
+    async def category_nuke(self, ctx: Context, *, category: QuoCategory):
         """
         Delete a category completely and create a new one
         This will delete all the channels under the category and will make a new one with same perms and channels.
