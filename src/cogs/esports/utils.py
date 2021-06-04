@@ -172,6 +172,9 @@ async def purge_channels(channels):
 async def purge_roles(roles):
     for role in roles:
         if role != None and role.guild.me.guild_permissions.manage_roles:
+            if not role.guild.chunked:
+                await role.guild.chunk()
+
             for member in role.members:
                 try:
                     await member.remove_roles(role, reason="Scrims Manager Auto Role Remove in progress!")
