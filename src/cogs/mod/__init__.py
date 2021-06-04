@@ -4,7 +4,7 @@ from core import Cog, Quotient, Context
 from models import Lockdown
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote, FutureTime
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser
 from constants import LockType
 from typing import Optional, Union
 import discord
@@ -44,20 +44,20 @@ class Mod(Cog):
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
     @commands.has_permissions(manage_messages=True)
-    async def clear(self, ctx, Choice: Union[discord.Member, int], Amount: int = None):
+    async def clear(self, ctx: Context, Choice: Union[discord.Member, int], Amount: int = None):
         """
         An all in one purge command.
         Choice can be a Member or a number
         """
+        await ctx.message.delete()
+
         if isinstance(Choice, discord.Member):
+            print("yes")
             search = Amount or 5
             return await do_removal(ctx, search, lambda e: e.author == Choice)
 
-        try:
-            search = int(Choice)
-            await do_removal(ctx, search, lambda e: True)
-        except:
-            return await ctx.error("Only Integers are allowed.")
+        elif isinstance(Choice, int):
+            return await do_removal(ctx, Choice, lambda e: True)
 
     @clear.command()
     @commands.has_permissions(manage_messages=True)
@@ -85,7 +85,7 @@ class Mod(Cog):
 
     @clear.command()
     @commands.has_permissions(manage_messages=True)
-    async def user(self, ctx, member: discord.Member, search=100):
+    async def user(self, ctx, member: QuoUser, search=100):
         """Removes all messages by the member."""
         await do_removal(ctx, search, lambda e: e.author == member)
 

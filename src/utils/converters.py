@@ -11,9 +11,9 @@ __all__ = (
     "BannedMember",
     "ActionReason",
     "MemberID",
-    "QuoRoleConverter",
-    "QuoMemberConverter",
-    "QuoUserConverter",
+    "QuoRole",
+    "QuoMember",
+    "QuoUser",
 )
 
 
@@ -97,7 +97,7 @@ class MemberID(commands.Converter):
         return m
 
 
-class QuoRoleConverter(commands.Converter):
+class QuoRole(commands.Converter):
     async def convert(self, ctx, argument) -> Optional[discord.Role]:
         """
         Return Role, this works without taking case sensitivity into account.
@@ -121,7 +121,7 @@ class QuoRoleConverter(commands.Converter):
             raise commands.RoleNotFound(argument)
 
 
-class QuoMemberConverter(commands.Converter):
+class QuoMember(commands.Converter):
     async def convert(self, ctx, argument) -> Optional[discord.Member]:
         """
         Returns Member , it is better that commands.MemberConverter() because it finds member without
@@ -147,7 +147,7 @@ class QuoMemberConverter(commands.Converter):
             raise commands.MemberNotFound(argument)
 
 
-class QuoUserConverter(commands.Converter):
+class QuoUser(commands.Converter):
     async def convert(self, ctx, argument):
         """
         This will return Member if member exists in the guild else will returns User.
@@ -155,7 +155,7 @@ class QuoUserConverter(commands.Converter):
         """
         if ctx.guild:
             try:
-                return await QuoMemberConverter().convert(ctx, argument)
+                return await QuoMember().convert(ctx, argument)
 
             except commands.MemberNotFound:
                 pass
