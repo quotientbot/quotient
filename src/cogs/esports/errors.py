@@ -128,6 +128,13 @@ class SMError(Cog):
                 )
                 e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
 
+            elif type == "teamname_compulsion":
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
+                    delete_after=5,
+                )
+                e.description += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `smanager edit {scrim.id}`"
+
             if scrim.autodelete_rejects:
                 self.bot.loop.create_task(delete_denied_message(message))
 

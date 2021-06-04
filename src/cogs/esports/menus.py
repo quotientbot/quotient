@@ -548,6 +548,8 @@ class ConfigEditMenu(menus.Menu):
             "Open Role": open_role,
             "Multi Register": ("`No!`", "`Yes!`")[scrim.multiregister],
             "Slotlist Start from": scrim.start_from,
+            "Autodelete Rejected Registrations": ("`No!`", "`Yes!`")[scrim.autodelete_rejects],
+            "Team Name compulsion": ("`No!`", "`Yes!`")[scrim.teamname_compulsion],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -555,10 +557,6 @@ class ConfigEditMenu(menus.Menu):
                 name=f"{regional_indicator(string.ascii_uppercase[idx])} {name}:",
                 value=value,
             )
-
-        embed.add_field(
-            name="Autodelete Rejected Registrations", value=("`No!`", "`Yes!`")[scrim.autodelete_rejects], inline=False
-        )
 
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         return embed
@@ -707,6 +705,10 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("K"))
     async def change_multiregister(self, payload):
+        await self.ctx.success(
+            f"Multiple registrations from a single user are now **{'Allowed' if self.scrim.multiregister else 'Not Allowed'}!**",
+            delete_after=3,
+        )
         await self.update_scrim(multiregister=not self.scrim.multiregister)
 
     @menus.button(regional_indicator("L"))
@@ -726,7 +728,19 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("M"))
     async def auto_delete_rejects(self, payload):
+        await self.ctx.success(
+            f"Rejected registrations will **{'NOW' if not self.scrim.autodelete_rejects else 'NOT'}** be deleted.",
+            delete_after=2,
+        )
         await self.update_scrim(autodelete_rejects=not self.scrim.autodelete_rejects)
+
+    @menus.button(regional_indicator("N"))
+    async def teamname_compulsory(self, payload):
+        await self.ctx.success(
+            f"Team name in registrations is now **{'Necessary' if not self.scrim.teamname_compulsion else 'Not Necessary'}!**",
+            delete_after=2,
+        )
+        await self.update_scrim(teamname_compulsion=not self.scrim.teamname_compulsion)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):

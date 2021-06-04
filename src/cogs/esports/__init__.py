@@ -355,16 +355,21 @@ class ScrimManager(Cog, name="Esports"):
         ):
             return await cannot_take_registration(message, "scrim", scrim)
 
+        if scrim.teamname_compulsion:
+            teamname = re.search(r"team.*", message.content.lower())
+            if not teamname or not teamname.group().strip():
+                return self.bot.dispatch("scrim_registration_deny", message, "teamname_compulsion", scrim)
+
         if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
             return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
 
-        elif not len(message.mentions) >= scrim.required_mentions:
+        if not len(message.mentions) >= scrim.required_mentions:
             return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
 
-        elif message.author.id in await scrim.banned_user_ids():
+        if message.author.id in await scrim.banned_user_ids():
             return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
 
-        elif message.author.id in get_slots(await scrim.assigned_slots.all()) and not scrim.multiregister:
+        if message.author.id in get_slots(await scrim.assigned_slots.all()) and not scrim.multiregister:
             return self.bot.dispatch("scrim_registration_deny", message, "multiregister", scrim)
 
         self.queue.put_nowait(QueueMessage(scrim, message))

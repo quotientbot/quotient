@@ -14,7 +14,8 @@ class MainEvents(Cog, name="Main Events"):
 
     async def super_important_job(self):
         await self.bot.wait_until_ready()
-        await self.bot.get_channel(844178791735885824).connect()
+        with suppress(AttributeError):
+            await self.bot.get_channel(844178791735885824).connect()
 
     # incomplete?, I know
     @Cog.listener()
