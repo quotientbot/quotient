@@ -58,6 +58,11 @@ class ScrimManager(Cog, name="Esports"):
         self.bot.loop.create_task(self.registration_worker())
         self.bot.loop.create_task(self.tourney_registration_worker())
 
+    def cog_unload(self):
+        self.fill_registration_channels.cancel()
+        self.registration_worker.cancel()
+        self.tourney_registration_worker.cancel()
+
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (ScrimError, TourneyError)):
             return await ctx.error(error)
