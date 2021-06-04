@@ -52,7 +52,6 @@ class Mod(Cog):
         await ctx.message.delete()
 
         if isinstance(Choice, discord.Member):
-            print("yes")
             search = Amount or 5
             return await do_removal(ctx, search, lambda e: e.author == Choice)
 
