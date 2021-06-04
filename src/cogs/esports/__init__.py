@@ -7,6 +7,7 @@ if typing.TYPE_CHECKING:
 from core import Cog, Context
 from contextlib import suppress
 from .utils import (
+    delete_denied_message,
     toggle_channel,
     scrim_end_process,
     postpone_scrim,
@@ -1370,6 +1371,28 @@ class ScrimManager(Cog, name="Esports"):
     async def format(self, ctx, *, registration_form):
         """Get your reg-format in a reusable form."""
         await ctx.send(f"```{registration_form}```")
+
+    @commands.command()
+    @checks.can_use_sm()
+    async def shareidp(self, ctx, room_id, room_password, map, role_to_ping: discord.Role = None):
+        """
+        Share Id/pass with embed.
+        Message is automatically deleted after 30 minutes.
+        """
+        await ctx.message.delete()
+        embed = self.bot.embed(ctx, title="New Custom Room. JOIN NOW!")
+        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.add_field(name="Room ID", value=room_id)
+        embed.add_field(name="Password", value=room_password)
+        embed.add_field(name="Map", value=map)
+        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.avatar_url)
+        msg = await ctx.send(
+            content=role_to_ping.mention if role_to_ping else None,
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(roles=True),
+        )
+
+        self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
 
 
 def setup(bot):

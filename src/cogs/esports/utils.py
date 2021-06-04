@@ -179,7 +179,7 @@ async def purge_roles(roles):
                     continue
 
 
-async def delete_denied_message(message: discord.Message):
+async def delete_denied_message(message: discord.Message, seconds=10):
     with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-        await asyncio.sleep(10)
+        await asyncio.sleep(seconds)
         await inputs.safe_delete(message)
