@@ -6,15 +6,7 @@ import contextlib
 from .exceptions import InvalidColor
 from typing import Optional
 
-__all__ = (
-    "ColorConverter",
-    "BannedMember",
-    "ActionReason",
-    "MemberID",
-    "QuoRole",
-    "QuoMember",
-    "QuoUser",
-)
+__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "QuoRole", "QuoMember", "QuoUser", "QuoCategory")
 
 
 class ColorConverter(commands.Converter):
@@ -162,7 +154,8 @@ class QuoUser(commands.Converter):
 
         try:
             return await commands.UserConverter().convert(ctx, argument)
-        except:
+
+        except commands.UserNotFound:
 
             def check(user):
                 return (
@@ -174,3 +167,18 @@ class QuoUser(commands.Converter):
             if found := discord.utils.find(check, ctx.bot.users):
                 return found
             raise commands.UserNotFound(argument)
+
+
+class QuoCategory(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            return await commands.CategoryChannelConverter().convert(ctx, argument)
+        except commands.ChannelNotFound:
+
+            def check(category):
+                return category.name.lower() == argument.lower() or str(category.id) == argument
+
+            if found := discord.utils.find(check, ctx.guild.categories):
+                return found
+
+            raise commands.ChannelNotFound(argument)
