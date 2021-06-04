@@ -2,9 +2,19 @@ from discord.ext import commands
 from PIL import ImageColor
 import discord, re
 import contextlib
-from .exceptions import InvalidColor
 
-__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "QuoRoleConverter")
+from .exceptions import InvalidColor
+from typing import Optional
+
+__all__ = (
+    "ColorConverter",
+    "BannedMember",
+    "ActionReason",
+    "MemberID",
+    "QuoRoleConverter",
+    "QuoMemberConverter",
+    "QuoUserConverter",
+)
 
 
 class ColorConverter(commands.Converter):
@@ -88,7 +98,12 @@ class MemberID(commands.Converter):
 
 
 class QuoRoleConverter(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx, argument) -> Optional[discord.Role]:
+        """
+        Return Role, this works without taking case sensitivity into account.
+
+        Raises commands.RoleNotFound if cannot find the role.
+        """
         try:
             return await commands.RoleConverter().convert(ctx, argument)
         except commands.RoleNotFound:
@@ -104,3 +119,58 @@ class QuoRoleConverter(commands.Converter):
                 return found
 
             raise commands.RoleNotFound(argument)
+
+
+class QuoMemberConverter(commands.Converter):
+    async def convert(self, ctx, argument) -> Optional[discord.Member]:
+        """
+        Returns Member , it is better that commands.MemberConverter() because it finds member without
+        taking case sensitivity into account.
+
+        Raises commands.MemberNotFound
+        """
+        try:
+            return await commands.MemberConverter().convert(ctx, argument)
+        except commands.MemberNotFound:
+
+            def check(member):
+                return (
+                    member.name.lower() == argument.lower()
+                    or member.display_name.lower() == argument.lower()
+                    or str(member).lower() == argument.lower()
+                    or str(member.id) == argument
+                )
+
+            if found := discord.utils.find(check, ctx.guild.members):
+                return found
+
+            raise commands.MemberNotFound(argument)
+
+
+class QuoUserConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        """
+        This will return Member if member exists in the guild else will returns User.
+        Raises commands.UserNotFound
+        """
+        if ctx.guild:
+            try:
+                return await QuoMemberConverter().convert(ctx, argument)
+
+            except commands.MemberNotFound:
+                pass
+
+        try:
+            return await commands.UserConverter().convert(ctx, argument)
+        except:
+
+            def check(user):
+                return (
+                    user.name.lower() == argument.lower()
+                    or str(user).lower() == argument.lower()
+                    or str(user.id) == argument
+                )
+
+            if found := discord.utils.find(check, ctx.bot.users):
+                return found
+            raise commands.UserNotFound(argument)
