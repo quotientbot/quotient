@@ -377,11 +377,11 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
-            message=f"All channels under the category `{category}` will be deleted.\n**Are you sure you want to continue?**"
+            message=f"All channels under the category `{category}` will be deleted.\nAre you sure you want to continue?"
         )
         if prompt:
-            failed = 0
-            success = 0
+            failed, success = 0, 0
+
             for channel in category.channels:
                 try:
                     await channel.delete()
@@ -395,7 +395,7 @@ class Utility(Cog, name="utility"):
             with suppress(
                 discord.Forbidden, commands.ChannelNotFound, discord.NotFound, commands.CommandInvokeError
             ):  # yes all these will be raised if the channel is from ones we deleted earlier.
-                await ctx.success(f"Successfully deleted category. (Deleted: `{success}`, Failed: `{failed}`)")
+                await ctx.success(f"Successfully deleted **{category}**. (Deleted: `{success}`, Failed: `{failed}`)")
 
         else:
             await ctx.simple(f"Ok Aborting.")
@@ -405,14 +405,58 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_hide(self, ctx: Context, *, category: QuoCategory):
         """Hide a category and all its channels"""
-        pass
+        if not len(category.channels):
+            return await ctx.error(f"**{category}** doesn't have any channels.")
+
+        prompt = await ctx.prompt(
+            message=f"All channels under the category `{category}` will be hidden.\nAre you sure you want to continue?"
+        )
+        if prompt:
+            failed, success = 0, 0
+
+            for channel in category.channels:
+                try:
+                    perms = channel.overwrites_for(ctx.guild.default_role)
+                    perms.read_messages = False
+                    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+                    success += 1
+                except:
+                    failed += 1
+                    continue
+
+            await ctx.success(f"Successfully hidden category. (Hidden: `{success}`, Failed: `{failed}`)")
+
+        else:
+            await ctx.simple("Ok Aborting.")
 
     @category.command(name="unhide")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
     async def category_unhide(self, ctx: Context, *, category: QuoCategory):
         """Unhide a hidden category and all its channels."""
-        pass
+        if not len(category.channels):
+            return await ctx.error(f"**{category}** doesn't have any channels.")
+
+        prompt = await ctx.prompt(
+            message=f"All channels under the category `{category}` will be unhidden.\nAre you sure you want to continue?"
+        )
+        if prompt:
+            failed, success = 0, 0
+
+            for channel in category.channels:
+                try:
+                    perms = channel.overwrites_for(ctx.guild.default_role)
+                    perms.read_messages = True
+                    await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
+                    success += 1
+                except:
+                    failed += 1
+                    continue
+
+            await ctx.success(f"Successfully unhidden **{category}**. (Unhidden: `{success}`, Failed: `{failed}`)")
+
+        else:
+            await ctx.simple("Ok Aborting.")
 
     @category.command(name="nuke")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
@@ -422,7 +466,31 @@ class Utility(Cog, name="utility"):
         Delete a category completely and create a new one
         This will delete all the channels under the category and will make a new one with same perms and channels.
         """
-        pass
+        if not len(category.channels):
+            return await ctx.error(f"**{category}** doesn't have any channels.")
+
+        prompt = await ctx.prompt(
+            message=f"All channels under the category `{category}` will be cloned and deleted.\nAre you sure you want to continue?"
+        )
+        if prompt:
+            failed, success = 0, 0
+            for channel in category.channels:
+                if channel.permissions_for(ctx.me).manage_channels:
+                    try:
+                        position = channel.position
+                        clone = await channel.clone(reason=f"Action done by {ctx.author}")
+                        await channel.delete()
+                        await clone.edit(position=position)
+                        success += 1
+
+                    except:
+                        failed += 1
+                        continue
+
+            await ctx.success(f"Successfully nuked **{category}**. (Cloned: `{success}`, Failed: `{failed}`)")
+
+        else:
+            await ctx.simple(f"Ok Aborting.")
 
 
 def setup(bot) -> None:
