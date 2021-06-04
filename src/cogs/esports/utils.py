@@ -1,10 +1,13 @@
+from contextlib import suppress
 from typing import NoReturn, Union
 from models import Scrim, Tourney
 from datetime import datetime, timedelta
+from utils import inputs
 import constants
 import discord
 import humanize
 import config
+import asyncio
 
 
 def get_slots(slots):
@@ -174,3 +177,9 @@ async def purge_roles(roles):
                     await member.remove_roles(role, reason="Scrims Manager Auto Role Remove in progress!")
                 except:
                     continue
+
+
+async def delete_denied_message(message: discord.Message):
+    with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+        await asyncio.sleep(10)
+        await inputs.safe_delete(message)

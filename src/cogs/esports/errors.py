@@ -1,10 +1,15 @@
 import discord, io
 
-from tortoise.fields.relational import NoneAwaitable
 from core import Cog
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from models.esports import AssignedSlot
 from models.functions import ArrayAppend
-from .utils import purge_roles, purge_channels
+from .utils import purge_roles, purge_channels, delete_denied_message
 from prettytable import PrettyTable
 from utils import find_team
 from models import TagCheck
@@ -122,6 +127,9 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
+
+            if scrim.autodelete_rejects:
+                self.bot.loop.create_task(delete_denied_message(message))
 
             if logschan is not None:
                 if logschan.permissions_for(logschan.guild.me).embed_links:

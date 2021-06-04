@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -859,6 +860,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_reserve(self, ctx, scrim: ScrimConverter):
         """
         Add / Remove a team from the reserved list

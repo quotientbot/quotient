@@ -556,6 +556,10 @@ class ConfigEditMenu(menus.Menu):
                 value=value,
             )
 
+        embed.add_field(
+            name="Autodelete Rejected Registrations", value=("`No!`", "`Yes!`")[scrim.autodelete_rejects], inline=False
+        )
+
         embed.set_thumbnail(url=self.bot.user.avatar_url)
         return embed
 
@@ -719,6 +723,10 @@ class ConfigEditMenu(menus.Menu):
 
         await inputs.safe_delete(m)
         await self.update_scrim(start_from=start_from)
+
+    @menus.button(regional_indicator("M"))
+    async def auto_delete_rejects(self, payload):
+        await self.update_scrim(autodelete_rejects=not self.scrim.autodelete_rejects)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):

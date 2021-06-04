@@ -1,4 +1,3 @@
-from discord import reaction
 from core import Cog, Context
 
 import typing
@@ -20,7 +19,7 @@ import re
 
 
 class Utility(Cog, name="utility"):
-    def __init__(self, bot: Quotient):
+    def __init__(self, bot):
         self.bot = bot
 
     @commands.group(invoke_without_command=True)

@@ -115,6 +115,7 @@ class Scrim(models.Model):
     multiregister = fields.BooleanField(default=False)
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
+    autodelete_rejects = fields.BooleanField(default=False)
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
     slotlist_format = fields.TextField(null=True)
