@@ -56,7 +56,6 @@ class HumanTime:
             dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
         self.dt = dt
-        print(self.dt, now)
         self._past = dt < now
 
     @classmethod
