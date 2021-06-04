@@ -17,16 +17,7 @@ from .utils import (
     get_slots,
     get_tourney_slots,
 )
-from utils import (
-    default,
-    time,
-    day_today,
-    inputs,
-    checks,
-    FutureTime,
-    human_timedelta,
-    get_chunks,
-)
+from utils import default, time, day_today, inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRoleConverter
 
 from .converters import ScrimConverter, TourneyConverter
 from constants import Day, IST
@@ -1373,9 +1364,9 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(f"```{registration_form}```")
 
     @commands.command(aliases=("idp",))
-    @commands.bot_has_permissions(embed_links=True,manage_messages=True)
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    async def shareidp(self, ctx, room_id, room_password, map, role_to_ping: discord.Role = None):
+    async def shareidp(self, ctx, room_id, room_password, map, role_to_ping: QuoRoleConverter = None):
         """
         Share Id/pass with embed.
         Message is automatically deleted after 30 minutes.
