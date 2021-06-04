@@ -1372,7 +1372,8 @@ class ScrimManager(Cog, name="Esports"):
         """Get your reg-format in a reusable form."""
         await ctx.send(f"```{registration_form}```")
 
-    @commands.command()
+    @commands.command(aliases=("idp",))
+    @commands.bot_has_permissions(embed_links=True,manage_messages=True)
     @checks.can_use_sm()
     async def shareidp(self, ctx, room_id, room_password, map, role_to_ping: discord.Role = None):
         """
