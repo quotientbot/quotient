@@ -1,12 +1,20 @@
-from core import Cog, Quotient, Context
+from discord import reaction
+from core import Cog, Context
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from discord.ext import commands
 from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, strtime, plural
+from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit
 from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
+import asyncio
 import config
 import re
 
@@ -200,7 +208,7 @@ class Utility(Cog, name="utility"):
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
-    async def all_tags(self, ctx):
+    async def all_tags(self, ctx: Context):
         """Get all tags owned by the server."""
         tags = await Tag.filter(guild_id=ctx.guild.id)
 
@@ -217,7 +225,7 @@ class Utility(Cog, name="utility"):
         await paginator.paginate()
 
     @tag.command(name="info", aliases=("stats",))
-    async def tag_info(self, ctx, *, tag: TagConverter):
+    async def tag_info(self, ctx: Context, *, tag: TagConverter):
         """Information about a tag"""
         embed = self.bot.embed(ctx, title=f"Stats for tag {tag.name}")
 
@@ -234,7 +242,7 @@ class Utility(Cog, name="utility"):
         await ctx.send(embed=embed)
 
     @tag.command(name="claim")
-    async def claim_tag(self, ctx, *, tag: TagConverter):
+    async def claim_tag(self, ctx: Context, *, tag: TagConverter):
         """Claim if tag if its owner has left."""
 
         member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
@@ -246,12 +254,9 @@ class Utility(Cog, name="utility"):
         await ctx.success("Transfered tag ownership to you.")
 
     @tag.command(name="create")
-    async def create_tag_command(self, ctx, name: TagName, *, content=""):
+    async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
-        if len(ctx.message.attachments) > 1:
-            return await ctx.error("You cannot create tag with more than one attachment.")
-
-        if len(ctx.message.attachments) == 1:
+        if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         if len(content) > 1990:
@@ -266,7 +271,7 @@ class Utility(Cog, name="utility"):
             await ctx.error(f"Tag Name is already taken.")
 
     @tag.command(name="delete", aliases=["del"])
-    async def delete_tag(self, ctx, *, tag_name: TagConverter):
+    async def delete_tag(self, ctx: Context, *, tag_name: TagConverter):
         """Delete a tag"""
         tag = tag_name
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
@@ -276,7 +281,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {tag_name.name}")
 
     @tag.command(name="transfer")
-    async def transfer_tag(self, ctx, member: discord.Member, *, tag: TagConverter):
+    async def transfer_tag(self, ctx: Context, member: discord.Member, *, tag: TagConverter):
         """Transfer the ownership of a tag."""
 
         if tag.owner_id != ctx.author.id:
@@ -286,7 +291,7 @@ class Utility(Cog, name="utility"):
         await ctx.success("Transfer successful.")
 
     @tag.command("nsfw")
-    async def nsfw_status_toggle(self, ctx, *, tag: TagConverter):
+    async def nsfw_status_toggle(self, ctx: Context, *, tag: TagConverter):
         """Toggle NSFW for a tag."""
         if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error(f"This tag doesn't belong to you.")
@@ -295,7 +300,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
 
     @tag.command(name="purge")
-    async def purge_tags(self, ctx, member: discord.Member):
+    async def purge_tags(self, ctx: Context, member: discord.Member):
         """Delete all the tags of a member"""
 
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
@@ -306,7 +311,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx, name: TagName, *, content):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
@@ -321,8 +326,27 @@ class Utility(Cog, name="utility"):
         await Tag.filter(id=tag.id).update(content=content)
         await ctx.success(f"Tag updated.")
 
+    @tag.command(name="make")
+    async def tag_make(self, ctx: Context):
+        def check(message: discord.Message):
+            if message.content.strip().lower() == "cancel":
+                raise commands.BadArgument("Alright, reverting all process.")
+
+            return message.author == ctx.author and ctx.channel == message.channel
+
+        msg = await ctx.simple("What do you want the tag name to be?")
+        name = await inputs.string_input(ctx, check, delete_after=True)
+        await inputs.safe_delete(msg)
+
+        embed = await ctx.simple(
+            f"What do you want the content to be?\n\n{keycap_digit(1)} | Simple Text\n{keycap_digit(2)} | Embed"
+        )
+        reactions = [keycap_digit(1), keycap_digit(2)]
+        for reaction in reactions:
+            await embed.add_reaction(reaction)
+
     @tag.command(name="search")
-    async def search_tag(self, ctx, *, name):
+    async def search_tag(self, ctx: Context, *, name):
         """Search in all your tags."""
         tags = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
@@ -334,7 +358,7 @@ class Utility(Cog, name="utility"):
             tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
 
         paginator = Pages(
-            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
+            ctx, title="Matching Tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
         )
         await paginator.paginate()
 

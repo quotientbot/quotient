@@ -94,6 +94,15 @@ class Context(commands.Context):
                 description=f"{utils.check} | {message}",
                 color=self.config.COLOR,
             ),
+            delete_after=delete_after,
+        )
+
+    async def simple(self, message):
+        return await self.send(
+            embed=discord.Embed(
+                description=message,
+                color=self.config.COLOR,
+            )
         )
 
     async def send_file(self, content, *, name: str = "Message.txt", escape_mentions=True, **kwargs):
