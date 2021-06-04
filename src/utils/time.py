@@ -3,13 +3,14 @@ import parsedatetime as pdt
 from discord.ext import commands
 import datetime as dtm
 from .regex import TIME_REGEX
-from utils import checks, IST
+from utils import checks
+from constants import IST
 from dateutil.relativedelta import relativedelta
 
 
 units = pdt.pdtLocales["en_US"].units
-units["minutes"].append("mins")
-units["seconds"].append("secs")
+# units["minutes"].append("mins") #they are already in the list so no need to append again
+# units["seconds"].append("secs")
 
 
 class ShortTime:
@@ -36,7 +37,7 @@ class ShortTime:
 
     @classmethod
     async def convert(cls, ctx, argument):
-        return cls(argument, now=dtm.datetime.now())
+        return cls(argument, now=dtm.datetime.now(tz=IST))
 
 
 class HumanTime:
@@ -48,11 +49,14 @@ class HumanTime:
         if not status.hasDateOrTime:
             raise checks.InvalidTime()
 
+        dt = dt.replace(tzinfo=IST)
+
         if not status.hasTime:
             # replace it with the current time
-            dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond, tz=IST)
+            dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond, tzinfo=IST)
 
         self.dt = dt
+        print(self.dt, now)
         self._past = dt < now
 
     @classmethod
