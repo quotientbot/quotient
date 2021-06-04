@@ -4,7 +4,7 @@ import discord, re
 import contextlib
 from .exceptions import InvalidColor
 
-__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID")
+__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "QuoRoleConverter")
 
 
 class ColorConverter(commands.Converter):
@@ -85,3 +85,22 @@ class MemberID(commands.Converter):
             raise commands.BadArgument("I cannot do this action on this user due to role hierarchy.")
 
         return m
+
+
+class QuoRoleConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            return await commands.RoleConverter().convert(ctx, argument)
+        except commands.RoleNotFound:
+
+            def check(role):
+                return (
+                    role.name.lower() == argument.lower()
+                    or str(role).lower() == argument.lower()
+                    or str(role.id) == argument
+                )
+
+            if found := discord.utils.find(check, ctx.guild.roles):
+                return found
+
+            raise commands.RoleNotFound(argument)
