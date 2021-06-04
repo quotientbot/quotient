@@ -1,3 +1,4 @@
+from unicodedata import category
 from core import Cog, Context
 
 import typing
@@ -9,8 +10,8 @@ from discord.ext import commands
 from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit
-from .functions import TagName, create_tag, increment_usage, TagConverter, is_valid_name
+from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember
+from .functions import TagName, increment_usage, TagConverter, is_valid_name
 from typing import Optional
 import discord
 import asyncio
@@ -53,7 +54,7 @@ class Utility(Cog, name="utility"):
     @autorole.command(name="humans")
     @checks.is_mod()
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def autorole_humans(self, ctx: Context, *, role: discord.Role):
+    async def autorole_humans(self, ctx: Context, *, role: QuoRole):
         """
         Add/ Remove a role to human autoroles.
         """
@@ -76,7 +77,7 @@ class Utility(Cog, name="utility"):
     @autorole.command(name="bots")
     @checks.is_mod()
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def autorole_bots(self, ctx: Context, *, role: discord.Role):
+    async def autorole_bots(self, ctx: Context, *, role: QuoRole):
         """
         Add/ Remove a role to bot autoroles.
         """
@@ -280,7 +281,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {tag_name.name}")
 
     @tag.command(name="transfer")
-    async def transfer_tag(self, ctx: Context, member: discord.Member, *, tag: TagConverter):
+    async def transfer_tag(self, ctx: Context, member: QuoMember, *, tag: TagConverter):
         """Transfer the ownership of a tag."""
 
         if tag.owner_id != ctx.author.id:
@@ -299,7 +300,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
 
     @tag.command(name="purge")
-    async def purge_tags(self, ctx: Context, member: discord.Member):
+    async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
 
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
@@ -360,6 +361,42 @@ class Utility(Cog, name="utility"):
             ctx, title="Matching Tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
         )
         await paginator.paginate()
+
+    @commands.group(invoke_without_subcommand=True)
+    async def category(self, ctx):
+        """hide , delete , unhide or even nuke a category"""
+        await ctx.send_help(ctx.command)
+
+    @category.command(name="delete")
+    @commands.has_permissions(manage_channels=True, manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def category_delete(self, ctx, *, category):
+        """Delete a category and all the channels under it."""
+        pass
+
+    @category.command(name="hide")
+    @commands.has_permissions(manage_channels=True, manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def category_hide(self, ctx, *, category):
+        """Hide a category and all its channels"""
+        pass
+
+    @category.command(name="unhide")
+    @commands.has_permissions(manage_channels=True, manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def category_unhide(self, ctx, *, category):
+        """Unhide a hidden category and all its channels."""
+        pass
+
+    @category.command(name="nuke")
+    @commands.has_permissions(manage_channels=True, manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def category_nuke(self, ctx, *, category):
+        """
+        Delete a category completely and create a new one
+        This will delete all the channels under the category and will make a new one with same perms and channels.
+        """
+        pass
 
 
 def setup(bot) -> None:
