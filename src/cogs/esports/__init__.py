@@ -1441,9 +1441,11 @@ class ScrimManager(Cog, name="Esports"):
 
         embed = self.bot.embed(ctx, title="Easy Tagging")
         embed.description = """
-        some desc
-        
+        Unable to mention teammates while registering for scrims or tournaments? Quotient is here for the rescue.
+
+        Use `teammate's ID`, `@teammate_name` or `@teammate's_discord_tag` in your registration format. Quotient will convert that into an actual discord tag.        
         """
+        embed.set_image(url = "https://media.discordapp.net/attachments/775707108192157706/850788091236450344/eztags.gif")
         msg = await channel.send(embed=embed)
         await msg.pin()
 
