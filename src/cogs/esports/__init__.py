@@ -1,4 +1,5 @@
 from __future__ import annotations
+from re import I
 import typing
 
 if typing.TYPE_CHECKING:
@@ -28,6 +29,7 @@ from datetime import timedelta, datetime
 from discord import AllowedMentions
 from discord.ext import commands
 
+from .events import ScrimEvents
 from .errors import ScrimError, SMError, TourneyError
 from prettytable import PrettyTable
 
@@ -1366,7 +1368,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command(aliases=("idp",))
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    async def shareidp(self, ctx, room_id, password, map,role_to_ping: QuoRole = None):
+    async def shareidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
         """
         Share Id/pass with embed.
         Message is automatically deleted after 30 minutes.
@@ -1390,3 +1392,4 @@ class ScrimManager(Cog, name="Esports"):
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
     bot.add_cog(SMError(bot))
+    bot.add_cog(ScrimEvents(bot))

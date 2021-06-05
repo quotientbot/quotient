@@ -343,7 +343,7 @@ class EasyTag(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    channel_id = fields.BigIntField()
+    channel_id = fields.BigIntField(index=True)
     delete_after = fields.BigIntField(default=False)
 
     @property
