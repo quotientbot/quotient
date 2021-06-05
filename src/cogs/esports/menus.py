@@ -875,7 +875,7 @@ class TourneyEditor(menus.Menu):
             self.ctx,
             self.check,
             delete_after=True,
-            limits=(1, 30),
+            limits=(1, 5000),
         )
         await inputs.safe_delete(msg)
         await self.update_tourney(total_slots=slots)
