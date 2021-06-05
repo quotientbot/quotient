@@ -1,6 +1,8 @@
 import asyncio
 import io
 import json
+
+from discord import guild
 from .fields import *
 import discord
 import utils
@@ -344,6 +346,15 @@ class EasyTag(models.Model):
     channel_id = fields.BigIntField()
     delete_after = fields.BigIntField(default=False)
 
-    @property()
-    def channel(self):
+    @property
+    def _guild(self) -> Optional[discord.Guild]:
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def channel(self) -> Optional[discord.TextChannel]:
         return self.bot.get_channel(self.channel_id)
+
+    @property
+    def ignorerole(self) -> Optional[discord.Role]:
+        if not self._guild is None:
+            return discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
