@@ -18,6 +18,15 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class RegDeny(Enum):
+    botmention = "mentioned bots"
+    nomention = "insufficient mentions"
+    banned = "banned"
+    multiregister = "multiregiter"
+    noteamname = "no_team_name"
+    
+
+
 class LogType(Enum):
     msg = "msg"  # msg delete / bulk delete / msg edit
     join = "join"  # member join

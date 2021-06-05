@@ -225,7 +225,7 @@ class Scrim(models.Model):
         for id in ids:
             fslots.append([slot for slot in slots if slot.num == id][0])
 
-        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
+        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in fslots)
 
         if self.slotlist_format != None:
             format = leval(self.slotlist_format)
@@ -333,3 +333,17 @@ class TagCheck(models.Model):
         guild = self.bot.get_guild(self.guild_id)
         if guild != None:
             return discord.utils.get(guild.roles, name="scrims-mod")
+
+
+class EasyTag(models.Model):
+    class Meta:
+        table = "easytags"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    delete_after = fields.BigIntField(default=False)
+
+    @property()
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
