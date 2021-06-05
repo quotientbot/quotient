@@ -6,7 +6,17 @@ import contextlib
 from .exceptions import InvalidColor
 from typing import Optional
 
-__all__ = ("ColorConverter", "BannedMember", "ActionReason", "MemberID", "QuoRole", "QuoMember", "QuoUser", "QuoCategory")
+__all__ = (
+    "ColorConverter",
+    "BannedMember",
+    "ActionReason",
+    "MemberID",
+    "QuoRole",
+    "QuoMember",
+    "QuoUser",
+    "QuoCategory",
+    "QuoTextChannel",
+)
 
 
 class ColorConverter(commands.Converter):

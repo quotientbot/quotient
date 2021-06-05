@@ -18,7 +18,18 @@ from .utils import (
     get_slots,
     get_tourney_slots,
 )
-from utils import default, time, day_today, inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole
+from utils import (
+    default,
+    time,
+    day_today,
+    inputs,
+    checks,
+    FutureTime,
+    human_timedelta,
+    get_chunks,
+    QuoRole,
+    QuoTextChannel,
+)
 
 from .converters import ScrimConverter, TourneyConverter
 from constants import Day, IST
@@ -26,7 +37,7 @@ from discord.ext.commands.cooldowns import BucketType
 from models import *
 from unicodedata import normalize as nm
 from datetime import timedelta, datetime
-from discord import AllowedMentions
+from discord import AllowedMentions, permissions
 from discord.ext import commands
 
 from .events import ScrimEvents
@@ -1393,19 +1404,48 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
-    async def set_eztag(self, ctx: Context, *, channel):
-        pass
+    async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
+        count = await EasyTag.filter(guild_id=ctx.guild.id).count()
+        guild = await Guild.get(id=ctx.guild.id)
+
+        if count == 1 and not guild.is_premium:
+            return await ctx.error(
+                f"Upgrade your server to Quotient Premium to setup more than 1 EasyTag channel.\n{self.bot.config.WEBSITE}/premium"
+            )
+
+        if channel.id in self.bot.eztagchannels:
+            return await ctx.error(f"This channel is already a easy tag channel.")
+
+        if not channel.permissions_for(ctx.me).send_messages or not channel.permissions_for(ctx.me).embed_links:
+            return await ctx.error(f"I need `send_messages` and `embed_links` permission in {channel.mention}")
+
+        role = discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
+        if not role:
+            role = await ctx.guild.create_role(
+                name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
+            )
+
+        await EasyTag.create(guild_id=ctx.guild.id, channel_id=channel.id)
+        self.bot.eztagchannels.add(channel.id)
+        await ctx.success(
+            f"Successfully added **{channel}** to easy tag channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
+        )
 
     @easytag.command(name="remove")
-    async def remove_eztag(self, ctx: Context, *, channel):
+    async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         pass
 
     @easytag.command(name="config")
     async def config_eztag(self, ctx: Context):
-        pass
+        records = await EasyTag.filter(guild_id=ctx.guild.id)
+        if not len(records):
+            return await ctx.error(f"You haven't set any easytag channel yet.\n\nUse `{ctx.prefix}eztag set #{ctx.channel}`")
+        
+        for record in records:
+            pass
 
     @easytag.command(name="deleteafter")
-    async def delete_eztag(self, ctx: Context, channel):
+    async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
         pass
 
 
