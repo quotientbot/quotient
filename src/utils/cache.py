@@ -14,3 +14,8 @@ async def cache(bot):
             "color": record.embed_color or config.COLOR,
             "footer": record.embed_footer or config.FOOTER,
         }
+
+    records = models.EasyTag.all()
+    bot.eztagchannels = set()
+    async for record in records:
+        bot.eztagchannels.add(record.channel_id)
