@@ -68,7 +68,7 @@ def can_execute_action(ctx, user, target):
 class MemberID(commands.Converter):
     async def convert(self, ctx, argument):
         try:
-            m = await commands.MemberConverter().convert(ctx, argument)
+            m = await QuoMember().convert(ctx, argument)
         except commands.BadArgument:
             try:
                 member_id = int(argument, base=10)
@@ -101,11 +101,7 @@ class QuoRole(commands.Converter):
         except commands.RoleNotFound:
 
             def check(role):
-                return (
-                    role.name.lower() == argument.lower()
-                    or str(role).lower() == argument.lower()
-                    or str(role.id) == argument
-                )
+                return role.name.lower() == argument.lower() or str(role).lower() == argument.lower()
 
             if found := discord.utils.find(check, ctx.guild.roles):
                 return found
@@ -130,7 +126,6 @@ class QuoMember(commands.Converter):
                     member.name.lower() == argument.lower()
                     or member.display_name.lower() == argument.lower()
                     or str(member).lower() == argument.lower()
-                    or str(member.id) == argument
                 )
 
             if found := discord.utils.find(check, ctx.guild.members):
@@ -161,7 +156,7 @@ class QuoUser(commands.Converter):
                 return (
                     user.name.lower() == argument.lower()
                     or str(user).lower() == argument.lower()
-                    or str(user.id) == argument
+                    or user.id == str(argument)
                 )
 
             if found := discord.utils.find(check, ctx.bot.users):
@@ -176,9 +171,24 @@ class QuoCategory(commands.Converter):
         except commands.ChannelNotFound:
 
             def check(category):
-                return category.name.lower() == argument.lower() or str(category.id) == argument
+                return category.name.lower() == argument.lower()
 
             if found := discord.utils.find(check, ctx.guild.categories):
+                return found
+
+            raise commands.ChannelNotFound(argument)
+
+
+class QuoTextChannel(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            return await commands.TextChannelConverter().convert(ctx, argument)
+        except commands.ChannelNotFound:
+
+            def check(channel):
+                return channel.name.lower() == argument.lower()
+
+            if found := discord.utils.find(check, ctx.guild.text_channels):
                 return found
 
             raise commands.ChannelNotFound(argument)
