@@ -1388,6 +1388,26 @@ class ScrimManager(Cog, name="Esports"):
 
         self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
 
+    @commands.group(aliases=("eztag",), invoke_without_command=True)
+    async def easytag(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @easytag.command(name="set")
+    async def set_eztag(self, ctx: Context, *, channel):
+        pass
+
+    @easytag.command(name="remove")
+    async def remove_eztag(self, ctx: Context, *, channel):
+        pass
+
+    @easytag.command(name="config")
+    async def config_eztag(self, ctx: Context):
+        pass
+
+    @easytag.command(name="deleteafter")
+    async def delete_eztag(self, ctx: Context, channel):
+        pass
+
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
