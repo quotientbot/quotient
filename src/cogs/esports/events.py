@@ -1,5 +1,7 @@
-from core import Quotient, Cog, Context
+from core import Quotient, Cog
+from .utils import delete_denied_message
 from models import EasyTag
+from .converters import EasyMemberConverter
 from contextlib import suppress
 import discord
 import re
@@ -9,7 +11,7 @@ class ScrimEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @Cog.listener()
+    @Cog.listener(name="on_message")
     async def on_eztag_msg(self, message: discord.Message):
         if not message.guild or message.author.bot:
             return
@@ -18,7 +20,6 @@ class ScrimEvents(Cog):
             return
 
         channel_id = message.channel.id
-
         eztag = await EasyTag.get_or_none(channel_id=channel_id)
 
         if not eztag:
@@ -30,5 +31,25 @@ class ScrimEvents(Cog):
             return
 
         with suppress(discord.Forbidden, discord.NotFound):
+            ctx = await self.bot.get_context(message)
 
             tags = set(re.findall(r"\b\d{18}\b|\b@\w+", message.content, re.IGNORECASE))
+
+            if not len(tags):
+                await message.add_reaction("❌")
+                return await ctx.reply(
+                    "I couldn't find any discord tag in this form.\nYou can write your teammate's id , @their_name or @their_full_discord_tag",
+                    delete_after=10,
+                )
+
+            members = list()
+            for m in tags:
+                members.append(await EasyMemberConverter().convert(ctx, m))
+
+            mentions = ", ".join(members)
+
+            msg = await ctx.reply(f"```{message.clean_content}\nDiscord Tags: {mentions}```")
+
+            if eztag.delete_after:
+                self.bot.loop.create_task(delete_denied_message(message, 60))
+                self.bot.loop.create_task(delete_denied_message(msg, 60))

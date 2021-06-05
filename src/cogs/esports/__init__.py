@@ -1,4 +1,5 @@
 from __future__ import annotations
+from base64 import decodestring
 from re import I
 import typing
 
@@ -1401,12 +1402,16 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):
+        """Commands related to quotient's eztag"""
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
+    @commands.bot_has_permissions(manage_roles=True)
+    @commands.has_permissions(manage_guild=True)
     async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
+        """Set a channel as eztag channel."""
         count = await EasyTag.filter(guild_id=ctx.guild.id).count()
-        guild = await Guild.get(id=ctx.guild.id)
+        guild = await Guild.get(guild_id=ctx.guild.id)
 
         if count == 1 and not guild.is_premium:
             return await ctx.error(
@@ -1416,10 +1421,16 @@ class ScrimManager(Cog, name="Esports"):
         if channel.id in self.bot.eztagchannels:
             return await ctx.error(f"This channel is already a easy tag channel.")
 
-        if not channel.permissions_for(ctx.me).send_messages or not channel.permissions_for(ctx.me).embed_links:
-            return await ctx.error(f"I need `send_messages` and `embed_links` permission in {channel.mention}")
+        if (
+            not channel.permissions_for(ctx.me).send_messages
+            or not channel.permissions_for(ctx.me).embed_links
+            or not channel.permissions_for(ctx.me).manage_messages
+        ):
+            return await ctx.error(
+                f"I need `send_messages`, `embed_links` and `manage_messages` permission in {channel.mention}"
+            )
 
-        role = discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
+        role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
         if not role:
             role = await ctx.guild.create_role(
                 name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
@@ -1427,26 +1438,62 @@ class ScrimManager(Cog, name="Esports"):
 
         await EasyTag.create(guild_id=ctx.guild.id, channel_id=channel.id)
         self.bot.eztagchannels.add(channel.id)
+
+        embed = self.bot.embed(ctx, title="Easy Tagging")
+        embed.description = """
+        some desc
+        
+        """
+        msg = await channel.send(embed=embed)
+        await msg.pin()
+
         await ctx.success(
             f"Successfully added **{channel}** to easy tag channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
         )
 
     @easytag.command(name="remove")
+    @commands.has_permissions(manage_guild=True)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
-        pass
+        """Remove a eztag channel"""
+        if not channel.id in self.bot.eztagchannels:
+            return await ctx.error(f"This is not a EasyTag channel.")
+
+        await EasyTag.filter(channel_id=channel.id).delete()
+        self.bot.eztagchannels.discard(channel.id)
+        await ctx.success(f"Removed {channel} from EasyTag channels.")
 
     @easytag.command(name="config")
+    @commands.has_permissions(manage_guild=True)
     async def config_eztag(self, ctx: Context):
+        """Get a list of all your easytag channels."""
         records = await EasyTag.filter(guild_id=ctx.guild.id)
         if not len(records):
-            return await ctx.error(f"You haven't set any easytag channel yet.\n\nUse `{ctx.prefix}eztag set #{ctx.channel}`")
-        
-        for record in records:
-            pass
+            return await ctx.error(
+                f"You haven't set any easytag channel yet.\n\nUse `{ctx.prefix}eztag set #{ctx.channel}`"
+            )
 
-    @easytag.command(name="deleteafter")
+        eztags = []
+        for idx, record in enumerate(records, start=1):
+            channel = getattr(record.channel, "mention", record.channel_id)
+            eztags.append(
+                f"`{idx:02}.` {channel} (Delete After: {record.delete_after if record.delete_after else 'Not Set'})"
+            )
+
+        embed = self.bot.embed(ctx, title="EasyTag config", description="\n".join(eztags))
+        await ctx.send(embed=embed)
+
+    @easytag.command(name="autodelete")
+    @commands.has_permissions(manage_guild=True)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
-        pass
+        """Enable/Disable autodelete for eztag."""
+        record = await EasyTag.get_or_none(channel_id=channel.id)
+        if not record:
+            return await ctx.error(f"This is not a EasyTag Channel.")
+
+        await EasyTag.filter(channel_id=channel.id).update(delete_after=not record.delete_after)
+        await ctx.success(
+            f"Delete After for **{channel}** turned {'ON' if not record.delete_after else 'OFF'}!\n\nDelete After automatically deletes the format message after some time."
+        )
 
 
 def setup(bot):

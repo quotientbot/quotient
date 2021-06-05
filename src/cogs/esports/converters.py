@@ -1,5 +1,6 @@
 from models import *
-
+from utils import QuoMember
+from discord.ext import commands
 from discord.ext.commands import Converter, BadArgument
 import tortoise.exceptions
 
@@ -32,3 +33,12 @@ class TourneyConverter(Converter, Tourney):
                 pass
 
         raise BadArgument(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
+
+
+class EasyMemberConverter(Converter):
+    async def convert(self, ctx, argument: str):
+        try:
+            member = await QuoMember().convert(ctx, argument)
+            return getattr(member, "mention")
+        except commands.MemberNotFound:
+            return "Invalid Member!"
