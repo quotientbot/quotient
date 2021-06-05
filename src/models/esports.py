@@ -220,7 +220,7 @@ class Scrim(models.Model):
 
     async def create_slotlist(self):
         slots = await self.teams_registered
-        ids = [slot.num for slot in slots]
+        ids = set(slot.num for slot in slots)
         fslots = []
         for id in ids:
             fslots.append([slot for slot in slots if slot.num == id][0])

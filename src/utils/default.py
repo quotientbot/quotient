@@ -24,7 +24,7 @@ def split_list(data: list, per_list: int):
 
 def find_team(message):
     """Finds team name from a message"""
-    content = message.content
+    content = message.content.lower()
     author = message.author
     teamname = re.search(r"team.*", content)
     if teamname is None:

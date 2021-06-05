@@ -1366,7 +1366,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command(aliases=("idp",))
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    async def shareidp(self, ctx, room_id, room_password, map, role_to_ping: QuoRole = None):
+    async def shareidp(self, ctx, room_id, password, map,role_to_ping: QuoRole = None):
         """
         Share Id/pass with embed.
         Message is automatically deleted after 30 minutes.
@@ -1375,7 +1375,7 @@ class ScrimManager(Cog, name="Esports"):
         embed = self.bot.embed(ctx, title="New Custom Room. JOIN NOW!")
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.add_field(name="Room ID", value=room_id)
-        embed.add_field(name="Password", value=room_password)
+        embed.add_field(name="Password", value=password)
         embed.add_field(name="Map", value=map)
         embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.avatar_url)
         msg = await ctx.send(
