@@ -85,12 +85,6 @@ class ScrimManager(Cog, name="Esports"):
         async for record in records:
             self.registration_channels.add(record.registration_channel_id)
 
-        records = TagCheck.all()
-        self.tagcheck_channels = set()
-
-        async for record in records:
-            self.tagcheck_channels.add(record.channel_id)
-
         records = Tourney.filter(started_at__not_isnull=True)
         self.tourney_channels = set()
 
@@ -338,9 +332,6 @@ class ScrimManager(Cog, name="Esports"):
             return
 
         channel_id = message.channel.id
-
-        if channel_id in self.tagcheck_channels:  # for the sake of cleanliness :c
-            return self.bot.dispatch("tagcheck_message", message)
 
         if channel_id not in self.registration_channels:
             return
@@ -912,77 +903,6 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    @commands.group(invoke_without_command=True, aliases=("tc",))
-    async def tagcheck(self, ctx):
-        """
-        Setup tagcheck channel for scrims/tournaments.
-        """
-        await ctx.send_help(ctx.command)
-
-    @tagcheck.command(name="set")
-    @commands.has_permissions(manage_guild=True)
-    async def tagcheck_set(self, ctx, channel: discord.TextChannel, mentions=0):
-        """
-        Set a channel for tagcheck.
-        2nd argument is required mentions, Its zero by default.
-        """
-        if not (channel.permissions_for(ctx.me).send_messages and channel.permissions_for(ctx.me).embed_links):
-            return await ctx.error(f"I need `send_messages` and `embed_links` permissions in {channel.mention}")
-
-        if channel.id in self.registration_channels:
-            return await ctx.error("This is a scrims registration channel, Kindly choose a different channel.")
-        count = await TagCheck.filter(guild_id=ctx.guild.id).count()
-        if count:
-            return await ctx.error(
-                f"You already have a tagcheck channel.\n\nRemove it with :`{ctx.prefix}tagcheck remove`"
-            )
-
-        await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, required_mentions=mentions)
-        self.tagcheck_channels.add(channel.id)
-        await ctx.success(f"Successfully set **{channel}** as a tagcheck channel.")
-
-    @tagcheck.command(name="config")
-    @commands.has_permissions(manage_guild=True)
-    async def tagcheck_config(self, ctx):
-        """
-        Get tagcheck config.
-        """
-        check = await TagCheck.get_or_none(pk=ctx.guild.id)
-        if not check:
-            return await ctx.send(
-                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel}`"
-            )
-
-        channel = check.channel
-
-        embed = discord.Embed(color=config.COLOR)
-        embed.add_field(name="Channel", value=getattr(channel, "mention", "Channel Deleted!"))
-        embed.add_field(name="Required Mentions", value=check.required_mentions)
-        await ctx.send(embed=embed)
-
-    @tagcheck.command(name="remove", aliases=("stop", "delete"))
-    @commands.has_permissions(manage_guild=True)
-    async def tagcheck_remove(self, ctx):
-
-        check = await TagCheck.get_or_none(pk=ctx.guild.id)
-        if not check:
-            return await ctx.send(
-                f"You don't have a tagcheck channel.\n\nDo it like: `{ctx.prefix}tagcheck set {ctx.channel.mention}`"
-            )
-
-        self.tagcheck_channels.discard(check.channel_id)
-
-        await check.delete()
-        await ctx.success(f"Successfully removed the tagcheck channel.")
-
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-
     def tcembed(self, value, description: str):
         embed = discord.Embed(
             color=discord.Color(config.COLOR),
@@ -1445,7 +1365,7 @@ class ScrimManager(Cog, name="Esports"):
 
         Use `teammate's ID`, `@teammate_name` or `@teammate's_discord_tag` in your registration format. Quotient will convert that into an actual discord tag.        
         """
-        embed.set_image(url = "https://media.discordapp.net/attachments/775707108192157706/850788091236450344/eztags.gif")
+        embed.set_image(url="https://media.discordapp.net/attachments/775707108192157706/850788091236450344/eztags.gif")
         msg = await channel.send(embed=embed)
         await msg.pin()
 
@@ -1495,6 +1415,107 @@ class ScrimManager(Cog, name="Esports"):
         await EasyTag.filter(channel_id=channel.id).update(delete_after=not record.delete_after)
         await ctx.success(
             f"Delete After for **{channel}** turned {'ON' if not record.delete_after else 'OFF'}!\n\nDelete After automatically deletes the format message after some time."
+        )
+
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+
+    @commands.group(invoke_without_command=True, aliases=("tc",))
+    async def tagcheck(self, ctx):
+        """
+        Setup tagcheck channels for scrims/tournaments.
+        """
+        await ctx.send_help(ctx.command)
+
+    @tagcheck.command(name="set")
+    @commands.has_permissions(manage_guild=True)
+    async def tagcheck_set(self, ctx, channel: discord.TextChannel, mentions=0):
+        """
+        Set a channel for tagcheck.
+        mentions means required mentions, It's zero by default.
+        """
+        count = await TagCheck.filter(guild_id=ctx.guild.id).count()
+        guild = await Guild.get(guild_id=ctx.guild.id)
+
+        if count == 1 and not guild.is_premium:
+            return await ctx.error(
+                f"Upgrade your server to Quotient Premium to setup more than 1 Tagcheck channel.\n{self.bot.config.WEBSITE}/premium"
+            )
+
+        if channel.id in self.bot.tagcheck:
+            return await ctx.error(f"This channel is already a tagcheck channel.")
+
+        if (
+            not channel.permissions_for(ctx.me).send_messages
+            or not channel.permissions_for(ctx.me).embed_links
+            or not channel.permissions_for(ctx.me).manage_messages
+        ):
+            return await ctx.error(
+                f"I need `send_messages`, `embed_links` and `manage_messages` permission in {channel.mention}"
+            )
+
+        role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
+        if not role:
+            role = await ctx.guild.create_role(
+                name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
+            )
+
+        await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, mentions=mentions)
+        self.bot.tagcheck.add(channel.id)
+
+        await ctx.success(
+            f"Successfully added **{channel}** to tagcheck channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
+        )
+
+    @tagcheck.command(name="config")
+    @commands.has_permissions(manage_guild=True)
+    async def tagcheck_config(self, ctx):
+        """
+        Get tagcheck config.
+        """
+        records = await TagCheck.filter(guild_id=ctx.guild.id)
+        if not len(records):
+            return await ctx.error(
+                f"You haven't set any tagcheck channel yet.\n\nUse `{ctx.prefix}tagcheck set #{ctx.channel}`"
+            )
+
+        tags = []
+        for idx, record in enumerate(records, start=1):
+            channel = getattr(record.channel, "mention", record.channel_id)
+            tags.append(
+                f"`{idx:02}.` {channel} (Mentions: {record.required_mentions},Auto-delete: {record.delete_after if record.delete_after else 'Not Set'})"
+            )
+
+        embed = self.bot.embed(ctx, title="TagCheck config", description="\n".join(tags))
+        await ctx.send(embed=embed)
+
+    @tagcheck.command(name="remove")
+    @commands.has_permissions(manage_guild=True)
+    async def tagcheck_remove(self, ctx, *, channel: QuoTextChannel):
+        """Remove a channel from tagcheck"""
+        if not channel.id in self.bot.tagcheck:
+            return await ctx.error(f"This is not a TagCheck channel.")
+
+        await TagCheck.filter(channel_id=channel.id).delete()
+        self.bot.tagcheck.discard(channel.id)
+        await ctx.success(f"Removed {channel} from TagCheck channels.")
+
+    @tagcheck.command(name="autodelete")
+    @commands.has_permissions(manage_guild=True)
+    async def tagcheck_autodelete(self, ctx, *, channel: QuoTextChannel):
+        """Enable/Disable autodelete wrong tagchecks."""
+        record = await TagCheck.get_or_none(channel_id=channel.id)
+        if not record:
+            return await ctx.error(f"This is not a TagCheck Channel.")
+
+        await TagCheck.filter(channel_id=channel.id).update(delete_after=not record.delete_after)
+        await ctx.success(
+            f"Autodelete for **{channel}** turned {'ON' if not record.delete_after else 'OFF'}!\nThis automatically deletes the wrong format message after some time."
         )
 
 
