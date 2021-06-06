@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from utils import inputs
 import constants
 import discord
-import humanize
 import config
 import asyncio
 

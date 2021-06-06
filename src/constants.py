@@ -18,6 +18,12 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class EsportsLog(Enum):
+    open = "open"
+    closed = "closed"
+    success = "reg_success"
+
+
 class RegDeny(Enum):
     botmention = "mentioned bots"
     nomention = "insufficient mentions"
