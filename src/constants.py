@@ -24,7 +24,6 @@ class RegDeny(Enum):
     banned = "banned"
     multiregister = "multiregiter"
     noteamname = "no_team_name"
-    
 
 
 class LogType(Enum):
@@ -59,6 +58,19 @@ class EventType(Enum):
     nsfw = "nsfw"
     advice = "advice"
     poem = "poem"
+
+
+perks = {
+    "Premium Role": ["❌", "✅"],
+    "Scrims": ["3", "Unlimited"],
+    "Tourneys": ["2", "Unlimited"],
+    "TagCheck": ["1", "Unlimited"],
+    "EasyTags": ["1", "Unlimited"],
+    "Autorole": ["1", "Unlimited"],
+    "Custom Footer": ["❌", "✅"],
+    "Custom Color": ["❌", "✅"],
+    "Autto-Event Interval": ["❌", "✅"],
+}
 
 
 def random_greeting():
