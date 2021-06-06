@@ -1302,7 +1302,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_sm()
     async def shareidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
         """
-        Share Id/pass with embed.
+        Share Id/pass with embed quickly.
         Message is automatically deleted after 30 minutes.
         """
         await ctx.message.delete()
@@ -1319,6 +1319,11 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
+
+    @commands.command()
+    async def customidp(self, ctx, channel: QuoTextChannel, role_to_ping: QuoRole = None):
+        """Share customized Id/pass message."""
+        await IDPMenu(send_channel = channel , role = role_to_ping).start(ctx)
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):

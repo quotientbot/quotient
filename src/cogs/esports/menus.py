@@ -1,5 +1,5 @@
 from ast import literal_eval
-import json, aiohttp
+import aiohttp
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -11,6 +11,179 @@ from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
 from .utils import already_reserved, available_to_reserve
+
+
+class IDPMenu(menus.Menu):
+    def __init__(self, send_channel: QuoTextChannel, role: QuoRole):
+        super().__init__(timeout=60, delete_message_after=False, clear_reactions_after=True)
+        self.embed = None
+        self._id = "Not Set!"
+        self._pass = "Not Set!"
+        self.msg = None
+        self.send_channel = send_channel
+        self.ping_role = role
+        self.delete_in = 30
+        self.id_pass_content = False
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    def idp_embed(self):
+        embed = self.ctx.bot.embed(self.ctx, title="New Custom Room. JOIN NOW!")
+        embed.set_thumbnail(url=self.ctx.guild.icon_url)
+        embed.add_field(name="Room ID", value=self._id)
+        embed.add_field(name="Password", value=self._pass)
+        embed.add_field(name="Map", value="Not Set")
+        embed.add_field(name="Match Starts at", value="Not Set")
+
+        embed.set_footer(
+            text=f"Shared by: {self.ctx.author} • Auto delete in {self.delete_in} minutes.",
+            icon_url=self.ctx.author.avatar_url,
+        )
+        return embed
+
+    def inital_embed(self):
+        embed = discord.Embed(color=config.COLOR, title="ID-PASS Menu")
+        embed.description = (
+            "🇹 | Set Title\n"
+            "🆔 | Set Room ID\n"
+            "🇵 | Set Room Password\n"
+            "🗺️ | Set Room Map\n"
+            "🕰️ | Set Start Time\n"
+            "🖼️ | Set thumbnail image\n"
+            "❔ | ID/Pass as Content\n"
+            "⏰ | Autodelete after\n"
+        )
+        return embed
+
+    async def refresh(self):
+        try:
+            await self.msg.edit(
+                content=f"ID: {self._id} | Password: {self._pass}" if self.id_pass_content else None, embed=self.embed
+            )
+        except:
+            self.stop()
+
+    async def cembed(self, description):
+        return await self.ctx.send(
+            embed=discord.Embed(
+                color=discord.Color(config.COLOR),
+                title=f"🛠️ ID/Pass Formatter",
+                description=description,
+            ).set_footer(text="Enter 'none' if you want to remove the field.")
+        )
+
+    async def send_initial_message(self, ctx, channel):
+        self.embed = self.idp_embed()
+        self.msg = await channel.send(embed=self.idp_embed())
+        return await channel.send(embed=self.inital_embed())
+
+    @menus.button(regional_indicator("T"))
+    async def set_title(self, payload):
+        msg = await self.cembed(f"What do you want the title to be?\n\nTitle cannot exceed 256 characters.")
+
+        title = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        if len(title) > 256:
+            return await self.ctx.error(f"Title cannot exceed 256 characters.", delete_after=3)
+
+        await inputs.safe_delete(msg)
+        if title.lower() == "none":
+            self.embed.title = discord.Embed.Empty
+        else:
+            self.embed.title = title
+        await self.refresh()
+
+    @menus.button("🆔")
+    async def set_id(self, payload):
+        msg = await self.cembed(f"What is the ID of custom room?")
+
+        _id = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+        self.embed.set_field_at(0, name="Room ID", value=_id)
+        self._id = _id
+        await self.refresh()
+
+    @menus.button("🇵")
+    async def set_pass(self, payload):
+        msg = await self.cembed(f"What is the password for room?")
+
+        _pass = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+        self.embed.set_field_at(1, name="Password", value=_pass)
+        self._pass = _pass
+        await self.refresh()
+
+    @menus.button("🗺️")
+    async def set_map(self, payload):
+        msg = await self.cembed(f"What is the name of map?")
+
+        _map = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+        self.embed.set_field_at(2, name="Maps", value=_map)
+        await self.refresh()
+
+    @menus.button("🕰️")
+    async def set_starttime(self, payload):
+        msg = await self.cembed(f"What is the match start time?")
+
+        start_time = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+        self.embed.set_field_at(3, name="Match Starts at", value=start_time)
+        await self.refresh()
+
+    @menus.button("🖼️")
+    async def set_thumbnail(self, payload):
+        msg = await self.cembed(f"Enter the Image URL you want to set as thumbnail.")
+        image = await inputs.string_input(self.ctx, self.check, delete_after=True)
+
+        await inputs.safe_delete(msg)
+
+        if image.lower() == "none":
+            self.embed.set_thumbnail(url=discord.Embed.Empty)
+        else:
+            try:
+                image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
+                res = await self.bot.session.get(image)
+                if res.headers["content-type"] in image_formats:
+                    check = True
+
+                else:
+                    check = False
+
+            except aiohttp.client_exceptions.InvalidURL:
+                return await self.ctx.error(f"This is not a valid Image URL", delete_after=3)
+
+            if not check:
+                return await self.ctx.error(f"The URL didn't contain a valid Image format.", delete_after=3)
+
+            self.embed.set_thumbnail(url=image)
+            await self.refresh()
+
+    @menus.button("❔")
+    async def idp_content(self, payload):
+        self.id_pass_content = not self.id_pass_content
+        print(self.id_pass_content)
+        await self.refresh()
+
+    @menus.button("⏰")
+    async def delete_time(self, payload):
+        msg = await self.cembed(
+            f"After how many minutes do you want me to delete the idp message?\nIt can be between 1-30"
+        )
+        delete_time = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(None, None))
+        await inputs.safe_delete(msg)
+        self.delete_in = delete_time
+        await self.refresh()
+
+    @menus.button("❌")
+    async def on_cancel(self, payload):
+        self.stop()
+
+    @menus.button("✅")
+    async def on_confirm(self, payload):
+        pass
 
 
 class SlotlistFormatMenu(menus.Menu):
@@ -52,6 +225,15 @@ class SlotlistFormatMenu(menus.Menu):
             "✅ | Save and Abort\n"
         )
         return embed
+
+    async def cembed(self, description):
+        return await self.ctx.send(
+            embed=discord.Embed(
+                color=discord.Color(config.COLOR),
+                title=f"🛠️ Slotlist Formatter",
+                description=description,
+            ).set_footer(text="Enter 'none' if you want to remove the field.")
+        )
 
     async def send_initial_message(self, ctx, channel):
         self.cur_embed = self.initial_embed()
