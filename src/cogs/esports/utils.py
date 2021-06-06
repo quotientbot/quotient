@@ -50,63 +50,6 @@ async def cannot_take_registration(message: discord.Message, type: str, obj: Uni
         )
 
 
-async def is_valid_scrim(bot, scrim) -> bool:
-    guild = scrim.guild
-    registration_channel = scrim.registration_channel
-    role = scrim.role
-    _bool = True
-    embed = discord.Embed(color=discord.Color.red())
-    embed.description = f"Registration of `scrim {scrim.id}` couldn't be opened due to the following reason:\n"
-
-    if not registration_channel:
-        embed.description += "I couldn't find registration channel. Maybe its deleted or hidden from me."
-        _bool = False
-
-    elif not registration_channel.permissions_for(guild.me).manage_channels:
-        embed.description += "I don't have permissions to manage {0}".format(registration_channel.mention)
-        _bool = False
-
-    elif scrim.role is None:
-        embed.description += "I couldn't find success role."
-        _bool = False
-
-    elif not guild.me.guild_permissions.manage_roles or role.position >= guild.me.top_role.position:
-        embed.description += (
-            "I don't have permissions to `manage roles` in this server or {0} is above my top role ({1}).".format(
-                role.mention, guild.me.top_role.mention
-            )
-        )
-        _bool = False
-
-    elif scrim.open_role_id and not scrim.open_role:
-        embed.description += "You have set a custom open role which is deleted."
-        _bool = False
-
-    if not _bool:
-        logschan = scrim.logschan
-        if logschan and logschan.permissions_for(guild.me).send_messages:
-            await logschan.send(
-                content=getattr(scrim.modrole, "mention", None),
-                embed=embed,
-                allowed_mentions=discord.AllowedMentions(roles=True),
-            )
-
-    return _bool
-
-
-async def postpone_scrim(bot, scrim) -> NoReturn:
-    reminder = bot.get_cog("Reminders")
-
-    await Scrim.filter(pk=scrim.id).update(open_time=scrim.open_time + timedelta(hours=24))
-    await scrim.refresh_from_db(("open_time",))
-
-    await reminder.create_timer(
-        scrim.open_time,
-        "scrim_open",
-        scrim_id=scrim.id,
-    )
-
-
 async def toggle_channel(channel, role, _bool=True) -> bool:
     overwrite = channel.overwrites_for(role)
     overwrite.update(send_messages=_bool)
@@ -258,3 +201,60 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.multiregister, scrim)
 
     return _bool
+
+
+async def should_open_scrim(scrim: Scrim):
+    guild = scrim.guild
+    registration_channel = scrim.registration_channel
+    role = scrim.role
+    _bool = True
+
+    text = f"Registration of Scrim: `{scrim.id}` couldn't be opened due to the following reason:\n\n"
+
+    if not registration_channel:
+        _bool = False
+        text += "I couldn't find registration channel. Maybe its deleted or hidden from me."
+
+    elif not registration_channel.permissions_for(guild.me).manage_channels:
+        _bool = False
+        text += "I do not have `manage_channels` permission in {0}".format(registration_channel.mention)
+
+    elif role is None:
+        _bool = False
+        text += "I couldn't find success registration role."
+
+    elif not guild.me.guild_permissions.manage_roles or role >= guild.me.top_role:
+        _bool = False
+        text += "I don't have permissions to `manage roles` in this server or {0} is above my top role ({1}).".format(
+            role.mention, guild.me.top_role.mention
+        )
+
+    elif scrim.open_role_id and not scrim.open_role:
+        _bool = False
+        text += "You have setup an open role earlier and I couldn't find it."
+
+    if not _bool:
+        logschan = scrim.logschan
+        if logschan:
+            embed = discord.Embed(color=discord.Color.red())
+            embed.description = text
+            with suppress(discord.Forbidden, discord.NotFound):
+                await logschan.send(
+                    content=getattr(scrim.modrole, "mention", None),
+                    embed=embed,
+                    allowed_mentions=discord.AllowedMentions(roles=True),
+                )
+
+    return _bool
+
+
+def scrim_role_to_ping(scrim: Scrim, guild: discord.Guild):
+    ping_role = scrim.ping_role
+    if not ping_role:
+        return None
+
+    if ping_role == guild.default_role:
+        return "@everyone"
+
+    else:
+        return ping_role.mention

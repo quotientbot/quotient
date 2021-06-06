@@ -1,10 +1,15 @@
-from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot
+from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
 from core import Quotient, Cog
 from .utils import (
+    available_to_reserve,
+    postpone_scrim,
     check_scrim_requirements,
     delete_denied_message,
     scrim_end_process,
     add_role_and_reaction,
+    scrim_role_to_ping,
+    should_open_scrim,
+    toggle_channel,
     tourney_end_process,
     before_registrations,
     cannot_take_registration,
@@ -19,6 +24,7 @@ import utils
 import re
 
 from typing import NamedTuple
+from datetime import datetime, timedelta
 
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
@@ -189,6 +195,100 @@ class ScrimEvents(Cog):
             return
 
         self.queue.put_nowait(QueueMessage(scrim, message))
+
+    # ==========================================================================================================
+    # ==========================================================================================================
+
+    @Cog.listener()
+    async def on_scrim_open_timer_complete(self, timer: Timer):
+        """This listener opens the scrim registration at time."""
+
+        scrim_id = timer.kwargs["scrim_id"]
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+
+        if not scrim:  # we don't want to do anything if the scrim is deleted
+            return
+
+        if scrim.open_time != timer.expires:  # If time is not same return :)
+            return
+
+        await self.bot.reminders.create_timer(
+            scrim.open_time + timedelta(hours=24),
+            "scrim_open",
+            scrim_id=scrim.id,
+        )  # we don't want to this risk this
+
+        if scrim.toggle != True or not constants.Day(utils.day_today()) in scrim.open_days:
+            return
+
+        guild = scrim.guild
+
+        if not guild:
+            return await scrim.delete()
+
+        if not await should_open_scrim(scrim):
+            return
+
+        reserved_count = await scrim.reserved_slots.all().count()
+
+        embed = discord.Embed(
+            color=self.bot.color,
+            title="Registration is now open!",
+            description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
+            f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
+        )
+
+        oldslots = await scrim.assigned_slots
+        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
+
+        await scrim.assigned_slots.clear()
+
+        # here we insert a list of slots we can give for the registration.
+        # we insert only the empty slots not the reserved ones to avoid extra queries during creation of slots for reserved users.
+
+        await self.bot.db.execute(
+            """
+            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
+            """,
+            await available_to_reserve(scrim),
+            scrim.id,
+        )
+
+        scrim_role = scrim.role
+        async for slot in scrim.reserved_slots.all():
+            assinged_slot = await AssignedSlot.create(
+                num=slot.num,
+                user_id=slot.user_id,
+                team_name=slot.team_name,
+                jump_url=None,
+            )
+
+            await scrim.assigned_slots.add(assinged_slot)
+
+            with suppress(AttributeError):
+                self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
+
+        # Opening Channel for Normal Janta
+        registration_channel = scrim.registration_channel
+        open_role = scrim.open_role
+        channel_update = await toggle_channel(registration_channel, open_role, True)
+
+        self.bot.scrim_channels.add(registration_channel.id)
+
+        await Scrim.filter(pk=scrim.id).update(
+            open_time=scrim.open_time + timedelta(hours=24),
+            opened_at=datetime.now(tz=constants.IST),
+            closed_at=None,
+            slotlist_message_id=None,
+        )
+
+        await registration_channel.send(
+            content=scrim_role_to_ping,
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
+        )
+
+        self.bot.dispatch("scrim_log", constants.EsportsLog.open, scrim)
 
     # ==========================================================================================================
     # ==========================================================================================================
