@@ -138,7 +138,7 @@ class SMError(Cog):
             return await logschan.send(text)
 
     @Cog.listener()
-    async def on_scrim_log(self, type: str, scrim: Scrim, **kwargs):
+    async def on_scrim_log(self, _type: EsportsLog, scrim: Scrim, **kwargs):
         """
         A listener that is dispatched everytime registration starts/ends or a registration is accepted.
         """
@@ -148,17 +148,14 @@ class SMError(Cog):
         registration_channel = scrim.registration_channel
         modrole = scrim.modrole
 
-        imp = False
-        if type == "open":
-            permission_updated = kwargs.get("permission_updated")
+        important = False
+
+        if _type == EsportsLog.open:
+
             embed = discord.Embed(
                 color=0x00B1FF,
                 description=f"Registration opened for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
             )
-            if not permission_updated:
-                imp = True
-                embed.color = discord.Color.red()
-                embed.description += f"\nI couldn't open {registration_channel.mention}."
 
         elif type == "closed":
             permission_updated = kwargs.get("permission_updated")
