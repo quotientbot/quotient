@@ -44,130 +44,17 @@ from .errors import ScrimError, SMError, TourneyError
 from prettytable import PrettyTable
 
 import discord
-import asyncio
 import config
 from .menus import *
-from typing import NamedTuple
-
-QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
-TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
 
 
 class ScrimManager(Cog, name="Esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.queue = asyncio.Queue()
-        self.tourney_queue = asyncio.Queue()
-        self.bot.loop.create_task(self.registration_worker())
-        self.bot.loop.create_task(self.tourney_registration_worker())
-
-    def cog_unload(self):
-        self.registration_worker.cancel()
-        self.tourney_registration_worker.cancel()
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (ScrimError, TourneyError)):
             return await ctx.error(error)
-
-    async def add_role_and_reaction(self, ctx, role):
-        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-            await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-            await ctx.author.add_roles(role)
-
-    async def registration_worker(self):
-        while True:
-            try:
-                queue_message: QueueMessage = await self.queue.get()
-                scrim, message = queue_message.scrim, queue_message.message
-
-                ctx = await self.bot.get_context(message)
-
-                teamname = default.find_team(message)
-
-                scrim = await Scrim.get_or_none(pk=scrim.id)  # Refetch Scrim to check get its updated instance
-
-                if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
-                    continue
-
-                try:
-                    slot_num = scrim.available_slots[0]
-                except:
-                    continue  # this will never happen though
-
-                slot = await AssignedSlot.create(
-                    user_id=ctx.author.id,
-                    team_name=teamname,
-                    num=slot_num,
-                    jump_url=message.jump_url,
-                )
-
-                await scrim.assigned_slots.add(slot)
-
-                await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
-                self.bot.loop.create_task(self.add_role_and_reaction(ctx, scrim.role))
-
-                role_given = True
-
-                self.bot.dispatch(
-                    "scrim_log",
-                    "reg_success",
-                    scrim,
-                    message=ctx.message,
-                    role_added=role_given,
-                )
-
-                if len(scrim.available_slots) == 1:
-                    await scrim_end_process(ctx, scrim)
-
-            except Exception:  # I know something's breaking the loop and I know no better way to find out.
-                user = self.bot.get_user(548163406537162782)
-                await user.send(Exception)
-                continue
-
-    async def tourney_registration_worker(self):
-        while True:
-            queue_message: TourneyQueueMessage = await self.tourney_queue.get()
-            tourney, message = queue_message.tourney, queue_message.message
-
-            ctx = await self.bot.get_context(message)
-
-            teamname = default.find_team(message)
-
-            tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
-
-            if not tourney or tourney.closed:  # Tourney is deleted or not opened.
-                continue
-
-            assigned_slots = await tourney.assigned_slots.order_by(
-                "-id"
-            ).first()  # we don't count them all instead we get num from last registration
-
-            numb = 0 if assigned_slots is None else assigned_slots.num
-            slot = await TMSlot.create(
-                leader_id=ctx.author.id,
-                team_name=teamname,
-                num=numb + 1,
-                members=[m.id for m in message.mentions],
-                jump_url=message.jump_url,
-            )
-
-            await tourney.assigned_slots.add(slot)
-
-            self.bot.loop.create_task(self.add_role_and_reaction(ctx, tourney.role))
-            role_given = True
-
-            self.bot.dispatch(
-                "tourney_log",
-                "reg_success",
-                tourney,
-                message=ctx.message,
-                role_added=role_given,
-                assigned_slot=slot,
-                num=numb + 1,
-            )
-
-            if tourney.total_slots == numb + 1:
-                await tourney_end_process(ctx, tourney)
 
     @property
     def reminders(self):
@@ -269,97 +156,97 @@ class ScrimManager(Cog, name="Esports"):
 
         self.bot.dispatch("scrim_log", "open", scrim, permission_updated=channel_update)
 
-    @commands.Cog.listener("on_message")
-    async def on_tourney_registration(self, message: discord.Message):
-        if not message.guild or message.author.bot:
-            return
+    # @commands.Cog.listener("on_message")
+    # async def on_tourney_registration(self, message: discord.Message):
+    #     if not message.guild or message.author.bot:
+    #         return
 
-        channel_id = message.channel.id
-        if channel_id not in self.bot.tourney_channels:
-            return
+    #     channel_id = message.channel.id
+    #     if channel_id not in self.bot.tourney_channels:
+    #         return
 
-        tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
-        if tourney is None:
-            return self.bot.tourney_channels.discard(channel_id)
+    #     tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
+    #     if tourney is None:
+    #         return self.bot.tourney_channels.discard(channel_id)
 
-        if tourney.started_at is None:
-            return
+    #     if tourney.started_at is None:
+    #         return
 
-        if tourney.modrole in message.author.roles:
-            return
+    #     if tourney.modrole in message.author.roles:
+    #         return
 
-        if (
-            not message.guild.me.guild_permissions.manage_roles
-            or tourney.role > message.guild.me.top_role
-            or not message.channel.permissions_for(message.channel.guild.me).add_reactions
-        ):
-            return await cannot_take_registration(message, "tourney", tourney)
+    #     if (
+    #         not message.guild.me.guild_permissions.manage_roles
+    #         or tourney.role > message.guild.me.top_role
+    #         or not message.channel.permissions_for(message.channel.guild.me).add_reactions
+    #     ):
+    #         return await cannot_take_registration(message, "tourney", tourney)
 
-        if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
-            return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
+    #     if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
+    #         return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
 
-        elif not len(message.mentions) >= tourney.required_mentions:
-            return self.bot.dispatch("tourney_registration_deny", message, "insufficient_mentions", tourney)
+    #     elif not len(message.mentions) >= tourney.required_mentions:
+    #         return self.bot.dispatch("tourney_registration_deny", message, "insufficient_mentions", tourney)
 
-        elif message.author.id in tourney.banned_users:
-            return self.bot.dispatch("tourney_registration_deny", message, "banned", tourney)
+    #     elif message.author.id in tourney.banned_users:
+    #         return self.bot.dispatch("tourney_registration_deny", message, "banned", tourney)
 
-        elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
-            return self.bot.dispatch("tourney_registration_deny", message, "multiregister", tourney)
+    #     elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
+    #         return self.bot.dispatch("tourney_registration_deny", message, "multiregister", tourney)
 
-        self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
+    #     self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
 
-    @commands.Cog.listener("on_message")
-    async def on_scrim_registration(self, message: discord.Message):
-        if not message.guild or message.author.bot:
-            return
+    # @commands.Cog.listener("on_message")
+    # async def on_scrim_registration(self, message: discord.Message):
+    #     if not message.guild or message.author.bot:
+    #         return
 
-        channel_id = message.channel.id
+    #     channel_id = message.channel.id
 
-        if channel_id not in self.bot.scrim_channels:
-            return
+    #     if channel_id not in self.bot.scrim_channels:
+    #         return
 
-        scrim = await Scrim.get_or_none(
-            registration_channel_id=channel_id,
-        )
+    #     scrim = await Scrim.get_or_none(
+    #         registration_channel_id=channel_id,
+    #     )
 
-        if scrim is None:  # Scrim is possibly deleted
-            return self.bot.scrim_channels.discard(channel_id)
+    #     if scrim is None:  # Scrim is possibly deleted
+    #         return self.bot.scrim_channels.discard(channel_id)
 
-        if scrim.opened_at is None:
-            # Registration isn't opened yet.
-            return
+    #     if scrim.opened_at is None:
+    #         # Registration isn't opened yet.
+    #         return
 
-        if scrim.modrole in message.author.roles:
-            return
+    #     if scrim.modrole in message.author.roles:
+    #         return
 
-        if (
-            not message.guild.me.guild_permissions.manage_roles
-            or scrim.role > message.guild.me.top_role
-            or not message.channel.permissions_for(message.channel.guild.me).add_reactions
-        ):
-            return await cannot_take_registration(message, "scrim", scrim)
+    #     if (
+    #         not message.guild.me.guild_permissions.manage_roles
+    #         or scrim.role > message.guild.me.top_role
+    #         or not message.channel.permissions_for(message.channel.guild.me).add_reactions
+    #     ):
+    #         return await cannot_take_registration(message, "scrim", scrim)
 
-        message.content = nm("NFKC", message.content.lower())
+    #     message.content = nm("NFKC", message.content.lower())
 
-        if scrim.teamname_compulsion:
-            teamname = re.search(r"team.*", message.content)
-            if not teamname or not teamname.group().strip():
-                return self.bot.dispatch("scrim_registration_deny", message, "teamname_compulsion", scrim)
+    #     if scrim.teamname_compulsion:
+    #         teamname = re.search(r"team.*", message.content)
+    #         if not teamname or not teamname.group().strip():
+    #             return self.bot.dispatch("scrim_registration_deny", message, "teamname_compulsion", scrim)
 
-        if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
-            return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
+    #     if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
+    #         return self.bot.dispatch("scrim_registration_deny", message, "mentioned_bots", scrim)
 
-        if not len(message.mentions) >= scrim.required_mentions:
-            return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
+    #     if not len(message.mentions) >= scrim.required_mentions:
+    #         return self.bot.dispatch("scrim_registration_deny", message, "insufficient_mentions", scrim)
 
-        if message.author.id in await scrim.banned_user_ids():
-            return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
+    #     if message.author.id in await scrim.banned_user_ids():
+    #         return self.bot.dispatch("scrim_registration_deny", message, "banned", scrim)
 
-        if message.author.id in get_slots(await scrim.assigned_slots.all()) and not scrim.multiregister:
-            return self.bot.dispatch("scrim_registration_deny", message, "multiregister", scrim)
+    #     if message.author.id in get_slots(await scrim.assigned_slots.all()) and not scrim.multiregister:
+    #         return self.bot.dispatch("scrim_registration_deny", message, "multiregister", scrim)
 
-        self.queue.put_nowait(QueueMessage(scrim, message))
+    #     self.queue.put_nowait(QueueMessage(scrim, message))
 
     # ************************************************************************************************
 

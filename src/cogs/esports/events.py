@@ -1,6 +1,6 @@
-from models import EasyTag, TagCheck, Scrim, AssignedSlot, ArrayRemove
+from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot
 from core import Quotient, Cog
-from .utils import delete_denied_message, scrim_end_process, add_role_and_reaction
+from .utils import delete_denied_message, scrim_end_process, add_role_and_reaction, tourney_end_process
 from .converters import EasyMemberConverter
 from contextlib import suppress
 import discord, asyncio
@@ -10,6 +10,7 @@ import re
 from typing import NamedTuple
 
 QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
+TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
 
 
 class ScrimEvents(Cog):
@@ -17,6 +18,12 @@ class ScrimEvents(Cog):
         self.bot = bot
         self.scrim_queue = asyncio.Queue()
         self.tourney_queue = asyncio.Queue()
+        self.bot.loop.create_task(self.scrim_registration_worker())
+        self.bot.loop.create_task(self.tourney_registration_worker())
+
+    def cog_unload(self):
+        self.scrim_registration_worker.cancel()
+        self.tourney_registration_worker.cancel()
 
     async def scrim_registration_worker(self):
         while True:
@@ -52,6 +59,49 @@ class ScrimEvents(Cog):
 
             if len(scrim.available_slots) == 1:
                 await scrim_end_process(ctx, scrim)
+
+    # ==========================================================================================================
+
+    async def tourney_registration_worker(self):
+        while True:
+            queue_message: TourneyQueueMessage = await self.tourney_queue.get()
+            tourney, message = queue_message.tourney, queue_message.message
+
+            ctx = await self.bot.get_context(message)
+
+            teamname = utils.find_team(message)
+
+            tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
+
+            if not tourney or tourney.closed:  # Tourney is deleted or not opened.
+                continue
+
+            assigned_slots = await tourney.assigned_slots.order_by("-id").first()
+
+            numb = 0 if assigned_slots is None else assigned_slots.num
+            slot = await TMSlot.create(
+                leader_id=ctx.author.id,
+                team_name=teamname,
+                num=numb + 1,
+                members=[m.id for m in message.mentions],
+                jump_url=message.jump_url,
+            )
+
+            await tourney.assigned_slots.add(slot)
+
+            self.bot.loop.create_task(add_role_and_reaction(ctx, tourney.role))
+
+            self.bot.dispatch(
+                "tourney_log",
+                "reg_success",
+                tourney,
+                message=ctx.message,
+                assigned_slot=slot,
+                num=numb + 1,
+            )
+
+            if tourney.total_slots == numb + 1:
+                await tourney_end_process(ctx, tourney)
 
     # ==========================================================================================================
 
