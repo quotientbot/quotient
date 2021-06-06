@@ -19,3 +19,8 @@ async def cache(bot):
     bot.eztagchannels = set()
     async for record in records:
         bot.eztagchannels.add(record.channel_id)
+
+    records = models.TagCheck.all()
+    bot.tagcheck = set()
+    async for record in records:
+        bot.tagcheck.add(record.channel_id)
