@@ -1426,7 +1426,7 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @commands.group(invoke_without_command=True, aliases=("tc",))
-    async def tagcheck(self, ctx):
+    async def tagcheck(self, ctx: Context):
         """
         Setup tagcheck channels for scrims/tournaments.
         """
@@ -1434,7 +1434,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="set")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_set(self, ctx, channel: discord.TextChannel, mentions=0):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions=0):
         """
         Set a channel for tagcheck.
         mentions means required mentions, It's zero by default.
@@ -1465,7 +1465,7 @@ class ScrimManager(Cog, name="Esports"):
                 name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
             )
 
-        await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, mentions=mentions)
+        await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, required_mentions=mentions)
         self.bot.tagcheck.add(channel.id)
 
         await ctx.success(
@@ -1474,7 +1474,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="config")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_config(self, ctx):
+    async def tagcheck_config(self, ctx: Context):
         """
         Get tagcheck config.
         """
@@ -1496,7 +1496,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="remove")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_remove(self, ctx, *, channel: QuoTextChannel):
+    async def tagcheck_remove(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a channel from tagcheck"""
         if not channel.id in self.bot.tagcheck:
             return await ctx.error(f"This is not a TagCheck channel.")
@@ -1507,7 +1507,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="autodelete")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_autodelete(self, ctx, *, channel: QuoTextChannel):
+    async def tagcheck_autodelete(self, ctx: Context, *, channel: QuoTextChannel):
         """Enable/Disable autodelete wrong tagchecks."""
         record = await TagCheck.get_or_none(channel_id=channel.id)
         if not record:
