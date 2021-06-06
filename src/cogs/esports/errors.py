@@ -1,23 +1,12 @@
-import discord, io
-
-from core import Cog
-
-import typing
-
-if typing.TYPE_CHECKING:
-    from core import Quotient
-
-from models.esports import AssignedSlot
-from models.functions import ArrayAppend
+from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney, AssignedSlot, ArrayAppend, TagCheck
 from .utils import purge_roles, purge_channels, delete_denied_message
-from prettytable import PrettyTable
-from utils import find_team
-from models import TagCheck
-from constants import IST
-from contextlib import suppress
-from discord.ext import commands
+from constants import IST, EsportsLog, EsportsType, RegDeny
 from datetime import datetime, timedelta
-from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney
+from prettytable import PrettyTable
+from discord.ext import commands
+from contextlib import suppress
+from core import Cog
+import discord, io
 
 
 class ScrimError(commands.CommandError):
@@ -28,9 +17,6 @@ class TourneyError(commands.CommandError):
     pass
 
 
-# well yeah the name is SMError but this cog serve much more than just that.
-
-# TODO: enum for error types
 class SMError(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -85,65 +71,6 @@ class SMError(Cog):
                 else:
                     # The bot will not be able to send embeds to this channel because of lack of permission.
                     text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
-                    return await logschan.send(text)
-
-    @Cog.listener()
-    async def on_scrim_registration_deny(self, message: discord.Message, type: str, scrim: Scrim):
-
-        logschan = scrim.logschan
-        with suppress(discord.NotFound):
-            await message.add_reaction("\N{CROSS MARK}")
-            e = discord.Embed(
-                color=discord.Color.red(),
-                description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
-            )
-
-            if type == "mentioned_bots":
-                await message.reply(
-                    embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
-                    delete_after=5,
-                )
-                e.description += f"Mentioned Bots."
-
-            elif type == "insufficient_mentions":
-                await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, **`{scrim.required_mentions} mentions`** are required for successful registration."
-                    ),
-                    delete_after=5,
-                )
-                e.description += f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
-
-            elif type == "banned":
-                await message.reply(
-                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
-                    delete_after=5,
-                )
-                e.description += f"They are banned from scrims."
-
-            elif type == "multiregister":
-                await message.reply(
-                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
-                    delete_after=5,
-                )
-                e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
-
-            elif type == "teamname_compulsion":
-                await message.reply(
-                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
-                    delete_after=5,
-                )
-                e.description += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `smanager edit {scrim.id}`"
-
-            if scrim.autodelete_rejects:
-                self.bot.loop.create_task(delete_denied_message(message))
-
-            if logschan is not None:
-                if logschan.permissions_for(logschan.guild.me).embed_links:
-                    return await logschan.send(embed=e)
-                else:
-                    # The bot will not be able to send embeds to this channel because of lack of permission.
-                    text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
                     return await logschan.send(text)
 
     @Cog.listener()
@@ -276,6 +203,67 @@ class SMError(Cog):
         else:
             text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
             return await logschan.send(text)
+
+    # ==========================================================================================================================
+    # ==========================================================================================================================
+
+    @Cog.listener()
+    async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim):
+
+        logschan = scrim.logschan
+        if logschan is None:
+            return await Scrim.filter(id=scrim.id).delete()
+
+        text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
+
+        with suppress(discord.NotFound, discord.Forbidden):
+            await message.add_reaction("\N{CROSS MARK}")
+
+            if _type == RegDeny.botmention:
+                await message.reply(
+                    embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
+                    delete_after=5,
+                )
+                text += f"Mentioned Bots."
+
+            elif _type == RegDeny.nomention:
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, **`{scrim.required_mentions} mentions`** are required for successful registration."
+                    ),
+                    delete_after=5,
+                )
+                text += f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
+
+            elif _type == RegDeny.banned:
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                    delete_after=5,
+                )
+                text += f"They are banned from scrims."
+
+            elif _type == RegDeny.multiregister:
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
+                    delete_after=5,
+                )
+                text += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
+
+            elif _type == RegDeny.noteamname:
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
+                    delete_after=5,
+                )
+                text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `smanager edit {scrim.id}`"
+
+            if scrim.autodelete_rejects:
+                self.bot.loop.create_task(delete_denied_message(message))
+
+            embed = discord.Embed(discord.Color.red(), description=text)
+            return await logschan.send(embed=embed)
+
+    # ==========================================================================================================================
+    # ==========================================================================================================================
 
     @Cog.listener()
     async def on_scrim_unban_timer_complete(self, timer: Timer):
