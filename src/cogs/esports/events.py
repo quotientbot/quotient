@@ -1,16 +1,59 @@
+from models import EasyTag, TagCheck, Scrim, AssignedSlot, ArrayRemove
 from core import Quotient, Cog
-from .utils import delete_denied_message
-from models import EasyTag, TagCheck
+from .utils import delete_denied_message, scrim_end_process, add_role_and_reaction
 from .converters import EasyMemberConverter
 from contextlib import suppress
-from utils import find_team, plural
-import discord
+import discord, asyncio
+import utils
 import re
+
+from typing import NamedTuple
+
+QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
 
 
 class ScrimEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.scrim_queue = asyncio.Queue()
+        self.tourney_queue = asyncio.Queue()
+
+    async def scrim_registration_worker(self):
+        while True:
+            queue_message: QueueMessage = await self.queue.get()
+            scrim, message = queue_message.scrim, queue_message.message
+            ctx = await self.bot.get_context(message)
+
+            teamname = utils.find_team(message)
+
+            scrim = await Scrim.get_or_none(pk=scrim.id)
+
+            if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
+                continue
+
+            try:
+                slot_num = scrim.available_slots[0]
+            except IndexError:
+                continue
+
+            slot = await AssignedSlot.create(
+                user_id=ctx.author.id,
+                team_name=teamname,
+                num=slot_num,
+                jump_url=message.jump_url,
+            )
+
+            await scrim.assigned_slots.add(slot)
+
+            await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
+            self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
+
+            self.bot.dispatch("scrim_log", "reg_success", scrim, message=ctx.message)
+
+            if len(scrim.available_slots) == 1:
+                await scrim_end_process(ctx, scrim)
+
+    # ==========================================================================================================
 
     @Cog.listener(name="on_message")
     async def on_tagcheck_msg(self, message: discord.Message):
@@ -43,11 +86,11 @@ class ScrimEvents(Cog):
             if not len(message.mentions) >= tagcheck.required_mentions:
                 _react = False
                 await message.reply(
-                    f"You need to mention {plural(tagcheck.required_mentions):teammate|teammates}`.",
+                    f"You need to mention {utils.plural(tagcheck.required_mentions):teammate|teammates}`.",
                     delete_after=5,
                 )
 
-            team_name = find_team(message)
+            team_name = utils.find_team(message)
             await message.add_reaction(("❌", "✅")[_react])
 
             if _react:

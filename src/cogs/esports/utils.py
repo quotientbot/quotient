@@ -20,6 +20,12 @@ def get_tourney_slots(slots):
         yield slot.leader_id
 
 
+async def add_role_and_reaction(ctx, role):
+    with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await ctx.author.add_roles(role)
+
+
 async def already_reserved(scrim: Scrim):
     return list(i.num for i in await scrim.reserved_slots.all())
 

@@ -99,7 +99,7 @@ class Logging(models.Model):
     color = fields.IntField(default=0x2F3136)  # modlogs m noi
     toggle = fields.BooleanField(default=True)
     ignore_bots = fields.BooleanField(default=False)
-    type = fields.CharEnumField(constants.LogType, max_length=12, index=True)
+    type = ArrayField(fields.CharEnumField(constants.LogType, max_length=12, index=True))
 
     @property
     def channel(self):
@@ -256,7 +256,7 @@ class Lockdown(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField(index=True)
-    type = fields.CharEnumField(constants.LockType, max_length=20)
+    type = ArrayField(fields.CharEnumField(constants.LockType, max_length=20))
     role_id = fields.BigIntField(null=True)
     channel_id = fields.BigIntField(null=True)
     channel_ids = ArrayField(fields.BigIntField(), default=list, index=True)
@@ -286,7 +286,7 @@ class Autoevent(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    type = fields.CharEnumField(constants.EventType, max_length=30)
+    type = ArrayField(fields.CharEnumField(constants.EventType, max_length=30))
     channel_id = fields.BigIntField()
     webhook = fields.CharField(max_length=200, index=True)
     toggle = fields.BooleanField(default=True)
@@ -321,3 +321,19 @@ class CommandStats(models.Model):
     user_id = fields.BigIntField()
     cmd = fields.TextField()
     uses = fields.IntField(default=0)
+
+
+class TimedMessage(models.Model):
+    class Meta:
+        table = "timed_messages"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    msg = fields.TextField(null=True)
+    embed = fields.JSONField(null=True)
+    interval = fields.IntField(default=60)
+    send_time = fields.DatetimeField()
+    days = ArrayField(fields.CharEnumField(constants.Day), default=lambda: list(constants.Day))
+    stats = fields.IntField(default=0)
+    author_id = fields.BigIntField()

@@ -1,6 +1,4 @@
 from __future__ import annotations
-from base64 import decodestring
-from re import I
 import typing
 
 if typing.TYPE_CHECKING:
@@ -38,7 +36,7 @@ from discord.ext.commands.cooldowns import BucketType
 from models import *
 from unicodedata import normalize as nm
 from datetime import timedelta, datetime
-from discord import AllowedMentions, permissions
+from discord import AllowedMentions
 from discord.ext import commands
 
 from .events import ScrimEvents
@@ -60,12 +58,10 @@ class ScrimManager(Cog, name="Esports"):
         self.bot = bot
         self.queue = asyncio.Queue()
         self.tourney_queue = asyncio.Queue()
-        self.bot.loop.create_task(self.fill_registration_channels())
         self.bot.loop.create_task(self.registration_worker())
         self.bot.loop.create_task(self.tourney_registration_worker())
 
     def cog_unload(self):
-        self.fill_registration_channels.cancel()
         self.registration_worker.cancel()
         self.tourney_registration_worker.cancel()
 
@@ -77,19 +73,6 @@ class ScrimManager(Cog, name="Esports"):
         with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
             await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
             await ctx.author.add_roles(role)
-
-    async def fill_registration_channels(self):
-        records = Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
-        self.registration_channels = set()
-
-        async for record in records:
-            self.registration_channels.add(record.registration_channel_id)
-
-        records = Tourney.filter(started_at__not_isnull=True)
-        self.tourney_channels = set()
-
-        async for record in records:
-            self.tourney_channels.add(record.registration_channel_id)
 
     async def registration_worker(self):
         while True:
@@ -260,7 +243,7 @@ class ScrimManager(Cog, name="Esports"):
         open_role = scrim.open_role
         channel_update = await toggle_channel(registration_channel, open_role, True)
 
-        self.registration_channels.add(registration_channel.id)
+        self.bot.scrim_channels.add(registration_channel.id)
 
         await Scrim.filter(pk=scrim.id).update(
             open_time=scrim.open_time + timedelta(hours=24),
@@ -292,12 +275,12 @@ class ScrimManager(Cog, name="Esports"):
             return
 
         channel_id = message.channel.id
-        if channel_id not in self.tourney_channels:
+        if channel_id not in self.bot.tourney_channels:
             return
 
         tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
         if tourney is None:
-            return self.tourney_channels.discard(channel_id)
+            return self.bot.tourney_channels.discard(channel_id)
 
         if tourney.started_at is None:
             return
@@ -333,7 +316,7 @@ class ScrimManager(Cog, name="Esports"):
 
         channel_id = message.channel.id
 
-        if channel_id not in self.registration_channels:
+        if channel_id not in self.bot.scrim_channels:
             return
 
         scrim = await Scrim.get_or_none(
@@ -341,7 +324,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         if scrim is None:  # Scrim is possibly deleted
-            return self.registration_channels.discard(channel_id)
+            return self.bot.scrim_channels.discard(channel_id)
 
         if scrim.opened_at is None:
             # Registration isn't opened yet.
@@ -385,7 +368,7 @@ class ScrimManager(Cog, name="Esports"):
         if not message.guild or message.author.bot:
             return
 
-        if message.channel.id in self.registration_channels:
+        if message.channel.id in self.bot.scrim_channels:
             scrim = await Scrim.get_or_none(registration_channel_id=message.channel.id)
             if not scrim or not scrim.opened_at:  # either scrim doesn't exist or it is closed.
                 return
@@ -814,7 +797,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Are you sure you want to delete scrim `{scrim.id}`?",
         )
         if prompt:
-            self.registration_channels.discard(scrim.registration_channel_id)
+            self.bot.scrim_channels.discard(scrim.registration_channel_id)
             await scrim.delete()
             await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
@@ -1103,7 +1086,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Are you sure you want to delete tournament `{tourney.id}`?",
         )
         if prompt:
-            self.tourney_channels.discard(tourney.registration_channel_id)
+            self.bot.tourney_channels.discard(tourney.registration_channel_id)
             await tourney.delete()
             await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
         else:
@@ -1231,7 +1214,7 @@ class ScrimManager(Cog, name="Esports"):
         prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney.id}`)?")
         if prompt:
             channel_update = await toggle_channel(channel, open_role, True)
-            self.tourney_channels.add(channel.id)
+            self.bot.tourney_channels.add(channel.id)
             await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
             await channel.send("**Registration is now Open!**")
             await ctx.message.add_reaction(emote.check)

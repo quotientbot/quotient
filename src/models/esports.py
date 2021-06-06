@@ -1,8 +1,6 @@
 import asyncio
 import io
-import json
 
-from discord import guild
 from .fields import *
 import discord
 import utils

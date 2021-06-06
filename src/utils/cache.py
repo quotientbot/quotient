@@ -1,3 +1,5 @@
+from datetime import datetime
+from constants import IST
 import models
 import config
 
@@ -24,3 +26,13 @@ async def cache(bot):
     bot.tagcheck = set()
     async for record in records:
         bot.tagcheck.add(record.channel_id)
+
+    records = models.Scrim.filter(opened_at__lte=datetime.now(tz=IST)).all()
+    bot.scrim_channels = set()
+    async for record in records:
+        bot.scrim_channels.add(record.registration_channel_id)
+
+    records = models.Tourney.filter(started_at__not_isnull=True)
+    bot.tourney_channels = set()
+    async for record in records:
+        bot.tourney_channels.add(record.registration_channel_id)
