@@ -157,46 +157,6 @@ class ScrimManager(Cog, name="Esports"):
         self.bot.dispatch("scrim_log", "open", scrim, permission_updated=channel_update)
 
     # @commands.Cog.listener("on_message")
-    # async def on_tourney_registration(self, message: discord.Message):
-    #     if not message.guild or message.author.bot:
-    #         return
-
-    #     channel_id = message.channel.id
-    #     if channel_id not in self.bot.tourney_channels:
-    #         return
-
-    #     tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
-    #     if tourney is None:
-    #         return self.bot.tourney_channels.discard(channel_id)
-
-    #     if tourney.started_at is None:
-    #         return
-
-    #     if tourney.modrole in message.author.roles:
-    #         return
-
-    #     if (
-    #         not message.guild.me.guild_permissions.manage_roles
-    #         or tourney.role > message.guild.me.top_role
-    #         or not message.channel.permissions_for(message.channel.guild.me).add_reactions
-    #     ):
-    #         return await cannot_take_registration(message, "tourney", tourney)
-
-    #     if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):  # mentioned bots
-    #         return self.bot.dispatch("tourney_registration_deny", message, "mentioned_bots", tourney)
-
-    #     elif not len(message.mentions) >= tourney.required_mentions:
-    #         return self.bot.dispatch("tourney_registration_deny", message, "insufficient_mentions", tourney)
-
-    #     elif message.author.id in tourney.banned_users:
-    #         return self.bot.dispatch("tourney_registration_deny", message, "banned", tourney)
-
-    #     elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
-    #         return self.bot.dispatch("tourney_registration_deny", message, "multiregister", tourney)
-
-    #     self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
-
-    # @commands.Cog.listener("on_message")
     # async def on_scrim_registration(self, message: discord.Message):
     #     if not message.guild or message.author.bot:
     #         return

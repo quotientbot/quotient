@@ -1,5 +1,6 @@
 from contextlib import suppress
 from typing import NoReturn, Union
+
 from models import Scrim, Tourney
 from datetime import datetime, timedelta
 from utils import inputs
@@ -7,6 +8,7 @@ import constants
 import discord
 import config
 import asyncio
+import re
 
 
 def get_slots(slots):
@@ -191,3 +193,68 @@ async def delete_denied_message(message: discord.Message, seconds=10):
     with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
         await asyncio.sleep(seconds)
         await inputs.safe_delete(message)
+
+
+def before_registrations(message: discord.Message, role: discord.Role) -> bool:
+    me = message.guild.me
+    channel = message.channel
+
+    if (
+        not me.guild_permissions.manage_roles
+        or role > message.guild.me.top_role
+        or not channel.permissions_for(me).add_reactions
+    ):
+        return False
+
+    else:
+        return True
+
+
+async def check_tourney_requirements(bot, message: discord.Message, tourney: Tourney) -> bool:
+    _bool = True
+
+    if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
+        _bool = False
+        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.botmention, tourney)
+
+    elif not len(message.mentions) >= tourney.required_mentions:
+        _bool = False
+        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.nomention, tourney)
+
+    elif message.author.id in tourney.banned_users:
+        _bool = False
+        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.banned, tourney)
+
+    elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
+        _bool = False
+        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.multiregister, tourney)
+
+    return _bool
+
+
+async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) -> bool:
+    _bool = True
+
+    if scrim.teamname_compulsion:
+        teamname = re.search(r"team.*", message.content)
+        if not teamname or not teamname.group().strip():
+            _bool = False
+            bot.dispatch("scrim_registration_deny", message, constants.RegDeny.noteamname, scrim)
+
+    elif scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
+        _bool = False
+        bot.dispatch("scrim_registration_deny", message, constants.RegDeny.botmention, scrim)
+
+    elif not len(message.mentions) >= scrim.required_mentions:
+        _bool = False
+        bot.dispatch("scrim_registration_deny", message, constants.RegDeny.nomention, scrim)
+
+    elif message.author.id in await scrim.banned_user_ids():
+        _bool = False
+        bot.dispatch("scrim_registration_deny", message, constants.RegDeny.banned, scrim)
+
+    elif not scrim.multiregister and message.author.id in get_slots(await scrim.assigned_slots.all()):
+        _bool = False
+        bot.dispatch("scrim_registration_deny", message, constants.RegDeny.multiregister, scrim)
+
+    return _bool

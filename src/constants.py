@@ -18,6 +18,11 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class EsportsType(Enum):
+    tourney = "tourney"
+    scrim = "scrim"
+
+
 class EsportsLog(Enum):
     open = "open"
     closed = "closed"
@@ -30,6 +35,7 @@ class RegDeny(Enum):
     banned = "banned"
     multiregister = "multiregiter"
     noteamname = "no_team_name"
+    reqperms = "lack_permissions"
 
 
 class LogType(Enum):
