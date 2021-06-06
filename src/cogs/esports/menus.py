@@ -10,7 +10,7 @@ from utils import *
 from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
-from .utils import already_reserved, available_to_reserve
+from .utils import already_reserved, available_to_reserve, delete_denied_message
 
 
 class IDPMenu(menus.Menu):
@@ -35,7 +35,7 @@ class IDPMenu(menus.Menu):
         embed.add_field(name="Match Starts at", value="Not Set")
 
         embed.set_footer(
-            text=f"Shared by: {self.ctx.author} • Auto delete in {self.delete_in} minutes.",
+            text=f"Shared by: {self.ctx.author} • Auto delete in {plural(self.delete_in):minute|minutes}.",
             icon_url=self.ctx.author.avatar_url,
         )
         return embed
@@ -56,8 +56,11 @@ class IDPMenu(menus.Menu):
 
     async def refresh(self):
         try:
+            content = self.ping_role.mention if self.ping_role else ""
+            if self.id_pass_content:
+                content += f"\nID: {self._id} | Password: {self._pass}"
             await self.msg.edit(
-                content=f"ID: {self._id} | Password: {self._pass}" if self.id_pass_content else None, embed=self.embed
+                content=content, embed=self.embed, allowed_mentions=discord.AllowedMentions(everyone=False, roles=False)
             )
         except:
             self.stop()
@@ -68,7 +71,7 @@ class IDPMenu(menus.Menu):
                 color=discord.Color(config.COLOR),
                 title=f"🛠️ ID/Pass Formatter",
                 description=description,
-            ).set_footer(text="Enter 'none' if you want to remove the field.")
+            )
         )
 
     async def send_initial_message(self, ctx, channel):
@@ -164,7 +167,6 @@ class IDPMenu(menus.Menu):
     @menus.button("❔")
     async def idp_content(self, payload):
         self.id_pass_content = not self.id_pass_content
-        print(self.id_pass_content)
         await self.refresh()
 
     @menus.button("⏰")
@@ -175,6 +177,10 @@ class IDPMenu(menus.Menu):
         delete_time = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(None, None))
         await inputs.safe_delete(msg)
         self.delete_in = delete_time
+        self.embed.set_footer(
+            text=f"Shared by: {self.ctx.author} • Auto delete in {plural(self.delete_in):minute|minutes}",
+            icon_url=self.ctx.author.avatar_url,
+        )
         await self.refresh()
 
     @menus.button("❌")
@@ -183,7 +189,16 @@ class IDPMenu(menus.Menu):
 
     @menus.button("✅")
     async def on_confirm(self, payload):
-        pass
+        content = self.ping_role.mention if self.ping_role else ""
+        if self.id_pass_content:
+            content += f"\nID: {self._id} | Password: {self._pass}"
+
+        msg = await self.send_channel.send(
+            content=content, embed=self.embed, allowed_mentions=discord.AllowedMentions(everyone=True, roles=True)
+        )
+
+        self.bot.loop.create_task(delete_denied_message(msg, self.delete_in * 60))
+        self.stop()
 
 
 class SlotlistFormatMenu(menus.Menu):

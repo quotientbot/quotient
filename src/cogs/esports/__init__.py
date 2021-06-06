@@ -1297,10 +1297,10 @@ class ScrimManager(Cog, name="Esports"):
         """Get your reg-format in a reusable form."""
         await ctx.send(f"```{registration_form}```")
 
-    @commands.command(aliases=("idp",))
+    @commands.command()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    async def shareidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
+    async def quickidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
         """
         Share Id/pass with embed quickly.
         Message is automatically deleted after 30 minutes.
@@ -1321,9 +1321,20 @@ class ScrimManager(Cog, name="Esports"):
         self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     async def customidp(self, ctx, channel: QuoTextChannel, role_to_ping: QuoRole = None):
         """Share customized Id/pass message."""
-        await IDPMenu(send_channel = channel , role = role_to_ping).start(ctx)
+        if not (
+            channel.permissions_for(ctx.me).send_messages
+            or channel.permissions_for(ctx.me).embed_links
+            or channel.permissions_for(ctx.me).manage_messages
+        ):
+            return await ctx.error(
+                f"I need `send_messages` , `embed_links` and `manage_messages` permission in {channel.mention}"
+            )
+
+        await IDPMenu(send_channel=channel, role=role_to_ping).start(ctx)
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):
