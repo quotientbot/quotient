@@ -322,19 +322,24 @@ class TagCheck(models.Model):
     class Meta:
         table = "tagcheck"
 
-    guild_id = fields.BigIntField(pk=True)
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
     required_mentions = fields.IntField(default=0)
+    delete_after = fields.BooleanField(default=False)
 
     @property
-    def channel(self):
+    def _guild(self) -> Optional[discord.Guild]:
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def channel(self) -> Optional[discord.TextChannel]:
         return self.bot.get_channel(self.channel_id)
 
     @property
-    def modrole(self):
-        guild = self.bot.get_guild(self.guild_id)
-        if guild != None:
-            return discord.utils.get(guild.roles, name="scrims-mod")
+    def ignorerole(self) -> Optional[discord.Role]:
+        if not self._guild is None:
+            return discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
 
 
 class EasyTag(models.Model):
