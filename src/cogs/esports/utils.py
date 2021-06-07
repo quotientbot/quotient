@@ -5,8 +5,7 @@ from typing import NoReturn, Union
 from prettytable.prettytable import PrettyTable
 
 from models import Scrim, Tourney
-from datetime import datetime, timedelta
-from utils import inputs
+from datetime import datetime
 import constants
 import discord
 import config
@@ -108,32 +107,24 @@ async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     ctx.bot.dispatch("tourney_log", constants.EsportsLog.closed, tourney, permission_updated=channel_update)
 
 
-async def purge_channels(channels):
-    for channel in channels:
-        if channel != None and channel.permissions_for(channel.guild.me).manage_messages:
-            try:
-                await channel.purge(limit=100, check=lambda x: not x.pinned)
-            except:
-                continue
+async def purge_channel(channel):
+    with suppress(AttributeError, discord.Forbidden, discord.NotFound, discord.HTTPException):
+        await channel.purge(limit=100, check=lambda x: not x.pinned)
 
 
-async def purge_roles(roles):
-    for role in roles:
-        if role != None and role.guild.me.guild_permissions.manage_roles:
-            if not role.guild.chunked:
-                await role.guild.chunk()
+async def purge_role(role):
+    with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
+        if not role.guild.chunked:
+            await role.guild.chunk()
 
-            for member in role.members:
-                try:
-                    await member.remove_roles(role, reason="Scrims Manager Auto Role Remove in progress!")
-                except:
-                    continue
+        for member in role.members:
+            await member.remove_roles(role, reason="Scrims Manager Autoclean!")
 
 
 async def delete_denied_message(message: discord.Message, seconds=10):
-    with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+    with suppress(AttributeError, discord.HTTPException, discord.NotFound, discord.Forbidden):
         await asyncio.sleep(seconds)
-        await inputs.safe_delete(message)
+        await message.delete()
 
 
 def before_registrations(message: discord.Message, role: discord.Role) -> bool:

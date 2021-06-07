@@ -1,21 +1,16 @@
-from unicodedata import decomposition
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney, AssignedSlot, ArrayAppend, TagCheck
 from .utils import (
     get_pretty_slotlist,
-    purge_roles,
-    purge_channels,
     delete_denied_message,
     scrim_work_role,
     tourney_work_role,
 )
-from constants import EsportsRole, IST, EsportsLog, EsportsType, RegDeny
-from datetime import datetime, timedelta
-from prettytable import PrettyTable
+from constants import EsportsRole, EsportsLog, RegDeny
 from discord.ext import commands
 from contextlib import suppress
 from utils import plural
 from core import Cog
-import discord, io
+import discord
 
 
 class ScrimError(commands.CommandError):
@@ -316,18 +311,6 @@ class SMError(Cog):
             )
 
             await logschan.send(embed=embed)
-
-    @Cog.listener()
-    async def on_scrim_autoclean_timer_complete(self, timer: Timer):
-        reminders = self.bot.get_cog("Reminders")
-        await reminders.create_timer(datetime.now(tz=IST) + timedelta(hours=24), "scrim_autoclean")
-
-        records = await Scrim.filter(stoggle=True, autoclean=True).all()
-        channels = map(lambda x: x.registration_channel, records)
-        roles = map(lambda x: x.role, records)
-
-        self.bot.loop.create_task(purge_channels(channels))
-        self.bot.loop.create_task(purge_roles(roles))
 
     @Cog.listener()
     async def on_scrim_cmd_log(self, **kwargs):

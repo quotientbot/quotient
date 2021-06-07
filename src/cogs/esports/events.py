@@ -4,6 +4,8 @@ from .utils import (
     available_to_reserve,
     check_scrim_requirements,
     delete_denied_message,
+    purge_channel,
+    purge_role,
     scrim_end_process,
     add_role_and_reaction,
     scrim_work_role,
@@ -14,7 +16,7 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
 )
-from constants import Day, EsportsLog, EsportsRole, EsportsType, IST
+from constants import AutocleanType, Day, EsportsLog, EsportsRole, EsportsType, IST
 from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
@@ -385,3 +387,24 @@ class ScrimEvents(Cog):
                 self.bot.loop.create_task(delete_denied_message(msg, 60))
 
     # ==========================================================================================================
+
+    @Cog.listener()
+    async def on_autoclean_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+
+        if not scrim:
+            return
+
+        if timer.expires != scrim.autoclean_time:
+            return
+
+        await Scrim.filter(pk=scrim.id).update(autoclean_time=scrim.autoclean_time + timedelta(hours=24))
+        await self.bot.reminders.create_timer(scrim.autoclean_time + timedelta(hours=24), "autoclean", scrim_id=scrim.id)
+
+        if AutocleanType.channel in scrim.autoclean:
+            self.bot.loop.create_task(purge_channel(scrim.registration_channel))
+
+        if AutocleanType.role in scrim.autoclean:
+            self.bot.loop.create_task(purge_role(scrim.role))
