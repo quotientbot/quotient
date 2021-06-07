@@ -336,6 +336,9 @@ class Utility(Cog, name="utility"):
 
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot exceed 1990 characters.")
+        
+        if len(ctx.message.attachments):
+            content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         await Tag.filter(id=tag.id).update(content=content)
         await ctx.success(f"Tag updated.")
