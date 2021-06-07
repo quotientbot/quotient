@@ -178,7 +178,7 @@ class Votes(Cog):
     async def on_user_premium_expire(self, user: models.User):
         # await models.User.filter(user_id=user.user_id).update(is_premium=False, made_premium=[])
         await self.bot.db.execute(
-            "UPDATE user_data SET is_premium = FALSE , made_premium = {} WHERE user_id = $1", user.user_id
+            "UPDATE user_data SET is_premium = FALSE , made_premium = '{}' WHERE user_id = $1", user.user_id
         )
         user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.user_id)
 
