@@ -1,5 +1,6 @@
 from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
 from core import Quotient, Cog
+from utils import emote
 from .utils import (
     available_to_reserve,
     check_scrim_requirements,
@@ -408,3 +409,11 @@ class ScrimEvents(Cog):
 
         if AutocleanType.role in scrim.autoclean:
             self.bot.loop.create_task(purge_role(scrim.role))
+
+        with suppress(discord.Forbidden, AttributeError):
+            await scrim.logschan.send(
+                embed=discord.Embed(
+                    color=discord.Color.green(),
+                    description=f"{emote.check} | Autoclean executed successfully for Scrim: {scrim.id}",
+                )
+            )

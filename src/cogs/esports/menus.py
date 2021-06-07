@@ -807,7 +807,7 @@ class ConfigEditMenu(menus.Menu):
             "Mentions": f"`{scrim.required_mentions:,}`",
             "Slots": f"`{scrim.total_slots:,}`",
             "Open Time": f"`{open_time}`",
-            "Auto-clean": ("`No!`", "`Yes!`")[scrim.autoclean],
+            "Auto-clean": "`qsm autoclean {0}`".format(scrim.id),
             "Ping Role": ping_role,
             "Open Role": open_role,
             "Multi Register": ("`No!`", "`Yes!`")[scrim.multiregister],
@@ -939,7 +939,8 @@ class ConfigEditMenu(menus.Menu):
 
     @menus.button(regional_indicator("H"))
     async def change_cleanup(self, payload):
-        await self.update_scrim(autoclean=not self.scrim.autoclean)
+        pass
+    
 
     @menus.button(regional_indicator("I"))
     async def change_ping_role(self, payload):
