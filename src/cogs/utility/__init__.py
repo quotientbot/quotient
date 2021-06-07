@@ -225,7 +225,7 @@ class Utility(Cog, name="utility"):
         )
         await paginator.paginate()
 
-    @tag.command(name="info", aliases=("stats",))
+    @tag.command(name="info")
     async def tag_info(self, ctx: Context, *, tag: TagConverter):
         """Information about a tag"""
         embed = self.bot.embed(ctx, title=f"Stats for tag {tag.name}")
@@ -299,7 +299,20 @@ class Utility(Cog, name="utility"):
 
         await Tag.filter(id=tag.id).update(is_nsfw=not (tag.is_nsfw))
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
+        
+    @tag.command("mine")
+    async def get_all_tags(self, ctx: Context):
+        tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=ctx.author.id)
+        
+        tag_list = []
+        for idx, tag in enumerate(tags, start=1):
+            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
 
+        paginator = Pages(
+            ctx, title="Tags you own: {}".format(len(tag_list)), entries=tag_list, per_page=5, show_entry_count=True
+        )
+        await paginator.paginate()
+        
     @tag.command(name="purge")
     async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
@@ -312,7 +325,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx: Context, name: TagName, *, content):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content = ""):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
