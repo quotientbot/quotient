@@ -8,8 +8,10 @@ from core import Cog, Context
 from contextlib import suppress
 from .utils import (
     delete_denied_message,
+    scrim_work_role,
     toggle_channel,
     scrim_end_process,
+    tourney_work_role,
 )
 
 from utils import (
@@ -23,7 +25,7 @@ from utils import (
 )
 
 from .converters import ScrimConverter, TourneyConverter
-from constants import  IST
+from constants import IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime
@@ -346,8 +348,8 @@ class ScrimManager(Cog, name="Esports"):
 
             role = getattr(scrim.role, "mention", "`Role Deleted!`")
             open_time = (scrim.open_time).strftime("%I:%M %p")
-            open_role = getattr(scrim.open_role, "mention", "`Role Deleted!`")
-            ping_role = getattr(scrim.ping_role, "mention", "`Not Set!`")
+            open_role = scrim_work_role(scrim, constants.EsportsRole.open)
+            ping_role = scrim_work_role(scrim, constants.EsportsRole.ping)
             mystring = f"> Scrim ID: `{scrim.id}`\n> Name: `{scrim.name}`\n> Registration Channel: {reg_channel}\n> Slotlist Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{scrim.required_mentions}`\n> Total Slots: `{scrim.total_slots}`\n> Open Time: `{open_time}`\n> Toggle: `{scrim.stoggle}`\n> Open Role: {open_role}\n> Ping Role: {ping_role}\n> Slotlist start from: {scrim.start_from}"
 
             to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")
@@ -753,7 +755,7 @@ class ScrimManager(Cog, name="Esports"):
             slot_channel = getattr(tourney.confirm_channel, "mention", "`Channel Deleted!`")
 
             role = getattr(tourney.role, "mention", "`Role Deleted!`")
-            open_role = getattr(tourney.open_role, "mention", "`Role Deleted!`")
+            open_role = tourney_work_role(tourney)
             mystring = f"> Tourney ID: `{tourney.id}`\n> Name: `{tourney.name}`\n> Registration Channel: {reg_channel}\n> Confirm Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{tourney.required_mentions}`\n> Total Slots: `{tourney.total_slots}`\n> Open Role: {open_role}\n> Status: {'Open' if tourney.started_at else 'Closed'}"
 
             to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")

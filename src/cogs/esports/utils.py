@@ -257,7 +257,7 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
         return "@everyone"
 
     else:
-        return role.mention
+        return getattr(role, "mention", "Role deleted!")
 
 
 def tourney_work_role(tourney: Tourney):
@@ -266,7 +266,7 @@ def tourney_work_role(tourney: Tourney):
         return "@everyone"
 
     else:
-        return role.mention
+        return getattr(role, "mention", "Role deleted!")
 
 
 async def get_pretty_slotlist(scrim: Scrim):

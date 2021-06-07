@@ -323,7 +323,7 @@ class ScrimEvents(Cog):
             if not len(message.mentions) >= tagcheck.required_mentions:
                 _react = False
                 await message.reply(
-                    f"You need to mention {utils.plural(tagcheck.required_mentions):teammate|teammates}`.",
+                    f"You need to mention `{utils.plural(tagcheck.required_mentions):teammate|teammates}`.",
                     delete_after=5,
                 )
 

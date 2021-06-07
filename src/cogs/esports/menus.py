@@ -10,7 +10,7 @@ from utils import *
 from models.functions import *
 import constants
 from .errors import ScrimError, TourneyError
-from .utils import already_reserved, available_to_reserve, delete_denied_message
+from .utils import already_reserved, available_to_reserve, delete_denied_message, scrim_work_role, tourney_work_role
 
 
 class IDPMenu(menus.Menu):
@@ -725,7 +725,7 @@ class ConfigEditMenu(menus.Menu):
         scrim_role = getattr(scrim.role, "mention", "`Role Deleted!`")
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
-        ping_role = getattr(scrim.ping_role, "mention", "`Role Deleted!`") if scrim.ping_role_id else "`Not Configured!`"
+        ping_role = scrim_work_role(scrim, constants.EsportsRole.ping)
         open_role = getattr(scrim.open_role, "mention", "`Role Deleted!`") if scrim.open_role_id else "@everyone"
 
         embed = discord.Embed(color=discord.Color(config.COLOR))
@@ -959,7 +959,7 @@ class TourneyEditor(menus.Menu):
         registration_channel = getattr(tourney.registration_channel, "mention", "`Channel Deleted!`")
         tourney_role = getattr(tourney.role, "mention", "`Role Deleted!`")
 
-        open_role = getattr(tourney.open_role, "mention", "`Role Deleted!`")
+        open_role = tourney_work_role(tourney)
 
         embed = self.bot.embed(self.ctx)
         embed.title = f"Edit Tourney Configuration: {tourney.id}"

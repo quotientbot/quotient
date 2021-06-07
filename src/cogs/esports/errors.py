@@ -132,7 +132,7 @@ class SMError(Cog):
                     allowed_mentions=discord.AllowedMentions(users=True),
                 )
 
-                embed.color = (discord.Color.green(),)
+                embed.color = discord.Color.green()
                 embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
 
         with suppress(discord.Forbidden, AttributeError):
