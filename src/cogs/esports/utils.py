@@ -1,5 +1,8 @@
 from contextlib import suppress
+import io
 from typing import NoReturn, Union
+
+from prettytable.prettytable import PrettyTable
 
 from models import Scrim, Tourney
 from datetime import datetime, timedelta
@@ -248,13 +251,28 @@ async def should_open_scrim(scrim: Scrim):
     return _bool
 
 
-def scrim_role_to_ping(scrim: Scrim, guild: discord.Guild):
-    ping_role = scrim.ping_role
-    if not ping_role:
+def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
+
+    role = scrim.ping_role if _type == constants.EsportsRole.ping else scrim.open_role
+
+    if not role:
         return None
 
-    if ping_role == guild.default_role:
+    if role == scrim.guild.default_role:
         return "@everyone"
 
     else:
-        return ping_role.mention
+        return role.mention
+
+
+async def get_pretty_slotlist(scrim: Scrim):
+    guild = scrim.guild
+
+    table = PrettyTable()
+    table.field_names = ["Slot", "Team Name", "Leader", "Jump URL"]
+    for i in await scrim.teams_registered:
+        member = guild.get_member(i.user_id)
+        table.add_row([i.num, i.team_name, str(member), i.jump_url])
+
+    fp = io.BytesIO(table.get_string().encode())
+    return discord.File(fp, filename="slotlist.txt")

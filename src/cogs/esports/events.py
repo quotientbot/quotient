@@ -7,7 +7,7 @@ from .utils import (
     delete_denied_message,
     scrim_end_process,
     add_role_and_reaction,
-    scrim_role_to_ping,
+    scrim_work_role,
     should_open_scrim,
     toggle_channel,
     tourney_end_process,
@@ -283,7 +283,7 @@ class ScrimEvents(Cog):
         )
 
         await registration_channel.send(
-            content=scrim_role_to_ping,
+            content=scrim_work_role(scrim, constants.EsportsRole.ping),
             embed=embed,
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )

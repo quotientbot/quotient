@@ -29,6 +29,11 @@ class EsportsLog(Enum):
     success = "reg_success"
 
 
+class EsportsRole(Enum):
+    ping = "ping_role"
+    open = "open_role"
+
+
 class RegDeny(Enum):
     botmention = "mentioned bots"
     nomention = "insufficient mentions"

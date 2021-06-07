@@ -1,6 +1,6 @@
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney, AssignedSlot, ArrayAppend, TagCheck
-from .utils import purge_roles, purge_channels, delete_denied_message
-from constants import IST, EsportsLog, EsportsType, RegDeny
+from .utils import get_pretty_slotlist, purge_roles, purge_channels, delete_denied_message, scrim_work_role
+from constants import EsportsRole, IST, EsportsLog, EsportsType, RegDeny
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
 from discord.ext import commands
@@ -143,63 +143,52 @@ class SMError(Cog):
         A listener that is dispatched everytime registration starts/ends or a registration is accepted.
         """
         logschan = scrim.logschan
-        role = scrim.role
-        scrim_open_role = scrim.open_role
+        if not logschan:
+            return await Scrim.filter(id=scrim.id).delete()
+
         registration_channel = scrim.registration_channel
         modrole = scrim.modrole
 
+        open_role = scrim_work_role(scrim, EsportsRole.open)
+
         important = False
 
-        if _type == EsportsLog.open:
+        embed = discord.Embed(color=0x00B1FF)
 
-            embed = discord.Embed(
-                color=0x00B1FF,
-                description=f"Registration opened for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
-            )
+        with suppress(discord.NotFound, discord.Forbidden):
+            if _type == EsportsLog.open:
+                embed.description = (
+                    f"Registration opened for {open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
+                )
 
-        elif type == "closed":
-            permission_updated = kwargs.get("permission_updated")
-            embed = discord.Embed(
-                color=discord.Color(0x00B1FF),
-                description=f"Registration closed for {scrim_open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist {scrim.id} edit` to edit the slotlist.",
-            )
-            table = PrettyTable()
-            table.field_names = ["Slot", "Team Name", "Leader", "Jump URL"]
-            for i in await scrim.teams_registered:
-                member = scrim.guild.get_member(i.user_id)
-                table.add_row([i.num, i.team_name, str(member), i.jump_url])
+            elif type == EsportsLog.closed:
+                permission_updated = kwargs.get("permission_updated")
+                embed.description = (
+                    f"Registration closed for {open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist.",
+                )
 
-            if logschan is not None:
-                fp = io.BytesIO(table.get_string().encode())
-                return await logschan.send(file=discord.File(fp, filename="slotlist.txt"))
+                slotlist = await get_pretty_slotlist(scrim)
+                await logschan.send(file=slotlist)
 
-            if not permission_updated:
-                imp = True
-                embed.color = discord.Color.red()
-                embed.description += f"\nI couldn't close {registration_channel.mention}."
+                if not permission_updated:
+                    important = True
+                    embed.color = discord.Color.red()
+                    embed.description += f"\nI couldn't close {registration_channel.mention}."
 
-        elif type == "reg_success":
-            message = kwargs.get("message")
-            role_added = kwargs.get("role_added")
+            elif type == EsportsLog.success:
 
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
-            )
-            if role_added is False:
-                imp = True
-                embed.color = discord.Color.red()
-                embed.description += f"\nUnfortunately I couldn't give them {role.mention}."
+                message = kwargs.get("message")
 
-        if logschan != None and logschan.permissions_for(logschan.guild.me).send_messages:
+                embed = discord.Embed(
+                    color=discord.Color.green(),
+                    description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
+                )
+
             await logschan.send(
-                content=modrole.mention if modrole != None and imp is True else None,
+                content=modrole.mention if modrole != None and important is True else None,
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
-        else:
-            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
-            return await logschan.send(text)
 
     # ==========================================================================================================================
     # ==========================================================================================================================
