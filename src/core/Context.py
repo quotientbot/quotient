@@ -1,3 +1,4 @@
+from contextlib import suppress
 from discord.ext import commands
 import discord, asyncio
 import utils, io
@@ -116,3 +117,33 @@ class Context(commands.Context):
         kwargs.pop("file", None)
 
         return await self.send(file=discord.File(fp, filename=name), **kwargs)
+
+    async def maybe_delete(self, message):
+        with suppress(AttributeError, discord.NotFound, discord.Forbidden):
+            await message.delete()
+
+    async def send(self, content: any = None, **kwargs):
+        if not (_perms := self.channel.permissions_for(self.me)).send_messages:
+            try:
+                await self.author.send(
+                    "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so."
+                )
+            except discord.Forbidden:
+                pass
+            return
+
+        require_embed_perms = kwargs.pop("embed_perms", False)
+        if require_embed_perms and not _perms.embed_links:
+            kwargs = {}
+            content = (
+                "Oops! I need **Embed Links** permission to work properly. \n"
+                "Please tell a server admin to grant me that permission."
+            )
+        if isinstance(content, discord.Embed):
+            kwargs["embed"] = content
+            content = None
+        if isinstance(content, discord.File):
+            kwargs["file"] = content
+            content = None
+
+        return await super().send(content, **kwargs)
