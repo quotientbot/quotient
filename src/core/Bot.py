@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import suppress
 import typing
 
 if typing.TYPE_CHECKING:
@@ -80,15 +81,16 @@ class Quotient(commands.AutoShardedBot):
             model.bot = self
 
     async def get_prefix(self, message: discord.Message) -> str:
-        if not message.guild:
-            return
+        with suppress(TypeError):
+            if not message.guild:
+                return
 
-        if self.user.id == 765159200204128266:
-            prefix = "!"
-        else:
-            prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
+            if self.user.id == 765159200204128266:
+                prefix = "!"
+            else:
+                prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
 
-        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+            return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
     async def close(self) -> NoReturn:
         await super().close()
