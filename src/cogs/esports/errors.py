@@ -103,14 +103,14 @@ class SMError(Cog):
             permission_updated = kwargs.get("permission_updated")
 
             embed.description = (
-                f"Registration closed for {open_role} in {registration_channel.mention}(TourneyID: `{tourney.id}`)",
+                f"Registration closed for {open_role} in {registration_channel.mention}(TourneyID: `{tourney.id}`)"
             )
             if not permission_updated:
                 important = True
                 embed.color = discord.Color.red()
                 embed.description += f"\nI couldn't close {registration_channel.mention}."
 
-        elif type == EsportsLog.success:
+        elif _type == EsportsLog.success:
             message = kwargs.get("message")
 
             confirmation = tourney.confirm_channel
@@ -132,9 +132,7 @@ class SMError(Cog):
                 )
 
                 embed.color = (discord.Color.green(),)
-                embed.description = (
-                    f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
-                )
+                embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
 
         with suppress(discord.Forbidden, AttributeError):
             await logschan.send(
@@ -160,18 +158,16 @@ class SMError(Cog):
         important = False
 
         embed = discord.Embed(color=0x00B1FF)
-
         with suppress(discord.NotFound, discord.Forbidden, AttributeError):
+
             if _type == EsportsLog.open:
                 embed.description = (
-                    f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
+                    f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)"
                 )
 
-            elif type == EsportsLog.closed:
+            elif _type == EsportsLog.closed:
                 permission_updated = kwargs.get("permission_updated")
-                embed.description = (
-                    f"Registration closed for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist.",
-                )
+                embed.description = f"Registration closed for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist."
 
                 slotlist = await get_pretty_slotlist(scrim)
                 await logschan.send(file=slotlist)
@@ -181,14 +177,12 @@ class SMError(Cog):
                     embed.color = discord.Color.red()
                     embed.description += f"\nI couldn't close {registration_channel.mention}."
 
-            elif type == EsportsLog.success:
+            elif _type == EsportsLog.success:
 
                 message = kwargs.get("message")
 
-                embed = discord.Embed(
-                    color=discord.Color.green(),
-                    description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
-                )
+                embed.color = discord.Color.green()
+                embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
 
             await logschan.send(
                 content=modrole.mention if modrole != None and important is True else None,

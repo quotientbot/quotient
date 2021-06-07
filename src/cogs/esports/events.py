@@ -43,7 +43,7 @@ class ScrimEvents(Cog):
 
     async def scrim_registration_worker(self):
         while True:
-            queue_message: QueueMessage = await self.queue.get()
+            queue_message: QueueMessage = await self.scrim_queue.get()
             scrim, message = queue_message.scrim, queue_message.message
             ctx = await self.bot.get_context(message)
 
@@ -193,7 +193,7 @@ class ScrimEvents(Cog):
         if not await check_scrim_requirements(self.bot, message, scrim):
             return
 
-        self.queue.put_nowait(QueueMessage(scrim, message))
+        self.scrim_queue.put_nowait(QueueMessage(scrim, message))
 
     # ==========================================================================================================
     # ==========================================================================================================

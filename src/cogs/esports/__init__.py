@@ -10,17 +10,9 @@ from .utils import (
     delete_denied_message,
     toggle_channel,
     scrim_end_process,
-    postpone_scrim,
-    is_valid_scrim,
-    tourney_end_process,
-    cannot_take_registration,
-    get_slots,
-    get_tourney_slots,
 )
+
 from utils import (
-    default,
-    time,
-    day_today,
     inputs,
     checks,
     FutureTime,
@@ -31,12 +23,10 @@ from utils import (
 )
 
 from .converters import ScrimConverter, TourneyConverter
-from constants import Day, IST
+from constants import  IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
-from unicodedata import normalize as nm
-from datetime import timedelta, datetime
-from discord import AllowedMentions
+from datetime import datetime
 from discord.ext import commands
 
 from .events import ScrimEvents
