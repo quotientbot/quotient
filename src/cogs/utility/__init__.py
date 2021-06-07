@@ -1,4 +1,4 @@
-from unicodedata import category
+from discord.utils import escape_markdown
 from core import Cog, Context
 
 import typing
@@ -218,10 +218,10 @@ class Utility(Cog, name="utility"):
 
         tag_list = []
         for idx, tag in enumerate(tags, start=1):
-            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
+            tag_list.append(f"`{idx:02}` {escape_markdown(tag.name)} (ID: {tag.id})\n")
 
         paginator = Pages(
-            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
+            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=15, show_entry_count=True
         )
         await paginator.paginate()
 
