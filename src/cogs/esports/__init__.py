@@ -1027,7 +1027,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
-    @commands.bot_has_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Set a channel as eztag channel."""
