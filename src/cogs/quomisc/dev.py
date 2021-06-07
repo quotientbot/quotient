@@ -24,13 +24,15 @@ class Dev(Cog):
         success, failed = 0, 0
         start = pf()
         for record in records:
-            channel = ctx.bot.get_channel(record["private_channel"])
+            channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, record["private_channel"])
+
             if channel != None and channel.permissions_for(channel.guild.me).send_messages:
                 try:
                     await channel.send(message)
                     success += 1
                 except:
                     failed += 1
+                    continue
 
         end = pf()
         await ctx.send(f"Sent {success}: {failed} finished in {end - start:.3f}s.")

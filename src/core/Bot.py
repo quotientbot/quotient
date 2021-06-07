@@ -160,3 +160,15 @@ class Quotient(commands.AutoShardedBot):
     @property
     def reminders(self) -> Reminders:  # since we use it a lot
         return self.get_cog("Reminders")
+
+    @staticmethod
+    async def getch(get_method, fetch_method, _id):  # why does c have all the fun?
+        if not _id:
+            return None
+
+        try:
+            _result = get_method(_id) or await fetch_method(_id)
+        except (discord.HTTPException, discord.Forbidden, discord.NotFound):
+            return None
+        else:
+            return _result
