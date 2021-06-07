@@ -187,6 +187,6 @@ class Votes(Cog):
             embed.description = f"This is to inform you that your subscription of Quotient Premium has been ended,\nYou can purchase awesome Quotient-Premium again [here]({self.bot.config.WEBSITE}/premium)"
             await user.send(embed=embed)
 
-        member = await self.bot.get_or_fetch_member(self.bot.config.SERVER_ID, user.id)
+        member = await self.bot.get_or_fetch_member(self.bot.server, user.id)
         if member is not None:
             await member.remove_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
