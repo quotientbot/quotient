@@ -39,9 +39,10 @@ async def available_to_reserve(scrim: Scrim):
     return list(i for i in scrim.available_to_reserve if i not in reserved)
 
 
-async def cannot_take_registration(message: discord.Message, type: str, obj: Union[Scrim, Tourney]):
+async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, Tourney]):
     logschan = obj.logschan
-    if logschan is not None and logschan.permissions_for(message.guild.me).embed_links:
+
+    with suppress(AttributeError, discord.Forbidden):
         embed = discord.Embed(
             color=discord.Color.red(), description=f"**Registration couldn't be accepted in {message.channel.mention}**"
         )
@@ -83,22 +84,16 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
         embed=discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
     )
 
-    ctx.bot.dispatch("scrim_log", "closed", scrim, permission_updated=channel_update)
+    ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
     if scrim.autoslotlist and len(await scrim.teams_registered):
         embed, channel = await scrim.create_slotlist()
-
-        if (
-            channel != None
-            and channel.permissions_for(ctx.me).send_messages
-            and channel.permissions_for(ctx.me).embed_links
-        ):
+        with suppress(AttributeError, discord.Forbidden):
             slotmsg = await channel.send(embed=embed)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
-    started_at = tourney.started_at
     closed_at = datetime.now(tz=constants.IST)
 
     registration_channel = tourney.registration_channel
@@ -110,7 +105,7 @@ async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
         embed=discord.Embed(color=ctx.bot.color, description="**Registration is now closed!**")
     )
 
-    ctx.bot.dispatch("tourney_log", "closed", tourney, permission_updated=channel_update)
+    ctx.bot.dispatch("tourney_log", constants.EsportsLog.closed, tourney, permission_updated=channel_update)
 
 
 async def purge_channels(channels):
@@ -259,6 +254,15 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
         return None
 
     if role == scrim.guild.default_role:
+        return "@everyone"
+
+    else:
+        return role.mention
+
+
+def tourney_work_role(tourney: Tourney):
+    role = tourney.open_role
+    if role == tourney.guild.default_role:
         return "@everyone"
 
     else:

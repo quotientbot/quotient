@@ -1,5 +1,13 @@
+from unicodedata import decomposition
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney, AssignedSlot, ArrayAppend, TagCheck
-from .utils import get_pretty_slotlist, purge_roles, purge_channels, delete_denied_message, scrim_work_role
+from .utils import (
+    get_pretty_slotlist,
+    purge_roles,
+    purge_channels,
+    delete_denied_message,
+    scrim_work_role,
+    tourney_work_role,
+)
 from constants import EsportsRole, IST, EsportsLog, EsportsType, RegDeny
 from datetime import datetime, timedelta
 from prettytable import PrettyTable
@@ -26,82 +34,87 @@ class SMError(Cog):
         return embed
 
     @Cog.listener()
-    async def on_tourney_registration_deny(self, message: discord.Message, type: str, tourney: Tourney):
-        logschan = tourney.logschan
-        with suppress(discord.NotFound):
-            await message.add_reaction("\N{CROSS MARK}")
-            e = discord.Embed(
-                color=discord.Color.red(),
-                description=f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** ",
-            )
+    async def on_tourney_registration_deny(self, message: discord.Message, _type: RegDeny, tourney: Tourney):
 
-            if type == "mentioned_bots":
+        logschan = tourney.logschan
+        if not logschan:
+            return await Tourney.filter(id=tourney.id).delete()
+
+        text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
+
+        with suppress(discord.NotFound, discord.NotFound, AttributeError):
+            await message.add_reaction("\N{CROSS MARK}")
+
+            if _type == RegDeny.botmention:
                 await message.reply(
                     embed=self.red_embed("Don't mention Bots. Mention your real teammates."),
                     delete_after=5,
                 )
-                e.description += f"Mentioned Bots."
+                text += f"Mentioned Bots."
 
-            elif type == "insufficient_mentions":
+            elif _type == RegDeny.nomention:
                 await message.reply(
                     embed=self.red_embed(
                         f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
                     ),
                     delete_after=5,
                 )
-                e.description += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
 
-            elif type == "banned":
+                text += f"Insufficient Mentions (`{len(message.mentions)}/{tourney.required_mentions}`)"
+
+            elif _type == RegDeny.banned:
                 await message.reply(
-                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
+                    embed=self.red_embed(
+                        f"{str(message.author)}, You are banned from the tournament. You cannot register."
+                    ),
                     delete_after=5,
                 )
-                e.description += f"They are banned from scrims."
+                text += f"They are banned from tournament."
 
-            elif type == "multiregister":
+            elif _type == RegDeny.multiregister:
                 await message.reply(
                     embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
                     delete_after=5,
                 )
-                e.description += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `tourney edit {tourney.id}`"
 
-            if logschan is not None:
-                if logschan.permissions_for(logschan.guild.me).embed_links:
-                    return await logschan.send(embed=e)
-                else:
-                    # The bot will not be able to send embeds to this channel because of lack of permission.
-                    text = f"I could not send the tourney logs to the logging channel because I don't have the **Embed Links** permission."
-                    return await logschan.send(text)
+                text += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `tourney edit {tourney.id}`"
+
+            embed = discord.Embed(color=discord.Color.red(), description=text)
+            with suppress(discord.Forbidden):
+                return await logschan.send(embed=embed)
 
     @Cog.listener()
-    async def on_tourney_log(self, type: str, tourney: Tourney, **kwargs):
+    async def on_tourney_log(self, _type: EsportsLog, tourney: Tourney, **kwargs):
         """
         Same as on_scrim_log but for tourneys
         """
         logschan = tourney.logschan
-        role = tourney.role
-        tourney_open_role = tourney.open_role
+        if not logschan:
+            return await Tourney.filter(id=tourney.id).delete()
+
         registration_channel = tourney.registration_channel
         modrole = tourney.modrole
 
-        imp = False
+        open_role = tourney_work_role(tourney)
+        important = False
 
-        if type == "closed":
+        embed = discord.Embed(color=0x00B1FF)
+        if _type == EsportsLog.closed:
             permission_updated = kwargs.get("permission_updated")
-            embed = discord.Embed(
-                color=discord.Color(0x00B1FF),
-                description=f"Registration closed for {tourney_open_role.mention} in {registration_channel.mention}(TourneyID: `{tourney.id}`)",
+
+            embed.description = (
+                f"Registration closed for {open_role} in {registration_channel.mention}(TourneyID: `{tourney.id}`)",
             )
             if not permission_updated:
-                imp = True
+                important = True
                 embed.color = discord.Color.red()
                 embed.description += f"\nI couldn't close {registration_channel.mention}."
 
-        elif type == "reg_success":
+        elif type == EsportsLog.success:
             message = kwargs.get("message")
-            role_added = kwargs.get("role_added")
 
             confirmation = tourney.confirm_channel
+
             if confirmation is not None:
                 slot = kwargs.get("assigned_slot")
                 num = kwargs.get("num")
@@ -118,24 +131,17 @@ class SMError(Cog):
                     allowed_mentions=discord.AllowedMentions(users=True),
                 )
 
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                description=f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
-            )
-            if role_added is False:
-                imp = True
-                embed.color = discord.Color.red()
-                embed.description += f"\nUnfortunately I couldn't give them {role.mention}."
+                embed.color = (discord.Color.green(),)
+                embed.description = (
+                    f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}",
+                )
 
-        if logschan != None and logschan.permissions_for(logschan.guild.me).send_messages:
+        with suppress(discord.Forbidden, AttributeError):
             await logschan.send(
-                content=modrole.mention if modrole != None and imp is True else None,
+                content=modrole.mention if modrole != None and important is True else None,
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
-        else:
-            text = f"I could not send the scrim logs to the logging channel because I don't have the **Embed Links** permission."
-            return await logschan.send(text)
 
     @Cog.listener()
     async def on_scrim_log(self, _type: EsportsLog, scrim: Scrim, **kwargs):
@@ -155,16 +161,16 @@ class SMError(Cog):
 
         embed = discord.Embed(color=0x00B1FF)
 
-        with suppress(discord.NotFound, discord.Forbidden):
+        with suppress(discord.NotFound, discord.Forbidden, AttributeError):
             if _type == EsportsLog.open:
                 embed.description = (
-                    f"Registration opened for {open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
+                    f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)",
                 )
 
             elif type == EsportsLog.closed:
                 permission_updated = kwargs.get("permission_updated")
                 embed.description = (
-                    f"Registration closed for {open_role.mention} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist.",
+                    f"Registration closed for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist.",
                 )
 
                 slotlist = await get_pretty_slotlist(scrim)
@@ -202,7 +208,7 @@ class SMError(Cog):
 
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
-        with suppress(discord.NotFound, discord.Forbidden):
+        with suppress(discord.NotFound, discord.Forbidden, AttributeError):
             await message.add_reaction("\N{CROSS MARK}")
 
             if _type == RegDeny.botmention:

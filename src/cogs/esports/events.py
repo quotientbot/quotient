@@ -2,7 +2,6 @@ from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove,
 from core import Quotient, Cog
 from .utils import (
     available_to_reserve,
-    postpone_scrim,
     check_scrim_requirements,
     delete_denied_message,
     scrim_end_process,
@@ -15,11 +14,11 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
 )
+from constants import Day, EsportsLog, EsportsRole, EsportsType, IST
 from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
 import discord, asyncio
-import constants
 import utils
 import re
 
@@ -39,8 +38,8 @@ class ScrimEvents(Cog):
         self.bot.loop.create_task(self.tourney_registration_worker())
 
     def cog_unload(self):
-        self.scrim_registration_worker.cancel()
-        self.tourney_registration_worker.cancel()
+        self.scrim_registration_worker.stop()
+        self.tourney_registration_worker.stop()
 
     async def scrim_registration_worker(self):
         while True:
@@ -72,7 +71,7 @@ class ScrimEvents(Cog):
             await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
             self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
 
-            self.bot.dispatch("scrim_log", "reg_success", scrim, message=ctx.message)
+            self.bot.dispatch("scrim_log", EsportsLog.success, scrim, message=ctx.message)
 
             if len(scrim.available_slots) == 1:
                 await scrim_end_process(ctx, scrim)
@@ -111,7 +110,7 @@ class ScrimEvents(Cog):
 
             self.bot.dispatch(
                 "tourney_log",
-                "reg_success",
+                EsportsLog.success,
                 tourney,
                 message=ctx.message,
                 assigned_slot=slot,
@@ -148,7 +147,7 @@ class ScrimEvents(Cog):
             return
 
         if not before_registrations(message, tourney.role):
-            return await cannot_take_registration(message, constants.EsportsType.tourney, tourney)
+            return await cannot_take_registration(message, tourney)
 
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
@@ -187,7 +186,7 @@ class ScrimEvents(Cog):
             return
 
         if not before_registrations(message, scrim_role):
-            return await cannot_take_registration(message, constants.EsportsType.tourney, scrim)
+            return await cannot_take_registration(message, scrim)
 
         message.content = normalize("NFKC", message.content.lower())
 
@@ -218,7 +217,7 @@ class ScrimEvents(Cog):
             scrim_id=scrim.id,
         )  # we don't want to this risk this
 
-        if scrim.toggle != True or not constants.Day(utils.day_today()) in scrim.open_days:
+        if scrim.toggle != True or not Day(utils.day_today()) in scrim.open_days:
             return
 
         guild = scrim.guild
@@ -277,18 +276,18 @@ class ScrimEvents(Cog):
 
         await Scrim.filter(pk=scrim.id).update(
             open_time=scrim.open_time + timedelta(hours=24),
-            opened_at=datetime.now(tz=constants.IST),
+            opened_at=datetime.now(tz=IST),
             closed_at=None,
             slotlist_message_id=None,
         )
 
         await registration_channel.send(
-            content=scrim_work_role(scrim, constants.EsportsRole.ping),
+            content=scrim_work_role(scrim, EsportsRole.ping),
             embed=embed,
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
-        self.bot.dispatch("scrim_log", constants.EsportsLog.open, scrim)
+        self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
 
     # ==========================================================================================================
     # ==========================================================================================================
