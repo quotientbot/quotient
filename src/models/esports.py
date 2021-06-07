@@ -7,7 +7,7 @@ import utils
 from PIL import Image, ImageFont, ImageDraw
 from typing import Optional, Union
 from tortoise import models, fields
-from constants import Day
+from constants import AutocleanType, Day
 from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
@@ -109,7 +109,11 @@ class Scrim(models.Model):
     open_time = fields.DatetimeField()
     opened_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
-    autoclean = fields.BooleanField(default=False)
+
+    autoclean = ArrayField(fields.CharEnumField(AutocleanType), default=lambda: list(AutocleanType))
+    autoclean_done = fields.BooleanField(default=False)
+    autoclean_time = fields.DatetimeField(null=True)
+
     autoslotlist = fields.BooleanField(default=True)
     ping_role_id = fields.BigIntField(null=True)
     multiregister = fields.BooleanField(default=False)

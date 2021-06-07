@@ -23,6 +23,11 @@ class EsportsType(Enum):
     scrim = "scrim"
 
 
+class AutocleanType(Enum):
+    channel = "channel"
+    role = "role"
+
+
 class EsportsLog(Enum):
     open = "open"
     closed = "closed"

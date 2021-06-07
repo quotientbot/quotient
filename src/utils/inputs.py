@@ -2,6 +2,8 @@ import asyncio
 import dateparser
 from datetime import datetime, timedelta
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
+
+from utils.default import keycap_digit
 from .exceptions import InputError
 from constants import IST
 import discord
@@ -153,3 +155,17 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
             await safe_delete(message)
 
         return message.content
+
+
+async def text_or_embed(ctx, check, timeout=120, delete_after=False):
+    reactions = (keycap_digit(1), keycap_digit(2))
+
+    def react_check():
+        pass
+
+    msg = await ctx.simple(
+        f"What do you want the content to be?\n\n{keycap_digit(1)} | Simple Text\n{keycap_digit(2)} | Embed"
+    )
+
+    for reaction in reactions:
+        await msg.add_reaction(reaction)

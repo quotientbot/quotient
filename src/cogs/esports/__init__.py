@@ -571,6 +571,11 @@ class ScrimManager(Cog, name="Esports"):
         embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
         await ctx.send(embed=embed)
 
+    @smanager.command(name="autoclean")
+    async def s_autoclean(self, ctx, scrim: ScrimConverter):
+        """Commands related to quotient's autoclean"""
+        await AutocleanMenu(scrim=scrim).start(ctx)
+
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************

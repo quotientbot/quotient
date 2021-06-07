@@ -657,6 +657,74 @@ class SlotEditor(menus.Menu):
         self.stop()
 
 
+class AutocleanMenu(menus.Menu):
+    def __init__(self, *, scrim: Scrim):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        self.scrim = scrim
+        self.days = scrim.open_days
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    def initial_embed(self):
+        scrim = self.scrim
+        autoclean_time = (scrim.autoclean_time).strftime("%I:%M %p") if scrim.autoclean_time else "Not Set!"
+
+        embed = discord.Embed(color=config.COLOR)
+        embed.title = "Edit Autoclean: {0}".format(scrim.id)
+        description = "\n".join(
+            f"{idx:02}. {(_type.value.title()).ljust(15)} {('❌', '✅')[_type in scrim.autoclean]}"
+            for idx, _type in enumerate(constants.AutocleanType, start=1)
+        )
+        embed.description = f"```{description}```"
+        embed.description += f"```03. Clean At: {autoclean_time}```"
+        return embed
+
+    async def send_initial_message(self, ctx, channel):
+        return await channel.send(embed=self.initial_embed())
+
+    async def refresh(self):
+        self.scrim = await Scrim.get(pk=self.scrim.id)
+        await self.message.edit(embed=self.initial_embed())
+
+    @menus.button(keycap_digit(1))
+    async def on_one(self, payload):
+        func = (ArrayAppend, ArrayRemove)[constants.AutocleanType.channel in self.scrim.autoclean]
+        await Scrim.filter(pk=self.scrim.id).update(autoclean=func("autoclean", constants.AutocleanType.channel))
+        await self.refresh()
+
+    @menus.button(keycap_digit(2))
+    async def on_two(self, payload):
+        func = (ArrayAppend, ArrayRemove)[constants.AutocleanType.role in self.scrim.autoclean]
+        await Scrim.filter(pk=self.scrim.id).update(autoclean=func("autoclean", constants.AutocleanType.role))
+        await self.refresh()
+
+    @menus.button(keycap_digit(3))
+    async def on_three(self, payload):
+        msg = await self.ctx.send(
+            "**At what time should I run cleaner?**"
+            "**Example: 14:00** - Registration will open at 2PM.\n\n"
+            "**Currently Quotient works according to Indian Standard Time (UTC+05:30)**"
+        )
+
+        clean_time = await inputs.time_input(self.ctx, self.check, delete_after=True)
+        await inputs.safe_delete(msg)
+
+        await self.bot.get_cog("Reminders").create_timer(
+            clean_time,
+            "autoclean",
+            scrim_id=self.scrim.id,
+        )
+        await Scrim.filter(pk=self.scrim.id).update(autoclean_time=clean_time)
+        await self.refresh()
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
+    async def on_stop(self, payload):
+        self.stop()
+
+
 class DaysMenu(menus.Menu):
     def __init__(self, *, scrim: Scrim):
         super().__init__(
@@ -854,7 +922,6 @@ class ConfigEditMenu(menus.Menu):
     async def change_open_time(self, payload):
         msg = await self.cembed(
             "**At what time should I open registrations?**"
-            "\n> Time must be in 24h and in this format **`hh:mm`**\n"
             "**Example: 14:00** - Registration will open at 2PM.\n\n"
             "**Currently Quotient works according to Indian Standard Time (UTC+05:30)**"
         )
