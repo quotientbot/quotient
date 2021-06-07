@@ -1,3 +1,4 @@
+from contextlib import suppress
 from models import Autorole, ArrayRemove
 from core import Cog, Quotient, Context
 import discord
@@ -52,24 +53,25 @@ class CmdEvents(Cog):
     async def on_autorole(self, member: discord.Member):
         guild = member.guild
 
-        record = await Autorole.get_or_none(guild_id=guild.id)
-        if not record:
-            return
+        with suppress(discord.HTTPException):
+            record = await Autorole.get_or_none(guild_id=guild.id)
+            if not record:
+                return
 
-        elif not member.bot and len(record.humans):
-            for role in record.humans:
-                try:
-                    await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
-                except discord.Forbidden:
-                    await Autorole.filter(guild_id=guild.id).update(humans=ArrayRemove("humans", role))
-                    continue
+            elif not member.bot and len(record.humans):
+                for role in record.humans:
+                    try:
+                        await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
+                    except (discord.NotFound, discord.Forbidden):
+                        await Autorole.filter(guild_id=guild.id).update(humans=ArrayRemove("humans", role))
+                        continue
 
-        elif member.bot and len(record.bots):
-            for role in record.bots:
-                try:
-                    await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
-                except discord.Forbidden:
-                    await Autorole.filter(guild_id=guild.id).update(bots=ArrayRemove("bots", role))
-                    continue
-        else:
-            return
+            elif member.bot and len(record.bots):
+                for role in record.bots:
+                    try:
+                        await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
+                    except (discord.Forbidden, discord.NotFound):
+                        await Autorole.filter(guild_id=guild.id).update(bots=ArrayRemove("bots", role))
+                        continue
+            else:
+                return
