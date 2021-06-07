@@ -182,7 +182,7 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
             _bool = False
             bot.dispatch("scrim_registration_deny", message, constants.RegDeny.noteamname, scrim)
 
-    elif scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
+    if scrim.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.botmention, scrim)
 

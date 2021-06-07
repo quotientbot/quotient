@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from prettytable import PrettyTable
 from discord.ext import commands
 from contextlib import suppress
+from utils import plural
 from core import Cog
 import discord, io
 
@@ -55,7 +56,7 @@ class SMError(Cog):
             elif _type == RegDeny.nomention:
                 await message.reply(
                     embed=self.red_embed(
-                        f"{str(message.author)}, **`{tourney.required_mentions} mentions`** are required for successful registration."
+                        f"{str(message.author)}, **`{plural(tourney.required_mentions):mention is |mentions are}`** required for successful registration."
                     ),
                     delete_after=5,
                 )
@@ -195,7 +196,6 @@ class SMError(Cog):
 
     @Cog.listener()
     async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim):
-
         logschan = scrim.logschan
         if logschan is None:
             return await Scrim.filter(id=scrim.id).delete()
@@ -215,7 +215,7 @@ class SMError(Cog):
             elif _type == RegDeny.nomention:
                 await message.reply(
                     embed=self.red_embed(
-                        f"{str(message.author)}, **`{scrim.required_mentions} mentions`** are required for successful registration."
+                        f"{str(message.author)}, **`{plural(scrim.required_mentions):mention is |mentions are}`** required for successful registration."
                     ),
                     delete_after=5,
                 )
@@ -245,7 +245,7 @@ class SMError(Cog):
             if scrim.autodelete_rejects:
                 self.bot.loop.create_task(delete_denied_message(message))
 
-            embed = discord.Embed(discord.Color.red(), description=text)
+            embed = discord.Embed(color=discord.Color.red(), description=text)
             return await logschan.send(embed=embed)
 
     # ==========================================================================================================================
