@@ -176,7 +176,7 @@ class Votes(Cog):
 
     @Cog.listener()
     async def on_user_premium_expire(self, user: models.User):
-        await models.User.filter(user_id=user.user_id).update(is_premium=False, made_premium=False)
+        await models.User.filter(user_id=user.user_id).update(is_premium=False, made_premium=[])
         user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.user_id)
 
         with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
