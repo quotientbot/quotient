@@ -128,11 +128,7 @@ class Quotient(commands.AutoShardedBot):
 
         return user.id in config.DEVS
 
-    async def get_or_fetch_member(
-        self,
-        guild: discord.Guild,
-        member_id: int,
-    ) -> Optional[discord.Member]:
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int):
         """Looks up a member in cache or fetches if not found."""
         member = guild.get_member(member_id)
         if member is not None:

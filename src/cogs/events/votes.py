@@ -1,7 +1,6 @@
 from discord import Webhook, AsyncWebhookAdapter
 from datetime import datetime, timedelta
 from core import Cog, Quotient
-from models.models import Autoevent
 from contextlib import suppress
 import constants
 import models, discord
@@ -148,24 +147,16 @@ class Votes(Cog):
                 pass
 
     @Cog.listener()
-    async def on_server_premium_timer_complete(self, timer: models.Timer):
-        guild_id = timer.kwargs["guild_id"]
-        record = await models.Guild.get_or_none(guild_id)
-        if not record:
-            return
+    async def on_guild_premium_expire(self, guild: models.Guild):
+        await models.Guild.filter(guild_id=guild.guild_id).update(is_premium=False)
+        guild = self.bot.get_guild(guild.guild_id)
 
-        if timer.expires != record.premium_end_time:
-            return
-
-        await models.Guild.filter(guild_id=guild_id).update(is_premium=False)
-        guild = self.bot.get_guild(guild_id)
-        if guild != None:
+        with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
             embed = discord.Embed(color=discord.Color.red(), title="Server Premium Ended!")
             embed.description = f"This is to inform you that Quotient Premium subscription of your server has been ended.\nYou can purchase awesome Quotient-Premium again [here]({self.bot.config.WEBSITE}/premium)"
-            try:
-                await guild.owner.send(embed=embed)
-            except:
-                pass
+            await guild.owner.send(embed=embed)
+
+        guild_id = guild.id
 
         # we are gonna remove extra scrims , tourneys , color , etc
         scrims = (await models.Scrim.filter(guild_id=guild_id).all())[3:]
@@ -181,25 +172,18 @@ class Votes(Cog):
         await models.Guild.filter(guild_id=guild_id).update(
             embed_color=self.bot.color, embed_footer=self.bot.config.FOOTER
         )
-        await Autoevent.filter(guild_id=guild_id).update(interval=30)
+        await models.Autoevent.filter(guild_id=guild_id).update(interval=30)
 
     @Cog.listener()
-    async def on_user_premium_timer_complete(self, timer: models.Timer):
-        user_id = timer.kwargs["user_id"]
-        record = await models.User.get(user_id)
-        if timer.expires != record.premium_expire_time:
-            return
+    async def on_user_premium_expire(self, user: models.User):
+        await models.User.filter(user_id=user.user_id).update(is_premium=False, made_premium=False)
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.user_id)
 
-        await models.User.filter(user_id=user_id).update(is_premium=False, made_premium=[], premiums=0)
-        user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
-        if user is not None:
+        with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
             embed = discord.Embed(color=discord.Color.red(), title="Quotient Premium Ended!")
-            embed.description = f"This is to inform you that your subscription of Quotient Premium has been ended,\nYou can purchase awesome Quotient-Premium again [here]({self.bot.congig.WEBSITE}/premium)"
-            try:
-                await user.send(embed=embed)
-            except:
-                pass
+            embed.description = f"This is to inform you that your subscription of Quotient Premium has been ended,\nYou can purchase awesome Quotient-Premium again [here]({self.bot.config.WEBSITE}/premium)"
+            await user.send(embed=embed)
 
-        member = self.bot.server.get_member(user_id)
-        if member != None:
+        member = await self.bot.get_or_fetch_member(self.bot.config.SERVER_ID, user.id)
+        if member is not None:
             await member.remove_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
