@@ -395,6 +395,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="stats")
     async def tag_stats(self, ctx: Context, *, member: QuoMember = None):
+        """Tag statistics of the server or a member."""
         if member:
             await member_tag_stats(ctx, member)
         else:
