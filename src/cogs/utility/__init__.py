@@ -265,6 +265,8 @@ class Utility(Cog, name="utility"):
     @tag.command(name="create")
     async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
+        if content == "":
+            return await ctx.send("Tag content cannot be blank")
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
