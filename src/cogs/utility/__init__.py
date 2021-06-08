@@ -11,7 +11,7 @@ from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
 from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
-from .functions import TagName, increment_usage, TagConverter, is_valid_name
+from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from typing import Optional
 from contextlib import suppress
 import discord
@@ -209,12 +209,18 @@ class Utility(Cog, name="utility"):
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
-    async def all_tags(self, ctx: Context):
-        """Get all tags owned by the server."""
-        tags = await Tag.filter(guild_id=ctx.guild.id)
+    async def all_tags(self, ctx: Context, member: QuoMember = None):
+        """Get all tags owned by the server or a member"""
+        if not member:
+            tags = await Tag.filter(guild_id=ctx.guild.id)
 
-        if not len(tags):
-            return await ctx.error("This server doesn't have any tags.")
+            if not len(tags):
+                return await ctx.error("This server doesn't have any tags.")
+
+        else:
+            tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=member.id)
+            if not len(tags):
+                return await ctx.error(f"{member} doesn't own any tag.")
 
         tag_list = []
         for idx, tag in enumerate(tags, start=1):
@@ -302,6 +308,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command("mine")
     async def get_all_tags(self, ctx: Context):
+        """Get a list of all tags owned by you."""
         tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=ctx.author.id)
 
         tag_list = []
@@ -345,6 +352,8 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="make")
     async def tag_make(self, ctx: Context):
+        """Make tags interactively."""
+
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
                 raise commands.BadArgument("Alright, reverting all process.")
@@ -378,6 +387,13 @@ class Utility(Cog, name="utility"):
             ctx, title="Matching Tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
         )
         await paginator.paginate()
+
+    @tag.command(name="stats")
+    async def tag_stats(self, ctx: Context, *, member: QuoMember = None):
+        if member:
+            await member_tag_stats(ctx, member)
+        else:
+            await guild_tag_stats(ctx)
 
     @commands.group(invoke_without_command=True)
     async def category(self, ctx: Context):

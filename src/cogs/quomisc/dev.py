@@ -3,7 +3,7 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from time import perf_counter as pf
 from utils import get_ipm
-import models
+
 
 __all__ = ("Dev",)
 
