@@ -323,6 +323,20 @@ class CommandStats(models.Model):
     uses = fields.IntField(default=0)
 
 
+class Commands(models.Model):
+    class Meta:
+        table = "commands"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    user_id = fields.BigIntField()
+    cmd = fields.CharField(max_length=100)
+    used_at = fields.DatetimeField(autonow=True)
+    prefix = fields.CharField(max_length=20)
+    failed = fields.BooleanField(default=False)
+
+
 class TimedMessage(models.Model):
     class Meta:
         table = "timed_messages"
