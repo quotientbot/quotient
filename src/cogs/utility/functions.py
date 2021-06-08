@@ -39,7 +39,12 @@ class TagConverter(commands.Converter, Tag):
             tag = await Tag.get_or_none(guild_id=ctx.guild.id, name=argument)
 
         if not tag:
-            raise commands.BadArgument(f"{argument} is not a valid Tag Name or ID.")
+            search = await Tag.filter(guild_id=ctx.guild.id, name__icontains=argument).limit(3)
+            text = f"{argument} is not a valid Tag Name or ID."
+            if len(search):
+                tags = "\n".join(search)
+                text += f"\nMaybe you were looking for:\n{tags}"
+            raise commands.BadArgument(text)
 
         return tag
 
