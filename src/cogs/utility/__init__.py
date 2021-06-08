@@ -204,6 +204,8 @@ class Utility(Cog, name="utility"):
             dict = leval(name.content)
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
+        if not name.content:
+            return await ctx.error(f"Tag doesn't have any content")
         else:
             await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
@@ -268,6 +270,9 @@ class Utility(Cog, name="utility"):
 
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
+
+        if len(name) > 99:
+            return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
 
         if await is_valid_name(ctx, name):
             tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
