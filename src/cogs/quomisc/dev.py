@@ -2,6 +2,7 @@ from prettytable import PrettyTable
 from core import Cog, Quotient, Context
 from discord.ext import commands
 from time import perf_counter as pf
+from models.models import Commands
 from utils import get_ipm
 
 
@@ -39,17 +40,16 @@ class Dev(Cog):
 
     @commands.command()
     async def cmds(self, ctx):
-        query = "SELECT SUM(uses) FROM cmd_stats;"
-        total_uses = await ctx.db.fetchval(query)
+        total_uses = await Commands.all().count()
 
         records = await ctx.db.fetch(
-            "SELECT cmd, SUM(uses) FROM cmd_stats GROUP BY cmd ORDER BY SUM (uses) DESC LIMIT 15 "
+            "SELECT cmd, COUNT(*) AS uses FROM commands GROUP BY cmd ORDER BY uses DESC LIMIT 15 "
         )
 
         table = PrettyTable()
         table.field_names = ["Command", "Invoke Count"]
         for record in records:
-            table.add_row([record["cmd"], record["sum"]])
+            table.add_row([record["cmd"], record["uses"]])
 
         table = table.get_string()
         embed = self.bot.embed(ctx, title=f"Command Usage ({total_uses})")

@@ -1,7 +1,7 @@
 from discord.ext import commands
 from core import Context
 from models import Tag
-from models.models import CommandStats
+from models.models import Commands
 from utils.converters import QuoMember
 
 
@@ -80,21 +80,27 @@ async def guild_tag_stats(ctx: Context):
 
     e.add_field(name="Top Tags", value=value, inline=False)
 
-    records = (
-        await CommandStats.filter(guild_id=ctx.guild.id, cmd="tag")
-        .all()
-        .order_by("-uses")
-        .only("id", "user_id", "uses")
-        .limit(3)
+    query = """SELECT
+                    COUNT(*) AS tag_uses,
+                    user_id
+                   FROM commands
+                   WHERE guild_id=$1 AND cmd='tag'
+                   GROUP BY user_id
+                   ORDER BY COUNT(*) DESC
+                   LIMIT 3;
+                """
+
+    records = await ctx.db.fetch(query, ctx.guild.id)
+
+    if len(records) < 3:
+        records.extend((None, None) for i in range(0, 3 - len(records)))
+
+    value = "\n".join(
+        f"{emoji}: <@{author_id}> ({uses} times)" if author_id else f"{emoji}: No one!"
+        for (emoji, (uses, author_id)) in emojize(records)
     )
 
-    if not len(records):
-        text = "No statistics to show here"
-
-    else:
-        text = "\n".join(f"{emoji}: <@{cmd.user_id}> ({cmd.uses} tags)" for (emoji, (cmd)) in emojize(records))
-
-    e.add_field(name="Top Tag Users", value=text, inline=False)
+    e.add_field(name="Top Tag Users", value=value, inline=False)
 
     query = """SELECT
                        COUNT(*) AS "Tags",
@@ -122,32 +128,47 @@ async def member_tag_stats(ctx: Context, member: QuoMember):
 
     e.set_footer(text="These statistics are server-specific.")
 
-    count = await CommandStats.get_or_none(guild_id=ctx.guild.id, user_id=member.id, cmd="tag")
+    query = """SELECT COUNT(*)
+                   FROM commands
+                   WHERE guild_id=$1 AND cmd='tag' AND user_id=$2
+                """
 
-    records = (
-        await Tag.filter(guild_id=ctx.guild.id, owner_id=member.id)
-        .all()
-        .order_by("-usage")
-        .only("id", "name", "usage")
-        .limit(3)
-    )
+    count = await ctx.db.fetchrow(query, ctx.guild.id, member.id)
 
-    if len(records):
-        owned = len(records)
-        uses = sum(tag.usage for tag in records)
+    query = """SELECT
+                    name,
+                    usage,
+                    COUNT(*) OVER() AS "Count",
+                    SUM(usage) OVER () AS "Uses"
+                FROM tags
+                WHERE guild_id=$1 AND owner_id=$2
+                ORDER BY usage DESC
+                LIMIT 3;
+                """
 
+    records = await ctx.db.fetch(query, ctx.guild.id, member.id)
+
+    if len(records) > 1:
+        owned = records[0]["Count"]
+        uses = records[0]["Uses"]
     else:
         owned = "None"
         uses = 0
 
     e.add_field(name="Owned Tags", value=owned)
     e.add_field(name="Owned Tag Uses", value=uses)
-    e.add_field(name="Tag Command Uses", value=count.uses or 0)
+    e.add_field(name="Tag Command Uses", value=count[0])
+
+    if len(records) < 3:
+        records.extend((None, None, None, None) for i in range(0, 3 - len(records)))
 
     emoji = 129351
 
-    for (offset, (tag)) in enumerate(records):
-        value = f"{tag.name} ({tag.usage} uses)"
+    for (offset, (name, uses, _, _)) in enumerate(records):
+        if name:
+            value = f"{name} ({uses} uses)"
+        else:
+            value = "Nothing!"
 
         e.add_field(name=f"{chr(emoji + offset)} Owned Tag", value=value)
 

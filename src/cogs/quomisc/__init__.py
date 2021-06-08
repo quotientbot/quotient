@@ -1,3 +1,4 @@
+from models.models import Commands
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
 from discord.ext import commands
@@ -132,24 +133,11 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def stats(self, ctx):
         """Quotient's statistics"""
-        query = "SELECT SUM(uses) FROM cmd_stats;"
-        total_uses = await ctx.db.fetchval(query)
-        user_invokes = (
-            await ctx.db.fetchval(
-                "SELECT SUM(uses) FROM cmd_stats WHERE user_id=$1 AND guild_id = $2",
-                ctx.author.id,
-                ctx.guild.id,
-            )
-            or 0
-        )
+        total_uses = await Commands.all().count()
 
-        server_invokes = (
-            await ctx.db.fetchval(
-                "SELECT SUM(uses) FROM cmd_stats WHERE guild_id=$1",
-                ctx.guild.id,
-            )
-            or 0
-        )
+        user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
+
+        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
 
         memory = psutil.virtual_memory().total >> 20
         mem_usage = psutil.virtual_memory().used >> 20

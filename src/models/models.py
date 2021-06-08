@@ -18,7 +18,7 @@ __all__ = (
     "Redeem",
     "Lockdown",
     "Autoevent",
-    "CommandStats",
+    "Commands",
 )
 
 
@@ -312,27 +312,16 @@ class Autoevent(models.Model):
 #     ignored = BigIntArrayField(default=list)
 
 
-class CommandStats(models.Model):
-    class Meta:
-        table = "cmd_stats"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    user_id = fields.BigIntField()
-    cmd = fields.TextField()
-    uses = fields.IntField(default=0)
-
-
 class Commands(models.Model):
     class Meta:
         table = "commands"
 
     id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
+    guild_id = fields.BigIntField(index=True)
     channel_id = fields.BigIntField()
-    user_id = fields.BigIntField()
-    cmd = fields.CharField(max_length=100)
-    used_at = fields.DatetimeField(autonow=True)
+    user_id = fields.BigIntField(index=True)
+    cmd = fields.CharField(max_length=100, index=True)
+    used_at = fields.DatetimeField(autonow=True, null=True)
     prefix = fields.CharField(max_length=20)
     failed = fields.BooleanField(default=False)
 
@@ -341,13 +330,13 @@ class TimedMessage(models.Model):
     class Meta:
         table = "timed_messages"
 
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
+    id = fields.BigIntField(pk=True, index=True)
+    guild_id = fields.BigIntField(index=True)
     channel_id = fields.BigIntField()
     msg = fields.TextField(null=True)
     embed = fields.JSONField(null=True)
     interval = fields.IntField(default=60)
-    send_time = fields.DatetimeField()
+    send_time = fields.DatetimeField(index=True)
     days = ArrayField(fields.CharEnumField(constants.Day), default=lambda: list(constants.Day))
     stats = fields.IntField(default=0)
     author_id = fields.BigIntField()

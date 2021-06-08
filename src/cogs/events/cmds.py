@@ -3,6 +3,8 @@ from models import Autorole, ArrayRemove
 from core import Cog, Quotient, Context
 import discord
 
+from models.models import Commands
+
 
 class CmdEvents(Cog):
     def __init__(self, bot: Quotient):
@@ -21,33 +23,20 @@ class CmdEvents(Cog):
         return True
 
     @Cog.listener()
-    async def on_command(self, ctx: Context):
-        if ctx.command.parent:
-            cmd = f"{ctx.command.parent} {ctx.command.name}"
-        else:
-            cmd = ctx.command.name
+    async def on_command_completion(self, ctx: Context):
+        if not ctx.command or not ctx.guild:
+            return
 
-        record = await ctx.db.fetchval(
-            "SELECT uses FROM cmd_stats WHERE guild_id = $1 AND user_id = $2 AND cmd = $3 ",
-            ctx.guild.id,
-            ctx.author.id,
-            cmd,
+        cmd = ctx.command.qualified_name
+
+        await Commands.create(
+            guild_id=ctx.guild.id,
+            channel_id=ctx.channel.id,
+            user_id=ctx.author.id,
+            cmd=cmd,
+            prefix=ctx.prefix,
+            failed=ctx.command_failed,
         )
-        if record:
-            await ctx.db.execute(
-                "UPDATE cmd_stats SET uses = uses + 1 WHERE guild_id = $1 AND user_id = $2 AND cmd = $3",
-                ctx.guild.id,
-                ctx.author.id,
-                cmd,
-            )
-        else:
-            await ctx.db.execute(
-                "INSERT INTO cmd_stats (guild_id , user_id , cmd , uses) VALUES ($1, $2, $3, $4) ",
-                ctx.guild.id,
-                ctx.author.id,
-                cmd,
-                1,
-            )
 
     @Cog.listener(name="on_member_join")
     async def on_autorole(self, member: discord.Member):
