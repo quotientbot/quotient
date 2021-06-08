@@ -1,4 +1,6 @@
+from contextlib import suppress
 from discord import Webhook, AsyncWebhookAdapter
+from cogs.fun.helper import deliver_webhook
 from utils import IST
 from constants import EventType
 from core import Cog, Quotient
@@ -8,7 +10,7 @@ import itertools
 import discord
 import json
 from datetime import datetime
-from contextlib import suppress
+
 
 __all__ = ("Funevents",)
 
@@ -91,16 +93,10 @@ class Funevents(Cog):
         else:
             return print("Unhandled Type...", _type)
 
-        for record in records:
-            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden, discord.errors.NotFound):
+        if len(records):
+            for record in records:
                 webhook = Webhook.from_url(record.webhook, adapter=AsyncWebhookAdapter(self.bot.session))
-                self.bot.loop.create_task(
-                    webhook.send(
-                        embed=embed,
-                        username=f"Quotient | Auto{_type.value}",
-                        avatar_url=self.bot.user.avatar_url,
-                    )
-                )
+                self.bot.loop.create_task(deliver_webhook(webhook, embed, _type, self.bot.user.avatar_url))
 
     @tasks.loop(seconds=60)
     async def autoevent_dispatcher(self):
