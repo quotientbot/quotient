@@ -1,4 +1,4 @@
-from unicodedata import category
+from discord.utils import escape_markdown
 from core import Cog, Context
 
 import typing
@@ -11,7 +11,7 @@ from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
 from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
-from .functions import TagName, increment_usage, TagConverter, is_valid_name
+from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from typing import Optional
 from contextlib import suppress
 import discord
@@ -204,24 +204,32 @@ class Utility(Cog, name="utility"):
             dict = leval(name.content)
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
+        if not name.content:
+            return await ctx.error(f"Tag doesn't have any content")
         else:
             await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
-    async def all_tags(self, ctx: Context):
-        """Get all tags owned by the server."""
-        tags = await Tag.filter(guild_id=ctx.guild.id)
+    async def all_tags(self, ctx: Context, member: QuoMember = None):
+        """Get all tags owned by the server or a member"""
+        if not member:
+            tags = await Tag.filter(guild_id=ctx.guild.id)
 
-        if not len(tags):
-            return await ctx.error("This server doesn't have any tags.")
+            if not len(tags):
+                return await ctx.error("This server doesn't have any tags.")
+
+        else:
+            tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=member.id)
+            if not len(tags):
+                return await ctx.error(f"{member} doesn't own any tag.")
 
         tag_list = []
         for idx, tag in enumerate(tags, start=1):
-            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
+            tag_list.append(f"`{idx:02}` {escape_markdown(tag.name)} (ID: {tag.id})\n")
 
         paginator = Pages(
-            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
+            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=12, show_entry_count=True
         )
         await paginator.paginate()
 
@@ -267,6 +275,12 @@ class Utility(Cog, name="utility"):
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
 
+        if len(name) > 99:
+            return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
+        
+        if content == "" and not ctx.message.attachments:
+            return await ctx.error("Cannot make an empty tag.")
+
         if await is_valid_name(ctx, name):
             tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
 
@@ -303,20 +317,21 @@ class Utility(Cog, name="utility"):
 
         await Tag.filter(id=tag.id).update(is_nsfw=not (tag.is_nsfw))
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
-        
+
     @tag.command("mine")
     async def get_all_tags(self, ctx: Context):
+        """Get a list of all tags owned by you."""
         tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=ctx.author.id)
-        
+
         tag_list = []
         for idx, tag in enumerate(tags, start=1):
             tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
 
         paginator = Pages(
-            ctx, title="Tags you own: {}".format(len(tag_list)), entries=tag_list, per_page=5, show_entry_count=True
+            ctx, title="Tags you own: {}".format(len(tag_list)), entries=tag_list, per_page=12, show_entry_count=True
         )
         await paginator.paginate()
-        
+
     @tag.command(name="purge")
     async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
@@ -329,7 +344,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx: Context, name: TagName, *, content = ""):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content=""):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
@@ -342,7 +357,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"Tag content cannot exceed 1990 characters.")
         
         if content == "" and not ctx.message.attachments:
-            return await ctx.error("Cannot edit the tag to no content.")
+            return await ctx.error("Cannot edit tag.")
         
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
@@ -352,6 +367,8 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="make")
     async def tag_make(self, ctx: Context):
+        """Make tags interactively."""
+
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
                 raise commands.BadArgument("Alright, reverting all process.")
@@ -385,6 +402,14 @@ class Utility(Cog, name="utility"):
             ctx, title="Matching Tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
         )
         await paginator.paginate()
+
+    @tag.command(name="stats")
+    async def tag_stats(self, ctx: Context, *, member: QuoMember = None):
+        """Tag statistics of the server or a member."""
+        if member:
+            await member_tag_stats(ctx, member)
+        else:
+            await guild_tag_stats(ctx)
 
     @commands.group(invoke_without_command=True)
     async def category(self, ctx: Context):

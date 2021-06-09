@@ -545,6 +545,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)
+    @checks.can_use_sm()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_reserve(self, ctx, scrim: ScrimConverter):
         """
@@ -554,6 +555,7 @@ class ScrimManager(Cog, name="Esports"):
         await menu.start(ctx)
 
     @s_reserve.command(name="list", aliases=("all",))
+    @checks.can_use_sm()
     async def s_reverse_list(self, ctx, scrim: ScrimConverter):
         """
         Get a list of all reserved teams and their leaders.
@@ -572,6 +574,8 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed)
 
     @smanager.command(name="autoclean")
+    @checks.can_use_sm()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_autoclean(self, ctx, scrim: ScrimConverter):
         """Commands related to quotient's autoclean"""
         await AutocleanMenu(scrim=scrim).start(ctx)
@@ -1023,7 +1027,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
-    @commands.bot_has_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Set a channel as eztag channel."""

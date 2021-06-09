@@ -38,7 +38,7 @@ class SMError(Cog):
 
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
-        with suppress(discord.NotFound, discord.NotFound, AttributeError):
+        with suppress(discord.NotFound, discord.NotFound, AttributeError, discord.HTTPException):
             await message.add_reaction("\N{CROSS MARK}")
 
             if _type == RegDeny.botmention:
@@ -154,7 +154,7 @@ class SMError(Cog):
         important = False
 
         embed = discord.Embed(color=0x00B1FF)
-        with suppress(discord.NotFound, discord.Forbidden, AttributeError):
+        with suppress(discord.NotFound, discord.Forbidden, AttributeError, discord.HTTPException):
 
             if _type == EsportsLog.open:
                 embed.description = (

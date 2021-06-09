@@ -9,7 +9,7 @@ from constants import IST
 import discord
 
 
-async def safe_delete(message):
+async def safe_delete(message) -> bool:
     try:
         await message.delete()
     except (discord.Forbidden, discord.NotFound):
@@ -160,8 +160,8 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
 async def text_or_embed(ctx, check, timeout=120, delete_after=False):
     reactions = (keycap_digit(1), keycap_digit(2))
 
-    def react_check():
-        pass
+    def react_check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in reactions
 
     msg = await ctx.simple(
         f"What do you want the content to be?\n\n{keycap_digit(1)} | Simple Text\n{keycap_digit(2)} | Embed"
@@ -169,3 +169,20 @@ async def text_or_embed(ctx, check, timeout=120, delete_after=False):
 
     for reaction in reactions:
         await msg.add_reaction(reaction)
+
+    reaction, user = await ctx.bot.wait_for("reaction_add", timeout=15, check=react_check)
+
+    if delete_after:
+        await safe_delete(msg)
+
+    if str(reaction.emoji) == keycap_digit(1):
+        msg = await ctx.simple("Kindly enter the text now.")
+        text = await string_input(ctx, check, delete_after=True)
+
+        if delete_after:
+            await safe_delete(msg)
+
+        return text
+
+    elif str(reaction.emoji) == keycap_digit(2):
+        msg = await ctx.simple(f"embed ki .......")

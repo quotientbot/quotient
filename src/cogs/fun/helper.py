@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from models import Autoevent
 from utils import IST
 from constants import EventType
@@ -46,3 +48,12 @@ async def insert_or_update_config(ctx: Context, _type: EventType, channel: disco
             )
 
         return record
+
+
+async def deliver_webhook(webhook, embed, _type, avatar):
+    with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+        await webhook.send(
+            embed=embed,
+            username=f"Quotient | Auto{_type.value}",
+            avatar_url=avatar,
+        )
