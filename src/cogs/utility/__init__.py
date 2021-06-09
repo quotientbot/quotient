@@ -257,6 +257,10 @@ class Utility(Cog, name="utility"):
     @tag.command(name="create")
     async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
+        
+        if content == "" and not ctx.message.attachments:
+            return await ctx.error("Cannot make an empty tag.")
+            
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
@@ -336,6 +340,9 @@ class Utility(Cog, name="utility"):
 
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot exceed 1990 characters.")
+        
+        if content == "" and not ctx.message.attachments:
+            return await ctx.error("Cannot edit the tag to no content.")
         
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
