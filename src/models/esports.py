@@ -12,7 +12,16 @@ from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
 
-__all__ = ("Tourney", "TMSlot", "Scrim", "AssignedSlot", "ReservedSlot", "BannedTeam", "TagCheck", "EasyTag")
+__all__ = (
+    "Tourney",
+    "TMSlot",
+    "Scrim",
+    "AssignedSlot",
+    "ReservedSlot",
+    "BannedTeam",
+    "TagCheck",
+    "EasyTag",
+)
 
 
 class Tourney(models.Model):

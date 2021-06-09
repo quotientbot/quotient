@@ -25,6 +25,7 @@ import discord, asyncio
 import utils
 import re
 
+from discord.ext import tasks
 from typing import NamedTuple
 from datetime import datetime, timedelta
 
@@ -37,15 +38,16 @@ class ScrimEvents(Cog):
         self.bot = bot
         self.scrim_queue = asyncio.Queue()
         self.tourney_queue = asyncio.Queue()
-        self.bot.loop.create_task(self.scrim_registration_worker())
-        self.bot.loop.create_task(self.tourney_registration_worker())
+        self.scrim_registration_worker.start()
+        self.tourney_registration_worker.start()
 
     def cog_unload(self):
         self.scrim_registration_worker.stop()
         self.tourney_registration_worker.stop()
 
+    @tasks.loop(seconds=2, reconnect=True)
     async def scrim_registration_worker(self):
-        while True:
+        while not self.scrim_queue.empty():
             queue_message: QueueMessage = await self.scrim_queue.get()
             scrim, message = queue_message.scrim, queue_message.message
             ctx = await self.bot.get_context(message)
@@ -82,8 +84,9 @@ class ScrimEvents(Cog):
     # ==========================================================================================================
     # ==========================================================================================================
 
+    @tasks.loop(seconds=2, reconnect=True)
     async def tourney_registration_worker(self):
-        while True:
+        while not self.scrim_queue.empty():
             queue_message: TourneyQueueMessage = await self.tourney_queue.get()
             tourney, message = queue_message.tourney, queue_message.message
 
