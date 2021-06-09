@@ -277,9 +277,6 @@ class Utility(Cog, name="utility"):
 
         if len(name) > 99:
             return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
-        
-        if content == "" and not ctx.message.attachments:
-            return await ctx.error("Cannot make an empty tag.")
 
         if await is_valid_name(ctx, name):
             tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
