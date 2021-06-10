@@ -42,3 +42,18 @@ class EasyMemberConverter(Converter):
             return getattr(member, "mention")
         except commands.MemberNotFound:
             return "Invalid Member!"
+
+
+class PointsConverter(Converter, Points):
+    async def convert(self, ctx, argument: str):
+        try:
+            argument = int(argument)
+        except:
+            pass
+        else:
+            try:
+                return await Points.get(pk=argument, guild_id=ctx.guild.id)
+            except tortoise.exceptions.DoesNotExist:
+                pass
+
+        raise BadArgument(f"This is not a valid Points ID.\n\nGet a valid ID with `{ctx.prefix}pt config`")

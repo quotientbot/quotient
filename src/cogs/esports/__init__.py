@@ -24,8 +24,8 @@ from utils import (
     QuoTextChannel,
 )
 
-from .converters import ScrimConverter, TourneyConverter
-from constants import IST
+from .converters import PointsConverter, ScrimConverter, TourneyConverter
+from constants import EsportsType, IST
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime
@@ -1218,6 +1218,91 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(
             f"Autodelete for **{channel}** turned {'ON' if not record.delete_after else 'OFF'}!\nThis automatically deletes the wrong format message after some time."
         )
+
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+    # ************************************************************************************************
+
+    @commands.group(aliases=("pt",), invoke_without_command=True)
+    async def ptable(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @ptable.command(name="setup")
+    async def ptable_setup(self, ctx: Context, scrim_id: ScrimConverter):
+        points = await Points.filter(local_id=scrim_id.id).first()
+        if points:
+            return await ctx.error(
+                f"Points Setup for this scrim is already done.\n\nUse `{ctx.prefix}pt create {points.id}` to create a table."
+            )
+
+        points = await Points.create(
+            local_type=EsportsType.scrim, local_id=scrim_id.id, guild_id=ctx.guild.id, title=scrim_id.name
+        )
+        await ctx.success(f"Points table setup successful.\nYour points table id is `{points.id}`")
+
+    @ptable.command(name="config")
+    async def points_config(self, ctx: Context):
+        records = await Points.filter(guild_id=ctx.guild.id).all()
+        if not len(records):
+            return await ctx.error(f"You haven't done Points setup for any scrim yet.")
+
+        to_pagi = []
+        for record in records:
+            text = (
+                f"> Points ID: {record.id}\n> Associated with: {record.local_type.value.title()} ({record.local_id})"
+                f"\n> Per kill point: {record.kill_points}\n> Result format: {record.default_format}"
+                f"\n> Title: {record.title}"
+            )
+            to_pagi.append(text)
+
+        paginator = Pages(
+            ctx,
+            title="Total: {}".format(len(to_pagi)),
+            entries=to_pagi,
+            per_page=1,
+            show_entry_count=True,
+        )
+        await paginator.paginate()
+
+    @ptable.command(name="edit")
+    async def points_edit(self, ctx: Context, points_id: PointsConverter):
+        pass
+
+    @ptable.command(name="leaderboard", aliases=("lb",))
+    async def points_leaderboard(self, ctx: Context):
+        pass
+
+    @ptable.command(name="delete")
+    async def points_delete(self, ctx: Context, points_id: PointsConverter):
+        await Points.filter(id=points_id.id).delete()
+        await ctx.send(f"ok")
+
+    @ptable.group(name="match", invoke_without_command=True)
+    async def _ptable(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @_ptable.command(name="create")
+    async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
+        scrim = await Scrim.get_or_none(id=points_id.local_id)
+
+        msg = await ctx.success("ok")
+        await PointsMenu(points=points_id, scrim=scrim, msg=msg).start(ctx)
+
+    @_ptable.command(name="all")
+    async def _ptable_all(self, ctx: Context):
+        pass
+
+    @_ptable.command(name="edit")
+    async def _ptable_edit(self, ctx: Context):
+        pass
+
+    @_ptable.command(name="delete")
+    async def _ptable_delete(self, ctx: Context):
+        pass
 
 
 def setup(bot):
