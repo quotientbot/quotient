@@ -19,6 +19,7 @@ __all__ = (
     "Lockdown",
     "Autoevent",
     "Commands",
+    "FAQ",
 )
 
 
@@ -340,3 +341,18 @@ class TimedMessage(models.Model):
     days = ArrayField(fields.CharEnumField(constants.Day), default=lambda: list(constants.Day))
     stats = fields.IntField(default=0)
     author_id = fields.BigIntField()
+
+
+class FAQ(models.Model):
+    class Meta:
+        table = "faq"
+
+    id = fields.BigIntField(pk=True, index=True)
+    name = fields.TextField()
+    aliases = ArrayField(fields.CharField(max_length=500, default=list, index=True))
+    content = fields.TextField()
+    verified = fields.BooleanField(default=False)
+    created_at = fields.DatetimeField(auto_now=True)
+    edited_at = fields.DatetimeField(null=True)
+    author_id = fields.BigIntField()
+    usage = fields.IntField(default=0)

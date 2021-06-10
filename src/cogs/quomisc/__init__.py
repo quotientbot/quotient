@@ -1,9 +1,9 @@
 from models.models import Commands
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
+from models import Guild, Votes, FAQ
 from discord.ext import commands
 from utils import ColorConverter
-from models import Guild, Votes
 from collections import Counter
 from typing import Optional
 from glob import glob
@@ -248,6 +248,38 @@ class Quomisc(Cog, name="quomisc"):
         rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
         embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
         await ctx.send(embed=embed)
+
+    @commands.group(aliases=("faq", "troubleshoot"), invoke_without_subcommand=True)
+    async def ask(self, ctx: Context, *, quo_related_question: str):
+        pass
+
+    @ask.command(name="all")
+    async def ask_all(self, ctx: Context):
+        pass
+
+    @ask.command(name="suggest")
+    async def ask_suggest(self, ctx: Context):
+        pass
+
+    @ask.command(name="create")
+    async def ask_create(self, ctx: Context):
+        pass
+
+    @ask.command(name="edit")
+    async def ask_edit(self, ctx: Context):
+        pass
+
+    @ask.command(name="delete")
+    async def ask_delete(self, ctx: Context):
+        pass
+
+    @ask.command(name="aliases")
+    async def ask_aliases(self, ctx: Context):
+        pass
+
+    @ask.command(name="info")
+    async def ask_info(self, ctx: Context):
+        pass
 
 
 def setup(bot) -> None:

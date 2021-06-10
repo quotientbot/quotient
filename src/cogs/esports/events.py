@@ -410,13 +410,21 @@ class ScrimEvents(Cog):
         if AutocleanType.channel in scrim.autoclean:
             self.bot.loop.create_task(purge_channel(scrim.registration_channel))
 
+            with suppress(discord.Forbidden, AttributeError):
+                await scrim.logschan.send(
+                    embed=discord.Embed(
+                        color=discord.Color.green(),
+                        description=f"{emote.check} | Channel Purge (Scrims Autoclean) executed successfully: {scrim.id}",
+                    )
+                )
+
         if AutocleanType.role in scrim.autoclean:
             self.bot.loop.create_task(purge_role(scrim.role))
 
-        with suppress(discord.Forbidden, AttributeError):
-            await scrim.logschan.send(
-                embed=discord.Embed(
-                    color=discord.Color.green(),
-                    description=f"{emote.check} | Autoclean executed successfully for Scrim: {scrim.id}",
+            with suppress(discord.Forbidden, AttributeError):
+                await scrim.logschan.send(
+                    embed=discord.Embed(
+                        color=discord.Color.green(),
+                        description=f"{emote.check} | Role Purge (Scrims Autoclean) executed successfully: {scrim.id}",
+                    )
                 )
-            )

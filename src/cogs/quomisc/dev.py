@@ -62,7 +62,7 @@ class Dev(Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.group(hidden=True, invoke_without_command=True)
+    @commands.group(hidden=True, invoke_without_command=True, name="history")
     async def command_history(self, ctx):
         """Command history."""
         query = """SELECT
