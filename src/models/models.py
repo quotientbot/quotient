@@ -19,7 +19,6 @@ __all__ = (
     "Lockdown",
     "Autoevent",
     "Commands",
-    "FAQ",
 )
 
 
@@ -343,21 +342,51 @@ class TimedMessage(models.Model):
     author_id = fields.BigIntField()
 
 
-class FAQ(models.Model):
+# class FAQ(models.Model):
+#     class Meta:
+#         table = "faq"
+
+#     id = fields.BigIntField(pk=True, index=True)
+#     name = fields.CharField(max_length=400)
+#     aliases = ArrayField(fields.CharField(max_length=400, default=list, index=True))
+#     content = fields.TextField()
+#     verified = fields.BooleanField(default=False)
+#     created_at = fields.DatetimeField(auto_now=True)
+#     edited_at = fields.DatetimeField(null=True)
+#     author_id = fields.BigIntField()
+#     url = fields.CharField(max_length=400, null=True)
+#     usage = fields.IntField(default=0)
+
+#     @property
+#     def author(self):
+#         return self.bot.get_user(self.author_id)
+
+
+class Author(models.Model):
     class Meta:
-        table = "faq"
+        table = "authors"
 
-    id = fields.BigIntField(pk=True, index=True)
-    name = fields.CharField(max_length=400)
-    aliases = ArrayField(fields.CharField(max_length=400, default=list, index=True))
-    content = fields.TextField()
-    verified = fields.BooleanField(default=False)
+    author_id = fields.BigIntField(pk=True)
     created_at = fields.DatetimeField(auto_now=True)
-    edited_at = fields.DatetimeField(null=True)
-    author_id = fields.BigIntField()
-    url = fields.CharField(max_length=400, null=True)
-    usage = fields.IntField(default=0)
+    verified = fields.BooleanField(default=False)
+    points_per_article = fields.IntField(default=2)
+    total_points = fields.IntField(default=0)
+    articles: fields.ManyToManyRelation["Article"] = fields.ManyToManyField("models.Article")
 
-    @property
-    def author(self):
-        return self.bot.get_user(self.author_id)
+
+class Article(models.Model):
+    class Meta:
+        table = "articles"
+
+    id = fields.BigIntField(pk=True)
+    author_id = fields.BigIntField()
+    title = fields.CharField(max_length=400, null=True)
+    aliases = ArrayField(fields.CharField(max_length=400), default=list)
+    approved = fields.BooleanField(default=False)
+    appoved_by = fields.BigIntField(null=True)
+    url = fields.CharField(max_length=400, null=True)
+    views = fields.IntField(default=0)
+    created_at = fields.DatetimeField(auto_now=True)
+    published_at = fields.DatetimeField(null=True)
+    edited_at = fields.DatetimeField(null=True)
+    edited_by = fields.BigIntField(null=True)

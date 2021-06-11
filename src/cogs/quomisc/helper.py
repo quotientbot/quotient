@@ -1,5 +1,4 @@
 from difflib import get_close_matches
-from models import FAQ
 import discord, io
 
 
@@ -75,9 +74,9 @@ async def tabulate_query(ctx, query, *args):
         await ctx.send(fmt)
 
 
-async def find_query(ctx, query):
-    record = await FAQ.filter(aliases__icontains=query).all().first()
-    if record:
-        return record
+# async def find_query(ctx, query):
+#     record = await FAQ.filter(aliases__icontains=query).all().first()
+#     if record:
+#         return record
 
-    return "\n".join(get_close_matches(query, (faq.aliases for faq in await FAQ.all())))
+#     return "\n".join(get_close_matches(query, (faq.aliases for faq in await FAQ.all())))

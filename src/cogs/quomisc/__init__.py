@@ -1,8 +1,7 @@
-from cogs.quomisc.helper import find_query
 from models.models import Commands
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
-from models import Guild, Votes, FAQ
+from models import Guild, Votes
 from discord.ext import commands
 from utils import ColorConverter
 from collections import Counter
