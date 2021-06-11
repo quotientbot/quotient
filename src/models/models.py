@@ -348,11 +348,16 @@ class FAQ(models.Model):
         table = "faq"
 
     id = fields.BigIntField(pk=True, index=True)
-    name = fields.TextField()
-    aliases = ArrayField(fields.CharField(max_length=500, default=list, index=True))
+    name = fields.CharField(max_length=400)
+    aliases = ArrayField(fields.CharField(max_length=400, default=list, index=True))
     content = fields.TextField()
     verified = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now=True)
     edited_at = fields.DatetimeField(null=True)
     author_id = fields.BigIntField()
+    url = fields.CharField(max_length=400, null=True)
     usage = fields.IntField(default=0)
+
+    @property
+    def author(self):
+        return self.bot.get_user(self.author_id)

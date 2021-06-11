@@ -1,3 +1,4 @@
+from cogs.quomisc.helper import find_query
 from models.models import Commands
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
@@ -249,37 +250,45 @@ class Quomisc(Cog, name="quomisc"):
         embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
         await ctx.send(embed=embed)
 
-    @commands.group(aliases=("faq", "troubleshoot"), invoke_without_subcommand=True)
-    async def ask(self, ctx: Context, *, quo_related_question: str):
-        pass
+    # @commands.group(aliases=("faq", "troubleshoot"), invoke_without_subcommand=True)
+    # async def ask(self, ctx: Context, *, quo_related_question: str):
+    #     result = await find_query(ctx, quo_related_question)
+    #     if isinstance(result, str):
+    #         return await ctx.error(
+    #             f"Unfortunately I couldn't find anything related to that...\n\nDid you mean:\n{result}"
+    #         )
 
-    @ask.command(name="all")
-    async def ask_all(self, ctx: Context):
-        pass
+    #     else:
+    #         text = f"{result.name.title()}\n{result.content}\n\n-{result.author} ({strtime(result.created_at)})"
+    #         await ctx.send(text)
 
-    @ask.command(name="suggest")
-    async def ask_suggest(self, ctx: Context):
-        pass
+    # @ask.command(name="all")
+    # async def ask_all(self, ctx: Context):
+    #     pass
 
-    @ask.command(name="create")
-    async def ask_create(self, ctx: Context):
-        pass
+    # @ask.command(name="suggest")
+    # async def ask_suggest(self, ctx: Context):
+    #     pass
 
-    @ask.command(name="edit")
-    async def ask_edit(self, ctx: Context):
-        pass
+    # @ask.command(name="create")
+    # async def ask_create(self, ctx: Context):
+    #     pass
 
-    @ask.command(name="delete")
-    async def ask_delete(self, ctx: Context):
-        pass
+    # @ask.command(name="edit")
+    # async def ask_edit(self, ctx: Context):
+    #     pass
 
-    @ask.command(name="aliases")
-    async def ask_aliases(self, ctx: Context):
-        pass
+    # @ask.command(name="delete")
+    # async def ask_delete(self, ctx: Context):
+    #     pass
 
-    @ask.command(name="info")
-    async def ask_info(self, ctx: Context):
-        pass
+    # @ask.command(name="aliases")
+    # async def ask_aliases(self, ctx: Context):
+    #     pass
+
+    # @ask.command(name="info")
+    # async def ask_info(self, ctx: Context):
+    #     pass
 
 
 def setup(bot) -> None:
