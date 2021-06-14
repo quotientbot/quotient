@@ -281,6 +281,7 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @smanager.command(name="edit")
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
     async def s_edit(self, ctx, *, scrim: ScrimConverter):
@@ -294,6 +295,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="days")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_days(self, ctx, *, scrim: ScrimConverter):
         """
@@ -308,6 +310,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="close")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True)
     async def s_close(self, ctx, scrim: ScrimConverter):
         """
@@ -327,6 +330,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="config")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_config(self, ctx):
@@ -364,6 +368,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="toggle")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_toggle(self, ctx, scrim: ScrimConverter, option: str = None):
         """
         Toggle on/off things for a scrim.
@@ -420,6 +425,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_slotlist_send(self, ctx, scrim: ScrimConverter):
         """
         Send a slotlist.
@@ -443,6 +449,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_edit(self, ctx, scrim: ScrimConverter):
@@ -457,6 +464,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_format(self, ctx, scrim: ScrimConverter):
@@ -466,6 +474,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.cooldown(10, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def s_slotlist_image(self, ctx, scrim: ScrimConverter):
@@ -482,6 +491,7 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_delete(self, ctx, scrim: ScrimConverter):
         """
         Completely delete a scrim.
@@ -498,6 +508,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="ban")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_ban(self, ctx, scrim: ScrimConverter, user: discord.Member, *, time: FutureTime = None):
         """
         Ban someone from the scrims temporarily or permanently.
@@ -530,6 +541,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="unban")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_unban(self, ctx, scrim: ScrimConverter, user: discord.Member):
         """
         Unban a banned team from a scrim.
@@ -546,6 +558,7 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_reserve(self, ctx, scrim: ScrimConverter):
         """
@@ -556,6 +569,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_reserve.command(name="list", aliases=("all",))
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def s_reverse_list(self, ctx, scrim: ScrimConverter):
         """
         Get a list of all reserved teams and their leaders.
@@ -575,6 +589,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @smanager.command(name="autoclean")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_autoclean(self, ctx, scrim: ScrimConverter):
         """Commands related to quotient's autoclean"""
@@ -773,6 +788,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="config")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_config(self, ctx):
         """Get config of all running tourneys"""
@@ -805,6 +821,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="delete")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def tourney_delete(self, ctx, tourney_id: TourneyConverter):
         """Delete a tournament"""
         tourney = tourney_id
@@ -820,6 +837,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_group(self, ctx, tourney: TourneyConverter, group_size: int = 20):
         """Get groups of the tournament."""
@@ -845,6 +863,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="data")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_data(self, ctx, tourney: TourneyConverter):
         """Get all the data that Quotient collected for a tourney."""
@@ -876,6 +895,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="list", aliases=("all",))
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_list(self, ctx):
         """A list of all running tournaments."""
@@ -895,6 +915,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="rmslot", aliases=("deleteslot",))
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def tourney_deleteslot(self, ctx, tourney: TourneyConverter, *, user: discord.User):
         """Remove someone's slot"""
         slot = await tourney.assigned_slots.filter(leader_id=user.id).first()
@@ -911,6 +932,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="edit")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney: TourneyConverter):
         """Edit a tournament's config."""
@@ -920,6 +942,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="start")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_start(self, ctx, tourney: TourneyConverter):
         """Start a tournament."""
@@ -949,6 +972,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_stop(self, ctx, tourney: TourneyConverter):
         """Stop / Pause a tournament."""
@@ -979,6 +1003,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="ban")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def tourney_ban(self, ctx, tourney: TourneyConverter, user: discord.User):
         """Ban someone from the tournament"""
         if user.id in tourney.banned_users:
@@ -991,6 +1016,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="unban")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def tourney_unban(self, ctx, tourney: TourneyConverter, user: discord.User):
         """Unban a banned user from tournament."""
         if user.id not in tourney.banned_users:
@@ -1051,6 +1077,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
+    @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
@@ -1099,6 +1126,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @easytag.command(name="remove")
+    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a eztag channel"""
@@ -1110,6 +1138,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Removed {channel} from EasyTag channels.")
 
     @easytag.command(name="config")
+    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     async def config_eztag(self, ctx: Context):
         """Get a list of all your easytag channels."""
@@ -1130,6 +1159,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed)
 
     @easytag.command(name="autodelete")
+    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
         """Enable/Disable autodelete for eztag."""
