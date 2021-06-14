@@ -69,7 +69,11 @@ class ScrimManager(Cog, name="Esports"):
             if not message.id in (record.message_id for record in await scrim.assigned_slots.all()):
                 return
 
-            slot = [slot for slot in await scrim.assigned_slots.all() if slot.user_id == message.author.id and slot.message_id == message.id]
+            slot = [
+                slot
+                for slot in await scrim.assigned_slots.all()
+                if slot.user_id == message.author.id and slot.message_id == message.id
+            ]
             if not len(slot):  # means their registration was denied
                 return
             else:
@@ -604,10 +608,10 @@ class ScrimManager(Cog, name="Esports"):
             f"> Total Slots: `{scrim.total_slots}`\n\nRegistration status?"
         )
         if scrim.opened_at:
-            text += f"\n> Open! ({strtime(scrim.opened_at)})\n> Slots Left: {len(scrim.available_slots)}"
+            text += f"\n> `Open!` ({strtime(scrim.opened_at)})\n> Slots Left: {len(scrim.available_slots)}"
 
         else:
-            text += f"\n> Closed! ({strtime(scrim.closed_at)})"
+            text += f"\n> `Closed!` ({strtime(scrim.closed_at)})"
 
         banned = [x.user_id for x in await scrim.banned_teams]
         text += f"\n\n> Reserved Slots: `{sum(1 for i in (x.user_id for x in await scrim.reserved_slots))}`"
@@ -1026,6 +1030,26 @@ class ScrimManager(Cog, name="Esports"):
 
         await Tourney.filter(pk=tourney.id).update(banned_users=ArrayRemove("banned_users", user.id))
         await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney.id}`)")
+
+    @tourney.command(name="info")
+    async def tourney_info(self, ctx: Context, tourney: TourneyConverter):
+        text = (
+            f"> Name: `{tourney.name}`\n"
+            f"> Registration Channel: {getattr(tourney.registration_channel,'mention','`Channel Not Found`')}\n"
+            f"> Confirmation Channel: {getattr(tourney.confirm_channel,'mention','`Channel Not Found`')}\n"
+            f"> Total Slots: `{tourney.total_slots}`\n\nRegistraton Status?"
+        )
+        left = tourney.total_slots - len(await tourney.assigned_slots.all())
+
+        if tourney.started_at:
+            text += f"\n> `Open!` ({strtime(tourney.started_at)})\n> Slots Left: {left}"
+
+        else:
+            text += f"\n> `Closed!` ({strtime(tourney.closed_at)})"
+
+        embed = self.bot.embed(ctx, title="Tourney Config: ({0})".format(tourney.id))
+        embed.description = text
+        await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command()
     async def format(self, ctx, *, registration_form):
