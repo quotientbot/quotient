@@ -66,10 +66,10 @@ class ScrimManager(Cog, name="Esports"):
             if not scrim or not scrim.opened_at:  # either scrim doesn't exist or it is closed.
                 return
 
-            if not message.author.id in (user.user_id for user in await scrim.assigned_slots.all()):
+            if not message.id in (record.message_id for record in await scrim.assigned_slots.all()):
                 return
 
-            slot = [slot for slot in await scrim.assigned_slots.all() if slot.user_id == message.author.id]
+            slot = [slot for slot in await scrim.assigned_slots.all() if slot.user_id == message.author.id and slot.message_id == message.id]
             if not len(slot):  # means their registration was denied
                 return
             else:

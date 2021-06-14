@@ -65,10 +65,7 @@ class ScrimEvents(Cog):
                 continue
 
             slot = await AssignedSlot.create(
-                user_id=ctx.author.id,
-                team_name=teamname,
-                num=slot_num,
-                jump_url=message.jump_url,
+                user_id=ctx.author.id, team_name=teamname, num=slot_num, jump_url=message.jump_url, message_id=message.id
             )
 
             await scrim.assigned_slots.add(slot)

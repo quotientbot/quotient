@@ -309,6 +309,7 @@ class AssignedSlot(BaseSlot):
     class Meta:
         table = "sm.assigned_slots"
 
+    message_id = fields.BigIntField(null=True)
     jump_url = fields.TextField(null=True)
 
 
