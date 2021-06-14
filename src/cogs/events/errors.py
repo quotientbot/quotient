@@ -6,8 +6,6 @@ from constants import random_greeting
 from discord.ext import commands
 from discord.ext.commands import errors
 
-errors.CommandError
-
 
 class Errors(Cog):
     def __init__(self, bot: Quotient):
@@ -29,8 +27,8 @@ class Errors(Cog):
 
         elif isinstance(err, errors.MissingRequiredArgument):
             return await ctx.send(
-                f'{random_greeting()}, You missed the `{err.param.name}` argument.\n\nDo it like: `{ctx.prefix}{(ctx.invoked_subcommand.full_parent_name + " " +ctx.invoked_subcommand.name) if ctx.invoked_subcommand else ctx.command.name} {(ctx.invoked_subcommand if ctx.invoked_subcommand else ctx.command).signature}`'
-            )  # confused? me too
+                f"{random_greeting()}, You missed the `{err.param.name}` argument.\n\nDo it like: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
+            )
 
         elif isinstance(err, commands.BadArgument):
             if isinstance(err, commands.MessageNotFound):

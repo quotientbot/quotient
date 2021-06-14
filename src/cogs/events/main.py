@@ -14,7 +14,7 @@ class MainEvents(Cog, name="Main Events"):
 
     async def super_important_job(self):
         await self.bot.wait_until_ready()
-        with suppress(AttributeError):
+        with suppress(AttributeError, discord.ClientException):
             await self.bot.get_channel(844178791735885824).connect()
 
     # incomplete?, I know
