@@ -161,12 +161,20 @@ class Votes(Cog):
         # we are gonna remove extra scrims , tourneys , color , etc
         scrims = (await models.Scrim.filter(guild_id=guild_id).all())[3:]
         tourneys = (await models.Tourney.filter(guild_id=guild_id).all())[2:]
+        tagchecks = (await models.TagCheck.filter(guil_id=guild.id).all())[1:]
+        eztag = (await models.EasyTag.filter(guil_id=guild.id).all())[1:]
 
         if len(scrims):
             await models.Scrim.filter(id__in=(scrim.id for scrim in scrims)).delete()
 
         if len(tourneys):
             await models.Tourney.filter(id__in=(tourney.id for tourney in tourneys)).delete()
+
+        if len(tagchecks):
+            await models.TagCheck.filter(id__in=(tc.id for tc in tagchecks)).delete()
+
+        if len(eztag):
+            await models.EasyTag.filter(id__in=(tc.id for tc in eztag)).delete()
 
         # TODO: remove this from cache too maybe
         await models.Guild.filter(guild_id=guild_id).update(
