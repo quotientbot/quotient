@@ -390,3 +390,28 @@ class Article(models.Model):
     published_at = fields.DatetimeField(null=True)
     edited_at = fields.DatetimeField(null=True)
     edited_by = fields.BigIntField(null=True)
+
+
+class Giveaway(models.Model):
+    class Meta:
+        table = "giveaways"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    message_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    host_id = fields.BigIntField()
+    prize = fields.CharField(max_length=50)
+    winners = fields.IntField(default=1)
+    jump_url = fields.TextField()
+
+    start_at = fields.DatetimeField(null=True)
+    expire_at = fields.DatetimeField()
+
+    started_at = fields.DatetimeField()
+    expired_at = fields.DatetimeField(null=True)
+
+    required_msg = fields.IntField(default=0)
+    required_role_ids = ArrayField(fields.BigIntField(), default=list)
+
+    participants = ArrayField(fields.BigIntField(), default=list)
