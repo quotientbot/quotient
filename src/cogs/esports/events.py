@@ -160,6 +160,10 @@ class ScrimEvents(Cog):
 
         message.content = normalize("NFKC", message.content.lower())
 
+        if not self.tourney_registration_worker.next_iteration or self.tourney_registration_worker.failed():
+            # if for any fking reason its stopped , we want it to start again
+            self.tourney_registration_worker.start()
+
         self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
 
     # ==========================================================================================================
@@ -199,6 +203,10 @@ class ScrimEvents(Cog):
         if not await check_scrim_requirements(self.bot, message, scrim):
             return
 
+        if not self.scrim_registration_worker.next_iteration or self.scrim_registration_worker.failed():
+            # if for any fking reason its stopped , we want it to start again
+            self.scrim_registration_worker.start()
+
         self.scrim_queue.put_nowait(QueueMessage(scrim, message))
 
     # ==========================================================================================================
@@ -221,10 +229,13 @@ class ScrimEvents(Cog):
             scrim.open_time + timedelta(hours=24),
             "scrim_open",
             scrim_id=scrim.id,
-        )  # we don't want to this risk this
+        )  # we don't want to risk this
 
         if scrim.toggle != True or not Day(utils.day_today()) in scrim.open_days:
             return
+
+        if scrim.opened_at and scrim.opened_at > datetime.now(tz=IST) - timedelta(minutes=1):
+            return  # means we are having multiple timers for a single scrims :c shit
 
         guild = scrim.guild
 
