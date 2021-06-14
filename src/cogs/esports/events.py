@@ -234,7 +234,9 @@ class ScrimEvents(Cog):
         if scrim.toggle != True or not Day(utils.day_today()) in scrim.open_days:
             return
 
-        if scrim.opened_at and scrim.opened_at > datetime.now(tz=IST) - timedelta(minutes=1):
+        if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime(
+            "%d-%b-%Y %I:%M %p"
+        ):
             return  # means we are having multiple timers for a single scrims :c shit
 
         guild = scrim.guild
