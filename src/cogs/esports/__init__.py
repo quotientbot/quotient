@@ -1033,6 +1033,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tourney.command(name="info")
     async def tourney_info(self, ctx: Context, tourney: TourneyConverter):
+        """Get all the necessary info about a tourney."""
         text = (
             f"> Name: `{tourney.name}`\n"
             f"> Registration Channel: {getattr(tourney.registration_channel,'mention','`Channel Not Found`')}\n"
