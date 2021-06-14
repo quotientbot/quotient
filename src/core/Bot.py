@@ -81,28 +81,39 @@ class Quotient(commands.AutoShardedBot):
             model.bot = self
 
     async def get_prefix(self, message: discord.Message) -> str:
-        with suppress(TypeError):
-            if not message.guild:
-                return
+        if not message.guild:
+            return
 
-            if self.user.id == 765159200204128266:
-                prefix = "!"
+        if self.user.id == 765159200204128266:  # its the beta bot
+            prefix = "!"
+        else:
+            guild = self.guild_data.get(message.guild.id)
+            if guild:
+                prefix = guild["prefix"]
+
             else:
-                prefix = self.guild_data[message.guild.id]["prefix"] or config.PREFIX
+                self.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": config.FOOTER}
+                prefix = "q"
 
-            return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
     async def close(self) -> NoReturn:
         await super().close()
         await self.session.close()
 
-    async def process_commands(self, message):
+    async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message, cls=Context)
 
         if ctx.command is None:
             return
 
         await self.invoke(ctx)
+
+    async def on_message(self, message: discord.Message):
+        if not message.guild or message.author.bot:
+            return
+
+        await self.process_commands(message)
 
     async def on_command(self, ctx):
         self.cmd_invokes += 1
