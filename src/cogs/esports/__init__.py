@@ -580,6 +580,30 @@ class ScrimManager(Cog, name="Esports"):
         """Commands related to quotient's autoclean"""
         await AutocleanMenu(scrim=scrim).start(ctx)
 
+    @smanager.command(name="info")
+    async def s_info(self, ctx: Context, scrim: ScrimConverter):
+        """Get information about a scrim."""
+        text = (
+            f"> Name: `{scrim.name}`\n> Registration Channel: {getattr(scrim.registration_channel,'mention','`Channel Not Found`')}\n"
+            f"> Slotlist Channel: {getattr(scrim.slotlist_channel,'mention','`Channel Not Found`')}\n"
+            f"> Total Slots: `{scrim.total_slots}`\n\nRegistration status?"
+        )
+        if scrim.opened_at:
+            text += f"\n> Open! ({strtime(scrim.opened_at)})\n> Slots Left: {len(scrim.available_slots)}"
+
+        else:
+            text += f"\n> Closed! ({strtime(scrim.closed_at)})"
+
+        banned = [x.user_id for x in await scrim.banned_teams]
+        text += f"\n\n> Reserved Slots: `{sum(1 for i in (x.user_id for x in await scrim.reserved_slots))}`"
+        text += f"\n> Banned Users: `{len(banned)}` "
+        if len(banned):
+            text += ", ".join((getattr(x, "mention", "Not Found!") for x in map(self.bot.get_user, banned)))
+
+        embed = self.bot.embed(ctx, title="Scrims Info: ({0})".format(scrim.id))
+        embed.description = text
+        await ctx.send(embed=embed, embed_perms=True)
+
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************

@@ -184,10 +184,6 @@ class Scrim(models.Model):
         return range(self.start_from, self.total_slots + self.start_from)
 
     @property
-    def banned_users(self):
-        return list(map(self.bot.get_user, self.banned_users_ids()))
-
-    @property
     def opened(self):
         if self.opened_at is None:
             return False
