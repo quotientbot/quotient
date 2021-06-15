@@ -1,11 +1,14 @@
+from datetime import datetime, timedelta
+from cogs.quomisc.helper import guild_msg_stats, member_msg_stats
 from models.models import Commands
-from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
+from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
-from models import Guild, Votes
+from models import Guild, Votes, Messages
 from discord.ext import commands
-from utils import ColorConverter
+from utils import ColorConverter, QuoUser
 from collections import Counter
 from typing import Optional
+from constants import IST
 from glob import glob
 import inspect, time
 from .dev import *
@@ -248,6 +251,62 @@ class Quomisc(Cog, name="quomisc"):
         rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
         embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
         await ctx.send(embed=embed)
+
+    @commands.group(aliases=("msg",), invoke_without_command=True)
+    async def message(self, ctx: Context, user: Optional[QuoUser]):
+        """
+        This returns a total number of messages a user has sent in a server or globally.
+        """
+        user = user or ctx.author
+        total = await Messages.filter(author_id=user.id).all().count() or 0
+        server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id).all().count() or 0
+
+        embed = self.bot.embed(ctx, title="📧 Messages")
+        embed.description = (
+            f"**{user}** has sent `{plural(server):message|messages}` in this server. (`{total}` Globally)"
+        )
+        await ctx.send(embed=embed, embed_perms=True)
+
+    @message.command(name="for")
+    async def msg_for(self, ctx: Context, user: Optional[QuoUser], days: Optional[int] = 7):
+        """
+        Returns no. of msges sent by a user withing some days.
+        """
+        user = user or ctx.author
+        sent_at = datetime.now(tz=IST) - timedelta(days=days)
+
+        total = await Messages.filter(author_id=user.id, sent_at__gte=sent_at).all().count() or 0
+        server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id, sent_at__gte=sent_at).all().count() or 0
+
+        embed = self.bot.embed(ctx, title=f"Messages for {plural(days):day|days}")
+        embed.description = f"**{user}** has sent `{plural(server):message|messages}` in this server in last `{plural(days):day|days}`. (`{total}` Globally)"
+        await ctx.send(embed=embed, embed_perms=True)
+
+    @message.command(name="server")
+    async def msg_server(self, ctx: Context, days: Optional[int]):
+        """
+        Returns no. of messages sent in a server.
+        Days is an optional argument.
+        """
+        total = await Messages.filter(guild_id=ctx.guild.id).all().order_by("sent_at")
+        bots = sum(1 for i in (msg for msg in total if msg.bot))
+
+        embed = self.bot.embed(ctx, title="📧 Server Messages")
+        embed.add_field(name="Total", value=sum(1 for i in total))
+        embed.add_field(name="Bots", value=bots)
+        embed.set_footer(text=f"Counting Since {strtime(total[0].sent_at)}")
+        await ctx.send(embed=embed)
+
+    @message.command(name="stats")
+    async def msg_stats(self, ctx: Context, user: Optional[QuoUser]):
+        """
+        Returns message stats of the server or a user.
+        """
+        return await ctx.error("This command is currently under development.")
+        if user:
+            await member_msg_stats(ctx, user)
+        else:
+            await guild_msg_stats(ctx)
 
     # @commands.group(aliases=("faq", "troubleshoot"), invoke_without_subcommand=True)
     # async def ask(self, ctx: Context, *, quo_related_question: str):

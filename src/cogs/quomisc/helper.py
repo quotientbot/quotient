@@ -1,6 +1,8 @@
 from difflib import get_close_matches
 import discord, io
 
+from core.Context import Context
+
 
 class TabularData:
     def __init__(self):
@@ -72,6 +74,15 @@ async def tabulate_query(ctx, query, *args):
         await ctx.send("Too many results...", file=discord.File(fp, "results.txt"))
     else:
         await ctx.send(fmt)
+
+
+async def member_msg_stats(ctx:Context, member):
+    embed = ctx.bot.embed(ctx)
+    
+
+
+async def guild_msg_stats(ctx):
+    pass
 
 
 # async def find_query(ctx, query):
