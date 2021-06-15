@@ -19,6 +19,7 @@ __all__ = (
     "Lockdown",
     "Autoevent",
     "Commands",
+    "Messages",
 )
 
 
@@ -324,6 +325,17 @@ class Commands(models.Model):
     used_at = fields.DatetimeField(auto_now=True)
     prefix = fields.CharField(max_length=20)
     failed = fields.BooleanField(default=False)
+
+
+class Messages(models.Model):
+    class Meta:
+        table = "message"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField(index=True)
+    channel_id = fields.BigIntField()
+    author_id = fields.BigIntField(index=True)
+    sent_at = fields.DatetimeField(auto_now=True, index=True)
 
 
 class TimedMessage(models.Model):
