@@ -265,10 +265,10 @@ class Utility(Cog, name="utility"):
     @tag.command(name="create")
     async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
-        
+
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
-            
+
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
@@ -352,10 +352,10 @@ class Utility(Cog, name="utility"):
 
         if len(content) > 1990:
             return await ctx.error(f"Tag content cannot exceed 1990 characters.")
-        
+
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot edit tag.")
-        
+
         if len(ctx.message.attachments):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
@@ -536,6 +536,77 @@ class Utility(Cog, name="utility"):
 
         else:
             await ctx.simple(f"Ok Aborting.")
+
+    @commands.group(name="reaction-roles", aliases=("rr", "reactionrole"), invoke_without_command=True)
+    async def reactrole(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @reactrole.command(name="create")
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True, manage_roles=True)
+    @commands.has_permissions(manage_roles=True)
+    @commands.max_concurrency(1, commands.cooldowns.BucketType.guild, wait=False)
+    async def createreactrole(self, ctx: Context):
+        def check(m):
+            return m.author == ctx.author and m.channel.id == ctx.channel.id
+
+        async def cancel_msg(ctx):
+            embed = discord.Embed(color=discord.Color.red(), title="Reaction-Role Cancel")
+            embed.description = "Alright cancelling the process."
+            embed.set_footer(text="This message will be automatically deleted after 10 seconds.")
+            return await ctx.send(embed=embed, delete_after=10, embed_perms=True)
+
+        async def outta_chances(ctx):
+            embed = discord.Embed(color=discord.Color.red(), title="No Chance left :c")
+            embed.description = "'unfortunately, you have ran out of chances."
+            embed.set_footer(text=f'Run "{ctx.prefix}rr create" start again')
+            return await ctx.send(embed=embed, embed_perms=True)
+
+        em = discord.Embed(color=self.bot.color, title="Reaction-Role Setup")
+        em.set_footer(text='Reply with "cancel" to stop the process', delete_after=10)
+
+        try:
+            chances, first_part, role_dict, channel = 3, 0, {}, None
+            while chances:
+                em.description = (
+                    f"Do you want me to use an existing message or a new one? `(Tries Remaining:{chances})`\n"
+                    f"> `new` | `existing` | `n` | `e` | `old` | `cancel` *You have 60 seconds*"
+                )
+
+                msg = await ctx.send(embed=em)
+                res = await inputs.string_input(ctx, check, delete_after=True)
+                await inputs.safe_delete(msg)
+
+                if res.lower() in ("new", "n"):
+                    first_part = 1
+                    chances = 0
+
+                elif res.lower() in ("existing", "e", "old"):
+                    first_part = 2
+                    chances = 0
+
+                elif res.lower() == "cancel":
+                    chances = 0
+                    await cancel_msg(ctx)
+                    return
+
+                else:
+                    chances -= 1
+
+            if not first_part:
+                return await outta_chances(ctx)
+
+            if first_part == 1:  # means new msg
+                # chances , embed_part , embed
+                pass
+
+            elif first_part == 2:  # means an old message
+                pass
+
+        except Exception as e:
+            await ctx.send(e)
+
+        else:
+            pass
 
 
 def setup(bot) -> None:

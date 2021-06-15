@@ -610,8 +610,11 @@ class ScrimManager(Cog, name="Esports"):
         if scrim.opened_at:
             text += f"\n> `Open!` ({strtime(scrim.opened_at)})\n> Slots Left: {len(scrim.available_slots)}"
 
-        else:
+        elif scrim.closed_at:
             text += f"\n> `Closed!` ({strtime(scrim.closed_at)})"
+
+        else:
+            text += "\n> Will be available after next registrations!"
 
         banned = [x.user_id for x in await scrim.banned_teams]
         text += f"\n\n> Reserved Slots: `{sum(1 for i in (x.user_id for x in await scrim.reserved_slots))}`"
