@@ -161,8 +161,8 @@ class Votes(Cog):
         # we are gonna remove extra scrims , tourneys , color , etc
         scrims = (await models.Scrim.filter(guild_id=guild_id).all())[3:]
         tourneys = (await models.Tourney.filter(guild_id=guild_id).all())[2:]
-        tagchecks = (await models.TagCheck.filter(guil_id=guild.id).all())[1:]
-        eztag = (await models.EasyTag.filter(guil_id=guild.id).all())[1:]
+        tagchecks = (await models.TagCheck.filter(guild_id=guild_id).all())[1:]
+        eztag = (await models.EasyTag.filter(guild_id=guild_id).all())[1:]
 
         if len(scrims):
             await models.Scrim.filter(id__in=(scrim.id for scrim in scrims)).delete()
