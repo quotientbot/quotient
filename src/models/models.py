@@ -329,7 +329,7 @@ class Commands(models.Model):
 
 class Messages(models.Model):
     class Meta:
-        table = "message"
+        table = "messages"
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField(index=True)
