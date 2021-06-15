@@ -557,12 +557,12 @@ class Utility(Cog, name="utility"):
 
         async def outta_chances(ctx):
             embed = discord.Embed(color=discord.Color.red(), title="No Chance left :c")
-            embed.description = "'unfortunately, you have ran out of chances."
-            embed.set_footer(text=f'Run "{ctx.prefix}rr create" start again')
+            embed.description = "Unfortunately, you have ran out of chances."
+            embed.set_footer(text=f'Run "{ctx.prefix}rr create" to start again')
             return await ctx.send(embed=embed, embed_perms=True)
 
         em = discord.Embed(color=self.bot.color, title="Reaction-Role Setup")
-        em.set_footer(text='Reply with "cancel" to stop the process', delete_after=10)
+        em.set_footer(text='Reply with "cancel" to stop the process')
 
         try:
             chances, first_part, role_dict, channel = 3, 0, {}, None
