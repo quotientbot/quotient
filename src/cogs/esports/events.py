@@ -222,6 +222,10 @@ class ScrimEvents(Cog):
         if scrim.open_time != timer.expires:  # If time is not same return :)
             return
 
+        await Scrim.filter(pk=scrim.id).update(
+            open_time=scrim.open_time + timedelta(hours=24),
+        )
+        
         await self.bot.reminders.create_timer(
             scrim.open_time + timedelta(hours=24),
             "scrim_open",
@@ -291,7 +295,6 @@ class ScrimEvents(Cog):
         self.bot.scrim_channels.add(registration_channel.id)
 
         await Scrim.filter(pk=scrim.id).update(
-            open_time=scrim.open_time + timedelta(hours=24),
             opened_at=datetime.now(tz=IST),
             closed_at=None,
             slotlist_message_id=None,
