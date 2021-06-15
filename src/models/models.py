@@ -335,6 +335,7 @@ class Messages(models.Model):
     guild_id = fields.BigIntField(index=True)
     channel_id = fields.BigIntField()
     author_id = fields.BigIntField(index=True)
+    bot = fields.BooleanField(default=False)
     sent_at = fields.DatetimeField(auto_now=True, index=True)
 
 
