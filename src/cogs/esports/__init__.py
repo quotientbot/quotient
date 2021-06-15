@@ -430,16 +430,18 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_slotlist_send(self, ctx, scrim: ScrimConverter):
+    async def s_slotlist_send(self, ctx, scrim: ScrimConverter , channel:QuoTextChannel=None):
         """
-        Send a slotlist.
+        Send slotlist of a scrim.
         """
 
         if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
         else:
-            embed, channel = await scrim.create_slotlist()
+            embed, schannel = await scrim.create_slotlist()
+            channel = channel or schannel
+
             await ctx.send(embed=embed)
             prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
             if prompt:
