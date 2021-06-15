@@ -415,3 +415,16 @@ class Giveaway(models.Model):
     required_role_ids = ArrayField(fields.BigIntField(), default=list)
 
     participants = ArrayField(fields.BigIntField(), default=list)
+
+
+class Rrole(models.Model):
+    class Meta:
+        table = "reactionroles"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    message_id = fields.BigIntField()
+    roles = fields.JSONField(default=dict)
+    required_role_ids = ArrayField(fields.BigIntField(), default=list)
+    max_roles = fields.IntField(default=1)
