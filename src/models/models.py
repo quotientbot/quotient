@@ -428,3 +428,5 @@ class Rrole(models.Model):
     roles = fields.JSONField(default=dict)
     required_role_ids = ArrayField(fields.BigIntField(), default=list)
     max_roles = fields.IntField(default=1)
+    locked = fields.BooleanField(default=False)
+    log_channel_id = fields.BigIntField(null=True)
