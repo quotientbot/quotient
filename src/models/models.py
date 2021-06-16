@@ -20,6 +20,7 @@ __all__ = (
     "Autoevent",
     "Commands",
     "Messages",
+    "Giveaway",
 )
 
 
