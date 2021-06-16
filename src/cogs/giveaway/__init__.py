@@ -1,17 +1,25 @@
 from core import Cog, Context, Quotient
 from discord.ext import commands
 from .gevents import Gevents
+from models import Giveaway
 import utils
 
 
-class Giveaway(Cog):
+class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
     @commands.command()
     async def gcreate(self, ctx: Context):
-        pass
-
+        count = await Giveaway.filter(guild_id = ctx.guild.id , ended_at__not_isnull=True).count()
+        if count >= 5 and not await ctx.is_premium():
+            return await ctx.error(
+                "You cannot host more than 5 giveaways concurrently on free tier.\n"
+                "However, Quotient Premium allows you to host unlimited giveaways.\n\n"
+                f"Checkout awesome Quotient Premium [here]({ctx.config.WEBSITE}/premium)"
+                )
+        
+        
     @commands.command()
     async def gstart(self, ctx: Context):
         pass
@@ -38,5 +46,5 @@ class Giveaway(Cog):
 
 
 def setup(bot):
-    bot.add_cog(Giveaway(bot))
+    bot.add_cog(Giveaways(bot))
     bot.add_cog(Gevents(bot))

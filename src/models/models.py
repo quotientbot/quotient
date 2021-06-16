@@ -419,11 +419,11 @@ class Giveaway(models.Model):
     winners = fields.IntField(default=1)
     jump_url = fields.TextField()
 
-    start_at = fields.DatetimeField(null=True)
-    expire_at = fields.DatetimeField()
+    start_at = fields.DatetimeField(null=True)  # the times user set
+    end_at = fields.DatetimeField()
 
-    started_at = fields.DatetimeField()
-    expired_at = fields.DatetimeField(null=True)
+    started_at = fields.DatetimeField()  # the times shit actually happens
+    ended_at = fields.DatetimeField(null=True)
 
     required_msg = fields.IntField(default=0)
     required_role_ids = ArrayField(fields.BigIntField(), default=list)
