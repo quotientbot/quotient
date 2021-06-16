@@ -39,5 +39,3 @@ class LoggingDispatchers(Cog):
                 return
             else:
                 self.bot.dispatch("log", LogType.msg, message=messages, subtype="bulk")
-
-    

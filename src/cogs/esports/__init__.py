@@ -428,7 +428,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @s_slotlist.command(name="show")
-    async def s_slotlist_show(self,ctx,scrim:ScrimConverter):
+    async def s_slotlist_show(self, ctx, scrim: ScrimConverter):
         """
         Show slotlist of a scrim.
         """
@@ -436,12 +436,12 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.error("Nobody registered yet!")
 
         embed, channel = await scrim.create_slotlist()
-        await ctx.send(embed=embed,embed_perms=True)
+        await ctx.send(embed=embed, embed_perms=True)
 
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_slotlist_send(self, ctx, scrim: ScrimConverter , channel:QuoTextChannel=None):
+    async def s_slotlist_send(self, ctx, scrim: ScrimConverter, channel: QuoTextChannel = None):
         """
         Send slotlist of a scrim.
         """

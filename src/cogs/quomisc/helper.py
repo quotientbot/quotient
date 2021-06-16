@@ -76,9 +76,8 @@ async def tabulate_query(ctx, query, *args):
         await ctx.send(fmt)
 
 
-async def member_msg_stats(ctx:Context, member):
+async def member_msg_stats(ctx: Context, member):
     embed = ctx.bot.embed(ctx)
-    
 
 
 async def guild_msg_stats(ctx):
