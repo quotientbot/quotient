@@ -426,7 +426,7 @@ class Giveaway(models.Model):
     ended_at = fields.DatetimeField(null=True)
 
     required_msg = fields.IntField(default=0)
-    required_role_ids = ArrayField(fields.BigIntField(), default=list)
+    required_role_id = fields.BigIntField(null=True)
 
     participants = ArrayField(fields.BigIntField(), default=list)
 
