@@ -6,7 +6,7 @@ from prettytable.prettytable import PrettyTable
 
 from models import Scrim, Tourney
 from datetime import datetime
-import constants
+import constants, humanize
 import discord
 import config
 import asyncio
@@ -75,7 +75,9 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     registration_channel = scrim.registration_channel
     open_role = scrim.open_role
 
-    await Scrim.filter(pk=scrim.id).update(opened_at=None, closed_at=closed_at)
+    delta = humanize.precisedelta(closed_at - scrim.opened_at)
+
+    await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
 
@@ -86,6 +88,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
     if scrim.autoslotlist and len(await scrim.teams_registered):
+        await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
         with suppress(AttributeError, discord.Forbidden):
             slotmsg = await channel.send(embed=embed)

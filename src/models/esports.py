@@ -135,6 +135,9 @@ class Scrim(models.Model):
     autodelete_rejects = fields.BooleanField(default=False)
     teamname_compulsion = fields.BooleanField(default=False)
 
+    time_elapsed = fields.CharField(null=True, max_length=100)
+    show_time_elapsed = fields.BooleanField(default=True)
+
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
     slotlist_format = fields.TextField(null=True)
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
@@ -248,6 +251,10 @@ class Scrim(models.Model):
 
         else:
             embed = discord.Embed(title=self.name + " Slotlist", description=f"```{desc}```", color=self.bot.color)
+
+        if self.show_time_elapsed and self.time_elapsed:
+            embed.set_footer(text=f"Registration took: {self.time_elapsed}")
+
         channel = self.slotlist_channel
         return embed, channel
 
