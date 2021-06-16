@@ -1,6 +1,7 @@
 from contextlib import suppress
 from discord.ext import commands
 import discord, asyncio
+from models.models import Guild
 import utils, io
 
 
@@ -105,6 +106,10 @@ class Context(commands.Context):
                 color=self.config.COLOR,
             )
         )
+
+    async def is_premium_guild(self):
+        with suppress(AttributeError):
+            return (await Guild.get(guild_id=self.guild.id).only("guild_id", "is_premium")).is_premium
 
     async def send_file(self, content, *, name: str = "Message.txt", escape_mentions=True, **kwargs):
         """

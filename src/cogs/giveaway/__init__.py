@@ -25,7 +25,7 @@ class Giveaways(Cog):
             return message.author == ctx.author and ctx.channel == message.channel
 
         count = await Giveaway.filter(guild_id=ctx.guild.id, ended_at__not_isnull=True).count()
-        if count >= 5 and not await ctx.is_premium():
+        if count >= 5 and not await ctx.is_premium_guild():
             return await ctx.error(
                 "You cannot host more than 5 giveaways concurrently on free tier.\n"
                 "However, Quotient Premium allows you to host unlimited giveaways.\n\n"
