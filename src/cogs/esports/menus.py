@@ -317,6 +317,7 @@ class SlotlistFormatMenu(menus.Menu):
             "🌈 | Set embed color \n"
             "🖼️ | Set Image\n"
             "📸 | Set Thumbnail\n"
+            "⏰ | Show time registration took\n"
             "❌ | Don't Save and Abort\n"
             "✅ | Save and Abort\n"
         )
@@ -464,6 +465,16 @@ class SlotlistFormatMenu(menus.Menu):
 
             self.cur_embed.set_thumbnail(url=image)
             await self.refresh()
+
+    @menus.button("⏰")
+    async def time_elapsed(self, payload):
+        await Scrim.filter(id=self.scrim.id).update(show_time_elapsed=not self.scrim.show_time_elapsed)
+        await self.ctx.success(
+            f"Time taken in the registation will {'BE SHOWN' if not self.scrim.show_time_elapsed else 'NOT BE SHOWN'}.",
+            delete_after=2,
+        )
+        await self.scrim.refresh_from_db(("show_time_elapsed",))
+
 
     @menus.button("❌")
     async def donot_save(self, payload):
