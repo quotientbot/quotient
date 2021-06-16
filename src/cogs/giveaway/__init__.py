@@ -35,7 +35,7 @@ class Giveaways(Cog):
         giveaway = Giveaway(guild_id=ctx.guild.id, host_id=ctx.author.id)
 
         await gembed(ctx, 1, "How long do you want the giveaway to last?")
-        giveaway.end_at = utils.FutureTime(await utils.string_input(ctx, check))
+        giveaway.end_at = utils.FutureTime(await utils.string_input(ctx, check)).dt
 
         if giveaway.end_at < (datetime.now(tz=IST) + timedelta(seconds=60)):
             raise GiveawayError("You cannot host a giveaway of less than 1 minute.")
@@ -67,7 +67,7 @@ class Giveaways(Cog):
                 "- manage messages\n"
             )
 
-        giveaway.channel_id(channel.id)
+        giveaway.channel_id = channel.id
 
         await gembed(
             ctx,
