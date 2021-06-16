@@ -225,7 +225,7 @@ class ScrimEvents(Cog):
         await Scrim.filter(pk=scrim.id).update(
             open_time=scrim.open_time + timedelta(hours=24),
         )
-        
+
         await self.bot.reminders.create_timer(
             scrim.open_time + timedelta(hours=24),
             "scrim_open",

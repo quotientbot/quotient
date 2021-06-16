@@ -475,7 +475,6 @@ class SlotlistFormatMenu(menus.Menu):
         )
         await self.scrim.refresh_from_db(("show_time_elapsed",))
 
-
     @menus.button("❌")
     async def donot_save(self, payload):
         self.stop()
