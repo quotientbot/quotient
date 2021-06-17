@@ -101,12 +101,12 @@ async def check_giveaway_requirements(giveaway: Giveaway, member: discord.Member
                 "Since you don't have it, You cannot join this giveaway."
             )
 
-        if not _bool:
-            with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException, AttributeError):
-                await giveaway.message.remove_reaction("🎉", member=member)
-                await member.send(embed=embed)
+    if not _bool:
+        with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException, AttributeError):
+            await giveaway.message.remove_reaction("🎉", member=member)
+            await member.send(embed=embed)
 
-        return _bool
+    return _bool
 
 
 async def cancel_giveaway(giveaway: Giveaway, author):
@@ -151,7 +151,7 @@ async def confirm_entry(giveaway: Giveaway, member: discord.Member):
 
 def get_giveaway_winners(giveaway: Giveaway):
     participants = [participant for participant in giveaway.real_participants if participant is not None]
-    if giveaway.winners >= participants:
+    if giveaway.winners >= len(participants):
         return participants
 
     return random.sample(participants, giveaway.winners)
@@ -181,7 +181,9 @@ async def end_giveaway(giveaway: Giveaway):
         await giveaway.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
 
         if len(giveaway.participants):
-            embed = discord.Embed(title=f"{len(giveaway.participants)} entrants [↗️]({giveaway.jump_url})")
+            embed = discord.Embed(
+                description=f"{len(giveaway.participants)} entrants [↗️]({giveaway.jump_url})", color=0x2F3136
+            )
             await giveaway.channel.send(
                 content=f"Congratulations {', '.join((winner.mention for winner in winners))}! You won **{giveaway.prize}**!",
                 embed=embed,
