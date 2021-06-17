@@ -430,7 +430,24 @@ class Giveaway(models.Model):
 
     participants = ArrayField(fields.BigIntField(), default=list)
 
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
 
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+    
+    @property
+    def host(self):
+        if self._guild is not None:
+            return self._guild.get_member(self.host_id)
+
+    @property
+    def req_role(self):
+        if self._guild is not None:
+            return self._guild.get_role(self.required_role_id)
+            
 class Rrole(models.Model):
     class Meta:
         table = "reactionroles"

@@ -71,7 +71,7 @@ class Giveaways(Cog):
 
         await gembed(
             ctx,
-            4,
+            5,
             "How many messages do users need to join the giveaway?\n> Reply with 'None' if you do not want this to be a requirement.",
         )
         msg_req = await utils.string_input(ctx, check)
@@ -81,12 +81,15 @@ class Giveaways(Cog):
         else:
             try:
                 giveaway.required_msg = int(msg_req)
+                if giveaway.required_role_id > 5000:
+                    raise GiveawayError(f"`5000` is the max value you can pick.")
+
             except ValueError:
                 raise GiveawayError("You didn't answer it right.\n\nEither send no. of required messages or none")
 
         await gembed(
             ctx,
-            5,
+            6,
             "Which role is required to participate in the giveaway?\n> Reply with 'None' if you do not want this to be a requirement.",
         )
         role = await utils.string_input(ctx, check)
@@ -100,7 +103,10 @@ class Giveaways(Cog):
             except:
                 raise commands.RoleNotFound(role)
 
-        await create_giveaway()
+        msg = await create_giveaway(giveaway, current=ctx.channel)
+
+        giveaway.started_at, giveaway.message_id, giveaway.jump_url = datetime.now(tz=IST), msg.id, msg.jump_url
+        # await giveaway.save()
 
     @commands.command()
     async def gstart(self, ctx: Context):
