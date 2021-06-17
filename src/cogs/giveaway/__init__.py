@@ -1,4 +1,4 @@
-from .functions import gembed, create_giveaway, GiveawayConverter, GiveawayError
+from .functions import cancel_giveaway, gembed, create_giveaway, GiveawayConverter, GiveawayError
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
 from discord.ext import commands
@@ -136,7 +136,13 @@ class Giveaways(Cog):
 
     @commands.command()
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
-        pass
+        prompt = await ctx.prompt(f"Are you sure you want to cancel [this giveaway]({msg_id.jump_url})?")
+        if prompt:
+            await Giveaway.filter(message_id=msg_id.message_id).delete()
+            await cancel_giveaway(msg_id, ctx.author)
+            await ctx.success(f"Successfully cancelled.")
+        else:
+            await ctx.success(f"ok Aborting")
 
     @commands.command()
     async def gschedule(self, ctx: Context):

@@ -1,3 +1,4 @@
+from datetime import datetime
 from discord.ext.commands import Converter, CommandError
 from contextlib import suppress
 from models import Giveaway
@@ -5,6 +6,7 @@ from core import Context
 import discord, config
 import utils
 import tortoise.exceptions
+from constants import IST
 from utils.time import plural
 
 
@@ -16,7 +18,7 @@ class GiveawayConverter(Converter):
             pass
 
         try:
-            return await Giveaway.get(message_id=argument)
+            return await Giveaway.get(message_id=argument, guild_id=ctx.guild.id)
 
         except tortoise.exceptions.DoesNotExist:
             pass
@@ -77,6 +79,18 @@ def get_giveaway_embed(giveaway: Giveaway):
 
 async def check_giveaway_requirements(giveaway: Giveaway):
     pass
+
+
+async def cancel_giveaway(giveaway: Giveaway, author):
+    with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
+        msg = await giveaway.channel.fetch_message(giveaway.message_id)
+        embed = discord.Embed(color=discord.Color.red(), title="Giveaway Cancelled!")
+        embed.description = (
+            f"This giveaway has been cancelled by {author.mention}\n\nCancelled at: {utils.strtime(datetime.now(tz=IST))}"
+        )
+
+        await msg.edit(content="🎉 **GIVEAWAY CANCELLED** 🎉", embed=embed)
+        await msg.clear_reactions()
 
 
 async def refresh_giveaway(giveaway: Giveaway):
