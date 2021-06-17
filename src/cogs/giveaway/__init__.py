@@ -42,7 +42,12 @@ class Giveaways(Cog):
 
         giveaway = Giveaway(guild_id=ctx.guild.id, host_id=ctx.author.id)
 
-        await gembed(ctx, 1, "How long do you want the giveaway to last?")
+        await gembed(
+            ctx,
+            1,
+            "How long do you want the giveaway to last?\n\n`Please enter the duration of the giveaway under this message.`\n\nYou can use `m` for minutes, `h` for hours, `d` for days.",
+        )
+
         giveaway.end_at = utils.FutureTime(await utils.string_input(ctx, check)).dt
         t1 = time()
         if giveaway.end_at < (datetime.now(tz=IST) + timedelta(seconds=55)):
@@ -51,17 +56,23 @@ class Giveaways(Cog):
         elif giveaway.end_at > (datetime.now(tz=IST) + timedelta(days=90)):
             raise GiveawayError("You cannot keep the duration longer than 3 months.")
 
-        await gembed(ctx, 2, "What is the prize for this giveaway?")
+        await gembed(
+            ctx, 2, "What is the prize for this giveaway?\n\n`Please enter the giveaway prize under this message.`"
+        )
         prize = await utils.string_input(ctx, check)
         if len(prize) > 50:
             raise GiveawayError("Character length of prize cannot exceed 50 characters.")
 
         giveaway.prize = prize
 
-        await gembed(ctx, 3, "How many winners do you want me to pick?\n> 15 is the max value you can choose.")
+        await gembed(ctx, 3, "How many winners do you want me to pick?\n\n`Please enter a number between 1 and 15.`")
         giveaway.winners = await utils.integer_input(ctx, check, limits=(1, 15))
 
-        await gembed(ctx, 4, "In which channel do you want to host this giveaway?")
+        await gembed(
+            ctx,
+            4,
+            "In which channel do you want to host this giveaway?\n\n`Please mention or type the name of the channel you want to host the giveaway in.`",
+        )
         channel = await utils.channel_input(ctx, check)
 
         perms = channel.permissions_for(ctx.me)
@@ -80,7 +91,7 @@ class Giveaways(Cog):
         await gembed(
             ctx,
             5,
-            "How many messages do users need to join the giveaway?\n> Reply with 'None' if you do not want this to be a requirement.",
+            "How many messages do users need to join the giveaway?\n\n`Reply with 'None' if you do not want this to be a requirement.`",
         )
         msg_req = await utils.string_input(ctx, check)
         if msg_req.lower() == "none":
@@ -98,7 +109,7 @@ class Giveaways(Cog):
         await gembed(
             ctx,
             6,
-            "Which role is required to participate in the giveaway?\n> Reply with 'None' if you do not want this to be a requirement.",
+            "Which role is required to participate in the giveaway?\n\n`Reply with 'None' if you do not want this to be a requirement`",
         )
         role = await utils.string_input(ctx, check)
         if role.lower() == "none":

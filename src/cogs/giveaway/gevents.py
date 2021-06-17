@@ -1,23 +1,24 @@
-from discord import message
 from cogs.giveaway.functions import check_giveaway_requirements, confirm_entry, end_giveaway, refresh_giveaway
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
-from models import Timer, Giveaway
+from models import Timer, Giveaway, ArrayRemove
 from contextlib import suppress
 from discord.ext import tasks
 from constants import IST
 import discord
-
-from models.functions import ArrayRemove
 
 
 class Gevents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.giveaway_refresher.start()
+        self.bot.loop.create_task(self.delete_older_giveaways())
 
     def cog_unload(self):
         self.giveaway_refresher.stop()
+
+    async def delete_older_giveaways(self):
+        await Giveaway.filter(ended_at__lte=(datetime.now(tz=IST) - timedelta(hours=24))).delete()
 
     @tasks.loop(seconds=10)
     async def giveaway_refresher(self):
