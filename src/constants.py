@@ -159,7 +159,7 @@ tips = (
 
 
 async def show_tip(ctx):
-    if ctx.author.id in config.DEVS:
+    if ctx.author.id in config.DEVS or ctx.guild.id == config.SERVER_ID:
         return
 
     if random.randint(10, 69) == 69:
