@@ -7,7 +7,7 @@ from models import Giveaway
 from constants import IST
 import utils, discord
 from time import time
-
+import random
 
 class Giveaways(Cog):
     def __init__(self, bot: Quotient):
@@ -19,6 +19,10 @@ class Giveaways(Cog):
 
     @commands.command(aliases=("start",))
     async def gcreate(self, ctx: Context):
+        """
+        Create a giveaway interactively.
+        """
+
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
                 raise GiveawayError("Alright, reverting all process.")
@@ -118,6 +122,7 @@ class Giveaways(Cog):
 
     @commands.command()
     async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
+        """Reroll a giveaway."""
         g = msg_id
         if not g.ended_at:
             raise GiveawayError(
@@ -127,8 +132,26 @@ class Giveaways(Cog):
         if not g.participants:
             raise GiveawayError(f"The giveaway has no valid participant.")
 
+        def check(msg:discord.Message):
+            return msg.author == ctx.author and ctx.channel == msg.channel
+
+        await ctx.simple("How Many winners do you want for the giveaway?\n\n**Note:** You must choose a number between 1 and 15.")
+        number = await utils.integer_input(ctx,check,limits=(1,15))
+
+        participants = [participant for participant in g.real_participants if participant is not None]
+        if number >= len(participants):
+            winners = participants
+        
+        else:
+            winners = random.sample(participants, g.winners)
+
+        winners = ", ".join((win.mention for win in winners))
+        await g.message.reply(content=f"**CONGRATULATIONS** {winners}",embed=discord.Embed(color=self.bot.color, description=f"You have won **{g.prize}**!"))
+
+    
     @commands.command()
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
+        """End a giveaway early"""
         g = msg_id
         if g.ended_at:
             raise GiveawayError(
@@ -143,6 +166,7 @@ class Giveaways(Cog):
 
     @commands.command()
     async def glist(self, ctx: Context):
+        """Get a list of all running giveaways."""
         records = await Giveaway.filter(guild_id=ctx.guild.id)
         if not records:
             raise GiveawayError(
@@ -161,6 +185,7 @@ class Giveaways(Cog):
 
     @commands.command(aliases=("gdelete",))
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
+        """Commit a crime."""
         prompt = await ctx.prompt(f"Are you sure you want to cancel [this giveaway]({msg_id.jump_url})?")
         if prompt:
             await Giveaway.filter(message_id=msg_id.message_id).delete()
