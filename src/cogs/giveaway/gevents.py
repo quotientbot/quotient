@@ -30,6 +30,12 @@ class Gevents(Cog):
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        if payload.member and payload.member.bot:
+            return
+
+        if payload.user_id == self.bot.user.id:
+            return
+
         giveaway = await Giveaway.get_or_none(message_id=payload.message_id)
         if not giveaway:
             return

@@ -1,3 +1,4 @@
+from utils.time import FutureTime
 from .functions import cancel_giveaway, gembed, create_giveaway, GiveawayConverter, GiveawayError, end_giveaway
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
@@ -8,6 +9,7 @@ from constants import IST
 import utils, discord
 from time import time
 import random
+
 
 class Giveaways(Cog):
     def __init__(self, bot: Quotient):
@@ -109,16 +111,58 @@ class Giveaways(Cog):
                 raise commands.RoleNotFound(role)
 
         giveaway.end_at = giveaway.end_at + (timedelta(seconds=time() - t1))
-        msg = await create_giveaway(giveaway, current=ctx.channel)
+        msg = await create_giveaway(giveaway)
 
         giveaway.started_at, giveaway.message_id, giveaway.jump_url = datetime.now(tz=IST), msg.id, msg.jump_url
         await giveaway.save()
 
         await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
-    # @commands.command()
-    # async def gquick(self, ctx: Context):
-    #     pass
+        end_at = utils.human_timedelta(giveaway.end_at, suffix=False, brief=False, accuracy=2)
+        embed = discord.Embed(title="Giveaway Started!", color=self.bot.color)
+        embed.description = (
+            f"The giveaway for {giveaway.prize} has been created in {msg.channel.mention} and will last for {end_at}."
+            f"\n[Click me to Jump there!]({msg.jump_url})"
+        )
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.has_permissions(manage_messages=True, add_reactions=True, embed_links=True)
+    async def gquick(self, ctx: Context, duration: FutureTime, winners: int, prize: str):
+
+        count = await Giveaway.filter(guild_id=ctx.guild.id, ended_at__not_isnull=True).count()
+        if count >= 5 and not await ctx.is_premium_guild():
+            return await ctx.error(
+                "You cannot host more than 5 giveaways concurrently on free tier.\n"
+                "However, Quotient Premium allows you to host unlimited giveaways.\n\n"
+                f"Checkout awesome Quotient Premium [here]({ctx.config.WEBSITE}/premium)"
+            )
+
+        if winners > 15:
+            raise GiveawayError("Giveaway winner count must not exceed 15.")
+
+        if len(prize) > 50:
+            raise GiveawayError("Character length of prize cannot exceed 50 characters.")
+
+        if duration.dt < (datetime.now(tz=IST) + timedelta(seconds=55)):
+            raise GiveawayError("You cannot host a giveaway of less than 1 minute.")
+
+        elif duration.dt > (datetime.now(tz=IST) + timedelta(days=90)):
+            raise GiveawayError("You cannot keep the duration longer than 3 months.")
+
+        giveaway = Giveaway(
+            guild_id=ctx.guild.id,
+            host_id=ctx.author.id,
+            channel_id=ctx.channel.id,
+            prize=prize,
+            winners=winners,
+            end_at=duration.dt,
+        )
+        await ctx.message.delete()
+        msg = await create_giveaway(giveaway)
+        giveaway.message_id, giveaway.jump_url, giveaway.started_at = msg.id, msg.jump_url, datetime.now(tz=IST)
+        await giveaway.save()
+        await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
     @commands.command()
     async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
@@ -132,23 +176,27 @@ class Giveaways(Cog):
         if not g.participants:
             raise GiveawayError(f"The giveaway has no valid participant.")
 
-        def check(msg:discord.Message):
+        def check(msg: discord.Message):
             return msg.author == ctx.author and ctx.channel == msg.channel
 
-        await ctx.simple("How Many winners do you want for the giveaway?\n\n**Note:** You must choose a number between 1 and 15.")
-        number = await utils.integer_input(ctx,check,limits=(1,15))
+        await ctx.simple(
+            "How Many winners do you want for the giveaway?\n\n**Note:** You must choose a number between 1 and 15."
+        )
+        number = await utils.integer_input(ctx, check, limits=(1, 15))
 
         participants = [participant for participant in g.real_participants if participant is not None]
         if number >= len(participants):
             winners = participants
-        
+
         else:
             winners = random.sample(participants, g.winners)
 
         winners = ", ".join((win.mention for win in winners))
-        await g.message.reply(content=f"**CONGRATULATIONS** {winners}",embed=discord.Embed(color=self.bot.color, description=f"You have won **{g.prize}**!"))
+        await g.message.reply(
+            content=f"**CONGRATULATIONS** {winners}",
+            embed=discord.Embed(color=self.bot.color, description=f"You have won **{g.prize}**!"),
+        )
 
-    
     @commands.command()
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
         """End a giveaway early"""

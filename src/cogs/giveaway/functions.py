@@ -24,7 +24,7 @@ class GiveawayConverter(Converter, Giveaway):
             pass
 
         raise GiveawayError(
-            f"This is not a valid Message ID.\n\nUse `{ctx.prefix}glist` to get a list of all your running giveaways."
+            f"This is not a valid Giveaway Message ID.\n\nUse `{ctx.prefix}glist` to get a list of all your running giveaways."
         )
 
 
@@ -32,21 +32,11 @@ class GiveawayError(CommandError):
     pass
 
 
-async def create_giveaway(giveaway: Giveaway, **kwargs):
-    current = kwargs.get("current")
-    end_at = utils.human_timedelta(giveaway.end_at, suffix=False, brief=False, accuracy=2)
+async def create_giveaway(giveaway: Giveaway):
     channel = giveaway.channel
 
     msg = await channel.send(content="🎉 **GIVEAWAY** 🎉", embed=get_giveaway_embed(giveaway))
     await msg.add_reaction("🎉")
-
-    if current:
-        embed = discord.Embed(title="Giveaway Started!", color=config.COLOR)
-        embed.description = (
-            f"The giveaway for {giveaway.prize} has been created in {channel.mention} and will last for {end_at}."
-            f"\n[Click me to Jump there!]({msg.jump_url})"
-        )
-        await current.send(embed=embed)
 
     return msg
 
