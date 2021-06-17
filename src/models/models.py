@@ -412,7 +412,7 @@ class Giveaway(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    message_id = fields.BigIntField()
+    message_id = fields.BigIntField(index=True)
     channel_id = fields.BigIntField()
     host_id = fields.BigIntField()
     prize = fields.CharField(max_length=50)
