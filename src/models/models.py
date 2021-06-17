@@ -447,6 +447,11 @@ class Giveaway(models.Model):
     def req_role(self):
         if self._guild is not None:
             return self._guild.get_role(self.required_role_id)
+    
+    @property
+    def message(self):
+        if self.channel is not None:
+            return self.channel.get_partial_message(self.message_id)
             
 class Rrole(models.Model):
     class Meta:

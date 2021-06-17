@@ -1,4 +1,4 @@
-from .functions import gembed, create_giveaway
+from .functions import gembed, create_giveaway, GiveawayConverter, GiveawayError
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
 from discord.ext import commands
@@ -6,10 +6,6 @@ from .gevents import Gevents
 from models import Giveaway
 from constants import IST
 import utils, discord
-
-
-class GiveawayError(commands.CommandError):
-    pass
 
 
 class Giveaways(Cog):
@@ -81,7 +77,7 @@ class Giveaways(Cog):
         else:
             try:
                 giveaway.required_msg = int(msg_req)
-                if giveaway.required_role_id > 5000:
+                if giveaway.required_msg > 5000:
                     raise GiveawayError(f"`5000` is the max value you can pick.")
 
             except ValueError:
@@ -106,18 +102,18 @@ class Giveaways(Cog):
         msg = await create_giveaway(giveaway, current=ctx.channel)
 
         giveaway.started_at, giveaway.message_id, giveaway.jump_url = datetime.now(tz=IST), msg.id, msg.jump_url
-        # await giveaway.save()
+        await giveaway.save()
 
     @commands.command()
     async def gstart(self, ctx: Context):
         pass
 
     @commands.command()
-    async def greroll(self, ctx: Context):
+    async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
         pass
 
     @commands.command()
-    async def gend(self, ctx: Context):
+    async def gend(self, ctx: Context, msg_id: GiveawayConverter):
         pass
 
     @commands.command()
@@ -125,7 +121,7 @@ class Giveaways(Cog):
         pass
 
     @commands.command()
-    async def gcancel(self, ctx: Context):
+    async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
         pass
 
     @commands.command()
