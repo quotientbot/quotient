@@ -1,4 +1,4 @@
-from .functions import cancel_giveaway, gembed, create_giveaway, GiveawayConverter, GiveawayError
+from .functions import cancel_giveaway, gembed, create_giveaway, GiveawayConverter, GiveawayError, end_giveaway
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
 from discord.ext import commands
@@ -6,11 +6,16 @@ from .gevents import Gevents
 from models import Giveaway
 from constants import IST
 import utils, discord
+from time import time
 
 
 class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, GiveawayError):
+            return await ctx.error(error)
 
     @commands.command(aliases=("start",))
     async def gcreate(self, ctx: Context):
@@ -32,7 +37,7 @@ class Giveaways(Cog):
 
         await gembed(ctx, 1, "How long do you want the giveaway to last?")
         giveaway.end_at = utils.FutureTime(await utils.string_input(ctx, check)).dt
-
+        t1 = time()
         if giveaway.end_at < (datetime.now(tz=IST) + timedelta(seconds=55)):
             raise GiveawayError("You cannot host a giveaway of less than 1 minute.")
 
@@ -99,6 +104,7 @@ class Giveaways(Cog):
             except:
                 raise commands.RoleNotFound(role)
 
+        giveaway.end_at = giveaway.end_at + (timedelta(seconds=time() - t1))
         msg = await create_giveaway(giveaway, current=ctx.channel)
 
         giveaway.started_at, giveaway.message_id, giveaway.jump_url = datetime.now(tz=IST), msg.id, msg.jump_url
@@ -106,13 +112,20 @@ class Giveaways(Cog):
 
         await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
-    @commands.command()
-    async def gquick(self, ctx: Context):
-        pass
+    # @commands.command()
+    # async def gquick(self, ctx: Context):
+    #     pass
 
     @commands.command()
     async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
-        pass
+        g = msg_id
+        if not g.ended_at:
+            raise GiveawayError(
+                f"The giveaway hasn't yet. Either wait for it to end or use `{ctx.prefix}gend {g.message_id}`"
+            )
+
+        if not g.participants:
+            raise GiveawayError(f"The giveaway has no valid participant.")
 
     @commands.command()
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
@@ -124,6 +137,9 @@ class Giveaways(Cog):
 
         if not g.channel:
             raise GiveawayError("I couldn't find the giveaway channel, Maybe it is hidden from me.")
+
+        await end_giveaway(g)
+        await ctx.success(f"Success")
 
     @commands.command()
     async def glist(self, ctx: Context):
@@ -143,7 +159,7 @@ class Giveaways(Cog):
         embed.description = text
         await ctx.send(embed=embed, embed_perms=True)
 
-    @commands.command()
+    @commands.command(aliases=("gdelete",))
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
         prompt = await ctx.prompt(f"Are you sure you want to cancel [this giveaway]({msg_id.jump_url})?")
         if prompt:
@@ -153,9 +169,9 @@ class Giveaways(Cog):
         else:
             await ctx.success(f"ok Aborting")
 
-    @commands.command()
-    async def gschedule(self, ctx: Context):
-        pass
+    # @commands.command()
+    # async def gschedule(self, ctx: Context):
+    #     pass
 
 
 def setup(bot):
