@@ -37,6 +37,8 @@ class QuoTasks(Cog):
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
+        if not message.guild:
+            return
         await self.register_message(message)
 
     @tasks.loop(seconds=10)
