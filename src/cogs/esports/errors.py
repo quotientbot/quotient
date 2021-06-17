@@ -1,4 +1,5 @@
 from models import Scrim, Timer, BannedTeam, ReservedSlot, Tourney, AssignedSlot, ArrayAppend, TagCheck
+from models.esports import EasyTag
 from .utils import (
     get_pretty_slotlist,
     delete_denied_message,
@@ -319,11 +320,15 @@ class SMError(Cog):
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
         # will delete scrim/tournament if its registration channel.
+        self.bot.eztagchannels.discard(channel.id)
+        self.bot.tagcheck.discard(channel.id)
+        self.bot.scrim_channels.discard(channel.id)
+        self.bot.tourney_channels.discard(channel.id)
+
         await Scrim.filter(registration_channel_id=channel.id).delete()
         await Tourney.filter(registration_channel_id=channel.id).delete()
         await TagCheck.filter(channel_id=channel.id).delete()
-
-        # TODO: inform server mods
+        await EasyTag.filter(channel_id=channel.id).delete()
 
     @Cog.listener()
     async def on_scrim_registration_delete(self, scrim: Scrim, message: discord.Message, slot):

@@ -8,6 +8,8 @@ from discord.ext import tasks
 from constants import IST
 import discord
 
+from models.functions import ArrayRemove
+
 
 class Gevents(Cog):
     def __init__(self, bot: Quotient):
@@ -82,12 +84,22 @@ class Gevents(Cog):
 
     @Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        pass
+        giveaway = await Giveaway.get_or_none(message_id=payload.message_id)
+        if not giveaway:
+            return
+
+        if giveaway.ended_at:
+            return
+
+        if payload.user_id in giveaway.participants:
+            await Giveaway.filter(message_id=payload.message_id).update(
+                participants=ArrayRemove("participants", payload.user_id)
+            )
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
-        pass
+        await Giveaway.filter(channel_id=channel.id).delete()
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload):
-        pass
+        await Giveaway.filter(message_id=payload.message_id).delete()
