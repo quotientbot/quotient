@@ -1,4 +1,6 @@
-import pytz
+from contextlib import suppress
+import pytz, discord
+import config
 import random
 from enum import Enum
 
@@ -140,6 +142,29 @@ def random_greeting():
     ]
     greeting = random.choice(greetings)
     return greeting
+
+
+tips = (
+    "You use use `automemes #channel` to setup automemes with Quotient for free.",
+    "You can setup unlimited scrims & tourneys with Quotient Premium:\nhttps://quotientbot.xyz/premium",
+    "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
+    "We have an awesome support server:\ndiscord.gg/quotient",
+    "I like your face : )",  # I really do
+    "You can enojoy 1 month Quotient Premium, by boosting my support server:\ndiscord.gg/quotient",
+    "You can get a list of Quotient premium perks with `perks` command.",
+    "You can customize scrim slotlist designs with `sm slotlist format` command.",
+    "You can add a role to multiple users with `role @role @user @user2...` command.",
+    "You can look into my source code, use `source` command.",
+)
+
+
+async def show_tip(ctx):
+    if ctx.author.id in config.DEVS:
+        return
+
+    if random.randint(10, 69) == 69:
+        with suppress(discord.HTTPException, discord.Forbidden):
+            await ctx.send(f"**Did You Know?:** {random.choice(tips)}", delete_after=10)
 
 
 MISSING = _Sentinel()

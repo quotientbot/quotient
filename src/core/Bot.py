@@ -13,8 +13,7 @@ from datetime import datetime
 from utils import cache, IST
 from typing import NoReturn, Optional
 import aiohttp, asyncio, os
-import config, asyncpg
-from .Cog import Cog
+import config, constants
 import itertools
 import traceback
 import discord
@@ -117,6 +116,7 @@ class Quotient(commands.AutoShardedBot):
 
     async def on_command(self, ctx):
         self.cmd_invokes += 1
+        await constants.show_tip(ctx)
 
     async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
