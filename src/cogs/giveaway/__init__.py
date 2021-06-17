@@ -17,7 +17,8 @@ class Giveaways(Cog):
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, GiveawayError):
-            return await ctx.error(error)
+            embed = discord.Embed(color=discord.Color.red(), title="Whoopsi-Doopsi", description=error)
+            return await ctx.send(embed=embed)
 
     @commands.command(aliases=("start",))
     async def gcreate(self, ctx: Context):
@@ -106,6 +107,8 @@ class Giveaways(Cog):
         else:
             try:
                 role = await commands.RoleConverter().convert(ctx, role)
+                if role.managed:
+                    raise GiveawayError(f"{role.mention} is a managed role, you cannot choose this.")
                 giveaway.required_role_id = role.id
             except:
                 raise commands.RoleNotFound(role)
