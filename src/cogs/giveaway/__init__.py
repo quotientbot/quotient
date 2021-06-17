@@ -15,13 +15,25 @@ class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
+
+    def can_use_giveaways():
+        async def predicate(ctx:Context):
+            if ctx.author.guild_permissions.manage_guild or "giveaways" in (role.name.lower() for role in ctx.author.roles):
+                return True
+            
+            else:
+                raise GiveawayError("You either need `giveaways` role or `manage server` permissions to use this command.")
+
+        return commands.check(predicate)
+
+        
     async def cog_command_error(self, ctx, error):
         if isinstance(error, GiveawayError):
             embed = discord.Embed(color=discord.Color.red(), title="Whoopsi-Doopsi", description=error)
             return await ctx.send(embed=embed)
 
     @commands.command(aliases=("start",))
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     async def gcreate(self, ctx: Context):
         """
         Create a giveaway interactively.
@@ -142,7 +154,7 @@ class Giveaways(Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     @commands.bot_has_permissions(manage_messages=True, add_reactions=True, embed_links=True)
     async def gquick(self, ctx: Context, duration: FutureTime, winners: int, *, prize: str):
         """Quickly create a giveaway in current channel."""
@@ -181,7 +193,7 @@ class Giveaways(Cog):
         await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
     @commands.command()
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     @commands.bot_has_permissions(embed_links=True)
     async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
         """Reroll a giveaway."""
@@ -216,7 +228,7 @@ class Giveaways(Cog):
         )
 
     @commands.command()
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     @commands.bot_has_permissions(manage_messages=True, embed_links=True, add_reactions=True)
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
         """End a giveaway early"""
@@ -233,7 +245,7 @@ class Giveaways(Cog):
         await ctx.success(f"Success")
 
     @commands.command()
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     async def glist(self, ctx: Context):
         """Get a list of all running giveaways."""
         records = await Giveaway.filter(guild_id=ctx.guild.id)
@@ -253,7 +265,7 @@ class Giveaways(Cog):
         await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("gdelete",))
-    @commands.has_permissions(manage_guild=True)
+    @can_use_giveaways()
     @commands.bot_has_guild_permissions(manage_messages=True)
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
         """Commit a crime."""
