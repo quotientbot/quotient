@@ -21,6 +21,7 @@ class Giveaways(Cog):
             return await ctx.send(embed=embed)
 
     @commands.command(aliases=("start",))
+    @commands.has_permissions(manage_guild=True)
     async def gcreate(self, ctx: Context):
         """
         Create a giveaway interactively.
@@ -141,7 +142,8 @@ class Giveaways(Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    @commands.has_permissions(manage_messages=True, add_reactions=True, embed_links=True)
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_messages=True, add_reactions=True, embed_links=True)
     async def gquick(self, ctx: Context, duration: FutureTime, winners: int, *, prize: str):
         """Quickly create a giveaway in current channel."""
         count = await Giveaway.filter(guild_id=ctx.guild.id, ended_at__not_isnull=True).count()
@@ -179,6 +181,8 @@ class Giveaways(Cog):
         await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(embed_links=True)
     async def greroll(self, ctx: Context, msg_id: GiveawayConverter):
         """Reroll a giveaway."""
         g = msg_id
@@ -212,6 +216,8 @@ class Giveaways(Cog):
         )
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_messages=True, embed_links=True, add_reactions=True)
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
         """End a giveaway early"""
         g = msg_id
@@ -227,6 +233,7 @@ class Giveaways(Cog):
         await ctx.success(f"Success")
 
     @commands.command()
+    @commands.has_permissions(manage_guild=True)
     async def glist(self, ctx: Context):
         """Get a list of all running giveaways."""
         records = await Giveaway.filter(guild_id=ctx.guild.id)
@@ -246,6 +253,8 @@ class Giveaways(Cog):
         await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("gdelete",))
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_guild_permissions(manage_messages=True)
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
         """Commit a crime."""
         prompt = await ctx.prompt(f"Are you sure you want to cancel [this giveaway]({msg_id.jump_url})?")
