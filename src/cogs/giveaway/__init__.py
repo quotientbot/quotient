@@ -118,7 +118,21 @@ class Giveaways(Cog):
 
     @commands.command()
     async def glist(self, ctx: Context):
-        pass
+        records = await Giveaway.filter(guild_id=ctx.guild.id)
+        if not records:
+            raise GiveawayError(
+                f"There isn't any running giveaway on this server.\n\nUse `{ctx.prefix}gcreate` to create one."
+            )
+
+        text = ""
+        for idx, record in enumerate(records, start=1):
+            end_at = utils.human_timedelta(record.end_at, suffix=False, brief=True, accuracy=2)
+
+            text += f"`{idx:02}.` | {record.prize} | [{record.message_id}]({record.jump_url}) | **{end_at}**\n"
+
+        embed = self.bot.embed(ctx, title=f"Total Giveaways: ({len(records)})")
+        embed.description = text
+        await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command()
     async def gcancel(self, ctx: Context, msg_id: GiveawayConverter):
