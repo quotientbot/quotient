@@ -128,7 +128,7 @@ class Giveaways(Cog):
 
     @commands.command()
     @commands.has_permissions(manage_messages=True, add_reactions=True, embed_links=True)
-    async def gquick(self, ctx: Context, duration: FutureTime, winners: int, prize: str):
+    async def gquick(self, ctx: Context, duration: FutureTime, winners: int,*, prize: str):
 
         count = await Giveaway.filter(guild_id=ctx.guild.id, ended_at__not_isnull=True).count()
         if count >= 5 and not await ctx.is_premium_guild():

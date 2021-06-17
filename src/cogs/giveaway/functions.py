@@ -166,15 +166,13 @@ async def end_giveaway(giveaway: Giveaway):
     else:
         winners = get_giveaway_winners(giveaway)
         embed.description = "\n".join((winner.mention for winner in winners))
-
+        embed.description += f"\nHosted by: {getattr(giveaway.host, 'mention', '`Not Found!`')}"
     with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
         await giveaway.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
 
         if len(giveaway.participants):
-            embed = discord.Embed(
-                description=f"{len(giveaway.participants)} entrants [↗️]({giveaway.jump_url})", color=0x2F3136
-            )
-            await giveaway.channel.send(
-                content=f"Congratulations {', '.join((winner.mention for winner in winners))}! You won **{giveaway.prize}**!",
+            embed = discord.Embed(description=f"You won [**{giveaway.prize}**]({giveaway.jump_url})!", color=config.COLOR)
+            await giveaway.message.reply(
+                content=f"**Congratulations** {', '.join((winner.mention for winner in winners))}!",
                 embed=embed,
             )
