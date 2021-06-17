@@ -1,4 +1,4 @@
-from cogs.giveaway.functions import check_giveaway_requirements, refresh_giveaway
+from cogs.giveaway.functions import check_giveaway_requirements, confirm_entry, refresh_giveaway
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
 from models import Timer, Giveaway
@@ -33,7 +33,7 @@ class Gevents(Cog):
         if not giveaway:
             return
 
-        if giveaway.ended_at:
+        if not giveaway.started_at or giveaway.ended_at:
             return
 
         msg = giveaway.message
@@ -50,9 +50,11 @@ class Gevents(Cog):
         if member.id in giveaway.participants:  # smh there are already in the participants list
             return
 
-        _bool = await check_giveaway_requirements()
+        _bool = await check_giveaway_requirements(giveaway, member)
         if not _bool:
             return
+
+        await confirm_entry(giveaway, member)
 
     @Cog.listener()
     async def on_giveaway_timer_complete(self, timer: Timer):
