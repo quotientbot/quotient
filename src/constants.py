@@ -91,6 +91,7 @@ perks = {
     "Autorole": ["1", "Unlimited"],
     "Custom Footer": ["❌", "✅"],
     "Custom Color": ["❌", "✅"],
+    "Giveaway": ["5", "Unlimited"],
     "Auto-Event Interval": ["❌", "✅"],
 }
 
