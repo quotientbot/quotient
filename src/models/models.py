@@ -452,7 +452,11 @@ class Giveaway(models.Model):
     def message(self):
         if self.channel is not None:
             return self.channel.get_partial_message(self.message_id)
-            
+
+    @property
+    def real_participants(self):
+        return map(self._guild.get_member,self.participants)
+           
 class Rrole(models.Model):
     class Meta:
         table = "reactionroles"

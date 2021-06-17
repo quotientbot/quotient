@@ -10,7 +10,7 @@ from constants import IST
 from utils.time import plural, strtime
 
 
-class GiveawayConverter(Converter):
+class GiveawayConverter(Converter, Giveaway):
     async def convert(self, ctx, argument):
         try:
             argument = int(argument)
@@ -102,7 +102,8 @@ async def check_giveaway_requirements(giveaway: Giveaway, member: discord.Member
             )
 
         if not _bool:
-            with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
+            with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException, AttributeError):
+                await giveaway.message.remove_reaction("🎉", member=member)
                 await member.send(embed=embed)
 
         return _bool
@@ -146,3 +147,7 @@ async def confirm_entry(giveaway: Giveaway, member: discord.Member):
 
     with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
         await member.send(embed=embed)
+
+
+async def end_giveaway(giveaway: Giveaway):
+    pass

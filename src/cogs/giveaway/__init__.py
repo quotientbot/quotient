@@ -12,7 +12,7 @@ class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=("start",))
     async def gcreate(self, ctx: Context):
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -105,7 +105,7 @@ class Giveaways(Cog):
         await giveaway.save()
 
     @commands.command()
-    async def gstart(self, ctx: Context):
+    async def gquick(self, ctx: Context):
         pass
 
     @commands.command()
@@ -114,7 +114,14 @@ class Giveaways(Cog):
 
     @commands.command()
     async def gend(self, ctx: Context, msg_id: GiveawayConverter):
-        pass
+        g = msg_id
+        if g.ended_at:
+            raise GiveawayError(
+                f"This giveaway has already ended. \nYou you wish to pick new winners, use: `{ctx.prefix}greroll {g.message_id}`"
+            )
+
+        if not g.channel:
+            raise GiveawayError("I couldn't find the giveaway channel, Maybe it is hidden from me.")
 
     @commands.command()
     async def glist(self, ctx: Context):

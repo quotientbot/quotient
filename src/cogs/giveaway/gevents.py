@@ -1,4 +1,5 @@
-from cogs.giveaway.functions import check_giveaway_requirements, confirm_entry, refresh_giveaway
+from discord import message
+from cogs.giveaway.functions import check_giveaway_requirements, confirm_entry, end_giveaway, refresh_giveaway
 from datetime import datetime, timedelta
 from core import Cog, Context, Quotient
 from models import Timer, Giveaway
@@ -58,4 +59,29 @@ class Gevents(Cog):
 
     @Cog.listener()
     async def on_giveaway_timer_complete(self, timer: Timer):
+        message_id = timer.kwargs["message_id"]
+
+        giveaway = await Giveaway.get_or_none(message_id=message_id)
+        if not giveaway:
+            return
+
+        channel = giveaway.channel
+        if not channel:
+            return await Giveaway.filter(message_id=message_id).delete()
+
+        if giveaway.ended_at:  # someone already ended it manually
+            return
+
+        await end_giveaway(giveaway)
+
+    @Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        pass
+
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        pass
+
+    @Cog.listener()
+    async def on_raw_message_delete(self, payload):
         pass
