@@ -33,7 +33,7 @@ class Giveaways(Cog):
         await gembed(ctx, 1, "How long do you want the giveaway to last?")
         giveaway.end_at = utils.FutureTime(await utils.string_input(ctx, check)).dt
 
-        if giveaway.end_at < (datetime.now(tz=IST) + timedelta(seconds=60)):
+        if giveaway.end_at < (datetime.now(tz=IST) + timedelta(seconds=55)):
             raise GiveawayError("You cannot host a giveaway of less than 1 minute.")
 
         elif giveaway.end_at > (datetime.now(tz=IST) + timedelta(days=90)):
@@ -103,6 +103,8 @@ class Giveaways(Cog):
 
         giveaway.started_at, giveaway.message_id, giveaway.jump_url = datetime.now(tz=IST), msg.id, msg.jump_url
         await giveaway.save()
+
+        await self.bot.reminders.create_timer(giveaway.end_at, "giveaway", message_id=msg.id)
 
     @commands.command()
     async def gquick(self, ctx: Context):

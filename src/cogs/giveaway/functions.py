@@ -4,7 +4,7 @@ from contextlib import suppress
 from models import Giveaway, Messages, ArrayAppend
 from core import Context
 import discord, config
-import utils
+import utils, random
 import tortoise.exceptions
 from constants import IST
 from utils.time import plural, strtime
@@ -149,5 +149,40 @@ async def confirm_entry(giveaway: Giveaway, member: discord.Member):
         await member.send(embed=embed)
 
 
+def get_giveaway_winners(giveaway: Giveaway):
+    participants = [participant for participant in giveaway.real_participants if participant is not None]
+    if giveaway.winners >= participants:
+        return participants
+
+    return random.sample(participants, giveaway.winners)
+
+
 async def end_giveaway(giveaway: Giveaway):
-    pass
+
+    ended_at = datetime.now(tz=IST)
+    await Giveaway.filter(pk=giveaway.id).update(ended_at=ended_at)
+
+    embed = discord.Embed(
+        color=0x2F3136,
+        title=giveaway.prize,
+        timestamp=ended_at,
+    )
+    embed.set_footer(text=f"{plural(giveaway.winners):winner|winners} | Ended At")
+
+    if not len(giveaway.participants):
+        embed.color = discord.Color.red()
+        embed.description = "I couldn't pick a winner because there is no valid participant."
+
+    else:
+        winners = get_giveaway_winners(giveaway)
+        embed.description = "\n".join((winner.mention for winner in winners))
+
+    with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
+        await giveaway.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
+
+        if len(giveaway.participants):
+            embed = discord.Embed(title=f"{len(giveaway.participants)} entrants [↗️]({giveaway.jump_url})")
+            await giveaway.channel.send(
+                content=f"Congratulations {', '.join((winner.mention for winner in winners))}! You won **{giveaway.prize}**!",
+                embed=embed,
+            )
