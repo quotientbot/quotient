@@ -1,5 +1,6 @@
 from ast import literal_eval
 import aiohttp
+from prettytable import PrettyTable
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
@@ -9,7 +10,7 @@ from models.esports import PointsInfo, ReservedSlot
 from utils import *
 from models.functions import *
 import constants
-from .errors import ScrimError, TourneyError
+from .errors import PointsError, ScrimError, TourneyError
 from .utils import (
     already_reserved,
     available_to_reserve,
@@ -20,17 +21,76 @@ from .utils import (
 
 
 class PointsMenu(menus.Menu):
-    def __init__(self, points: PointsInfo):
+    def __init__(self, points: PointsInfo, msg: discord.Message):
         super().__init__(
             timeout=60,
             delete_message_after=False,
             clear_reactions_after=True,
         )
+        self.msg = msg
+        self.points = points
+        self._dict = {}
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    def table_embed(self):
+        table = PrettyTable()
+        table.field_names = ["S.No", "Team Name", "Position Pt", "Kills", "Total"]
+        for team , _list in self._dict.items():
+            no, posi, kill, total = _list
+            table.add_row([no, team, posi, kill, total])
+
+        embed = discord.Embed(color=self.bot.color, title=self.points.title)
+        embed.description = f"```ml\n{table.get_string()}```"
+        return embed
+
+    def initial_embed(self):
+        embed = discord.Embed(color=self.bot.color)
+        embed.description = "▶️ | Start making points table\n" "❌ | Do not save & abort\n" "✅ | Save and abort"
+        return embed
+
+    async def send_initial_message(self, ctx, channel):
+        await self.msg.edit(embed=self.table_embed())
+        return await channel.send(embed=self.initial_embed())
+
+    async def pointsembed(self, description: str):
+        embed = discord.Embed(color=self.bot.color, title=f"📊 Points Table Menu")
+        embed.description = description
+        return await self.ctx.send(embed=embed, embed_perms=True)
+
+    async def refresh(self):
+        try:
+            await self.msg.edit(embed=self.table_embed())
+        except Exception as e:
+            await self.ctx.send(e)
 
     @menus.button("▶️")
     async def on_start(self, payload):
-        pass
+        await self.pointsembed(
+            "Enter team names with their kill points.\n"
+            "Format:\n`<Team Name> = <Kills>`\nKindly don't use special characters in team names.\n"
+            "Separate them with comma (`,`)\n"
+            "Example:\n"
+            "```Team Quotient = 20,\nTeam Butterfly = 14,\nTeam Kite = 5,\nTeam 4Pandas = 8```\n"
+            "Write these according to their position in match."
+        )
+        teams = await inputs.string_input(self.ctx, self.check)
+
+        result = {}
+        try:
+            for idx, line in enumerate(teams.lower().replace("\n", "").replace("team", "").split(","), start=1):
+                line_values = [value.strip() for value in line.split("=")]
+                posi = self.points.posi_points[str(idx)] or 0
+                kills = int(line_values[1])
+                result[str(line_values[0])] = [posi, kills, posi + kills]
+        except Exception as e:
+            return await self.ctx.send(e)
+
+        _dict = dict(sorted(result.items(), key=lambda x: x[1][2], reverse=True))
+        for idx, team in enumerate(_dict.items(), start=1):
+            team[1].insert(0, idx)
+
+        self._dict.update(_dict)
+        await self.refresh()
 
     @menus.button("❌")
     async def on_cross(self, payload):

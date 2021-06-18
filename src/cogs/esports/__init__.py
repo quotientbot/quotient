@@ -1390,7 +1390,7 @@ class ScrimManager(Cog, name="Esports"):
                 else:
                     result[int(line_values[0])] = int(line_values[1])
 
-        except ValueError:
+        except (ValueError, IndexError):
             raise PointsError(
                 "You didn't provide a valid default points format.\n\nClick me to get an example of valid format."
             )
@@ -1441,7 +1441,8 @@ class ScrimManager(Cog, name="Esports"):
 
     @_ptable.command(name="create")
     async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
-        pass
+        msg = await ctx.success("ok")
+        await PointsMenu(points=points_id, msg=msg).start(ctx)
 
     @_ptable.command(name="all")
     async def _ptable_all(self, ctx: Context):
