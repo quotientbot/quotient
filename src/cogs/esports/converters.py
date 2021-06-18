@@ -44,7 +44,7 @@ class EasyMemberConverter(Converter):
             return "Invalid Member!"
 
 
-class PointsConverter(Converter, Points):
+class PointsConverter(Converter, PointsInfo):
     async def convert(self, ctx, argument: str):
         try:
             argument = int(argument)
@@ -52,7 +52,7 @@ class PointsConverter(Converter, Points):
             pass
         else:
             try:
-                return await Points.get(pk=argument, guild_id=ctx.guild.id)
+                return await PointsInfo.get(pk=argument, guild_id=ctx.guild.id)
             except tortoise.exceptions.DoesNotExist:
                 pass
 

@@ -32,7 +32,7 @@ from datetime import datetime
 from discord.ext import commands
 
 from .events import ScrimEvents
-from .errors import ScrimError, SMError, TourneyError
+from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
 
 import discord
@@ -45,7 +45,7 @@ class ScrimManager(Cog, name="Esports"):
         self.bot = bot
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, (ScrimError, TourneyError)):
+        if isinstance(error, (ScrimError, TourneyError, PointsError)):
             return await ctx.error(error)
 
     @property
@@ -1322,82 +1322,138 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    # @commands.group(aliases=("pt",), invoke_without_command=True)
-    # async def ptable(self, ctx):
-    #     await ctx.send_help(ctx.command)
+    async def pointsembed(self, ctx: Context, value: int, description: str):
+        embed = discord.Embed(color=ctx.bot.color, title=f"📊 Points Table Setup • ({value}/3)")
+        embed.description = description
+        embed.set_footer(text=f'Reply with "cancel" to stop the process.', icon_url=ctx.bot.user.avatar_url)
+        return await ctx.send(embed=embed, embed_perms=True)
 
-    # @ptable.command(name="setup")
-    # async def ptable_setup(self, ctx: Context, scrim_id: ScrimConverter):
-    #     points = await Points.filter(local_id=scrim_id.id).first()
-    #     if points:
-    #         return await ctx.error(
-    #             f"Points Setup for this scrim is already done.\n\nUse `{ctx.prefix}pt create {points.id}` to create a table."
-    #         )
+    @commands.group(aliases=("pt",), invoke_without_command=True)
+    async def ptable(self, ctx):
+        await ctx.send_help(ctx.command)
 
-    #     points = await Points.create(
-    #         local_type=EsportsType.scrim, local_id=scrim_id.id, guild_id=ctx.guild.id, title=scrim_id.name
-    #     )
-    #     await ctx.success(f"Points table setup successful.\nYour points table id is `{points.id}`")
+    @ptable.command(name="setup")
+    async def ptable_setup(self, ctx: Context):
+        count = await PointsInfo.filter(guild_id=ctx.guild.id).count()
 
-    # @ptable.command(name="config")
-    # async def points_config(self, ctx: Context):
-    #     records = await Points.filter(guild_id=ctx.guild.id).all()
-    #     if not len(records):
-    #         return await ctx.error(f"You haven't done Points setup for any scrim yet.")
+        if count >= 2 and not await ctx.is_premium_guild():
+            raise PointsError(
+                f"You cannot create more than 2 point table setup in free tier.\nKindly checkout [Quotient Premium]({config.WEBSITE}/premium) to enjoy unlimited point table setup."
+            )
 
-    #     to_pagi = []
-    #     for record in records:
-    #         text = (
-    #             f"> Points ID: {record.id}\n> Associated with: {record.local_type.value.title()} ({record.local_id})"
-    #             f"\n> Per kill point: {record.kill_points}\n> Result format: {record.default_format}"
-    #             f"\n> Title: {record.title}"
-    #         )
-    #         to_pagi.append(text)
+        def check(message: discord.Message):
+            if message.content.strip().lower() == "cancel":
+                raise PointsError("Alright, reverting all process.")
 
-    #     paginator = Pages(
-    #         ctx,
-    #         title="Total: {}".format(len(to_pagi)),
-    #         entries=to_pagi,
-    #         per_page=1,
-    #         show_entry_count=True,
-    #     )
-    #     await paginator.paginate()
+            return message.author == ctx.author and ctx.channel == message.channel
 
-    # @ptable.command(name="edit")
-    # async def points_edit(self, ctx: Context, points_id: PointsConverter):
-    #     pass
+        ptinfo = PointsInfo(guild_id=ctx.guild.id)
 
-    # @ptable.command(name="leaderboard", aliases=("lb",))
-    # async def points_leaderboard(self, ctx: Context):
-    #     pass
+        await self.pointsembed(
+            ctx, 1, "How many points due you want to give per kill?\n\n`Please enter a number between 0 and 10`"
+        )
+        kill_point = await inputs.integer_input(ctx, check, limits=(0, 10))
+        ptinfo.kill_points = kill_point
 
-    # @ptable.command(name="delete")
-    # async def points_delete(self, ctx: Context, points_id: PointsConverter):
-    #     await Points.filter(id=points_id.id).delete()
-    #     await ctx.send(f"ok")
+        await self.pointsembed(
+            ctx, 2, "What should be the title of every points table?\n\n`Please keep the character length under 150`"
+        )
+        title = await inputs.string_input(ctx, check)
+        if len(title) > 150:
+            raise PointsError("Character length of title cannot exceed 150 characters.")
+        ptinfo.title = title
 
-    # @ptable.group(name="match", invoke_without_command=True)
-    # async def _ptable(self, ctx: Context):
-    #     await ctx.send_help(ctx.command)
+        await self.pointsembed(
+            ctx,
+            3,
+            "What should be default position points format?\n"
+            "Format:\n`<Rank> = <Place Point>`\nRank can be a single number or a range\n"
+            "Separate them with comma (`,`)\n"
+            "Example:\n"
+            "```1 = 20,\n"
+            "2 = 14,\n"
+            "3-5 = 10```\n"
+            "Here, from 6th, everyone will get`0` posi points.",
+        )
 
-    # @_ptable.command(name="create")
-    # async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
-    #     scrim = await Scrim.get_or_none(id=points_id.local_id)
+        points = await inputs.string_input(ctx, check)
 
-    #     msg = await ctx.success("ok")
-    #     await PointsMenu(points=points_id, scrim=scrim, msg=msg).start(ctx)
+        result = {}
+        try:
+            for line in points.replace("\n", "").split(","):
+                line_values = [value.strip() for value in line.split("=")]
+                if "-" in line_values[0]:
+                    range_idx = line_values[0].split("-")
+                    num_range = [i for i in range(int(range_idx[0]), int(range_idx[1]) + 1)]
+                    for key in num_range:
+                        result[key] = int(line_values[1])
+                else:
+                    result[int(line_values[0])] = int(line_values[1])
 
-    # @_ptable.command(name="all")
-    # async def _ptable_all(self, ctx: Context):
-    #     pass
+        except ValueError:
+            raise PointsError(
+                "You didn't provide a valid default points format.\n\nClick me to get an example of valid format."
+            )
 
-    # @_ptable.command(name="edit")
-    # async def _ptable_edit(self, ctx: Context):
-    #     pass
+        ptinfo.posi_points = result
 
-    # @_ptable.command(name="delete")
-    # async def _ptable_delete(self, ctx: Context):
-    #     pass
+        await ptinfo.save()
+        await ctx.send("ye lo bro : {0}".format(ptinfo.id))
+
+    @ptable.command(name="config")
+    async def points_config(self, ctx: Context):
+        records = await PointsInfo.filter(guild_id=ctx.guild.id).all()
+        if not len(records):
+            raise PointsError(
+                f"You haven't create any points table setup yet.\n\nKindly use `{ctx.prefix}pt setup` to create one."
+            )
+
+        to_pagi = []
+        for idx, record in enumerate(records, start=1):
+            text = f"`{idx:02})` Points ID: `{record.id}` | **{record.title}** | Per Kill: `{record.kill_points}`"
+            to_pagi.append(text)
+
+        paginator = Pages(
+            ctx,
+            title="Total Points Setup: {}".format(len(to_pagi)),
+            entries=to_pagi,
+            per_page=10,
+            show_entry_count=True,
+        )
+        await paginator.paginate()
+
+    @ptable.command(name="edit")
+    async def points_edit(self, ctx: Context, points_id: PointsConverter):
+        pass
+
+    @ptable.command(name="leaderboard", aliases=("lb",))
+    async def points_leaderboard(self, ctx: Context):
+        pass
+
+    @ptable.command(name="delete")
+    async def points_delete(self, ctx: Context, points_id: PointsConverter):
+        await PointsInfo.filter(id=points_id.id).delete()
+        await ctx.send(f"ok")
+
+    @ptable.group(name="match", invoke_without_command=True)
+    async def _ptable(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @_ptable.command(name="create")
+    async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
+        pass
+
+    @_ptable.command(name="all")
+    async def _ptable_all(self, ctx: Context):
+        pass
+
+    @_ptable.command(name="edit")
+    async def _ptable_edit(self, ctx: Context):
+        pass
+
+    @_ptable.command(name="delete")
+    async def _ptable_delete(self, ctx: Context):
+        pass
 
 
 def setup(bot):

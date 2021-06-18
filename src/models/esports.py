@@ -10,7 +10,6 @@ from typing import Optional
 from tortoise import models, fields
 from constants import AutocleanType, Day, EsportsType
 from pathlib import Path
-from constants import points
 from .functions import *
 from ast import literal_eval as leval
 
@@ -23,7 +22,7 @@ __all__ = (
     "BannedTeam",
     "TagCheck",
     "EasyTag",
-    "Points",
+    "PointsInfo",
     "PointsTable",
 )
 
@@ -384,16 +383,14 @@ class EasyTag(models.Model):
             return discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
 
 
-class Points(models.Model):
+class PointsInfo(models.Model):
     class Meta:
         table = "pt_info"
 
     id = fields.BigIntField(pk=True, index=True)
-    local_type = fields.CharEnumField(EsportsType, max_length=30)
-    local_id = fields.BigIntField(index=True)
     guild_id = fields.BigIntField(index=True)
     kill_points = fields.IntField(default=1)
-    posi_points = fields.JSONField(default=points)
+    posi_points = fields.JSONField(default=dict)
     default_format = fields.IntField(default=1)
     background = fields.TextField(null=True)
     box_color = fields.IntField(default=65459)
@@ -407,6 +404,7 @@ class PointsTable(models.Model):
 
     id = fields.BigIntField(pk=True, index=True)
     points_table = fields.JSONField()
+    created_by = fields.DatetimeField()
     created_at = fields.DatetimeField(auto_now=True, index=True)
     edited_at = fields.DatetimeField(null=True)
     channel_id = fields.BigIntField(null=True)

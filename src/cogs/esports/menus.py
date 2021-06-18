@@ -5,7 +5,7 @@ from discord.ext import menus
 from discord.ext.menus import Button
 import string
 from models import Scrim, AssignedSlot, Tourney
-from models.esports import Points, ReservedSlot
+from models.esports import PointsInfo, ReservedSlot
 from utils import *
 from models.functions import *
 import constants
@@ -14,72 +14,19 @@ from .utils import (
     already_reserved,
     available_to_reserve,
     delete_denied_message,
-    get_pretty_teams,
     scrim_work_role,
     tourney_work_role,
 )
 
 
 class PointsMenu(menus.Menu):
-    def __init__(self, points: Points, scrim: Scrim, msg: discord.Message):
+    def __init__(self, points: PointsInfo):
         super().__init__(
             timeout=60,
             delete_message_after=False,
             clear_reactions_after=True,
         )
-        self.msg = msg
-        self.points = points
-        self.scrim = scrim
-        self.teams = {}
-        self.table_msg = msg
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
-
-    async def table_embed(self):
-        embed = discord.Embed(color=self.bot.color, title=self.points.title)
-        embed.description = f"```ml\n{self.teams}```"
-        return embed
-
-    def helper_embed(self):
-        embed = discord.Embed(color=self.bot.color)
-        embed.description = (
-            "<:edit:847077121067188224> | Edit any team name\n"
-            "▶️ | Start Making Points Table\n"
-            "❌ | Don't save and abort\n"
-            "✅ | Save and abort"
-        )
-        return embed
-
-    async def send_initial_message(self, ctx, channel):
-        self.teams = await get_pretty_teams(self.scrim)
-        await self.msg.edit(embed=await self.table_embed())
-        return await channel.send(embed=self.helper_embed())
-
-    async def refresh(self):
-        try:
-            await self.msg.edit(embed=self.table_embed())
-        except:
-            self.stop()
-
-    @menus.button("<:edit:847077121067188224>")
-    async def on_edit(self, payload):
-        print(self.teams)
-        msg = await self.ctx.simple(
-            f"To enter Team Name, kindly enter team's position.\n\nIt must be between 1 and {len(self.teams)}"
-        )
-        posi = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(1, len(self.teams)))
-        await inputs.safe_delete(msg)
-
-        msg = await self.ctx.simple(f"What team name do you want me to put there?\n\nThis should be under 25 characters.")
-        teamname = await inputs.string_input(self.ctx, self.check, delete_after=True)
-
-        if len(teamname) > 25:
-            return await self.ctx.error(f"Team Name cannot exceed 25 characters.", delete_after=2)
-
-        for i, j in self.teams:
-            if j[0] == posi:
-                self.teams[teamname] = self.teams.pop(i)
-
-        await self.refresh()
 
     @menus.button("▶️")
     async def on_start(self, payload):

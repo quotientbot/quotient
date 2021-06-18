@@ -22,6 +22,10 @@ class TourneyError(commands.CommandError):
     pass
 
 
+class PointsError(commands.CommandError):
+    pass
+
+
 class SMError(Cog):
     def __init__(self, bot):
         self.bot = bot

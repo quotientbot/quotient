@@ -84,7 +84,7 @@ class Quotient(commands.AutoShardedBot):
             return
 
         if self.user.id == 765159200204128266:  # its the beta bot
-            prefix = "!"
+            prefix = ""
         else:
             guild = self.guild_data.get(message.guild.id)
             if guild:

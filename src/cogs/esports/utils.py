@@ -274,24 +274,3 @@ async def get_pretty_slotlist(scrim: Scrim):
 
     fp = io.BytesIO(table.get_string().encode())
     return discord.File(fp, filename="slotlist.txt")
-
-
-async def get_pretty_teams(scrim: Scrim) -> str:
-    slots = await scrim.teams_registered
-    ids = set(slot.num for slot in slots)
-    fslots = []
-    for id in ids:
-        fslots.append([slot for slot in slots if slot.num == id][0])
-
-    teams = {}
-    for idx, slot in enumerate(fslots, start=1):
-        teams[slot.team_name.title()] = (idx, 0, 0, 0)
-
-    table = PrettyTable()
-    table.field_names = ["Rank", "Team Name", "Posi Pt.", "Kills", "Total"]
-    for key, val in teams.items():
-        idx, p, k, t = val
-        table.add_row([idx, key, p, k, t])
-
-    table = table.get_string()
-    return table
