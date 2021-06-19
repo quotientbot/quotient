@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from unicodedata import normalize
 from ast import literal_eval
 import aiohttp
@@ -121,7 +123,7 @@ class PointsMenu(menus.Menu):
 
     @menus.button("✅")
     async def on_check(self, payload):
-        table = await PointsTable.create(points_table=str(self._dict), created_by=self.ctx.author.id)
+        table = await PointsTable.create(points_table=str(self._dict), created_by=self.ctx.author.id, created_at = datetime.now(constants.IST).replace(hour=0, minute=0,second=0,microsecond=0))
         await self.points.data.add(table)
         await self.ctx.success(
             f"Successfully created points table (id: `{table.id}`)\n\nYou can use `pt match show` to get it in image format.\nOr you can send the image to a channel with `pt match send`"

@@ -14,15 +14,7 @@ from .utils import (
     tourney_work_role,
 )
 
-from utils import (
-    inputs,
-    checks,
-    FutureTime,
-    human_timedelta,
-    get_chunks,
-    QuoRole,
-    QuoTextChannel,
-)
+from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate
 
 from .converters import PointsConverter, ScrimConverter, TourneyConverter
 from constants import EsportsType, IST
@@ -1472,9 +1464,20 @@ class ScrimManager(Cog, name="Esports"):
         pass
 
     @_ptable.command(name="delete")
-    async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, date:str):
-        pass
+    async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, date: typing.Optional[PastDate]):
+        date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
+        points = points_id
+        record = await points.data.get_or_none(created_at=date)
+        if not record:
+            raise PointsError(f"No points table found for date: `{date.strftime('%d-%b-%Y')}`")
+        
+        prompt = await ctx.prompt("Are you sure you want to delete the points table created on `{0}`".format(date.strftime('%d-%b-%Y')))
+        if not prompt:
+            return await ctx.success("ok Aborting")
 
+        await PointsTable.filter(id=record.id).delete()
+        return await ctx.success("Successfully deleted points table.")
+        
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))

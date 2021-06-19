@@ -27,7 +27,7 @@ class PastDate(commands.Converter):
                     "This date seems to be in future, either write today's date or some date that is in past."
                 )
 
-            return dt.replace(hour=0, minute=0, tzinfo=IST)
+            return dt.replace(hour=0, minute=0,second=0,microsecond=0, tzinfo=IST)
 
 
 class ShortTime:
