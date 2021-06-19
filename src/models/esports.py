@@ -389,12 +389,15 @@ class PointsInfo(models.Model):
 
     id = fields.BigIntField(pk=True, index=True)
     guild_id = fields.BigIntField(index=True)
+    channel_id = fields.BigIntField()
     kill_points = fields.IntField(default=1)
     posi_points = fields.JSONField(default=dict)
     default_format = fields.IntField(default=1)
     background = fields.TextField(null=True)
     box_color = fields.IntField(default=65459)
     title = fields.CharField(max_length=150, null=True)
+    secondary_title = fields.CharField(max_length=200, null=True)
+    footer = fields.CharField(max_length=200)
     data: fields.ManyToManyRelation["PointsTable"] = fields.ManyToManyField("models.PointsTable", index=True)
 
 
