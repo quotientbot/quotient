@@ -14,7 +14,7 @@ units = pdt.pdtLocales["en_US"].units
 class PastDate(commands.Converter):
     async def convert(self, ctx, argument):
         try:
-            dt = parse(argument)
+            dt = parse(argument, ignoretz=True)
         except ParserError:
             raise commands.BadArgument(
                 "The date format you entered seems to be Invalid.\n\n"
@@ -27,7 +27,7 @@ class PastDate(commands.Converter):
                     "This date seems to be in future, either write today's date or some date that is in past."
                 )
 
-            return dt.replace(hour=0, minute=0,second=0,microsecond=0, tzinfo=IST)
+            return IST.localize(dt.replace(hour=0, minute=0, second=0, microsecond=0))
 
 
 class ShortTime:

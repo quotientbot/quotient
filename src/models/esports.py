@@ -402,10 +402,14 @@ class PointsTable(models.Model):
     class Meta:
         table = "pt_data"
 
-    id = fields.BigIntField(pk=True, index=True)
+    id = fields.BigIntField(pk=True)
     points_table = fields.TextField()
     created_by = fields.BigIntField()
-    created_at = fields.DatetimeField(auto_now=True, index=True)
+    created_at = fields.DatetimeField(index=True)
     edited_at = fields.DatetimeField(null=True)
     channel_id = fields.BigIntField(null=True)
     message_id = fields.BigIntField(null=True)
+
+    @property
+    def author(self):
+        return self.bot.get_user(self.created_by)

@@ -1461,23 +1461,48 @@ class ScrimManager(Cog, name="Esports"):
 
     @_ptable.command(name="all")
     async def _ptable_all(self, ctx: Context, points_id: PointsConverter):
+        records = await points_id.data.all()
+        if not records:
+            raise PointsError(
+                f"You haven't created any match yet.\n\nKindly use `{ctx.prefix}pt match create {points_id.id}`"
+            )
+
+        matches = []
+        for idx, record in enumerate(records, start=1):
+            matches.append(f"`{idx:02}` **{record.created_at.strftime('%d-%m-%Y')}** (<@{record.created_by}>)")
+
+        paginator = Pages(
+            ctx,
+            title="Total Points Tables: {}".format(len(matches)),
+            entries=matches,
+            per_page=12,
+            show_entry_count=True,
+            footertext=f'Use "{ctx.prefix}pt match show {points_id.id} <date>" to get image version',
+        )
+        await paginator.paginate()
+
+    @_ptable.command(name="show")
+    async def _ptable_show(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
         pass
 
     @_ptable.command(name="delete")
-    async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, date: typing.Optional[PastDate]):
+    async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
         points = points_id
-        record = await points.data.get_or_none(created_at=date)
+        record = await points.data.filter(created_at=date).first()
         if not record:
             raise PointsError(f"No points table found for date: `{date.strftime('%d-%b-%Y')}`")
-        
-        prompt = await ctx.prompt("Are you sure you want to delete the points table created on `{0}`".format(date.strftime('%d-%b-%Y')))
+
+        prompt = await ctx.prompt(
+            "Are you sure you want to delete the points table created on `{0}`".format(date.strftime("%d-%b-%Y"))
+        )
         if not prompt:
             return await ctx.success("ok Aborting")
 
         await PointsTable.filter(id=record.id).delete()
         return await ctx.success("Successfully deleted points table.")
-        
+
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
