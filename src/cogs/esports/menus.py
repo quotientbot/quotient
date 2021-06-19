@@ -23,6 +23,24 @@ from .utils import (
 )
 
 
+class PointsConfigEditor(menus.Menu):
+    def __init__(self, points:PointsInfo):
+        super().__init__(
+            timeout=60,
+            delete_message_after=False,
+            clear_reactions_after=True,
+        )
+        
+        self.points = points
+        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+
+    def inital_embed(self):
+        pass
+
+
+    async def send_inital_message(self, ctx, channel):
+        return await channel.send(embed = self.inital_embed())
+
 class PointsMenu(menus.Menu):
     def __init__(self, points: PointsInfo, msg: discord.Message):
         super().__init__(

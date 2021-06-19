@@ -1427,16 +1427,23 @@ class ScrimManager(Cog, name="Esports"):
 
     @ptable.command(name="edit")
     async def points_edit(self, ctx: Context, points_id: PointsConverter):
-        pass
+        await PointsConfigEditor(points=points_id).start(ctx)
 
     @ptable.command(name="leaderboard", aliases=("lb",))
     async def points_leaderboard(self, ctx: Context):
-        pass
+        await ctx.send("under development bruh")
 
     @ptable.command(name="delete")
     async def points_delete(self, ctx: Context, points_id: PointsConverter):
+        prompt = await ctx.prompt(
+            f"Points Table setup ({points_id.id}) will be deleted, along with all its matches.",
+            title="Are you sure you want to continue?",
+        )
+        if not prompt:
+            return await ctx.success("ok, Aborting")
+
         await PointsInfo.filter(id=points_id.id).delete()
-        await ctx.send(f"ok")
+        await ctx.send(f"Deleted points setup (`{points_id.id}`)")
 
     @ptable.group(name="match", invoke_without_command=True)
     async def _ptable(self, ctx: Context):
@@ -1484,7 +1491,7 @@ class ScrimManager(Cog, name="Esports"):
     @_ptable.command(name="show")
     async def _ptable_show(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
-        pass
+        await ctx.send("under development bruh")
 
     @_ptable.command(name="delete")
     async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
