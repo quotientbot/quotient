@@ -13,7 +13,8 @@ class HelpCommand(commands.HelpCommand):
             command_attrs={
                 "cooldown": commands.Cooldown(1, 3.0, commands.BucketType.member),
                 "help": "Shows help about the bot, a command, or a category",
-            }
+            },
+            verify_checks=False,
         )
 
     async def send_bot_help(self, mapping):
