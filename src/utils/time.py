@@ -3,14 +3,31 @@ import parsedatetime as pdt
 from discord.ext import commands
 import datetime as dtm
 from .regex import TIME_REGEX
-from utils import checks
+from utils import exceptions
 from constants import IST
 from dateutil.relativedelta import relativedelta
-
+from dateutil.parser import parse, ParserError
 
 units = pdt.pdtLocales["en_US"].units
-# units["minutes"].append("mins") #they are already in the list so no need to append again
-# units["seconds"].append("secs")
+
+
+class PastDate(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            dt = parse(argument)
+        except ParserError:
+            raise commands.BadArgument(
+                "The date format you entered seems to be Invalid.\n\n"
+                "The day can be human readable date like `11 May` or maybe a more concrete one such as '4-05-2021'"
+            )
+
+        else:
+            if dt.date() > dtm.datetime.now().date():
+                raise commands.BadArgument(
+                    "This date seems to be in future, either write today's date or some date that is in past."
+                )
+
+            return dt.replace(hour=0, minute=0, tzinfo=IST)
 
 
 class ShortTime:
@@ -29,7 +46,7 @@ class ShortTime:
     def __init__(self, argument, *, now=None):
         match = self.compiled.fullmatch(argument)
         if match is None or not match.group(0):
-            raise checks.InvalidTime()
+            raise exceptions.InvalidTime()
 
         data = {k: int(v) for k, v in match.groupdict(default=0).items()}
         now = dtm.datetime.now(tz=IST)
@@ -47,7 +64,7 @@ class HumanTime:
         now = now or dtm.datetime.now(tz=IST)
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
-            raise checks.InvalidTime()
+            raise exceptions.InvalidTime()
 
         dt = dt.replace(tzinfo=IST)
 
@@ -79,7 +96,7 @@ class FutureTime(Time):
         super().__init__(argument, now=dtm.datetime.now(tz=IST))
 
         if self._past:
-            raise checks.PastTime()
+            raise exceptions.PastTime()
 
 
 def time(target):
