@@ -1,16 +1,17 @@
+from unicodedata import normalize
 from ast import literal_eval
 import aiohttp
 from prettytable import PrettyTable
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
-import string
-from models import Scrim, AssignedSlot, Tourney
+import string, textwrap
+from models import Scrim, AssignedSlot, Tourney, PointsTable
 from models.esports import PointsInfo, ReservedSlot
 from utils import *
 from models.functions import *
 import constants
-from .errors import PointsError, ScrimError, TourneyError
+from .errors import ScrimError, TourneyError
 from .utils import (
     already_reserved,
     available_to_reserve,
@@ -35,7 +36,7 @@ class PointsMenu(menus.Menu):
     def table_embed(self):
         table = PrettyTable()
         table.field_names = ["S.No", "Team Name", "Position Pt", "Kills", "Total"]
-        for team , _list in self._dict.items():
+        for team, _list in self._dict.items():
             no, posi, kill, total = _list
             table.add_row([no, team, posi, kill, total])
 
@@ -45,7 +46,7 @@ class PointsMenu(menus.Menu):
 
     def initial_embed(self):
         embed = discord.Embed(color=self.bot.color)
-        embed.description = "▶️ | Start making points table\n" "❌ | Do not save & abort\n" "✅ | Save and abort"
+        embed.description = "▶️ | Start or Edit points table\n" "❌ | Do not save & abort\n" "✅ | Save and abort"
         return embed
 
     async def send_initial_message(self, ctx, channel):
@@ -65,25 +66,47 @@ class PointsMenu(menus.Menu):
 
     @menus.button("▶️")
     async def on_start(self, payload):
-        await self.pointsembed(
+        msg = await self.pointsembed(
             "Enter team names with their kill points.\n"
             "Format:\n`<Team Name> = <Kills>`\nKindly don't use special characters in team names.\n"
             "Separate them with comma (`,`)\n"
             "Example:\n"
             "```Team Quotient = 20,\nTeam Butterfly = 14,\nTeam Kite = 5,\nTeam 4Pandas = 8```\n"
-            "Write these according to their position in match."
+            "Write these according to their position in match.\n"
+            "You have 10 minutes to answer this."
         )
-        teams = await inputs.string_input(self.ctx, self.check)
+        teams = await inputs.string_input(self.ctx, self.check, delete_after=True, timeout=600)
+        await inputs.safe_delete(msg)
 
         result = {}
         try:
-            for idx, line in enumerate(teams.lower().replace("\n", "").replace("team", "").split(","), start=1):
+
+            for idx, line in enumerate(teams.replace("\n", "").split(","), start=1):
                 line_values = [value.strip() for value in line.split("=")]
+                teamname = (
+                    re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", normalize("NFKC", line_values[0].lower()))
+                ).split()[0]
                 posi = self.points.posi_points[str(idx)] or 0
-                kills = int(line_values[1])
-                result[str(line_values[0])] = [posi, kills, posi + kills]
+                kills = int(line_values[1]) * self.points.kill_points
+
+                if kills > 99:
+                    return await self.ctx.error(
+                        f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
+                    )
+
+                if not len(teamname):
+                    return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
+
+                if len(teamname) > 22:
+                    return await self.ctx.error(f"Team name too large at **{teamname}**", delete_after=4)
+
+                result[textwrap.fill(teamname, width=12)] = [posi, kills, posi + kills]
+
         except Exception as e:
             return await self.ctx.send(e)
+
+        if len(result) > 25:
+            return await self.ctx.error(f"You cannot enter more than 25 teams :c", delete_after=4)
 
         _dict = dict(sorted(result.items(), key=lambda x: x[1][2], reverse=True))
         for idx, team in enumerate(_dict.items(), start=1):
@@ -94,11 +117,16 @@ class PointsMenu(menus.Menu):
 
     @menus.button("❌")
     async def on_cross(self, payload):
-        pass
+        self.stop()
 
     @menus.button("✅")
     async def on_check(self, payload):
-        pass
+        table = await PointsTable.create(points_table=str(self._dict), created_by=self.ctx.author.id)
+        await self.points.data.add(table)
+        await self.ctx.success(
+            f"Successfully created points table (id: `{table.id}`)\n\nYou can use `pt match show` to get it in image format.\nOr you can send the image to a channel with `pt match send`"
+        )
+        self.stop()
 
 
 class IDPMenu(menus.Menu):

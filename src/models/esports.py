@@ -403,8 +403,8 @@ class PointsTable(models.Model):
         table = "pt_data"
 
     id = fields.BigIntField(pk=True, index=True)
-    points_table = fields.JSONField()
-    created_by = fields.DatetimeField()
+    points_table = fields.TextField()
+    created_by = fields.BigIntField()
     created_at = fields.DatetimeField(auto_now=True, index=True)
     edited_at = fields.DatetimeField(null=True)
     channel_id = fields.BigIntField(null=True)
