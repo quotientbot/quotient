@@ -1440,7 +1440,6 @@ class ScrimManager(Cog, name="Esports"):
     @ptable.command(name="leaderboard", aliases=("lb",))
     async def points_leaderboard(self, ctx: Context):
         pass
-    
 
     @ptable.command(name="delete")
     async def points_delete(self, ctx: Context, points_id: PointsConverter):
@@ -1453,19 +1452,27 @@ class ScrimManager(Cog, name="Esports"):
 
     @_ptable.command(name="create")
     async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
-        msg = await ctx.success("ok")
+        points = points_id
+        record = await points.data.filter(created_at__gte=datetime.now(constants.IST).replace(hour=0, minute=0)).first()
+        if record:
+            raise PointsError(
+                "You have already created today's points table. If you want to delete it and create a new one,\n"
+                f"Kindly use: `{ctx.prefix}pt match delete {points.id}`\n"
+                f"If you want to see, what is looks like, use: `{ctx.prefix}pt match show {record.id}`"
+            )
+
+        msg = await ctx.simple(
+            "Starting the Points Table Creator...\n\n`Tip:` It is recommended to use this command on a computer."
+        )
+        await asyncio.sleep(2)
         await PointsMenu(points=points_id, msg=msg).start(ctx)
 
     @_ptable.command(name="all")
-    async def _ptable_all(self, ctx: Context):
-        pass
-
-    @_ptable.command(name="edit")
-    async def _ptable_edit(self, ctx: Context):
+    async def _ptable_all(self, ctx: Context, points_id: PointsConverter):
         pass
 
     @_ptable.command(name="delete")
-    async def _ptable_delete(self, ctx: Context):
+    async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, date:str):
         pass
 
 
