@@ -129,14 +129,14 @@ async def refresh_giveaway(giveaway: Giveaway):
 async def confirm_entry(giveaway: Giveaway, member: discord.Member):
     await Giveaway.filter(pk=giveaway.id).update(participants=ArrayAppend("participants", member.id))
 
-    embed = discord.Embed(color=config.COLOR, title="Giveaway Entry Confirmed!", url=giveaway.jump_url)
-    embed.description = (
-        f"Dear {member}, Your entry for the giveaway with prize: **{giveaway.prize}** in {giveaway.channel.mention} has been confirmed.\n\n"
-        f"The giveaway will end in **{utils.human_timedelta(giveaway.end_at)}**"
-    )
+    # embed = discord.Embed(color=config.COLOR, title="Giveaway Entry Confirmed!", url=giveaway.jump_url)
+    # embed.description = (
+    #     f"Dear {member}, Your entry for the giveaway with prize: **{giveaway.prize}** in {giveaway.channel.mention} has been confirmed.\n\n"
+    #     f"The giveaway will end in **{utils.human_timedelta(giveaway.end_at)}**"
+    # )
 
-    with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
-        await member.send(embed=embed)
+    # with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
+    #     await member.send(embed=embed)
 
 
 def get_giveaway_winners(giveaway: Giveaway):
