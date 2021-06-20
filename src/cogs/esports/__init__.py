@@ -1443,7 +1443,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @ptable.command(name="leaderboard", aliases=("lb",))
     async def points_leaderboard(self, ctx: Context, points_id: PointsConverter, days: typing.Optional[int] = 7):
-        date = datetime.now(tz=IST).replace(hour=0, minute=0, microsecond=0) - timedelta(days=days)
+        date = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
         records = await points_id.data.filter(created_at__gte=date).all()
         if not records:
             raise PointsError(
@@ -1452,7 +1452,7 @@ class ScrimManager(Cog, name="Esports"):
 
         d1 = literal_eval(records[0].points_table)
 
-        ds = (literal_eval(record.points_table) for record in records)
+        ds = [literal_eval(record.points_table) for record in records]
 
         d = {}
         for k in d1.keys():
@@ -1460,6 +1460,7 @@ class ScrimManager(Cog, name="Esports"):
             d[k] = tuple(map(sum, zip(*myiter)))
 
         d.update(dict(sorted(d.items(), reverse=True, key=lambda x: x[1][3])))
+        await ctx.send(d)
 
     @ptable.command(name="delete")
     async def points_delete(self, ctx: Context, points_id: PointsConverter):
