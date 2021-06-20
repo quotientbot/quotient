@@ -116,11 +116,11 @@ async def refresh_giveaway(giveaway: Giveaway):
     channel = giveaway.channel
 
     if not channel:
-        await Giveaway.filter(pk=giveaway.id).delete()
+        return await Giveaway.filter(pk=giveaway.id).delete()
 
     msg = await channel.fetch_message(giveaway.message_id)
     if not msg:
-        await Giveaway.filter(pk=giveaway.id).delete()
+        return await Giveaway.filter(pk=giveaway.id).delete()
 
     with suppress(discord.Forbidden, discord.HTTPException):
         await msg.edit(embed=embed)

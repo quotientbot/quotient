@@ -8,6 +8,7 @@ from core import Cog, Context
 from contextlib import suppress
 from .utils import (
     delete_denied_message,
+    ptable_files,
     scrim_work_role,
     toggle_channel,
     scrim_end_process,
@@ -1522,7 +1523,13 @@ class ScrimManager(Cog, name="Esports"):
     @_ptable.command(name="show")
     async def _ptable_show(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
-        await ctx.send("under development bruh")
+
+        data = await points_id.data.filter(created_at=date).first()
+
+        files = await ptable_files(points_id, data)
+        print("files length", len(files))
+        for file in files:
+            await ctx.send(file=file)
 
     @_ptable.command(name="delete")
     async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):

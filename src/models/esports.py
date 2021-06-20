@@ -1,6 +1,5 @@
 import asyncio
 import io
-from operator import index
 
 from .fields import *
 import discord

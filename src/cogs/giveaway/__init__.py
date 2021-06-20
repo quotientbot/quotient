@@ -22,8 +22,9 @@ class Giveaways(Cog):
                 return True
             
             else:
-                return await ctx.error("You either need `giveaways` role or `manage server` permissions to use this command.")
-
+                await ctx.error("You either need `giveaways` role or `manage server` permissions to use this command.")
+                return False
+                
         return commands.check(predicate)
 
         

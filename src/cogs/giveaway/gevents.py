@@ -93,9 +93,10 @@ class Gevents(Cog):
             return
 
         if payload.user_id in giveaway.participants:
-            await Giveaway.filter(message_id=payload.message_id).update(
-                participants=ArrayRemove("participants", payload.user_id)
-            )
+            if payload.emoji.name == "🎉":
+                await Giveaway.filter(message_id=payload.message_id).update(
+                    participants=ArrayRemove("participants", payload.user_id)
+                )
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
