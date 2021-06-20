@@ -401,6 +401,9 @@ class PointsInfo(models.Model):
     data: fields.ManyToManyRelation["PointsTable"] = fields.ManyToManyField("models.PointsTable", index=True)
 
 
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
 class PointsTable(models.Model):
     class Meta:
         table = "pt_data"

@@ -35,9 +35,31 @@ class PointsConfigEditor(menus.Menu):
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     def inital_embed(self):
-        pass
+        points = self.points
+        embed = discord.Embed(color=self.bot.color, title=f"Ptable Setup Editor: {points.id}")
 
-    async def send_inital_message(self, ctx, channel):
+        fields = {
+            "Title": points.title,
+            "Secondary Title": points.secondary_title,
+            "Footer": points.footer,
+            "Channel": getattr(points.channel, "mention", "`Not Found!`"),
+            "Per kill point": points.kill_points,
+            "Default Position Points": "Click me for preview",
+            "Background Image": "Click me for preview",
+            "Box Color": points.box_color,
+        }
+
+        for idx, (name, value) in enumerate(fields.items()):
+            embed.add_field(
+                name=f"{regional_indicator(string.ascii_uppercase[idx])} {name}:",
+                value=value,
+                inline=False,
+            )
+
+        embed.set_thumbnail(url=self.bot.user.avatar_url)
+        return embed
+
+    async def send_initial_message(self, ctx, channel):
         return await channel.send(embed=self.inital_embed())
 
 
@@ -55,7 +77,7 @@ class PointsMenu(menus.Menu):
 
     def table_embed(self):
         table = PrettyTable()
-        table.field_names = ["S.No", "Team Name","Posi Pt", "Kills", "Total"]
+        table.field_names = ["S.No", "Team Name", "Posi Pt", "Kills", "Total"]
         for idx, teams in enumerate(self._dict.items(), start=1):
             team = teams[0]
             _list = teams[1]
