@@ -853,7 +853,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_group(self, ctx, tourney: TourneyConverter, group_size: int = 20):
         """Get groups of the tournament."""
-        records = await tourney.assigned_slots.all()
+        records = await tourney.assigned_slots.all().order_by("id")
         if not len(records):
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
@@ -879,7 +879,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_data(self, ctx, tourney: TourneyConverter):
         """Get all the data that Quotient collected for a tourney."""
-        records = await tourney.assigned_slots.all()
+        records = await tourney.assigned_slots.all().order_by("id")
         if not len(records):
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 

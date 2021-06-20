@@ -655,7 +655,9 @@ class Utility(Cog, name="utility"):
     #         elif first_part == 2:  # means an old message
     #             chances, second_part = 3, 0
     #             while chances:
-    #                 em.description = f"Send the link of the message you want to use for reaction roles.(Tries Remaining:{chances})"
+    #                 em.description = (
+    #                     f"Send the link of the message you want to use for reaction roles.(Tries Remaining:{chances})"
+    #                 )
     #                 msg = await ctx.send(embed=em)
     #                 res = await inputs.string_input(ctx, check, delete_after=True)
 
@@ -665,8 +667,8 @@ class Utility(Cog, name="utility"):
     #                     chances = 0
     #                     return await cancel_msg(ctx)
 
-    #                 elif res.lower().startswith('https://'):
-    #                     url = res.split('/')
+    #                 elif res.lower().startswith("https://"):
+    #                     url = res.split("/")
 
     #                     try:
     #                         channel = ctx.guild.get_channel(int(url[5]))
@@ -674,10 +676,15 @@ class Utility(Cog, name="utility"):
     #                         second_part, chances = 1, 0
     #                     except Exception as e:
     #                         chances -= 1
-    #                         await ctx.error(f"Can't find that message, please make sure the link is valid and I can see the channel, message history.")
+    #                         await ctx.error(
+    #                             f"Can't find that message, please make sure the link is valid and I can see the channel, message history."
+    #                         )
 
     #                 else:
     #                     chances -= 1
+
+    #         if second_part == 1:
+    #             chances , third_part , emoji = 3, 0, None
 
     #     except Exception as e:
     #         await ctx.send(e)
