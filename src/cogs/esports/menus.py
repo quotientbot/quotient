@@ -24,22 +24,22 @@ from .utils import (
 
 
 class PointsConfigEditor(menus.Menu):
-    def __init__(self, points:PointsInfo):
+    def __init__(self, points: PointsInfo):
         super().__init__(
             timeout=60,
             delete_message_after=False,
             clear_reactions_after=True,
         )
-        
+
         self.points = points
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     def inital_embed(self):
         pass
 
-
     async def send_inital_message(self, ctx, channel):
-        return await channel.send(embed = self.inital_embed())
+        return await channel.send(embed=self.inital_embed())
+
 
 class PointsMenu(menus.Menu):
     def __init__(self, points: PointsInfo, msg: discord.Message):
@@ -55,10 +55,12 @@ class PointsMenu(menus.Menu):
 
     def table_embed(self):
         table = PrettyTable()
-        table.field_names = ["S.No", "Team Name", "Position Pt", "Kills", "Total"]
-        for team, _list in self._dict.items():
-            no, posi, kill, total = _list
-            table.add_row([no, team, posi, kill, total])
+        table.field_names = ["S.No", "Team Name","Posi Pt", "Kills", "Total"]
+        for idx, teams in enumerate(self._dict.items(), start=1):
+            team = teams[0]
+            _list = teams[1]
+            win, posi, kill, total = _list
+            table.add_row([idx, team, posi, kill, total])
 
         embed = discord.Embed(color=self.bot.color, title=self.points.title)
         embed.description = f"```ml\n{table.get_string()}```"
@@ -120,8 +122,7 @@ class PointsMenu(menus.Menu):
                 if len(teamname) > 22:
                     return await self.ctx.error(f"Team name too large at **{teamname}**", delete_after=4)
 
-                result[textwrap.fill(teamname, width=12)] = [posi, kills, posi + kills]
-
+                result[textwrap.fill(teamname, width=12)] = [1 if idx == 1 else 0, posi, kills, posi + kills]
         except Exception as e:
             return await self.ctx.send(e)
 
@@ -129,9 +130,6 @@ class PointsMenu(menus.Menu):
             return await self.ctx.error(f"You cannot enter more than 25 teams :c", delete_after=4)
 
         _dict = dict(sorted(result.items(), key=lambda x: x[1][2], reverse=True))
-        for idx, team in enumerate(_dict.items(), start=1):
-            team[1].insert(0, idx)
-
         self._dict.update(_dict)
         await self.refresh()
 

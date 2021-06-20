@@ -397,7 +397,7 @@ class PointsInfo(models.Model):
     box_color = fields.IntField(default=65459)
     title = fields.CharField(max_length=150, null=True)
     secondary_title = fields.CharField(max_length=200, null=True)
-    footer = fields.CharField(max_length=200)
+    footer = fields.CharField(max_length=200, default = "Made with Quotient • quotientbot.xyz")
     data: fields.ManyToManyRelation["PointsTable"] = fields.ManyToManyField("models.PointsTable", index=True)
 
 
