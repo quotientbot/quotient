@@ -139,5 +139,9 @@ async def show_tip(ctx):
             await ctx.send(f"**Did You Know?:** {random.choice(tips)}", delete_after=10)
 
 
+class HelpGIF(Enum):
+    pass
+
+
 MISSING = _Sentinel()
 IST = pytz.timezone("Asia/Kolkata")
