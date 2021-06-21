@@ -1526,6 +1526,9 @@ class ScrimManager(Cog, name="Esports"):
 
         data = await points_id.data.filter(created_at=date).first()
 
+        if not data:
+            raise PointsError(f"I couldn't find any points table created on **{date.strftime('%d/%b/%Y')}**")
+
         files = await ptable_files(points_id, data)
         if len(files):
             for file in files:
@@ -1539,13 +1542,43 @@ class ScrimManager(Cog, name="Esports"):
                 f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
             )
 
-
     @_ptable.command(name="send")
-    async def _ptable_send(self, ctx:Context,points_id: PointsConverter, *, date: typing.Optional[PastDate]):
-        pass
-    
+    async def _ptable_send(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
+
+        data = await points_id.data.filter(created_at=date).first()
+
+        if not data:
+            raise PointsError(f"I couldn't find any points table created on **{date.strftime('%d/%b/%Y')}**")
+
+        channel = points_id.channel
+
+        if not channel:
+            raise PointsError(f"I couldn't find default points table send channel for `{points_id.id}`")
+
+        perms = channel.permissions_for(ctx.me)
+
+        if not all((perms.send_messages, perms.embed_links)):
+            raise PointsError(
+                f"Kindly make sure I have following permissions in {channel.mention}:\n\n- `send messages`\n- `embed links`"
+            )
+
+        files = await ptable_files(points_id, data)
+        if not len(files):
+            raise PointsError(
+                f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
+            )
+
+        for file in files:
+            embed = self.bot.embed(ctx)
+            embed.set_image(url="attachment://points_table.png")
+            embed.set_footer(text=f"Date: {data.created_at.strftime('%d/%b/%Y')}")
+            await channel.send(file=file, embed=embed)
+
+        await ctx.success(f"Sent points table successfully.")
 
     @_ptable_show.before_invoke
+    @_ptable_send.before_invoke
     async def before_points_invoke(self, ctx):
         await ctx.trigger_typing()
 
