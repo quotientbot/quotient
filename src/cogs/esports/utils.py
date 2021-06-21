@@ -12,18 +12,6 @@ import config
 import asyncio
 import re
 
-from ast import literal_eval
-from PIL import Image, ImageFont, ImageDraw
-from pathlib import Path
-
-
-async def ptable_files(points, data):
-    table = literal_eval(data.points_table)
-
-    def wrapper():
-        pass
-
-    return await asyncio.get_event_loop().run_in_executor(None, wrapper)
 
 
 def get_slots(slots):

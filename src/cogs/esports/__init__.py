@@ -8,7 +8,6 @@ from core import Cog, Context
 from contextlib import suppress
 from .utils import (
     delete_denied_message,
-    ptable_files,
     scrim_work_role,
     toggle_channel,
     scrim_end_process,
@@ -27,6 +26,7 @@ from discord.ext import commands
 from .events import ScrimEvents
 from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
+from .image import ptable_files
 
 import discord
 import config
@@ -1530,6 +1530,7 @@ class ScrimManager(Cog, name="Esports"):
         print("files length", len(files))
         for file in files:
             await ctx.send(file=file)
+
 
     @_ptable.command(name="delete")
     async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):

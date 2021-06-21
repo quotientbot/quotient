@@ -130,7 +130,7 @@ class PointsMenu(menus.Menu):
                 teamname = (
                     re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", normalize("NFKC", line_values[0].lower()))
                 ).split()[0]
-                posi = self.points.posi_points[str(idx)] or 0
+                posi = self.points.posi_points.get(str(idx), 0)
                 kills = int(line_values[1]) * self.points.kill_points
 
                 if kills > 99:
@@ -168,7 +168,7 @@ class PointsMenu(menus.Menu):
         )
         await self.points.data.add(table)
         await self.ctx.success(
-            f"Successfully created points table.\n\nYou can use `pt match show` to get it in image format.\nOr you can send the image to a channel with `pt match send`"
+            f"Successfully created points table.\n\nYou can use `pt match show {self.points.id}` to get it in image format.\nOr you can send the image to a channel with `pt match send {self.points.id}`"
         )
         self.stop()
 
