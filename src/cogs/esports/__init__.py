@@ -1527,10 +1527,27 @@ class ScrimManager(Cog, name="Esports"):
         data = await points_id.data.filter(created_at=date).first()
 
         files = await ptable_files(points_id, data)
-        print("files length", len(files))
-        for file in files:
-            await ctx.send(file=file)
+        if len(files):
+            for file in files:
+                embed = self.bot.embed(ctx)
+                embed.set_image(url="attachment://points_table.png")
+                embed.set_footer(text=f"Date: {data.created_at.strftime('%d/%b/%Y')}")
+                await ctx.send(file=file, embed=embed)
 
+        else:
+            raise PointsError(
+                f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
+            )
+
+
+    @_ptable.command(name="send")
+    async def _ptable_send(self, ctx:Context,points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        pass
+    
+
+    @_ptable_show.before_invoke
+    async def before_points_invoke(self, ctx):
+        await ctx.trigger_typing()
 
     @_ptable.command(name="delete")
     async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):

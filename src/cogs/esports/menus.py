@@ -90,7 +90,7 @@ class PointsMenu(menus.Menu):
 
     def initial_embed(self):
         embed = discord.Embed(color=self.bot.color)
-        embed.description = "▶️ | Start or Edit points table\n" "❌ | Do not save & abort\n" "✅ | Save and abort"
+        embed.description = "▶️ | Start or Edit points table\n" "❌ | Do not save & abort\n" "✅ | Save and Create Image"
         return embed
 
     async def send_initial_message(self, ctx, channel):
