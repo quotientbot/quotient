@@ -95,6 +95,8 @@ perks = {
     "Custom Color": ["❌", "✅"],
     "Giveaway": ["5", "Unlimited"],
     "Auto-Event Interval": ["❌", "✅"],
+    "Ptable Setup": ["2", "Unlimited"],
+    "Edit Ptable Watermark": ["❌", "✅"],
 }
 
 

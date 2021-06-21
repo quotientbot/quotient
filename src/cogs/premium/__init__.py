@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import constants
 import secrets
 import discord
+import textwrap
 
 
 class Premium(Cog):
@@ -187,7 +188,7 @@ class Premium(Cog):
         # table = table.get_string()
         embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
         # embed.description = f"```{table}```"
-        embed.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/855090504396046346/unknown.png")
+        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/856601287566557184/unknown.png")
         await ctx.send(embed=embed)
 
 
