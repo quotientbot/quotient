@@ -1506,7 +1506,7 @@ class ScrimManager(Cog, name="Esports"):
         """Create a match or points table."""
         points = points_id
         record = await points.data.filter(
-            created_at__gte=datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)
+            created_at=datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)
         ).first()
         if record:
             raise PointsError(
