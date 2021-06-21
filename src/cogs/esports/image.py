@@ -8,19 +8,18 @@ import random
 import discord
 
 
-def add_watermark(image):
+def add_watermark(image, footer):
     width, height = image.size
-    text = "Quotient • quotientbot.xyz"
     draw = ImageDraw.Draw(image)
 
     font = ImageFont.truetype(str(Path.cwd() / "src" / "data" / "font" / "Ubuntu-Regular.ttf"), 25)
-    textwidth, textheight = draw.textsize(text, font)
+    textwidth, textheight = draw.textsize(footer, font)
 
     margin = 20
     x = width - textwidth - margin
     y = height - textheight - margin
 
-    draw.text((x, y), text, font=font)
+    draw.text((x, y), footer, font=font)
 
 
 def add_title(image, title, second_title=None):
@@ -122,7 +121,7 @@ async def ptable_files(points: PointsInfo, data: PointsTable):
                 image.paste(rect, (40, top), rect)
                 top += 50
 
-            add_watermark(image)
+            add_watermark(image, points.footer)
             add_title(image, points.title, points.secondary_title)
 
             img_bytes = io.BytesIO()
