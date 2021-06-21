@@ -173,7 +173,7 @@ class PointsMenu(menus.Menu):
             team = teams[0]
             _list = teams[1]
             win, posi, kill, total = _list
-            table.add_row([idx, team, posi, kill, total])
+            table.add_row([idx, textwrap.fill(team, width=12), posi, kill, total])
 
         embed = discord.Embed(color=self.bot.color, title=self.points.title)
         embed.description = f"```ml\n{table.get_string()}```"
@@ -217,9 +217,7 @@ class PointsMenu(menus.Menu):
         try:
 
             for idx, line in enumerate(teams.replace("\n", "").split(","), start=1):
-                print(line)
                 line_values = [value.strip() for value in line.split("=")]
-                print(line_values)
 
                 teamname = " ".join(
                     normalize("NFKC", line_values[0]).lower().replace("team", "").replace("name", "").split()
@@ -236,15 +234,15 @@ class PointsMenu(menus.Menu):
                         f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
                     )
 
-                print(teamname)
+                
                 if not len(teamname):
                     return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
 
                 if len(teamname) > 22:
                     return await self.ctx.error(f"Team name too large at **{teamname}**", delete_after=4)
 
-                result[textwrap.fill(teamname, width=12)] = [1 if idx == 1 else 0, posi, kills, posi + kills]
-        
+                result[teamname] = [1 if idx == 1 else 0, posi, kills, posi + kills]
+
         except Exception as e:
             return await self.ctx.error(f"Oops , you entered wrong format", delete_after=3)
 
@@ -262,7 +260,7 @@ class PointsMenu(menus.Menu):
     @menus.button("✅")
     async def on_check(self, payload):
         table = await PointsTable.create(
-            points_table=str(self._dict).replace('\n',' '),
+            points_table=str(self._dict),
             created_by=self.ctx.author.id,
             created_at=(datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)),
         )
