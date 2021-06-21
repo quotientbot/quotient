@@ -41,12 +41,10 @@ class PointsConfigEditor(menus.Menu):
         fields = {
             "Title": points.title,
             "Secondary Title": points.secondary_title,
-            "Footer": points.footer,
+            "Watermark": points.footer,
             "Channel": getattr(points.channel, "mention", "`Not Found!`"),
             "Per kill point": points.kill_points,
             "Default Position Points": "Click me for preview",
-            "Background Image": "Click me for preview",
-            "Box Color": points.box_color,
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -61,6 +59,84 @@ class PointsConfigEditor(menus.Menu):
 
     async def send_initial_message(self, ctx, channel):
         return await channel.send(embed=self.inital_embed())
+
+    async def refresh(self):
+        self.points = await PointsInfo.get(id=self.points.id)
+        await self.message.edit(embed=self.inital_embed())
+
+    @menus.button(regional_indicator("A"))
+    async def on_a(self, payload):
+        msg = await self.ctx.simple(f'What do you want the title of points table to be?\n\n`Please enter a title under 22 characters.`')
+
+        title = await inputs.string_input(self.ctx, self.check,delete_after=True)
+        await inputs.safe_delete(msg)
+
+        if len(title) > 22:
+            return await self.ctx.error("Character length of title cannot exceed 22 characters.",delete_after=3)
+
+        await PointsInfo.filter(id=self.points.id).update(title = title)
+        await self.refresh()
+
+    @menus.button(regional_indicator("B"))
+    async def on_b(self, payload):
+        msg = await self.ctx.simple("What do you want to secondary title to be? This will be shown under the main title.\n\n`Please keep this under 22 characters.`")
+
+        title = await inputs.string_input(self.ctx, self.check,delete_after=True)
+        await inputs.safe_delete(msg)
+
+        if len(title) > 22:
+            return await self.ctx.error("Character length of secondary title cannot exceed 22 characters.",delete_after=3)
+
+        await PointsInfo.filter(id=self.points.id).update(secondary_title = title)
+        await self.refresh()
+
+
+    @menus.button(regional_indicator("C"))
+    async def on_c(self, payload):
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error("This feature is available to premium servers only.\n\nYou can upgrade your server with Quotient Premium to use this.\n\n`Kindly use qperks cmd to know more.`",delete_after=4)
+        
+        msg = await self.ctx.simple("What do you want the footer text to be?\n\n`Please keep it under 50 characters.`")
+        title = await inputs.string_input(self.ctx, self.check,delete_after=True)
+        await inputs.safe_delete(msg)
+
+        if len(title) > 50:
+            return await self.ctx.error("Character length of footer cannot exceed 50 characters.",delete_after=3)
+
+        await PointsInfo.filter(id=self.points.id).update(footer = title)
+        await self.refresh()
+    
+    
+
+    @menus.button(regional_indicator("D"))
+    async def on_d(self, payload):
+        msg = await self.ctx.simple(f"Which channel should I use to send points tables?\n\n`Either mention the channel or write its name`")
+
+        channel = await inputs.channel_input(self.ctx, self.check)
+        await inputs.safe_delete(msg)
+
+        perms = channel.permissions_for(self.ctx.me)
+        if not all((perms.send_messages, perms.embed_links)):
+            return await self.ctx.error(f"kindly make sure I have `send_messages` and `embed_links` permissions in {channel.mention}",delete_after=3)
+        
+        await PointsInfo.filter(channel_id = channel.id)
+        await self.refresh()
+
+    @menus.button(regional_indicator("E"))
+    async def on_e(self, payload):
+        msg = await self.ctx.simple(f"How many points do you want me to give per kill?\n\n`Enter a number between 1 and 10.`")
+        kill_point = await inputs.integer_input(self.ctx, self.check, delete_after=True,limits=(0, 10))
+        await inputs.safe_delete(msg)
+        await PointsInfo.filter(id = self.points.id).update(kill_points = kill_point)
+        await self.refresh()
+
+    @menus.button(regional_indicator("F"))
+    async def on_f(self, payload):
+        return await self.ctx.error(f"This feature is currently under development, it will be available soon",delete_after=3)
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}")
+    async def on_stop(self, payload):
+        self.stop()
 
 
 class PointsMenu(menus.Menu):
@@ -876,7 +952,7 @@ class AutocleanMenu(menus.Menu):
         await Scrim.filter(pk=self.scrim.id).update(autoclean_time=clean_time)
         await self.refresh()
 
-    @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
+    @menus.button("\N{BLACK SQUARE FOR STOP}")
     async def on_stop(self, payload):
         self.stop()
 

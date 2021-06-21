@@ -1349,11 +1349,11 @@ class ScrimManager(Cog, name="Esports"):
         ptinfo.kill_points = kill_point
 
         await self.pointsembed(
-            ctx, 2, "What should be the title of every points table?\n\n`Please keep the character length under 150`"
+            ctx, 2, "What should be the title of every points table?\n\n`Please keep the character length under 22`"
         )
         title = await inputs.string_input(ctx, check)
-        if len(title) > 150:
-            raise PointsError("Character length of title cannot exceed 150 characters.")
+        if len(title) > 22:
+            raise PointsError("Character length of title cannot exceed 22 characters.")
         ptinfo.title = title
 
         await self.pointsembed(

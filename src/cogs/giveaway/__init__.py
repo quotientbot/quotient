@@ -15,19 +15,19 @@ class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-
     def can_use_giveaways():
-        async def predicate(ctx:Context):
-            if ctx.author.guild_permissions.manage_guild or "giveaways" in (role.name.lower() for role in ctx.author.roles):
+        async def predicate(ctx: Context):
+            if ctx.author.guild_permissions.manage_guild or "giveaways" in (
+                role.name.lower() for role in ctx.author.roles
+            ):
                 return True
-            
+
             else:
                 await ctx.error("You either need `giveaways` role or `manage server` permissions to use this command.")
                 return False
-                
+
         return commands.check(predicate)
 
-        
     async def cog_command_error(self, ctx, error):
         if isinstance(error, GiveawayError):
             embed = discord.Embed(color=discord.Color.red(), title="Whoopsi-Doopsi", description=error)
@@ -35,6 +35,7 @@ class Giveaways(Cog):
 
     @commands.command(aliases=("start",))
     @can_use_giveaways()
+    @commands.max_concurrency(1, commands.cooldowns.BucketType.guild)
     async def gcreate(self, ctx: Context):
         """
         Create a giveaway interactively.
