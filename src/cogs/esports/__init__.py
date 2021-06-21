@@ -1323,10 +1323,17 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.group(aliases=("pt",), invoke_without_command=True)
     async def ptable(self, ctx):
+        """Points tables commands"""
         await ctx.send_help(ctx.command)
 
     @ptable.command(name="setup")
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.has_permissions(manage_guild=True)
     async def ptable_setup(self, ctx: Context):
+        """
+        Create a ptable setup.
+        You can use this to create points tables daily.
+        """
         count = await PointsInfo.filter(guild_id=ctx.guild.id).count()
 
         if count >= 2 and not await ctx.is_premium_guild():
@@ -1417,7 +1424,10 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @ptable.command(name="config")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def points_config(self, ctx: Context):
+        """Get all the ptables you have created so far"""
         records = await PointsInfo.filter(guild_id=ctx.guild.id).all()
         if not len(records):
             raise PointsError(
@@ -1439,11 +1449,18 @@ class ScrimManager(Cog, name="Esports"):
         await paginator.paginate()
 
     @ptable.command(name="edit")
+    @commands.has_permissions(manage_guild=True)
+    @commands.max_concurrency(1, BucketType.guild)
     async def points_edit(self, ctx: Context, points_id: PointsConverter):
+        """Edit ptable config of a setup"""
         await PointsConfigEditor(points=points_id).start(ctx)
 
     @ptable.command(name="leaderboard", aliases=("lb",))
+    @commands.has_permissions(manage_guild=True)
     async def points_leaderboard(self, ctx: Context, points_id: PointsConverter, days: typing.Optional[int] = 7):
+        """Get leaderboard a ptable for desired no. of days"""
+        raise PointsError("This command is currently under development, will be available soon.")
+
         date = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
         records = await points_id.data.filter(created_at__gte=date).all()
         if not records:
@@ -1464,7 +1481,9 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(d)
 
     @ptable.command(name="delete")
+    @commands.has_permissions(manage_guild=True)
     async def points_delete(self, ctx: Context, points_id: PointsConverter):
+        """Delete a ptable setup, along with its matches."""
         prompt = await ctx.prompt(
             f"Points Table setup ({points_id.id}) will be deleted, along with all its matches.",
             title="Are you sure you want to continue?",
@@ -1477,10 +1496,14 @@ class ScrimManager(Cog, name="Esports"):
 
     @ptable.group(name="match", invoke_without_command=True)
     async def _ptable(self, ctx: Context):
+        """ptable match cmds"""
         await ctx.send_help(ctx.command)
 
     @_ptable.command(name="create")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
+        """Create a match or points table."""
         points = points_id
         record = await points.data.filter(
             created_at__gte=datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -1499,7 +1522,9 @@ class ScrimManager(Cog, name="Esports"):
         await PointsMenu(points=points_id, msg=msg).start(ctx)
 
     @_ptable.command(name="all")
+    @commands.has_permissions(manage_guild=True)
     async def _ptable_all(self, ctx: Context, points_id: PointsConverter):
+        """Get a list of all matches created for a specific ptable"""
         records = await points_id.data.all()
         if not records:
             raise PointsError(
@@ -1521,7 +1546,11 @@ class ScrimManager(Cog, name="Esports"):
         await paginator.paginate()
 
     @_ptable.command(name="show")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.max_concurrency(1, BucketType.guild)
     async def _ptable_show(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        """Get a points table in image format"""
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
 
         data = await points_id.data.filter(created_at=date).first()
@@ -1543,7 +1572,11 @@ class ScrimManager(Cog, name="Esports"):
             )
 
     @_ptable.command(name="send")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.max_concurrency(1, BucketType.guild)
     async def _ptable_send(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        """Send points table to set channel"""
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
 
         data = await points_id.data.filter(created_at=date).first()
@@ -1583,7 +1616,9 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.trigger_typing()
 
     @_ptable.command(name="delete")
+    @commands.has_permissions(manage_guild=True)
     async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
+        """Delete a points table/ match."""
         date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
         points = points_id
         record = await points.data.filter(created_at=date).first()
