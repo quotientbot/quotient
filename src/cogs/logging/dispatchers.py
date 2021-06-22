@@ -1,6 +1,7 @@
 from core import Quotient, Cog, Context
 from models import Logging
 from constants import LogType
+from contextlib import suppress
 import discord
 
 __all__ = ("LoggingDispatchers",)
@@ -39,3 +40,20 @@ class LoggingDispatchers(Cog):
                 return
             else:
                 self.bot.dispatch("log", LogType.msg, message=messages, subtype="bulk")
+
+    @Cog.listener()
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if not before.guild:
+            return
+
+        with suppress(AttributeError):
+            if before.content == after.content:
+                return
+
+        check = await Logging.get_or_none(guild_id=before.guild.id, type=LogType.msg)
+        if check:
+            if before.author.bot and check.ignore_bots:
+                return
+
+            else:
+                self.bot.dispatch("log", LogType.msg, message=(before, after))

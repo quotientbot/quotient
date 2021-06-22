@@ -245,7 +245,10 @@ class Scrim(models.Model):
             format = leval(self.slotlist_format)
 
             embed = discord.Embed.from_dict(format)
-            embed.description = f"```{desc}```{embed.description.replace('\n'*3,'') if embed.description else ''}"
+
+            description = embed.description.replace('\n'*3,'') if embed.description else ''
+            
+            embed.description = f"```{desc}```{description}"
 
         else:
             embed = discord.Embed(title=self.name + " Slotlist", description=f"```{desc}```", color=self.bot.color)

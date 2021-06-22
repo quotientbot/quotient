@@ -37,3 +37,10 @@ async def get_channel(_type: LogType, guild: discord.Guild) -> Optional[discord.
 
     else:
         return channel, color
+
+
+def truncate_string(value, max_length=128, suffix="..."):
+    string_value = str(value)
+    string_truncated = string_value[: min(len(string_value), (max_length - len(suffix)))]
+    suffix = suffix if len(string_value) > max_length else ""
+    return string_truncated + suffix
