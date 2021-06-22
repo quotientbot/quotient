@@ -88,7 +88,7 @@ class LoggingEvents(Cog):
                 before, after = message
                 embed.color = discord.Color(color)
                 embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
-                embed.description = f"A message was edited in {before.channel.mention}."
+                embed.description = f"A [message]({before.jump_url}) was edited in {before.channel.mention}."
                 embed.set_author(name=str(before.author), icon_url=before.author.avatar_url)
                 embed.add_field(
                     name="Before:", value=truncate_string(before.content) or f"*[Content Unavailable]*", inline=False

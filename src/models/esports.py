@@ -246,8 +246,8 @@ class Scrim(models.Model):
 
             embed = discord.Embed.from_dict(format)
 
-            description = embed.description.replace('\n'*3,'') if embed.description else ''
-            
+            description = embed.description.replace("\n" * 3, "") if embed.description else ""
+
             embed.description = f"```{desc}```{description}"
 
         else:
@@ -255,6 +255,9 @@ class Scrim(models.Model):
 
         if self.show_time_elapsed and self.time_elapsed:
             embed.set_footer(text=f"Registration took: {self.time_elapsed}")
+
+        if not embed.color:
+            embed.color = 0x2F3136
 
         channel = self.slotlist_channel
         return embed, channel
@@ -399,13 +402,14 @@ class PointsInfo(models.Model):
     box_color = fields.IntField(default=65459)
     title = fields.CharField(max_length=150, null=True)
     secondary_title = fields.CharField(max_length=200, null=True)
-    footer = fields.CharField(max_length=200, default = "Made with Quotient • quotientbot.xyz")
+    footer = fields.CharField(max_length=200, default="Made with Quotient • quotientbot.xyz")
     data: fields.ManyToManyRelation["PointsTable"] = fields.ManyToManyField("models.PointsTable", index=True)
-
 
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
+
+
 class PointsTable(models.Model):
     class Meta:
         table = "pt_data"
