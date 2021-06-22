@@ -256,7 +256,7 @@ class Scrim(models.Model):
         if self.show_time_elapsed and self.time_elapsed:
             embed.set_footer(text=f"Registration took: {self.time_elapsed}")
 
-        if not embed.color:
+        if embed.color == discord.Embed.Empty:
             embed.color = 0x2F3136
 
         channel = self.slotlist_channel
