@@ -57,3 +57,25 @@ class LoggingDispatchers(Cog):
 
             else:
                 self.bot.dispatch("log", LogType.msg, message=(before, after))
+
+    @Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        guild = member.guild
+
+        check = await Logging.get_or_none(guild_id=guild.id, type=LogType.join)
+        if check:
+            if member.bot and check.ignore_bots:
+                return
+            else:
+                self.bot.dispatch("log", LogType.join, member=member)
+
+    @Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        guild = member.guild
+
+        check = await Logging.get_or_none(guild_id=guild.id, type=LogType.leave)
+        if check:
+            if member.bot and check.ignore_bots:
+                return
+            else:
+                self.bot.dispatch("log", LogType.leave, member=member)

@@ -160,7 +160,7 @@ class Snipes(models.Model):
     # I have read about it a lot and I learnt a lot too, yes I understand select speed matters with commands like snipe but because,
     # this table is gonna be updated very very frequently, I will not create index here because this will very badly affect the insert,
     # update and delete queries and ultimately the whole database performance.
-    # I will leave the above comment as it is with a hope that it might be helpful for anyone reading it.
+    # I will leave the above comment as it is, with a hope that it might be helpful for anyone reading it.
     id = fields.BigIntField(pk=True)
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
@@ -437,7 +437,7 @@ class Giveaway(models.Model):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
-    
+
     @property
     def host(self):
         if self._guild is not None:
@@ -447,7 +447,7 @@ class Giveaway(models.Model):
     def req_role(self):
         if self._guild is not None:
             return self._guild.get_role(self.required_role_id)
-    
+
     @property
     def message(self):
         if self.channel is not None:
@@ -455,8 +455,9 @@ class Giveaway(models.Model):
 
     @property
     def real_participants(self):
-        return map(self._guild.get_member,self.participants)
-           
+        return map(self._guild.get_member, self.participants)
+
+
 class Rrole(models.Model):
     class Meta:
         table = "reactionroles"

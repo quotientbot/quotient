@@ -5,7 +5,7 @@ from discord.utils import escape_markdown
 from constants import IST, LogType
 from models import Snipes
 from .functions import *
-import textwrap
+from utils import strtime, human_timedelta
 
 __all__ = ("LoggingEvents",)
 
@@ -96,3 +96,52 @@ class LoggingEvents(Cog):
                 embed.add_field(name="After:", value=truncate_string(after.content) or f"*[Content Unavailable]*")
 
                 return embed, channel
+
+        elif _type == LogType.join:
+            member = kwargs.get("member")
+
+            guild = member.guild
+
+            channel, color = await get_channel(_type, guild)
+            if not channel:
+                return
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            embed.set_author(name=str(member), icon_url=member.avatar_url)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.description = (
+                f"{member.mention} just joined the server, they are {guild.member_count}th member of {guild.name}."
+            )
+            embed.add_field(
+                name="Account Age:",
+                value=f"`{strtime(member.created_at)}` ({human_timedelta(IST.localize(member.created_at))})",
+            )
+            embed.set_footer(text=f"ID: {member.id}")
+
+            return embed, channel
+
+        elif _type == LogType.leave:
+            member = kwargs.get("member")
+
+            guild = member.guild
+
+            channel, color = await get_channel(_type, guild)
+            if not channel:
+                return
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            embed.set_author(name=str(member), icon_url=member.avatar_url)
+            embed.set_thumbnail(url=member.avatar_url)
+
+            embed.description = f"{member.mention} just left the server. They joined {human_timedelta(IST.localize(member.joined_at) + timedelta(hours=5, minutes=30))}"
+            embed.add_field(
+                name="Roles:", value=", ".join((role.mention for role in member.roles)).replace("@@everyone", "@everyone")
+            )
+
+            return embed, channel
