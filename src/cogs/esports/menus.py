@@ -234,7 +234,6 @@ class PointsMenu(menus.Menu):
                         f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
                     )
 
-                
                 if not len(teamname):
                     return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
 
@@ -249,7 +248,7 @@ class PointsMenu(menus.Menu):
         if len(result) > 25:
             return await self.ctx.error(f"You cannot enter more than 25 teams :c", delete_after=4)
 
-        _dict = dict(sorted(result.items(), key=lambda x: x[1][2], reverse=True))
+        _dict = dict(sorted(result.items(), key=lambda x: x[1][3], reverse=True))
         self._dict.update(_dict)
         await self.refresh()
 

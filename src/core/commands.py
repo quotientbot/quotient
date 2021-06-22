@@ -1,7 +1,7 @@
 from discord.ext import commands
 import typing
 
-__all__ = ("quocommand", "quogroup")
+__all__ = ("quocommand", "quogroup", "check")
 
 
 def quocommand(
