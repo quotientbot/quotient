@@ -17,12 +17,15 @@ async def handle_no_permission(_type: LogType, channel: discord.TextChannel, **k
     pass
 
 
-async def check_permissions(_type, guild: discord.Guild, channel: discord.TextChannel) -> bool:
-    if not guild.me.guild_permissions.view_audit_log:
-        return await handle_no_permission(_type, channel, permissions=("", ""))
+async def check_permissions(_type, channel: discord.TextChannel) -> bool:
+    _bool = True
 
-    elif not channel.permissions_for(guild.me).send_messages or not channel.permissions_for(guild.me).embed_links:
-        return await handle_no_permission(_type, channel, permissions=("", ""))
+    perms = channel.permissions_for(channel.guild.me)
+    if not all((perms.send_messages, perms.embed_links)):
+        _bool = False
+        await handle_no_permission(_type, channel)
+
+    return _bool
 
 
 async def get_channel(_type: LogType, guild: discord.Guild) -> Optional[discord.TextChannel]:
@@ -32,6 +35,7 @@ async def get_channel(_type: LogType, guild: discord.Guild) -> Optional[discord.
 
     channel = check.channel
     color = check.color
+
     if not channel:
         return await handle_no_channel(_type, guild)
 

@@ -49,9 +49,10 @@ class LoggingEvents(Cog):
             if not channel:
                 return
 
-            # check = await check_permissions(_type, message.guild, channel)
-            # if not check:
-            #     return
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
             if subtype == "single":
 
                 embed.color = discord.Color(color)
@@ -73,26 +74,16 @@ class LoggingEvents(Cog):
                 return embed, channel
 
             elif subtype == "bulk":
-                # message = message[0]
 
-                # msg_str = "------------------------------------------------------\n"
+                msg = message[0]
+                msg_str = f"\n\n{'-'*50}\n\n".join((f"Author: {str(m.author)}\nContent: {m.content}" for m in message))
 
-                # for msg in message:
-                #     msg_str += f"Channel: {msg.channel.name}\nAuthor: {str(msg.author)}\nContent: {msg.content}\n------------------------------------------------------\n"
+                embed.color = discord.Color(color)
+                embed.description = f"{len(message)} messages, deleted in {msg.channel.mention}"
+                embed.add_field(name="Messages", value=f"[Click Me ...]({str(await self.bot.binclient.post(msg_str))})")
+                embed.set_footer(text=f"Bulk Delete: {len(message)}", icon_url=self.bot.user.avatar_url)
+                return embed, channel
 
-                # embed.color = discord.Color(color)
-                # embed.description = f"🚮 Bulk messages deleted in {message.channel.mention} by {deleted_by}."
-                # embed.add_field(
-                #     name="Deleted message content:",
-                #     value=f"[Click Here to see deleted messages]({str(await self.bot.binclient.post(msg_str))})",
-                #     inline=False,
-                # )
-                # embed.set_footer(text="DELETED", icon_url=self.bot.user.avatar_url)
-                # embed.set_author(name=str(deleted_by.user), icon_url=deleted_by.user.avatar_url)
-                # embed.timestamp = datetime.utcnow()
-
-                # return embed, channel
-                ...
             else:
                 before, after = message
                 embed.color = discord.Color(color)
