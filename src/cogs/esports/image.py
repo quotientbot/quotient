@@ -107,7 +107,7 @@ async def ptable_files(points: PointsInfo, data: PointsTable):
 
         images = []
 
-        number = random.choice(range(1, 5))
+        number = random.choice(range(1, 8))
         for group in split_list(_list, 10):
             image = Image.open(str(Path.cwd() / "src" / "data" / "img" / f"ptable{number}.jpg"))
             image = image.resize((1250, 938))
