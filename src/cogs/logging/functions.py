@@ -28,7 +28,7 @@ async def check_permissions(_type, channel: discord.TextChannel) -> bool:
     return _bool
 
 
-async def get_channel(_type: LogType, guild: discord.Guild) -> Optional[discord.TextChannel]:
+async def get_channel(_type: LogType, guild) -> Optional[discord.TextChannel]:
     check = await Logging.filter(type=_type, guild_id=guild.id).first()
     if not check:
         return None

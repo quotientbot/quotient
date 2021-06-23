@@ -1,4 +1,4 @@
-import discord
+import discord, humanize
 from datetime import datetime, timedelta
 from core import Quotient, Cog
 from discord.utils import escape_markdown
@@ -110,6 +110,7 @@ class LoggingEvents(Cog):
             if not check:
                 return
 
+            embed.color = discord.Color(color)
             embed.set_author(name=str(member), icon_url=member.avatar_url)
             embed.set_thumbnail(url=member.avatar_url)
             embed.description = (
@@ -136,6 +137,7 @@ class LoggingEvents(Cog):
             if not check:
                 return
 
+            embed.color = color
             embed.set_author(name=str(member), icon_url=member.avatar_url)
             embed.set_thumbnail(url=member.avatar_url)
 
@@ -145,3 +147,67 @@ class LoggingEvents(Cog):
             )
 
             return embed, channel
+
+        elif _type == LogType.invite:
+            subtype = kwargs.get("subtype")
+
+            invite = kwargs.get("invite")
+
+            if subtype in ("create", "delete"):
+                guild = invite.guild
+
+            else:
+                message = kwargs.get("message")
+                guild = message.guild
+
+            check = await get_channel(_type, guild)
+            if not check:
+                return
+
+            channel, color = check
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            embed.color = discord.Color(color)
+
+            if subtype == "create":
+                embed.title = "Server Invite Created"
+                embed.set_author(name=str(invite.inviter), icon_url=invite.inviter.avatar_url)
+                embed.set_footer(text=f"ID: {invite.inviter.id}")
+                embed.description = (
+                    f"{invite.inviter.mention} just created an invite (`{invite.code}`) for {invite.channel.mention}"
+                )
+
+                embed.add_field(name="Max Uses", value=f"{'Infinite' if not invite.max_uses else invite.max_uses}")
+                embed.add_field(
+                    name="Max Age",
+                    value=f"{'Infinite' if invite.max_age == 0 else humanize.precisedelta(invite.max_age)}",
+                )
+
+                return embed, channel
+            elif subtype == "delete":
+                pass
+                # print(invite.created_at)
+
+                # embed.title = "Server Invite Deleted"
+                # if invite.inviter:
+                #     embed.set_author(name=str(invite.inviter), icon_url=invite.inviter.avatar_url)
+
+                #     embed.set_footer(text=f"ID: {invite.inviter.id}")
+                # embed.description = f"An invite for {getattr(invite.channel , 'mention', 'deleted-channel')} was just deleted. It was created {human_timedelta(IST.localize(invite.created_at))}"
+                # embed.add_field(name="Uses", value=f"{invite.uses} times")
+
+                # return embed, channel
+
+            else:
+
+                embed.title = "Discord Invite Posted"
+
+                embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
+                embed.description = f"{message.author.mention} posted an [Invite link]({message.jump_url}) (`{invite.code}`) in {message.channel.mention} that leads to the server **{invite.guild.name}**"
+
+                embed.set_footer(text=f"ID: {message.id}")
+
+                return embed, channel

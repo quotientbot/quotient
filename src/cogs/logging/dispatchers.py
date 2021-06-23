@@ -2,7 +2,8 @@ from core import Quotient, Cog, Context
 from models import Logging
 from constants import LogType
 from contextlib import suppress
-import discord
+from utils.regex import INVITE_RE
+import discord, re
 
 __all__ = ("LoggingDispatchers",)
 
@@ -79,3 +80,42 @@ class LoggingDispatchers(Cog):
                 return
             else:
                 self.bot.dispatch("log", LogType.leave, member=member)
+
+    @Cog.listener(name="on_message")
+    async def on_invite_post(self, message: discord.Message):
+        if not message.guild:
+            return
+
+        invites = re.findall(INVITE_RE, message.content)
+        if invites:
+            check = await Logging.get_or_none(guild_id=message.guild.id, type=LogType.invite)
+            if check:
+                if message.author.bot and check.ignore_bots:
+                    return
+                else:
+                    for invite in invites:
+                        try:
+                            inv = await self.bot.fetch_invite(invite)
+
+                            self.bot.dispatch("log", LogType.invite, invite=inv, message=message)
+
+                        except (discord.NotFound, discord.HTTPException):
+                            continue
+
+    @Cog.listener()
+    async def on_invite_create(self, invite):
+        if not invite.guild:
+            return
+
+        check = await Logging.get_or_none(guild_id=invite.guild.id, type=LogType.invite)
+        if check:
+            self.bot.dispatch("log", LogType.invite, invite=invite, subtype="create")
+
+    @Cog.listener()
+    async def on_invite_delete(self, invite):
+        if not invite.guild:
+            return
+
+        check = await Logging.get_or_none(guild_id=invite.guild.id, type=LogType.invite)
+        if check:
+            self.bot.dispatch("log", LogType.invite, invite=invite, subtype="delete")
