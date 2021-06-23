@@ -59,7 +59,7 @@ def title_rect():
 
     draw.text((905, top), "Total Pt", fill, font=font)
 
-    draw.text((1060, top), "Win?", fill, font=font)
+    draw.text((1046, top), "InGame", fill, font=font)
     return image
 
 
@@ -90,7 +90,7 @@ def rect_list(data):
         draw.text((left + 610, top), f"{place:02}", fill, font=font)
         draw.text((left + 760, top), f"{kill:02}", fill, font=font)
         draw.text((left + 897, top), f"{total:02}", fill, font=font)
-        draw.text((left + 1025, top), f"{'Yes!' if win else 'No!'}", fill, font=font)
+        draw.text((left + 1025, top), f"{'Win' if win else 'Lost'}", fill, font=font)
 
         _list.append(image)
 
@@ -107,9 +107,10 @@ async def ptable_files(points: PointsInfo, data: PointsTable):
 
         images = []
 
-        number = random.choice(range(1, 8))
+        number = random.choice(range(1, 15))
         for group in split_list(_list, 10):
             image = Image.open(str(Path.cwd() / "src" / "data" / "img" / f"ptable{number}.jpg"))
+            # image = Image.open(str(Path.cwd() / "src" / "data" / "back" / f"9.jpg"))
             image = image.resize((1250, 938))
             image = image.filter(ImageFilter.GaussianBlur(4))
             top = 320
