@@ -80,6 +80,14 @@ class SMError(Cog):
 
                 text += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `tourney edit {tourney.id}`"
 
+            elif _type == RegDeny.noteamname:
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
+                    delete_after=5,
+                )
+                text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `tourney edit {tourney.id}`"
+
+
             embed = discord.Embed(color=discord.Color.red(), description=text)
             with suppress(discord.Forbidden):
                 return await logschan.send(embed=embed)

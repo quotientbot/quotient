@@ -13,7 +13,6 @@ import asyncio
 import re
 
 
-
 def get_slots(slots):
     for slot in slots:
         yield slot.user_id
@@ -148,6 +147,12 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
 
 async def check_tourney_requirements(bot, message: discord.Message, tourney: Tourney) -> bool:
     _bool = True
+
+    if tourney.teamname_compulsion:
+        teamname = re.search(r"team.*", message.content)
+        if not teamname or not teamname.group().strip():
+            _bool = False
+            bot.dispatch("tourney_registration_deny", message, constants.RegDeny.noteamname, tourney)
 
     if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
         _bool = False

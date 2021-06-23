@@ -44,7 +44,8 @@ class Tourney(models.Model):
     started_at = fields.DatetimeField(null=True)
     closed_at = fields.DatetimeField(null=True)
     open_role_id = fields.BigIntField(null=True)
-
+    teamname_compulsion = fields.BooleanField(default=False)
+    
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 
     @property

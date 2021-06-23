@@ -1293,6 +1293,7 @@ class TourneyEditor(menus.Menu):
             "Slots": f"`{tourney.total_slots:,}`",
             "Open Role": open_role,
             "Multi Register": ("`No!`", "`Yes!`")[tourney.multiregister],
+            "Team Name Compulsion":("`No!`", "`Yes!`")[tourney.teamname_compulsion],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -1413,6 +1414,15 @@ class TourneyEditor(menus.Menu):
     @menus.button(regional_indicator("H"))
     async def change_multiregister(self, payload):
         await self.update_tourney(multiregister=not self.tourney.multiregister)
+
+    @menus.button(regional_indicator("I"))
+    async def teamname_compulsory(self, payload):
+        await self.ctx.success(
+            f"Team name in registrations is now **{'Necessary' if not self.tourney.teamname_compulsion else 'Not Necessary'}!**",
+            delete_after=2,
+        )
+        await self.update_tourney(teamname_compulsion=not self.tourney.teamname_compulsion)
+
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
