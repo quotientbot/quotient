@@ -212,7 +212,7 @@ class LoggingEvents(Cog):
 
                 return embed, channel
 
-        elif LogType.ping:
+        elif _type == LogType.ping:
             message = kwargs.get("message")
             mentions = kwargs.get("mentions")
 
@@ -229,7 +229,32 @@ class LoggingEvents(Cog):
             mentions = "\n- ".join(mentions)
             embed.color = discord.Color(color)
             embed.title = "Ping Logs"
-            embed.set_footer(text="ID: {0}".format(message.id),icon_url = self.bot.user.avatar_url)
+            embed.set_footer(text="ID: {0}".format(message.id), icon_url=self.bot.user.avatar_url)
             embed.set_author(name=message.author, icon_url=message.author.avatar_url)
             embed.description = f"{message.author.mention} [mentioned]({message.jump_url}) the following in {message.channel.mention}:\n\n-{mentions}"
+            return embed, channel
+
+        elif _type == LogType.cmd:
+            ctx = kwargs.get("ctx")
+
+            check = await get_channel(_type, ctx.guild)
+            if not check:
+                return
+
+            channel, color = check
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            if ctx.command.description:
+                description = f"{ctx.command.description}\n\n{ctx.command.help}"
+            else:
+                description = ctx.command.help or "No help found..."
+
+            embed.color = discord.Color(color)
+            embed.title = "Command Used"
+            embed.set_footer(text="ID: {0}".format(ctx.message.id))
+            embed.description = f"{ctx.author.mention} used [{ctx.command.qualified_name}]({ctx.message.jump_url}) in {ctx.channel.mention}"
+            embed.add_field(name="Command Description:", value=description)
             return embed, channel

@@ -109,7 +109,11 @@ class LoggingDispatchers(Cog):
 
         check = await Logging.get_or_none(guild_id=invite.guild.id, type=LogType.invite)
         if check:
-            self.bot.dispatch("log", LogType.invite, invite=invite, subtype="create")
+            if invite.inviter.bot and check.ignore_bots:
+                return
+
+            else:
+                self.bot.dispatch("log", LogType.invite, invite=invite, subtype="create")
 
     @Cog.listener()
     async def on_invite_delete(self, invite):
@@ -136,4 +140,17 @@ class LoggingDispatchers(Cog):
         if mentions:
             check = await Logging.get_or_none(guild_id=message.guild.id, type=LogType.ping)
             if check:
-                self.bot.dispatch("log", LogType.ping, message=message, mentions=mentions)
+
+                if message.author.bot and check.ignore_bots:
+                    return
+                else:
+                    self.bot.dispatch("log", LogType.ping, message=message, mentions=mentions)
+
+    @Cog.listener()
+    async def on_command(self, ctx):
+        if not ctx.guild:
+            return
+
+        check = await Logging.get_or_none(guild_id=ctx.guild.id, type=LogType.cmd)
+        if check:
+            self.bot.dispatch("log", LogType.cmd, ctx=ctx)
