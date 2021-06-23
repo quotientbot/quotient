@@ -211,3 +211,25 @@ class LoggingEvents(Cog):
                 embed.set_footer(text=f"ID: {message.id}")
 
                 return embed, channel
+
+        elif LogType.ping:
+            message = kwargs.get("message")
+            mentions = kwargs.get("mentions")
+
+            check = await get_channel(_type, message.guild)
+            if not check:
+                return
+
+            channel, color = check
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            mentions = "\n- ".join(mentions)
+            embed.color = discord.Color(color)
+            embed.title = "Ping Logs"
+            embed.set_footer(text="ID: {0}".format(message.id),icon_url = self.bot.user.avatar_url)
+            embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+            embed.description = f"{message.author.mention} [mentioned]({message.jump_url}) the following in {message.channel.mention}:\n\n-{mentions}"
+            return embed, channel

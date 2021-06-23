@@ -119,3 +119,21 @@ class LoggingDispatchers(Cog):
         check = await Logging.get_or_none(guild_id=invite.guild.id, type=LogType.invite)
         if check:
             self.bot.dispatch("log", LogType.invite, invite=invite, subtype="delete")
+
+    @Cog.listener(name="on_message")
+    async def on_ping_message(self, message: discord.Message):
+        if not message.guild:
+            return
+
+        mentions = set()
+
+        if message.mention_everyone:
+            mentions.add("@everyone")
+
+        for m in message.mentions + message.role_mentions:
+            mentions.add(m.mention)
+
+        if mentions:
+            check = await Logging.get_or_none(guild_id=message.guild.id, type=LogType.ping)
+            if check:
+                self.bot.dispatch("log", LogType.ping, message=message, mentions=mentions)
