@@ -147,18 +147,18 @@ class Logging(Cog, name="logging"):
         else:
             return await ctx.success(f"Voicelog channel updated to **{channel}**")
 
-    @commands.command()
-    @checks.is_mod()
-    @commands.bot_has_guild_permissions(view_audit_log=True)
-    async def reactionlog(self, ctx: Context, channel: discord.TextChannel):
-        """
-        Log reaction add/ remove.
-        """
-        record = await self.insert_or_update_config(ctx, LogType.reaction, channel)
-        if not record:
-            await ctx.success(f"Reactionlog enabled successfully!")
-        else:
-            return await ctx.success(f"Reactionlog channel updated to **{channel}**")
+    # @commands.command()
+    # @checks.is_mod()
+    # @commands.bot_has_guild_permissions(view_audit_log=True)
+    # async def reactionlog(self, ctx: Context, channel: discord.TextChannel):
+    #     """
+    #     Log reaction add/ remove.
+    #     """
+    #     record = await self.insert_or_update_config(ctx, LogType.reaction, channel)
+    #     if not record:
+    #         await ctx.success(f"Reactionlog enabled successfully!")
+    #     else:
+    #         return await ctx.success(f"Reactionlog channel updated to **{channel}**")
 
     @commands.command()
     @checks.is_mod()

@@ -154,3 +154,16 @@ class LoggingDispatchers(Cog):
         check = await Logging.get_or_none(guild_id=ctx.guild.id, type=LogType.cmd)
         if check:
             self.bot.dispatch("log", LogType.cmd, ctx=ctx)
+
+    @Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        if not member.guild:
+            return
+
+        check = await Logging.get_or_none(guild_id=member.guild.id, type=LogType.voice)
+        if check:
+            if member.bot and check.ignore_bots:
+                return
+
+            else:
+                self.bot.dispatch("log", LogType.voice, member=member, before=before, after=after)

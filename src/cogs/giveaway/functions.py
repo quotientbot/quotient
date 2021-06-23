@@ -118,8 +118,10 @@ async def refresh_giveaway(giveaway: Giveaway):
     if not channel:
         return await Giveaway.filter(pk=giveaway.id).delete()
 
-    msg = await channel.fetch_message(giveaway.message_id)
-    if not msg:
+    try:
+        msg = await channel.fetch_message(giveaway.message_id)
+
+    except (discord.HTTPException, discord.NotFound):
         return await Giveaway.filter(pk=giveaway.id).delete()
 
     with suppress(discord.Forbidden, discord.HTTPException):

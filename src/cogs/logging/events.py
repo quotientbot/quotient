@@ -258,3 +258,25 @@ class LoggingEvents(Cog):
             embed.description = f"{ctx.author.mention} used [{ctx.command.qualified_name}]({ctx.message.jump_url}) in {ctx.channel.mention}"
             embed.add_field(name="Command Description:", value=description)
             return embed, channel
+
+        elif _type == LogType.voice:
+            member = kwargs.get("member")
+            before = kwargs.get("before")
+            after = kwargs.get("after")
+
+            check = await get_channel(_type, member.guild)
+            if not check:
+                return
+
+            channel, color = check
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            embed.color = discord.Color(color)
+            embed.set_author(name=str(member), icon_url=member.avatar_url)
+            embed.set_footer(text=f"ID: {member.id}", icon_url=member.avatar_url)
+            embed.description = ""
+
+            return embed, channel
