@@ -45,9 +45,10 @@ class RegDeny(Enum):
     botmention = "mentioned bots"
     nomention = "insufficient mentions"
     banned = "banned"
-    multiregister = "multiregiter"
+    multiregister = "multiregister"
     noteamname = "no_team_name"
     reqperms = "lack_permissions"
+    duplicate = "duplicate_name"
 
 
 class LogType(Enum):

@@ -1067,6 +1067,7 @@ class ConfigEditMenu(menus.Menu):
             "Slotlist Start from": scrim.start_from,
             "Autodelete Rejected Registrations": ("`No!`", "`Yes!`")[scrim.autodelete_rejects],
             "Team Name compulsion": ("`No!`", "`Yes!`")[scrim.teamname_compulsion],
+            "Duplicate Team Names": ("`Allowed!`", "`Not Allowed`")[scrim.no_duplicate_name],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -1222,7 +1223,7 @@ class ConfigEditMenu(menus.Menu):
     @menus.button(regional_indicator("K"))
     async def change_multiregister(self, payload):
         await self.ctx.success(
-            f"Multiple registrations from a single user are now **{'Allowed' if self.scrim.multiregister else 'Not Allowed'}!**",
+            f"Multiple registrations from a single user are now **{'Allowed' if not self.scrim.multiregister else 'Not Allowed'}!**",
             delete_after=3,
         )
         await self.update_scrim(multiregister=not self.scrim.multiregister)
@@ -1257,6 +1258,14 @@ class ConfigEditMenu(menus.Menu):
             delete_after=2,
         )
         await self.update_scrim(teamname_compulsion=not self.scrim.teamname_compulsion)
+
+    @menus.button(regional_indicator("O"))
+    async def _no_team_name(self, payload):
+        await self.ctx.success(
+            f"Duplicate team names are not **{'Allowed' if self.scrim.no_duplicate_name else 'Not Allowed'}!**",
+            delete_after=2,
+        )
+        await self.update_scrim(no_duplicate_name=not self.scrim.no_duplicate_name)
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):
@@ -1293,7 +1302,7 @@ class TourneyEditor(menus.Menu):
             "Slots": f"`{tourney.total_slots:,}`",
             "Open Role": open_role,
             "Multi Register": ("`No!`", "`Yes!`")[tourney.multiregister],
-            "Team Name Compulsion":("`No!`", "`Yes!`")[tourney.teamname_compulsion],
+            "Team Name Compulsion": ("`No!`", "`Yes!`")[tourney.teamname_compulsion],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -1422,7 +1431,6 @@ class TourneyEditor(menus.Menu):
             delete_after=2,
         )
         await self.update_tourney(teamname_compulsion=not self.tourney.teamname_compulsion)
-
 
     @menus.button("\N{BLACK SQUARE FOR STOP}\ufe0f")
     async def on_stop(self, payload):

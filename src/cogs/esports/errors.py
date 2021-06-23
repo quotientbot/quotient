@@ -87,7 +87,6 @@ class SMError(Cog):
                 )
                 text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `tourney edit {tourney.id}`"
 
-
             embed = discord.Embed(color=discord.Color.red(), description=text)
             with suppress(discord.Forbidden):
                 return await logschan.send(embed=embed)
@@ -249,6 +248,15 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `smanager edit {scrim.id}`"
+
+            elif _type == RegDeny.duplicate:
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, Someone has already registered with the same teamname."
+                    ),
+                    delete_after=5,
+                )
+                text += f"No duplicate team names is ON and someone has already registered with the same team name\nIf you wish to allow duplicate team names,\nUse: `smanager edit {scrim.id}`"
 
             if scrim.autodelete_rejects:
                 self.bot.loop.create_task(delete_denied_message(message))

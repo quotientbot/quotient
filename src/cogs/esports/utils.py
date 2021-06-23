@@ -7,6 +7,7 @@ from prettytable.prettytable import PrettyTable
 from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
+from utils import find_team
 import discord
 import config
 import asyncio
@@ -197,6 +198,16 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
     elif not scrim.multiregister and message.author.id in get_slots(await scrim.assigned_slots.all()):
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.multiregister, scrim)
+
+    elif scrim.no_duplicate_name:
+        teamname = find_team(message)
+        async for slot in scrim.assigned_slots.all():
+            if slot.team_name == teamname:
+                _bool = False
+                bot.dispatch("scrim_registration_deny", message, constants.RegDeny.duplicate, scrim)
+                break
+            else:
+                continue
 
     return _bool
 

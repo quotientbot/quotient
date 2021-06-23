@@ -45,7 +45,7 @@ class Tourney(models.Model):
     closed_at = fields.DatetimeField(null=True)
     open_role_id = fields.BigIntField(null=True)
     teamname_compulsion = fields.BooleanField(default=False)
-    
+
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 
     @property
@@ -139,6 +139,8 @@ class Scrim(models.Model):
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
     slotlist_format = fields.TextField(null=True)
+
+    no_duplicate_name = fields.BooleanField(default=False)
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
@@ -225,13 +227,6 @@ class Scrim(models.Model):
 
     async def banned_user_ids(self):
         return (i.user_id for i in await self.banned_teams.all())
-
-    # async def create_slotlist(self):
-    #     slots = await self.teams_registered
-    #     description = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in slots)
-    #     embed = discord.Embed(title=self.name + " Slotlist", description=f"```{description}```")
-    #     channel = self.slotlist_channel
-    #     return embed, channel
 
     async def create_slotlist(self):
         slots = await self.teams_registered
