@@ -182,4 +182,6 @@ class LoggingDispatchers(Cog):
 
     @Cog.listener()
     async def on_guild_role_update(self, before, after):
-        pass
+        check = await Logging.get_or_none(guild_id=before.guild.id, type=LogType.role)
+        if not check:
+            return  
