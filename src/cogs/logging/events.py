@@ -13,6 +13,7 @@ __all__ = ("LoggingEvents",)
 class LoggingEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.vc = {}
         self.bot.loop.create_task(self.delete_older_snipes())
 
     async def delete_older_snipes(self):  # we delete snipes that are older than 15 days
@@ -277,6 +278,37 @@ class LoggingEvents(Cog):
             embed.color = discord.Color(color)
             embed.set_author(name=str(member), icon_url=member.avatar_url)
             embed.set_footer(text=f"ID: {member.id}", icon_url=member.avatar_url)
-            embed.description = ""
 
-            return embed, channel
+            if before.channel != after.channel:
+                if not before.channel:
+                    embed.title = "Member joined a VC"
+                    embed.description = f"{member.mention} joined {after.channel.mention}"
+                    self.vc[member.id] = datetime.now(tz=IST)
+
+                elif not after.channel:
+                    embed.title = "Member left a VC"
+
+                    embed.description = f"{member.mention} left {before.channel.mention}"
+
+                    if not member.bot:
+                        try:
+                            t = datetime.now(tz=IST) - self.vc[member.id]
+                            self.vc.pop(member.id)
+                            embed.description += f"\nThey were in vc for {humanize.precisedelta(t)}"
+                        except KeyError:
+                            pass
+
+                else:
+                    embed.title = "Member switched VC"
+                    embed.description = (
+                        f"{member.mention} switched from {before.channel.mention} to {after.channel.mention}"
+                    )
+
+                    if not member.bot:
+                        try:
+                            t = datetime.now(tz=IST) - self.vc[member.id]
+                            self.vc[member.id] = datetime.now(tz=IST)
+                            embed.description = f"\nThere were in {before.channel.mention} for {humanize.precisedelta(t)}"
+                        except:
+                            pass
+                return embed, channel
