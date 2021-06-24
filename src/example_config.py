@@ -17,6 +17,11 @@ COLOR = 0x00FFB3  # default color
 
 FOOTER = "quo is lub!"  # default footer
 
+PREMIUM_AVATAR = ""
+
+PREMIUM_ROLE = ()
+
+VOTER_ROLE = ()
 
 DEVS = ()  # mrko b lagne laga hai tuple better hai
 
