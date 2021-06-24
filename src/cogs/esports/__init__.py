@@ -97,7 +97,7 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="setup")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, add_reactions=True)
     @commands.max_concurrency(1, BucketType.guild)
     async def s_setup(self, ctx: Context):
         """

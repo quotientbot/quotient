@@ -13,6 +13,7 @@ colorama==0.4.4; (python_version >= "2.7" and python_full_version < "3.0.0") or 
 dateparser==1.0.0; python_version >= "3.5"
 ddlparse==1.9.0; python_version >= "3.7" and python_version < "4.0"
 dictdiffer==0.8.1; python_version >= "3.7" and python_version < "4.0"
+discord-components==0.5.3; python_version >= "3.7"
 discord-ext-menus==1.1; python_full_version >= "3.5.3"
 discord.py==1.7.2; python_full_version >= "3.5.3"
 humanize==3.5.0; python_version >= "3.6" and python_full_version >= "3.6.0"

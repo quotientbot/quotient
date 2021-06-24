@@ -364,26 +364,26 @@ class Utility(Cog, name="utility"):
         await Tag.filter(id=tag.id).update(content=content)
         await ctx.success(f"Tag updated.")
 
-    @tag.command(name="make")
-    async def tag_make(self, ctx: Context):
-        """Make tags interactively."""
+    # @tag.command(name="make")
+    # async def tag_make(self, ctx: Context):
+    #     """Make tags interactively."""
 
-        def check(message: discord.Message):
-            if message.content.strip().lower() == "cancel":
-                raise commands.BadArgument("Alright, reverting all process.")
+    #     def check(message: discord.Message):
+    #         if message.content.strip().lower() == "cancel":
+    #             raise commands.BadArgument("Alright, reverting all process.")
 
-            return message.author == ctx.author and ctx.channel == message.channel
+    #         return message.author == ctx.author and ctx.channel == message.channel
 
-        msg = await ctx.simple("What do you want the tag name to be?")
-        name = await inputs.string_input(ctx, check, delete_after=True)
-        await inputs.safe_delete(msg)
+    #     msg = await ctx.simple("What do you want the tag name to be?")
+    #     name = await inputs.string_input(ctx, check, delete_after=True)
+    #     await inputs.safe_delete(msg)
 
-        embed = await ctx.simple(
-            f"What do you want the content to be?\n\n{keycap_digit(1)} | Simple Text\n{keycap_digit(2)} | Embed"
-        )
-        reactions = [keycap_digit(1), keycap_digit(2)]
-        for reaction in reactions:
-            await embed.add_reaction(reaction)
+    #     embed = await ctx.simple(
+    #         f"What do you want the content to be?\n\n{keycap_digit(1)} | Simple Text\n{keycap_digit(2)} | Embed"
+    #     )
+    #     reactions = [keycap_digit(1), keycap_digit(2)]
+    #     for reaction in reactions:
+    #         await embed.add_reaction(reaction)
 
     @tag.command(name="search")
     async def search_tag(self, ctx: Context, *, name):
