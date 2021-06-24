@@ -120,7 +120,7 @@ class PointsConfigEditor(menus.Menu):
             f"Which channel should I use to send points tables?\n\n`Either mention the channel or write its name`"
         )
 
-        channel = await inputs.channel_input(self.ctx, self.check)
+        channel = await inputs.channel_input(self.ctx, self.check, delete_after=True)
         await inputs.safe_delete(msg)
 
         perms = channel.permissions_for(self.ctx.me)
@@ -130,7 +130,7 @@ class PointsConfigEditor(menus.Menu):
                 delete_after=3,
             )
 
-        await PointsInfo.filter(channel_id=channel.id)
+        await PointsInfo.filter(id=self.points.id).update(channel_id=channel.id)
         await self.refresh()
 
     @menus.button(regional_indicator("E"))

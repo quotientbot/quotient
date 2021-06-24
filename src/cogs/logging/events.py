@@ -1,3 +1,4 @@
+from contextlib import suppress
 import discord, humanize
 from datetime import datetime, timedelta
 from core import Quotient, Cog
@@ -32,7 +33,7 @@ class LoggingEvents(Cog):
 
     @Cog.listener()
     async def on_log(self, _type: LogType, **kwargs):
-
+        # with suppress TypeError:
         embed, channel = await self.handle_event(_type, **kwargs)
         if embed is not None and channel is not None:
             await channel.send(embed=embed)
@@ -312,3 +313,39 @@ class LoggingEvents(Cog):
                         except:
                             pass
                 return embed, channel
+
+        elif _type == LogType.role:
+            subtype = kwargs.get("subtype")
+            role = kwargs.get("role")
+
+            check = await get_channel(_type, role.guild)
+            if not check:
+                return
+
+            channel, color = check
+
+            check = await check_permissions(_type, channel)
+            if not check:
+                return
+
+            embed.color = discord.Color(color)
+            embed.set_footer(text=f"ID: {role.id}", icon_url=self.bot.user.avatar_url)
+
+            if subtype == "create":
+                embed.title = "New Role Created"
+                color = "#{:06x}".format(role.color.value)
+                embed.description = f"{role.mention} was just created.\n**Color:** {color}\n**Mentionable:** {role.mentionable}\n**Displayed separately:** {role.hoist}"
+
+                return embed, channel
+
+            elif subtype == "delete":
+                embed.title = "Role was deleted"
+                color = "#{:06x}".format(role.color.value)
+                embed.description = (
+                    f"'**{role.name}**' was deleted. It was created {human_timedelta(IST.localize(role.created_at) + timedelta(hours=5, minutes=30))}"
+                    f"\n**Color:** {color}\n**Mentionable:** {role.mentionable}\n**Position:** {role.position}"
+                )
+                return embed, channel
+
+            else:
+                pass

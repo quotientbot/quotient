@@ -167,3 +167,19 @@ class LoggingDispatchers(Cog):
 
             else:
                 self.bot.dispatch("log", LogType.voice, member=member, before=before, after=after)
+
+    @Cog.listener()
+    async def on_guild_role_create(self, role: discord.Role):
+        check = await Logging.get_or_none(guild_id=role.guild.id, type=LogType.role)
+        if check:
+            self.bot.dispatch("log", LogType.role, role=role, subtype="create")
+
+    @Cog.listener()
+    async def on_guild_role_delete(self, role: discord.Role):
+        check = await Logging.get_or_none(guild_id=role.guild.id, type=LogType.role)
+        if check:
+            self.bot.dispatch("log", LogType.role, role=role, subtype="delete")
+
+    @Cog.listener()
+    async def on_guild_role_update(self, before, after):
+        pass
