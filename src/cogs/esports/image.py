@@ -203,7 +203,7 @@ async def lb_files(points: PointsInfo, records):
                 _dict[key] = val
             else:
                 _dict[key] = value
-                _dict.update(dict(sorted(_dict.items(), reverse=True, key=lambda x: x[1][3])))
+    _dict.update(dict(sorted(_dict.items(), reverse=True, key=lambda x: x[1][3])))
 
     matches = Counter([j for i in ds for j in i.keys()])
 
