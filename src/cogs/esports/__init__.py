@@ -26,7 +26,7 @@ from discord.ext import commands
 from .events import ScrimEvents
 from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
-from .image import ptable_files
+from .image import lb_files, ptable_files
 
 import discord
 import config
@@ -109,7 +109,7 @@ class ScrimManager(Cog, name="Esports"):
 
         guild = await Guild.get(guild_id=ctx.guild.id)
 
-        if count == 3 and not guild.is_premium:
+        if count >= 3 and not guild.is_premium:
             raise ScrimError(
                 f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n{self.bot.config.WEBSITE}/premium"
             )
@@ -664,7 +664,7 @@ class ScrimManager(Cog, name="Esports"):
         """
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
         guild = await Guild.get(guild_id=ctx.guild.id)
-        if count == 2 and not guild.is_premium:
+        if count >= 2 and not guild.is_premium:
             raise TourneyError("You can't have more than 2 tournaments concurrently.")
 
         def check(message: discord.Message):
@@ -1457,9 +1457,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @ptable.command(name="leaderboard", aliases=("lb",))
     @commands.has_permissions(manage_guild=True)
+    @commands.max_concurrency(1, BucketType.guild)
     async def points_leaderboard(self, ctx: Context, points_id: PointsConverter, days: typing.Optional[int] = 7):
         """Get leaderboard a ptable for desired no. of days"""
-        raise PointsError("This command is currently under development, will be available soon.")
 
         date = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
         records = await points_id.data.filter(created_at__gte=date).all()
@@ -1468,17 +1468,33 @@ class ScrimManager(Cog, name="Esports"):
                 f"You haven't created any points table between `{date.strftime('%d-%b-%Y')}` and `{datetime.now().strftime('%d-%b-%Y')}`"
             )
 
-        d1 = literal_eval(records[0].points_table)
+        files = await lb_files(points_id, records)
+        if len(files):
+            for file in files:
+                embed = self.bot.embed(ctx, color=0x2F3136)
+                embed.set_image(url="attachment://leaderboard.png")
+                embed.set_footer(
+                    text=f"Leaderboard: {date.strftime('%d-%b-%Y')} to {datetime.now().date().strftime('%d-%b-%Y')}"
+                )
+                await ctx.send(file=file, embed=embed)
 
-        ds = [literal_eval(record.points_table) for record in records]
+            if channel := points_id.channel:
+                prompt = await ctx.prompt(f"Should I send these to {channel.mention}?")
+                if not prompt:
+                    await ctx.error("ok Aborting!")
 
-        d = {}
-        for k in d1.keys():
-            myiter = tuple(d[k] for d in ds)
-            d[k] = tuple(map(sum, zip(*myiter)))
+                else:
+                    for file in await lb_files(points_id, records):
+                        embed = self.bot.embed(ctx, color=0x2F3136)
+                        embed.set_image(url="attachment://leaderboard.png")
+                        embed.set_footer(
+                            text=f"Leaderboard: {date.strftime('%d-%b-%Y')} to {datetime.now().date().strftime('%d-%b-%Y')}"
+                        )
+                        await channel.send(file=file, embed=embed)
+                    await ctx.success("sent!")
 
-        d.update(dict(sorted(d.items(), reverse=True, key=lambda x: x[1][3])))
-        await ctx.send(d)
+        else:
+            raise PointsError(f"You haven't saved any points in the points table.")
 
     @ptable.command(name="delete")
     @commands.has_permissions(manage_guild=True)
@@ -1533,7 +1549,7 @@ class ScrimManager(Cog, name="Esports"):
 
         matches = []
         for idx, record in enumerate(records, start=1):
-            matches.append(f"`{idx:02}` **{record.created_at.strftime('%d-%m-%Y')}** (<@{record.created_by}>)")
+            matches.append(f"`{idx:02}` **{record.created_at.strftime('%d-%m-%Y')}** (<@{record.created_by}>)\n")
 
         paginator = Pages(
             ctx,
@@ -1611,6 +1627,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Sent points table successfully.")
 
     @_ptable_show.before_invoke
+    @points_leaderboard.before_invoke
     @_ptable_send.before_invoke
     async def before_points_invoke(self, ctx):
         await ctx.trigger_typing()

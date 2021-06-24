@@ -75,7 +75,7 @@ class Votes(Cog):
         await models.Premium.filter(order_id=record.order_id).update(is_notified=True)
         member = self.bot.server.get_member(record.user_id)
         if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They voted for me.")
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
 
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
 
@@ -163,6 +163,7 @@ class Votes(Cog):
         tourneys = (await models.Tourney.filter(guild_id=guild_id).all())[2:]
         tagchecks = (await models.TagCheck.filter(guild_id=guild_id).all())[1:]
         eztag = (await models.EasyTag.filter(guild_id=guild_id).all())[1:]
+        points = (await models.PointsInfo.filter(guild_id=guild_id).all())[2:]
 
         if len(scrims):
             await models.Scrim.filter(id__in=(scrim.id for scrim in scrims)).delete()
@@ -175,6 +176,9 @@ class Votes(Cog):
 
         if len(eztag):
             await models.EasyTag.filter(id__in=(tc.id for tc in eztag)).delete()
+
+        if len(points):
+            await models.PointsInfo.filter(id__in=(pt.id for pt in points)).delete()
 
         # TODO: remove this from cache too maybe
         await models.Guild.filter(guild_id=guild_id).update(

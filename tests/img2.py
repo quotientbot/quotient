@@ -117,3 +117,10 @@ add_title(image)
 image.save("points.jpg")
 # for image in _list:
 #     image.show()
+
+
+_list = [
+    {"a": [1, 20, 20, 40], "b": [0, 14, 14, 28]},
+    {"a": [2, 20, 20, 40], "b": [2, 14, 14, 28]},
+    {"c": [1, 20, 20, 40], "d": [0, 14, 14, 28]},
+]
