@@ -1,6 +1,6 @@
 from contextlib import suppress
 import io
-from typing import NoReturn, Union
+from typing import NoReturn, Optional, Union
 
 from prettytable.prettytable import PrettyTable
 
@@ -74,7 +74,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
 
     registration_channel = scrim.registration_channel
-    open_role = scrim.open_role
+    open_role = scrim.open_roledelete_denied_message
 
     delta = humanize.precisedelta(closed_at - scrim.opened_at)
 
@@ -291,3 +291,30 @@ async def get_pretty_slotlist(scrim: Scrim):
 
     fp = io.BytesIO(table.get_string().encode())
     return discord.File(fp, filename="slotlist.txt")
+
+
+async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
+    m = await ctx.simple(
+        f"Do you want the {_type.value} message to be an embed or normal text/image ?"
+        "\n\n`Reply with 1 for embed and 2 for simple text/image`"
+    )
+
+    try:
+        option = await ctx.bot.wait_for(
+            "message", check=lambda msg: msg.channel == ctx.channel and msg.author == ctx.author, timeout=20
+        )
+
+        await delete_denied_message(m, 0)
+    except asyncio.TimeoutError:
+        return await ctx.error(f"You ran out of time, Kindly try again")
+
+    else:
+        try:
+            option = int(option.content)
+        except ValueError:
+            return await ctx.error("You didn't enter a valid number, you had to choose between 1 and 2.")
+
+        if option not in (1, 2):
+            return await ctx.error("You didn't enter a valid number, You had to choose between 1 and 2.")
+
+        return option

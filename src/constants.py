@@ -51,6 +51,13 @@ class RegDeny(Enum):
     duplicate = "duplicate_name"
 
 
+class RegMsg(Enum):
+    sopen = "Scrim Registration Open"
+    sclose = "Scrim Registration Close"
+    topen = "Tourney Registration Open"
+    tclose = "Tourney Registration Close"
+
+
 class LogType(Enum):
     msg = "msg"  # msg delete / bulk delete / msg edit
     join = "join"  # member join

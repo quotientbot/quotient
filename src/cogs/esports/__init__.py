@@ -12,12 +12,13 @@ from .utils import (
     toggle_channel,
     scrim_end_process,
     tourney_work_role,
+    embed_or_content,
 )
 
 from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate
 
 from .converters import PointsConverter, ScrimConverter, TourneyConverter
-from constants import EsportsType, IST
+from constants import EsportsType, IST, RegMsg
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime, timedelta
@@ -631,6 +632,16 @@ class ScrimManager(Cog, name="Esports"):
         embed = self.bot.embed(ctx, title="Scrims Info: ({0})".format(scrim.id))
         embed.description = text
         await ctx.send(embed=embed, embed_perms=True)
+
+    @smanager.command(name="openmsg")
+    async def s_openmsg(self, ctx: Context, scrim: ScrimConverter):
+        """Set scrim registration open msg"""
+        option = await embed_or_content(ctx, RegMsg.sopen)
+
+    @smanager.command(name="closemsg")
+    async def s_closemsg(self, ctx: Context, scrim: ScrimConverter):
+        """Set scrim registration close msg"""
+        option = await embed_or_content(ctx, RegMsg.sclose)
 
     # ************************************************************************************************
     # ************************************************************************************************

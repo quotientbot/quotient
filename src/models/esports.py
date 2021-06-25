@@ -141,6 +141,10 @@ class Scrim(models.Model):
     slotlist_format = fields.TextField(null=True)
 
     no_duplicate_name = fields.BooleanField(default=False)
+
+    open_message = fields.JSONField(default=dict)
+    close_message = fields.JSONField(default=dict)
+
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
