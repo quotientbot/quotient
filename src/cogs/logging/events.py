@@ -348,4 +348,47 @@ class LoggingEvents(Cog):
                 return embed, channel
 
             else:
-                pass
+                before = kwargs.get("before")
+
+                before_r = {
+                    "Name": before.name,
+                    "Color": "#{:06x}".format(before.color.value),
+                    "Separated": before.hoist,
+                    "Mentionable": before.mentionable,
+                    "Position": before.position,
+                }
+                after_r = {
+                    "Name": role.name,
+                    "Color": "#{:06x}".format(role.color.value),
+                    "Separated": role.hoist,
+                    "Mentionable": role.mentionable,
+                    "Position": role.position,
+                }
+
+                diff = [k for k in before_r if before_r[k] != after_r[k]]
+                b_text = ""
+                for i in diff:
+                    b_text += f"**{i}:** {before_r.get(i)}\n"
+
+                a_text = ""
+                for i in diff:
+                    a_text += f"**{i}:** {after_r.get(i)}\n"
+
+                added_perms = set()
+                removed_perms = set()
+                for p, v in before.permissions:
+                    if not v and getattr(role.permissions, p):
+                        added_perms.add(p)
+
+                    elif v and not getattr(role.permissions, p):
+                        removed_perms.add(p)
+
+                embed.title = "Role was Updated"
+                embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
+                embed.add_field(name="Before", value=b_text)
+                embed.add_field(name="After", value=a_text)
+                embed.add_field(
+                    name="Permissions",
+                    value=f"**Added:** {', '.join(added_perms)}\n**Removed:** {' '.join(removed_perms)}",
+                )
+                return embed, channel
