@@ -87,3 +87,14 @@ class WebEvents(Cog):
 
         await scrim.save()
         await self.bot.reminders.create_timer(scrim.open_time, "scrim_open", scrim_id=scrim.id)
+
+    @Cog.listener()
+    async def on_guild_update_timer_complete(self, payload:Web):
+        guild = await Guild.get(guild_id = payload.data.get("guild_id"))
+        self.bot.guild_data[guild.guild_id] = {
+            "prefix":guild.prefix,
+            "color":guild.embed_color,
+            "footer":guild.embed_footer
+        }
+
+        await Web.filter(id=payload.id).update(estatus=1)
