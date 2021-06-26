@@ -115,6 +115,7 @@ class Quotient(commands.AutoShardedBot):
     async def on_command(self, ctx):
         self.cmd_invokes += 1
         await constants.show_tip(ctx)
+        await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
     async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")

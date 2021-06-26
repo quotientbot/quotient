@@ -633,15 +633,15 @@ class ScrimManager(Cog, name="Esports"):
         embed.description = text
         await ctx.send(embed=embed, embed_perms=True)
 
-    @smanager.command(name="openmsg")
-    async def s_openmsg(self, ctx: Context, scrim: ScrimConverter):
-        """Set scrim registration open msg"""
-        option = await embed_or_content(ctx, RegMsg.sopen)
+    # @smanager.command(name="openmsg")
+    # async def s_openmsg(self, ctx: Context, scrim: ScrimConverter):
+    #     """Set scrim registration open msg"""
+    #     option = await embed_or_content(ctx, RegMsg.sopen)
 
-    @smanager.command(name="closemsg")
-    async def s_closemsg(self, ctx: Context, scrim: ScrimConverter):
-        """Set scrim registration close msg"""
-        option = await embed_or_content(ctx, RegMsg.sclose)
+    # @smanager.command(name="closemsg")
+    # async def s_closemsg(self, ctx: Context, scrim: ScrimConverter):
+    #     """Set scrim registration close msg"""
+    #     option = await embed_or_content(ctx, RegMsg.sclose)
 
     # ************************************************************************************************
     # ************************************************************************************************

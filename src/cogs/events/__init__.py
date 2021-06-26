@@ -4,6 +4,7 @@ from .tasks import QuoTasks
 from .cmds import CmdEvents
 from .votes import Votes
 from .errors import Errors
+from .web import WebEvents
 
 
 def setup(bot):
@@ -13,3 +14,4 @@ def setup(bot):
     bot.add_cog(CmdEvents(bot))
     bot.add_cog(Votes(bot))
     bot.add_cog(Errors(bot))
+    bot.add_cog(WebEvents(bot))

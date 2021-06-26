@@ -21,6 +21,7 @@ __all__ = (
     "Commands",
     "Messages",
     "Giveaway",
+    "Web",
 )
 
 
@@ -471,3 +472,15 @@ class Rrole(models.Model):
     max_roles = fields.IntField(default=1)
     locked = fields.BooleanField(default=False)
     log_channel_id = fields.BigIntField(null=True)
+
+
+class Web(models.Model):
+    class Meta:
+        table = "web_events"
+
+    id = fields.BigIntField(pk=True)
+    event = fields.CharField(max_length=100)
+    data = fields.JSONField(default=dict)
+    estatus = fields.IntField(default=0)
+    created_at = fields.DatetimeField(auto_now=True)
+    response = fields.TextField(null=True)

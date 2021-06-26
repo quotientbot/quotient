@@ -23,6 +23,19 @@ from .utils import (
 )
 
 
+# class RegMessageMenu(menus.Menu):
+#     def __init__(self, scrim:Scrim, _type:constants.RegMsg):
+#         super().__init__(
+#             timeout=60,
+#             delete_message_after=False,
+#             clear_reactions_after=True,
+#         )
+
+#         self.scrim = scrim
+#         self._type = _type
+
+#         self._dict
+
 class PointsConfigEditor(menus.Menu):
     def __init__(self, points: PointsInfo):
         super().__init__(
