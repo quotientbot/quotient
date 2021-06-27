@@ -103,7 +103,7 @@ tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>
 
 [[package]]
 name = "black"
-version = "21.5b1"
+version = "21.6b0"
 description = "The uncompromising code formatter."
 category = "dev"
 optional = false
@@ -119,8 +119,9 @@ toml = ">=0.10.1"
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
-d = ["aiohttp (>=3.6.0)", "aiohttp-cors"]
+d = ["aiohttp (>=3.6.0)", "aiohttp-cors (>=0.4.0)"]
 python2 = ["typed-ast (>=1.4.2)"]
+uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "braceexpand"
@@ -212,8 +213,8 @@ tests = ["check-manifest (>=0.25)", "coverage (>=4.0)", "isort (>=4.2.2)", "mock
 
 [[package]]
 name = "discord-components"
-version = "0.5.3"
-description = "An unofficial library for discord components (under-development)"
+version = "0.5.4"
+description = "An unofficial library for discord components."
 category = "main"
 optional = false
 python-versions = ">=3.7"
@@ -234,7 +235,7 @@ python-versions = ">=3.5.3"
 
 [[package]]
 name = "discord.py"
-version = "1.7.2"
+version = "1.7.3"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -249,7 +250,7 @@ voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [[package]]
 name = "humanize"
-version = "3.5.0"
+version = "3.9.0"
 description = "Python humanize utilities"
 category = "main"
 optional = false
@@ -260,11 +261,11 @@ tests = ["freezegun", "pytest", "pytest-cov"]
 
 [[package]]
 name = "idna"
-version = "3.1"
+version = "3.2"
 description = "Internationalized Domain Names in Applications (IDNA)"
 category = "main"
 optional = false
-python-versions = ">=3.4"
+python-versions = ">=3.5"
 
 [[package]]
 name = "import-expression"
@@ -487,7 +488,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "tortoise-orm"
-version = "0.17.3"
+version = "0.17.4"
 description = "Easy async ORM for python, built with relations in mind"
 category = "main"
 optional = false
@@ -632,8 +633,8 @@ attrs = [
     {file = "attrs-21.2.0.tar.gz", hash = "sha256:ef6aaac3ca6cd92904cdd0d83f629a15f18053ec84e6432106f7a4d04ae4f5fb"},
 ]
 black = [
-    {file = "black-21.5b1-py3-none-any.whl", hash = "sha256:8a60071a0043876a4ae96e6c69bd3a127dad2c1ca7c8083573eb82f92705d008"},
-    {file = "black-21.5b1.tar.gz", hash = "sha256:23695358dbcb3deafe7f0a3ad89feee5999a46be5fec21f4f1d108be0bcdb3b1"},
+    {file = "black-21.6b0-py3-none-any.whl", hash = "sha256:dfb8c5a069012b2ab1e972e7b908f5fb42b6bbabcba0a788b86dc05067c7d9c7"},
+    {file = "black-21.6b0.tar.gz", hash = "sha256:dc132348a88d103016726fe360cb9ede02cecf99b76e3660ce6c596be132ce04"},
 ]
 braceexpand = [
     {file = "braceexpand-0.1.7-py2.py3-none-any.whl", hash = "sha256:91332d53de7828103dcae5773fb43bc34950b0c8160e35e0f44c4427a3b85014"},
@@ -715,24 +716,23 @@ dictdiffer = [
     {file = "dictdiffer-0.8.1.tar.gz", hash = "sha256:1adec0d67cdf6166bda96ae2934ddb5e54433998ceab63c984574d187cc563d2"},
 ]
 discord-components = [
-    {file = "discord_components-0.5.3-py3-none-any.whl", hash = "sha256:3c8ef54b0de6519e593b260f03e8032586a2226d69721a9004fb2ebacd41fb73"},
-    {file = "discord_components-0.5.3.tar.gz", hash = "sha256:96171cb1956988bdd50d89ca9ec0135ecb3340b5f5255251141e7d28c14860ec"},
+    {file = "discord_components-0.5.4-py3-none-any.whl", hash = "sha256:1746d2bfb80c5782f4ffd68930d7415f317b6970b78dae7c731f3ea07d4fb80b"},
 ]
 discord-ext-menus = [
     {file = "discord-ext-menus-1.1.tar.gz", hash = "sha256:96104fb63aae63846b7f722ca29da31f143e273d1c5745ef7427540814a31da8"},
     {file = "discord_ext_menus-1.1-py3-none-any.whl", hash = "sha256:d3c9fc8cacf533ed78fc177482889ae72236f09968184ac90bdfa6a8555b5108"},
 ]
 "discord.py" = [
-    {file = "discord.py-1.7.2-py3-none-any.whl", hash = "sha256:f179db299c949a8cf0a12c1b1b94d0da9a18e088857154d93ae5ab1d807ec61d"},
-    {file = "discord.py-1.7.2.tar.gz", hash = "sha256:114e76cd27362fb919abf7f001a2dbdc77c9a67cff74ed6a89aecd6582ee298e"},
+    {file = "discord.py-1.7.3-py3-none-any.whl", hash = "sha256:c6f64db136de0e18e090f6752ea68bdd4ab0a61b82dfe7acecefa22d6477bb0c"},
+    {file = "discord.py-1.7.3.tar.gz", hash = "sha256:462cd0fe307aef8b29cbfa8dd613e548ae4b2cb581d46da9ac0d46fb6ea19408"},
 ]
 humanize = [
-    {file = "humanize-3.5.0-py3-none-any.whl", hash = "sha256:f584919f691ecfb67036a8639f2ac3d578f5f9073fb4cfd370a4cdf9f66aed78"},
-    {file = "humanize-3.5.0.tar.gz", hash = "sha256:a0474226e1494923f9106758e11f0c3bb4dbe5e7d84388fa78f90eb7713b5d65"},
+    {file = "humanize-3.9.0-py3-none-any.whl", hash = "sha256:2cc4f7d2f5994ea9fcddd4b681ddea9abd23baa8cc64bd0af041a0162636f31c"},
+    {file = "humanize-3.9.0.tar.gz", hash = "sha256:892a5b7b87763c4c6997a58382c2b1f4614048a2e01c23ef1bb0456e6f9d4d5d"},
 ]
 idna = [
-    {file = "idna-3.1-py3-none-any.whl", hash = "sha256:5205d03e7bcbb919cc9c19885f9920d622ca52448306f2377daede5cf3faac16"},
-    {file = "idna-3.1.tar.gz", hash = "sha256:c5b02147e01ea9920e6b0a3f1f7bb833612d507592c837a6c49552768f4054e1"},
+    {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
+    {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
 ]
 import-expression = [
     {file = "import_expression-1.1.4-py3-none-any.whl", hash = "sha256:292099910a4dcc65ba562377cd2265487ba573dd63d73bdee5deec36ca49555b"},
@@ -990,8 +990,8 @@ toml = [
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
 ]
 tortoise-orm = [
-    {file = "tortoise-orm-0.17.3.tar.gz", hash = "sha256:6e5e56694b64118faaada2670343c909d6c9f84c7235f3372b8a398b2e8d6628"},
-    {file = "tortoise_orm-0.17.3-py3-none-any.whl", hash = "sha256:99b448a870a81b6edb3ef9d2f0e22b2c83afa2b6348178840d3ccdbf03e206d3"},
+    {file = "tortoise-orm-0.17.4.tar.gz", hash = "sha256:8314a9ae63d3f009bac5da3e7d1f7e3f2de8f9bad43ce1efcd3e059209cd3f9d"},
+    {file = "tortoise_orm-0.17.4-py3-none-any.whl", hash = "sha256:f052b6089e30748afec88669f1a1cf01a3662cdac81cf5427dfb338839ad6027"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},
