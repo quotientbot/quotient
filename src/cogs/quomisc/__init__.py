@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 from cogs.quomisc.helper import guild_msg_stats, member_msg_stats
-from models.models import Commands
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
-from models import Guild, Votes, Messages
+from models import Guild, Votes, Messages, User, Commands
 from discord.ext import commands
 from utils import ColorConverter, QuoUser
 from collections import Counter
@@ -251,6 +250,25 @@ class Quomisc(Cog, name="quomisc"):
         rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
         embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def money(self, ctx: Context):
+        user = await User.get(user_id=ctx.author.id).only("user_id", "money")
+        await ctx.simple(f"💰 | You own `{user.money} Quo Coins`.")
+
+    @commands.command()
+    async def shop(self, ctx: Context):
+        embed = discord.Embed(color=self.bot.color)
+        embed.set_footer(text=f"Use '{ctx.prefix}buy <item>' to buy something")
+        embed.description = (
+            f"<:premium:858728502634610708> **Quotient Premium** — [⏣ 120]({self.bot.config.SERVER_LINK})"
+            f"\nGet a Quotient Premium redeem code, this can be used to upgrade any server with Quotient Premium for 1 Month."
+        )
+        await ctx.send(embed=embed, embed_perms=True)
+
+    @commands.command()
+    async def buy(self, ctx: Context, item: str):
+        await ctx.error("This command is currently under development, will be available soon.")
 
     @commands.group(aliases=("msg",), invoke_without_command=True)
     async def message(self, ctx: Context, user: Optional[QuoUser]):

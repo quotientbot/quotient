@@ -1,4 +1,3 @@
-from discord_components.button import ButtonStyle
 from prettytable import PrettyTable
 from core import Cog, Quotient, Context
 from discord.ext import commands
