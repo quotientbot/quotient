@@ -87,6 +87,7 @@ class User(models.Model):
     premium_notified = fields.BooleanField(default=False)
     public_profile = fields.BooleanField(default=True)
     # badges = CharVarArrayField(default=list)
+    money = fields.IntField(default=0)
 
 
 # ************************************************************************************************

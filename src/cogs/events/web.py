@@ -1,13 +1,7 @@
-from enum import auto
-
-from tortoise.query_utils import Q
 from constants import IST
 from core import Quotient, Cog
-from models import Web, Scrim, Guild
-from datetime import date, datetime, timedelta
-
-from models.models import Timer
-
+from models import Web, Scrim, Guild, Timer
+from datetime import datetime, timedelta
 
 class WebEvents(Cog):
     def __init__(self, bot: Quotient):
