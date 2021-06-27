@@ -209,7 +209,7 @@ class SMError(Cog):
 
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
-        with suppress(discord.NotFound, discord.Forbidden, AttributeError):
+        with suppress(discord.NotFound, discord.Forbidden, AttributeError, discord.HTTPException):
             await message.add_reaction("\N{CROSS MARK}")
 
             if _type == RegDeny.botmention:

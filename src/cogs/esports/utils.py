@@ -74,7 +74,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
 
     registration_channel = scrim.registration_channel
-    open_role = scrim.open_roledelete_denied_message
+    open_role = scrim.open_role
 
     delta = humanize.precisedelta(closed_at - scrim.opened_at)
 
