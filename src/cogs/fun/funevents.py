@@ -10,7 +10,7 @@ import itertools
 import discord
 import json
 from datetime import datetime
-
+from aiohttp import ContentTypeError
 
 __all__ = ("Funevents",)
 
@@ -27,7 +27,7 @@ class Funevents(Cog):
         resp = await self.bot.session.get(uri, **kwargs)
         try:
             return await resp.json()
-        except json.JSONDecodeError as e:
+        except (json.JSONDecodeError, ContentTypeError) as e:
             print(f"Something wrong happened: {e}")
 
     async def handle_event(self, _type, records):

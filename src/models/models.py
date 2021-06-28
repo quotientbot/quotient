@@ -226,7 +226,7 @@ class Premium(models.Model):
     user_id = fields.BigIntField()
     payment_id = fields.CharField(max_length=50, null=True)
     payment_time = fields.DatetimeField(null=True)
-    plan_1 = fields.IntField(default=0, null=True)
+    plan_type = fields.IntField(default=0, null=True)
     plan_2 = fields.IntField(default=0, null=True)
     plan_3 = fields.IntField(default=0, null=True)
     amount = fields.IntField(default=0, null=True)
