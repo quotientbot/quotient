@@ -95,7 +95,7 @@ class QuoTasks(Cog):
             for guild in guilds:
                 self.bot.dispatch("guild_premium_expire", guild)
 
-    @tasks.loop(seconds=2, reconnect=True)
+    @tasks.loop(seconds=3, reconnect=True)
     async def get_web_tasks(self):
         records = await models.Web.filter(estatus=0).all()
         if records:

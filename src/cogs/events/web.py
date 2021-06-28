@@ -3,6 +3,7 @@ from core import Quotient, Cog
 from models import Web, Scrim, Guild, Timer
 from datetime import datetime, timedelta
 
+
 class WebEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
@@ -55,7 +56,7 @@ class WebEvents(Cog):
                     payload, "Quotient do not have required permissions in the registration channel."
                 )
 
-            if registration_channel.id in self.bot.scrim_channels:
+            if await Scrim.filter(registration_channel_id=registration_channel.id):
                 return await self.deny_creation(
                     payload, "The registration channel you selected is already assigned to another scrim."
                 )
@@ -167,7 +168,7 @@ class WebEvents(Cog):
                 payload, "Quotient do not have required permissions in the registration channel."
             )
 
-        if registration_channel.id in self.bot.scrim_channels:
+        if await Scrim.filter(registration_channel_id=registration_channel.id):
             return await self.deny_creation(
                 payload, "The registration channel you selected is already assigned to another scrim."
             )
