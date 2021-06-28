@@ -1,3 +1,4 @@
+import discord
 from constants import IST
 from core import Quotient, Cog
 from models import Web, Scrim, Guild, Timer
@@ -152,6 +153,10 @@ class WebEvents(Cog):
                 payload, "Your server hasn't done Quotient setup yet, kindly run qsetup command once and try again."
             )
 
+        perms = guild.me.guild_permissions
+        if not all((perms.manage_channels, perms.manage_roles)):
+            return await self.deny_creation("I need manage_channels and manage_roles permission in the server.")
+
         scrim = Scrim(guild_id=guild.id, host_id=int(payload.data.get("host_id")), name=payload.data.get("name"))
 
         registration_channel = self.bot.get_channel(int(payload.data.get("registration_channel_id")))
@@ -213,6 +218,45 @@ class WebEvents(Cog):
 
         await scrim.save()
         await self.bot.reminders.create_timer(scrim.open_time, "scrim_open", scrim_id=scrim.id)
+
+        reason = "Created for scrims management."
+
+        scrims_mod = discord.utils.get(guild.roles, name="scrims-mod")
+
+        if scrims_mod is None:
+            scrims_mod = await guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
+
+        overwrite = registration_channel.overwrites_for(guild.default_role)
+        overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
+        await registration_channel.set_permissions(scrims_mod, overwrite=overwrite)
+
+        scrims_log_channel = discord.utils.get(guild.text_channels, name="quotient-scrims-logs")
+
+        if scrims_log_channel is None:
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                guild.me: discord.PermissionOverwrite(read_messages=True),
+                scrims_mod: discord.PermissionOverwrite(read_messages=True),
+            }
+            scrims_log_channel = await guild.create_text_channel(
+                name="quotient-scrims-logs",
+                overwrites=overwrites,
+                reason=reason,
+            )
+
+            # Sending Message to scrims-log-channel
+            note = await scrims_log_channel.send(
+                embed=discord.Embed(
+                    description=f"If events related to scrims i.e opening registrations or adding roles, "
+                    f"etc are triggered, then they will be logged in this channel. "
+                    f"Also I have created {scrims_mod.mention}, you can give that role to your "
+                    f"scrims-moderators. User with {scrims_mod.mention} can also send messages in "
+                    f"registration channels and they won't be considered as scrims-registration.\n\n"
+                    f"`Note`: **Do not rename this channel.**",
+                    color=discord.Color(self.bot.color),
+                )
+            )
+            await note.pin()
 
     @Cog.listener()
     async def on_guild_update_timer_complete(self, payload: Web):
