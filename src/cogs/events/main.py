@@ -6,6 +6,8 @@ from constants import random_greeting
 import discord, config
 import re
 
+from models.models import Autoevent, Giveaway, Lockdown, Logging, Tag
+
 
 class MainEvents(Cog, name="Main Events"):
     def __init__(self, bot: Quotient):
@@ -46,6 +48,11 @@ class MainEvents(Cog, name="Main Events"):
             await Scrim.filter(guild_id=guild.id).delete()
             await Tourney.filter(guild_id=guild.id).delete()
             await Autorole.filter(guild_id=guild.id).delete()
+            await Tag.filter(guild_id=guild.id).delete()
+            await Lockdown.filter(guild_id=guild.id).delete()
+            await Autoevent.filter(guild_id=guild.id).delete()
+            await Giveaway.filter(guild_id=guild.id).delete()
+
             try:
                 self.bot.guild_data.pop(guild.id)
             except KeyError:
