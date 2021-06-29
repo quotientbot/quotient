@@ -270,6 +270,16 @@ class Quomisc(Cog, name="quomisc"):
     async def buy(self, ctx: Context, item: str):
         await ctx.error("This command is currently under development, will be available soon.")
 
+    @commands.command()
+    async def dashboard(self, ctx: Context):
+        await ctx.send(
+            f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
+        )
+
+    @commands.command()
+    async def vote(self, ctx: Context):
+        await ctx.send(f"You can vote for me here:\n<https://quotientbot.xyz/vote>")
+
     @commands.group(aliases=("msg",), invoke_without_command=True)
     async def message(self, ctx: Context, user: Optional[QuoUser]):
         """
