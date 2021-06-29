@@ -36,3 +36,8 @@ async def cache(bot):
     bot.tourney_channels = set()
     async for record in records:
         bot.tourney_channels.add(record.registration_channel_id)
+
+    records = models.SSVerify.all()
+    bot.ssverify_channels = set()
+    async for record in records:
+        bot.ssverify_channels.add(record.msg_channel_id)
