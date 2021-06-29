@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 
 from .events import ScrimEvents
-from .errors import ScrimError, SMError, TourneyError, PointsError
+from .errors import ScrimError, SMError, TourneyError, PointsError, VerifyError
 from prettytable import PrettyTable
 from .image import lb_files, ptable_files
 
@@ -1661,6 +1661,102 @@ class ScrimManager(Cog, name="Esports"):
 
         await PointsTable.filter(id=record.id).delete()
         return await ctx.success("Successfully deleted points table.")
+
+    async def vembed(self, ctx: Context, value: int, desc: str):
+        embed = discord.Embed(color=self.bot.color)
+        embed.title = "SS-Verify Setup ({0}/6)".format(value)
+        embed.description = desc
+        embed.set_footer(text="Reply with 'cancel' to stop the process", icon_url=self.bot.user.avatar_url)
+        return await ctx.send(embed=embed)
+
+    @commands.group(name="ssverify", invoke_without_command=True)
+    async def ssverify(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @ssverify.command(name="setup")
+    async def ss_setup(self, ctx: Context):
+        count = await SSVerify.filter(guild_id=ctx.guild.id).count()
+
+        if count >= 1 and not await ctx.is_premium_guild():
+            raise VerifyError(
+                "You can't setup more ss verify channels on free tier.\n\nKindly checkout [Quotient Premium](link)"
+            )
+
+        def check(msg: discord.Message):
+            if msg.content.strip().lower() == "cancel":
+                raise VerifyError("Alright reverting the process")
+
+            return msg.channel == ctx.channel and msg.author == ctx.author
+
+        vsetup = SSVerify(guild_id=ctx.guild.id)
+
+        await self.vembed(
+            ctx, 1, "In which channel do you want to setup ss verification?\n\n`Please enter name or mention a channel`"
+        )
+        channel = await inputs.channel_input(ctx, check)
+
+        perms = channel.permissions_for(ctx.me)
+        if not all((perms.send_messages, perms.embed_links, perms.add_reactions, perms.manage_messages)):
+            raise VerifyError(
+                f"Kindly make sure I have following permissions in {channel.mention}:"
+                "\n\n `send messages`, `embed links`, `add reactions`, `manage messages`"
+            )
+
+        vsetup.msg_channel_id = channel.id
+
+        await self.vembed(
+            ctx,
+            2,
+            "In which channel do you want your mods to verify screenshots?\n\n`Please enter the name or mention the channel`",
+        )
+        channel = await inputs.channel_input(ctx, check)
+
+        perms = channel.permissions_for(ctx.me)
+
+        if not all((perms.send_messages, perms.embed_links, perms.add_reactions, perms.manage_messages)):
+            raise VerifyError(
+                f"Kindly make sure I have the following perms in {channel.mention}"
+                "\n\n `send messages`, `embed links`, `add reactions`, `manage messages`"
+            )
+
+        vsetup.report_channel_id = channel.id
+
+        await self.vembed(
+            ctx,
+            3,
+            "In which channel do you want me to log all registrations and other things?\n\n`Please enter the name or mention a channel`",
+        )
+        channel = await inputs.channel_input(ctx, check)
+        perms = channel.permissions_for(ctx.me)
+
+        if not all((perms.send_messages, perms.embed_links)):
+            raise VerifyError(f"Kindly make I have `send_messages` and `embed_links` permissions in {channel.mention}")
+
+        vsetup.log_channel_id = channel.id
+
+        await self.vembed(ctx, 4, "How many screenshots are required?\n\n`Kindly enter a number between 1 and 10`")
+        vsetup.required_ss = await inputs.integer_input(ctx, check, limits=(1, 10))
+
+        await self.vembed(
+            ctx,
+            5,
+            "Which role should I give for successful submission of `{0} ss`?\n\n`Please enter the name or mention the role`",
+        )
+        vsetup.role_id = await inputs.role_input(ctx, check)
+
+        await self.vembed(
+            ctx, 6, "Enter the mod role for ss verification. Only this role will be allowed verify or deny screenshots."
+        )
+        vsetup.mod_role_id = await inputs.role_input(ctx, check)
+        await ctx.send("hi bro")
+
+    @ssverify.command(name="config")
+    async def ss_config(self, ctx: Context):
+        ...
+
+    @ssverify.command(name="delete")
+    async def ss_delete(self, ctx: Context):
+        ...
 
 
 def setup(bot):

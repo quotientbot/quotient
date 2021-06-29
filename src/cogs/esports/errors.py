@@ -25,6 +25,9 @@ class TourneyError(commands.CommandError):
 class PointsError(commands.CommandError):
     pass
 
+class VerifyError(commands.CommandError):
+    pass
+
 
 class SMError(Cog):
     def __init__(self, bot):
