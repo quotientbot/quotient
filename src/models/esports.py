@@ -23,6 +23,8 @@ __all__ = (
     "EasyTag",
     "PointsInfo",
     "PointsTable",
+    "SSVerify",
+    "SSData"
 )
 
 
@@ -425,3 +427,33 @@ class PointsTable(models.Model):
     @property
     def author(self):
         return self.bot.get_user(self.created_by)
+
+
+class SSVerify(models.Model):
+    class Meta:
+        table = "ssverify.info"
+
+    id = fields.BigIntField(pk=True, index=True)
+    guild_id = fields.BigIntField()
+    msg_channel_id = fields.BigIntField(index=True)
+    report_channel_id = fields.BigIntField()
+    log_channel_id = fields.BigIntField()
+    role_id = fields.BigIntField()
+    mod_role_id = fields.BigIntField()
+    required_ss = fields.IntField()
+    data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
+
+
+class SSData(models.Model):
+    class Meta:
+        table = "ssverify.data"
+
+    id = fields.BigIntField(pk=True)
+    author_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    message_id = fields.BigIntField(default=list)
+    image = fields.CharField(max_length=300)
+    mod_id = fields.BigIntField(null=True)
+    submitted_at = fields.DatetimeField(auto_now=True)
+    responded_at = fields.DatetimeField(null=True)
+    verified = fields.BooleanField(default=False)
