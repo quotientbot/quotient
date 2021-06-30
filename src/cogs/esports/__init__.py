@@ -1702,6 +1702,9 @@ class ScrimManager(Cog, name="Esports"):
                 "\n\n `send messages`, `embed links`, `add reactions`, `manage messages`"
             )
 
+        if channel.id in self.bot.ssverify_channels:
+            raise VerifyError("This channel is already an SS-Verify channel.")
+
         vsetup.msg_channel_id = channel.id
 
         await self.vembed(
@@ -1718,6 +1721,9 @@ class ScrimManager(Cog, name="Esports"):
                 f"Kindly make sure I have the following perms in {channel.mention}"
                 "\n\n `send messages`, `embed links`, `add reactions`, `manage messages`"
             )
+
+        if vsetup.msg_channel_id == channel.id:
+            raise VerifyError(f"Screenshot send channel and report channel cannot be same.")
 
         vsetup.report_channel_id = channel.id
 
@@ -1740,15 +1746,35 @@ class ScrimManager(Cog, name="Esports"):
         await self.vembed(
             ctx,
             5,
-            "Which role should I give for successful submission of `{0} ss`?\n\n`Please enter the name or mention the role`",
+            "Which role should I give for successful submission of `{0} ss`?\n\n`Please enter the name or mention the role`".format(
+                vsetup.required_ss
+            ),
         )
-        vsetup.role_id = await inputs.role_input(ctx, check)
+        role = await inputs.role_input(ctx, check)
+
+        if role > ctx.author.top_role:
+            raise VerifyError(f"{role.mention} is higher than your top role ({ctx.author.top_role.mention})")
+
+        if role > ctx.me.top_role:
+            raise VerifyError(f"{role.mention} is higher than my toprole ({ctx.me.top_role.mention}).")
+
+        vsetup.role_id = role.id
 
         await self.vembed(
-            ctx, 6, "Enter the mod role for ss verification. Only this role will be allowed verify or deny screenshots."
+            ctx,
+            6,
+            "Enter the mod role for ss verification. Only this role will be allowed verify or deny screenshots."
+            "\n\n`Please enter the name or mention the role.`",
         )
-        vsetup.mod_role_id = await inputs.role_input(ctx, check)
-        await ctx.send("hi bro")
+        role = await inputs.role_input(ctx, check)
+
+        if role.id == vsetup.role_id:
+            raise VerifyError(f"Success role for SS and mod-role cannot be same.")
+
+        vsetup.mod_role_id = role.id
+        await vsetup.save()
+        self.bot.ssverify_channels.add(vsetup.msg_channel_id)
+        await ctx.success(f"Setup successful. (Verification ID: `{vsetup.id}`)")
 
     @ssverify.command(name="config")
     async def ss_config(self, ctx: Context):

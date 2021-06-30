@@ -441,6 +441,7 @@ class SSVerify(models.Model):
     role_id = fields.BigIntField()
     mod_role_id = fields.BigIntField()
     required_ss = fields.IntField()
+    success_message = fields.TextField(null=True)
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
 
 
