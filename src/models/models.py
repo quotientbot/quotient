@@ -22,6 +22,7 @@ __all__ = (
     "Messages",
     "Giveaway",
     "Web",
+    "WebLogs",
 )
 
 
@@ -485,3 +486,15 @@ class Web(models.Model):
     estatus = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now=True)
     response = fields.TextField(null=True)
+
+
+class WebLogs(models.Model):
+    class Meta:
+        table = "web_logs"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    user_id = fields.BigIntField()
+    username = fields.CharField(max_length=100)
+    action = fields.CharField(max_length=400)
+    executed_at = fields.DatetimeField(auto_now=True)
