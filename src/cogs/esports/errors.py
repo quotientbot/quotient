@@ -131,7 +131,7 @@ class SMError(Cog):
                 num = kwargs.get("num")
                 e = discord.Embed(
                     color=self.bot.color,
-                    description=f"**{num}) TEAM [{slot.team_name.upper()}]({message.jump_url})**\n",
+                    description=f"**{num}) NAME: [{slot.team_name.upper()}]({message.jump_url})**\n",
                 )
                 if len(message.mentions) > 0:
                     e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"

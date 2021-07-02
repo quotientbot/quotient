@@ -28,7 +28,12 @@ class EsportsType(Enum):
 class AutocleanType(Enum):
     channel = "channel"
     role = "role"
+    
 
+class SSStatus(Enum):
+    submitted = "submitted"
+    approved = "approved"
+    disapproved = "disapproved"
 
 class EsportsLog(Enum):
     open = "open"

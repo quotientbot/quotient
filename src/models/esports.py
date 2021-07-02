@@ -7,7 +7,7 @@ import utils
 from PIL import Image, ImageFont, ImageDraw
 from typing import Optional
 from tortoise import models, fields
-from constants import AutocleanType, Day, EsportsType
+from constants import AutocleanType, Day, SSStatus
 from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
@@ -24,7 +24,7 @@ __all__ = (
     "PointsInfo",
     "PointsTable",
     "SSVerify",
-    "SSData"
+    "SSData",
 )
 
 
@@ -442,7 +442,17 @@ class SSVerify(models.Model):
     mod_role_id = fields.BigIntField()
     required_ss = fields.IntField()
     success_message = fields.TextField(null=True)
+    delete_after = fields.IntField(default=0)
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
+
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def modrole(self):
+        if self._guild is not None:
+            return self._guild.get_role(self.mod_role_id)
 
 
 class SSData(models.Model):
@@ -457,4 +467,4 @@ class SSData(models.Model):
     mod_id = fields.BigIntField(null=True)
     submitted_at = fields.DatetimeField(auto_now=True)
     responded_at = fields.DatetimeField(null=True)
-    verified = fields.BooleanField(default=False)
+    status = fields.CharEnumField((SSStatus), default=SSStatus.submitted)

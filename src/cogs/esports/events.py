@@ -1,6 +1,7 @@
 from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
 from core import Quotient, Cog
-from utils import emote
+from models.esports import SSVerify
+from utils import emote, plural
 from .utils import (
     available_to_reserve,
     check_scrim_requirements,
@@ -17,7 +18,7 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
 )
-from constants import AutocleanType, Day, EsportsLog, EsportsRole, EsportsType, IST
+from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST
 from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
@@ -441,3 +442,68 @@ class ScrimEvents(Cog):
                         description=f"{emote.check} | Role Purge (Scrims Autoclean) executed successfully: {scrim.id}",
                     )
                 )
+
+    # ==========================================================================================================
+
+    @Cog.listener(name="on_message")
+    async def on_ssverify_message(self, message: discord.Message):
+        if not message.guild or message.author.bot:
+            return
+
+        if not message.channel.id in self.bot.ssverify_channels:
+            return
+
+        verify = await SSVerify.get_or_none(msg_channel_id=message.channel.id)
+
+        if not verify:
+            return self.bot.ssverify_channels.discard(message.channel.id)
+
+        modrole = verify.modrole
+        delete_after = verify.delete_after
+
+        if modrole and modrole in message.author.roles:
+            return
+
+        records = await verify.data.filter(author_id=message.author.id)
+        submitted = sum(1 for i in records if i.status == SSStatus.submitted)
+        approved = sum(1 for i in records if i.status == SSStatus.approved)
+        disapproved = sum(1 for i in records if i.status == SSStatus.disapproved)
+
+        if approved >= verify.required_ss:
+            return await message.reply(
+                embed=discord.Embed(
+                    color=discord.Color.red(),
+                    description=(
+                        f"Your entry has already been confirmed, You don't need post more screenshots here.\n"
+                        f"{'**Message:** '+verify.success_message if verify.success_message else ''}"
+                    ),
+                    delete_after=delete_after,
+                )
+            )
+
+        else:
+            attachments = [i for i in message.attachments if i.content_type in ("image/png", "image/jpeg", "image/jpg")]
+            if not attachments:
+                return await message.reply(
+                    embed=discord.Embed(
+                        color=discord.Color.red(),
+                        description=(
+                            "Kindly send a valid screenshot to send for verification.\n"
+                            "**Your history:**\n"
+                            f"\n- `{submitted}` screenshots are pending verification."
+                            f"\n- `{approved}` approved screenshots."
+                            f"\n- `{disapproved}` disapproved screenshots."
+                            f"\n\nYou need a total of {verify.required_ss} approved screenshots."
+                        ),
+                    ),
+                    delete_after=delete_after,
+                )
+
+            else:
+                with suppress(AttributeError):
+                    await message.add_reaction("⏱️")
+                    await message.reply("submitted", delete_after=delete_after)
+
+                embed = discord.Embed(color = self.bot.color)
+                embed.set_image(url = attachments[0].proxy_url)
+                
