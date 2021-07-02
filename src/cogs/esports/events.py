@@ -289,18 +289,15 @@ class ScrimEvents(Cog):
             with suppress(AttributeError):
                 self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
-
         # Opening Channel for Normal Janta
         registration_channel = scrim.registration_channel
         open_role = scrim.open_role
-
 
         await registration_channel.send(
             content=scrim_work_role(scrim, EsportsRole.ping),
             embed=await registration_open_embed(scrim),
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
-
 
         channel_update = await toggle_channel(registration_channel, open_role, True)
 
@@ -450,7 +447,7 @@ class ScrimEvents(Cog):
 
     # ==========================================================================================================
 
-    @Cog.listener(name="on_message")
+    @Cog.listener()
     async def on_ssverify_message(self, message: discord.Message):
         if not message.guild or message.author.bot:
             return
