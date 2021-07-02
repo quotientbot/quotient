@@ -17,6 +17,7 @@ from .utils import (
     before_registrations,
     cannot_take_registration,
     check_tourney_requirements,
+    registration_open_embed,
 )
 from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST
 from .converters import EasyMemberConverter
@@ -249,14 +250,14 @@ class ScrimEvents(Cog):
         if not await should_open_scrim(scrim):
             return
 
-        reserved_count = await scrim.reserved_slots.all().count()
+        # reserved_count = await scrim.reserved_slots.all().count()
 
-        embed = discord.Embed(
-            color=self.bot.color,
-            title="Registration is now open!",
-            description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
-            f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
-        )
+        # embed = discord.Embed(
+        #     color=self.bot.color,
+        #     title="Registration is now open!",
+        #     description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
+        #     f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
+        # )
 
         oldslots = await scrim.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
@@ -288,9 +289,19 @@ class ScrimEvents(Cog):
             with suppress(AttributeError):
                 self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
+
         # Opening Channel for Normal Janta
         registration_channel = scrim.registration_channel
         open_role = scrim.open_role
+
+
+        await registration_channel.send(
+            content=scrim_work_role(scrim, EsportsRole.ping),
+            embed=await registration_open_embed(scrim),
+            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
+        )
+
+
         channel_update = await toggle_channel(registration_channel, open_role, True)
 
         self.bot.scrim_channels.add(registration_channel.id)
@@ -299,12 +310,6 @@ class ScrimEvents(Cog):
             opened_at=datetime.now(tz=IST),
             closed_at=None,
             slotlist_message_id=None,
-        )
-
-        await registration_channel.send(
-            content=scrim_work_role(scrim, EsportsRole.ping),
-            embed=embed,
-            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
@@ -504,6 +509,5 @@ class ScrimEvents(Cog):
                     await message.add_reaction("⏱️")
                     await message.reply("submitted", delete_after=delete_after)
 
-                embed = discord.Embed(color = self.bot.color)
-                embed.set_image(url = attachments[0].proxy_url)
-                
+                embed = discord.Embed(color=self.bot.color)
+                embed.set_image(url=attachments[0].proxy_url)

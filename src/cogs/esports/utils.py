@@ -3,7 +3,7 @@ import io
 from typing import NoReturn, Optional, Union
 
 from prettytable.prettytable import PrettyTable
-
+from ast import literal_eval
 from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
@@ -318,3 +318,36 @@ async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
             return await ctx.error("You didn't enter a valid number, You had to choose between 1 and 2.")
 
         return option
+
+
+async def registration_open_embed(scrim: Scrim):
+    _dict = scrim.open_message
+    reserved_count = await scrim.reserved_slots.all().count()
+
+    if len(_dict) <= 1:
+        embed = discord.Embed(
+            color=config.COLOR,
+            title="Registration is now open!",
+            description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
+            f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
+        )
+
+    else:
+        text = str(_dict)
+        text.replace("<<mentions>>", str(scrim.required_mentions))
+        text.replace("<<slots>>", str(scrim.total_slots))
+        text.replace("<<reserved>>", str(reserved_count))
+        text.replace("<<slotlist>>", getattr(scrim.slotlist_channel, "mention", "Not Found"))
+        text.replace("<<multiregister>>", "Enabled" if scrim.multiregister else "Not Enabled")
+        text.replace("<<teamname_compulsion>>", "Yes" if scrim.teamname_compulsion else "No")
+        text.replace(
+            "<<mention_banned>>", ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.banned_user_ids()))
+        )
+        text.replace(
+            "<<mention_reserved>>",
+            ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.reserved_user_ids())),
+        )
+
+        embed = discord.Embed.from_dict(literal_eval(text))
+
+    return embed
