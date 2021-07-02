@@ -7,7 +7,7 @@ from ast import literal_eval
 from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
-from utils import find_team
+from utils import find_team, strtime
 import discord
 import config
 import asyncio
@@ -82,17 +82,13 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
 
-    await registration_channel.send(
-        embed=discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
-    )
-
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
     if scrim.autoslotlist and len(await scrim.teams_registered):
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
         with suppress(AttributeError, discord.Forbidden):
-            slotmsg = await channel.send(embed=embed)
+            slotmsg = await channel.send(embed=registration_close_embed())
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
 
@@ -334,20 +330,37 @@ async def registration_open_embed(scrim: Scrim):
 
     else:
         text = str(_dict)
-        text.replace("<<mentions>>", str(scrim.required_mentions))
-        text.replace("<<slots>>", str(scrim.total_slots))
-        text.replace("<<reserved>>", str(reserved_count))
-        text.replace("<<slotlist>>", getattr(scrim.slotlist_channel, "mention", "Not Found"))
-        text.replace("<<multiregister>>", "Enabled" if scrim.multiregister else "Not Enabled")
-        text.replace("<<teamname_compulsion>>", "Yes" if scrim.teamname_compulsion else "No")
-        text.replace(
+        text = text.replace("<<mentions>>", str(scrim.required_mentions))
+        text = text.replace("<<slots>>", str(scrim.total_slots))
+        text = text.replace("<<reserved>>", str(reserved_count))
+        text = text.replace("<<slotlist>>", getattr(scrim.slotlist_channel, "mention", "Not Found"))
+        text = text.replace("<<multireg>>", "Enabled" if scrim.multiregister else "Not Enabled")
+        text = text.replace("<<teamname>>", "Yes" if scrim.teamname_compulsion else "No")
+        text = text.replace(
             "<<mention_banned>>", ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.banned_user_ids()))
         )
-        text.replace(
+        text = text.replace(
             "<<mention_reserved>>",
             ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.reserved_user_ids())),
         )
 
         embed = discord.Embed.from_dict(literal_eval(text))
 
+    return embed
+
+
+def registration_close_embed(scrim: Scrim):
+    _dict = scrim.close_message
+
+    if len(_dict) <= 1:
+        embed = discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
+
+    else:
+        text = str(_dict)
+        text = text.replace("<<slots>>", str(scrim.total_slots))
+        text = text.replace("<<filled>>", str(scrim.total_slots - len(scrim.available_slots)))
+        text = text.replace("<<time_taken>>", scrim.time_elapsed)
+        text = text.replace("<<open_time>>", strtime(scrim.open_time))
+        embed = discord.Embed.from_dict(literal_eval(text))
+        
     return embed

@@ -34,7 +34,7 @@ class WebEvents(Cog):
             "no_duplicate_name": data.get("no_duplicate_name"),
             "show_time_elapsed": data.get("show_time_elapsed"),
             "open_message": data.get("open_message"),
-            "close_message": data.get("open_message"),
+            "close_message": data.get("close_message"),
         }
 
         registration_channel_id = int(data.get("registration_channel_id"))
