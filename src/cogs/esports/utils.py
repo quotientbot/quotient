@@ -337,11 +337,11 @@ async def registration_open_embed(scrim: Scrim):
         text = text.replace("<<multireg>>", "Enabled" if scrim.multiregister else "Not Enabled")
         text = text.replace("<<teamname>>", "Yes" if scrim.teamname_compulsion else "No")
         text = text.replace(
-            "<<mention_banned>>", ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.banned_user_ids()))
+            "<<mention_banned>>", ", ".join(map(lambda x: getattr(x, "mention", "Left"), map(scrim.guild.get_member, await scrim.banned_user_ids())))
         )
         text = text.replace(
             "<<mention_reserved>>",
-            ", ".join(map(lambda x: getattr(x, "mention", "Left"), await scrim.reserved_user_ids())),
+            ", ".join(map(lambda x: getattr(x, "mention", "Left"),map(scrim.guild.get_member, await scrim.reserved_user_ids()))),
         )
 
         embed = discord.Embed.from_dict(literal_eval(text))
@@ -362,5 +362,5 @@ def registration_close_embed(scrim: Scrim):
         text = text.replace("<<time_taken>>", scrim.time_elapsed)
         text = text.replace("<<open_time>>", strtime(scrim.open_time))
         embed = discord.Embed.from_dict(literal_eval(text))
-        
+
     return embed
