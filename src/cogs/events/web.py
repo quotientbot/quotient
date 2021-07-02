@@ -158,7 +158,7 @@ class WebEvents(Cog):
 
         perms = guild.me.guild_permissions
         if not all((perms.manage_channels, perms.manage_roles)):
-            return await self.deny_creation("I need manage_channels and manage_roles permission in the server.")
+            return await self.deny_creation(payload, "I need manage_channels and manage_roles permission in the server.")
 
         scrim = Scrim(guild_id=guild.id, host_id=int(payload.data.get("host_id")), name=payload.data.get("name"))
 
