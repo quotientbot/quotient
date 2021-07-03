@@ -88,7 +88,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
         with suppress(AttributeError, discord.Forbidden):
-            slotmsg = await channel.send(embed=registration_close_embed())
+            slotmsg = await channel.send(embed=registration_close_embed(scrim))
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
 
