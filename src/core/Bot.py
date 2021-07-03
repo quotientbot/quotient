@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
 from discord import AllowedMentions, Intents
 from colorama import Fore, Style, init
-from discord.ext import commands
+from discord.ext import commands, ipc
 from tortoise import Tortoise
 from .Context import Context
 from datetime import datetime
@@ -51,6 +51,9 @@ class Quotient(commands.AutoShardedBot):
         self.cmd_invokes = 0
         self.binclient = mystbin.Client()
         self.lockdown = False
+
+        self.ipc = ipc.Server(self, secret_key="some-key")
+
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         for ext in self.config.EXTENSIONS:
