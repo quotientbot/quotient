@@ -154,11 +154,12 @@ class ScrimEvents(Cog):
         if not before_registrations(message, tourney.role):
             return await cannot_take_registration(message, tourney)
 
+        message.content = normalize("NFKC", message.content.lower())
+
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
 
-        message.content = normalize("NFKC", message.content.lower())
-
+        
         if not self.tourney_registration_worker.next_iteration or self.tourney_registration_worker.failed():
             # if for any fking reason its stopped , we want it to start again
             self.tourney_registration_worker.start()
