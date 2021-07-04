@@ -13,7 +13,6 @@ class QuoTasks(Cog):
         self.insert_guilds.start()
         self.find_new_voters_and_premiums.start()
         self.find_people_who_have_to_pay.start()
-        self.get_web_tasks.start()
 
         self._batch_lock = asyncio.Lock(loop=bot.loop)
         self._data_batch = []
@@ -95,21 +94,12 @@ class QuoTasks(Cog):
             for guild in guilds:
                 self.bot.dispatch("guild_premium_expire", guild)
 
-    @tasks.loop(seconds=3, reconnect=True)
-    async def get_web_tasks(self):
-        records = await models.Web.filter(estatus=0).all()
-        if records:
-            for record in records:
-                self.bot.dispatch(f"{record.event}_timer_complete", record)
-
     def cog_unload(self):
-        self.get_web_tasks.stop()
         self.find_new_voters_and_premiums.stop()
         self.find_people_who_have_to_pay.stop()
         self.bulk_insert_loop.stop()
 
     @insert_guilds.before_loop
-    @get_web_tasks.before_loop
     @find_new_voters_and_premiums.before_loop
     @find_people_who_have_to_pay.before_loop
     async def before_loops(self):
