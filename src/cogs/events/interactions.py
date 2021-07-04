@@ -161,7 +161,7 @@ class IpcRoutes(Cog):
             registration_channel = self.bot.get_channel(int(payload.data.get("registration_channel_id")))
 
             if not registration_channel:
-                return self.deny_creation(
+                return self.deny_request(
                     "Quotient cannot see registration channel , Make sure it has appropriate permissions."
                 )
 
@@ -175,12 +175,12 @@ class IpcRoutes(Cog):
                     perms.embed_links,
                 )
             ):
-                return self.deny_creation(
+                return self.deny_request(
                     "Quotient do not have required permissions in the registration channel."
                 )
 
             if await Scrim.filter(registration_channel_id=registration_channel.id):
-                return self.deny_creation(
+                return self.deny_request(
                     "The registration channel you selected is already assigned to another scrim."
                 )
 
@@ -190,7 +190,7 @@ class IpcRoutes(Cog):
         if not scrim.slotlist_channel_id == slotlist_channel_id:
             slotlist_channel = self.bot.get_channel(int(payload.data.get("slotlist_channel_id")))
             if not slotlist_channel:
-                return await self.deny_creation(
+                return await self.deny_request(
                     payload, "Quotient cannot see slotlist channel , Can you make sure it has appropriate permissions?"
                 )
 
@@ -204,7 +204,7 @@ class IpcRoutes(Cog):
                     perms.embed_links,
                 )
             ):
-                return await self.deny_creation(
+                return await self.deny_request(
                     payload, "Quotient do not have required permissions in the Slotlist channel."
                 )
 
@@ -221,7 +221,7 @@ class IpcRoutes(Cog):
                 and k in ("manage_channels", "manage_guild", "manage_messages", "manage_roles", "administrator")
             ]
             if _list:
-                return await self.deny_creation(
+                return await self.deny_request(
                     payload, "Success role contains some moderation permissions, kindly remove them first."
                 )
 
