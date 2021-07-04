@@ -7,7 +7,7 @@ import utils
 from PIL import Image, ImageFont, ImageDraw
 from typing import Optional
 from tortoise import models, fields
-from constants import AutocleanType, Day, SSStatus
+from constants import AutocleanType, Day, SSStatus, SSType
 from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
@@ -436,11 +436,11 @@ class SSVerify(models.Model):
     id = fields.BigIntField(pk=True, index=True)
     guild_id = fields.BigIntField()
     msg_channel_id = fields.BigIntField(index=True)
-    report_channel_id = fields.BigIntField()
     log_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
     mod_role_id = fields.BigIntField()
     required_ss = fields.IntField()
+    ss_type = fields.CharEnumField(SSType)
     success_message = fields.TextField(null=True)
     delete_after = fields.IntField(default=0)
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
@@ -463,8 +463,6 @@ class SSData(models.Model):
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
     message_id = fields.BigIntField(default=list)
-    image = fields.CharField(max_length=300)
-    mod_id = fields.BigIntField(null=True)
+    image = fields.JSONField(default=dict)
     submitted_at = fields.DatetimeField(auto_now=True)
-    responded_at = fields.DatetimeField(null=True)
-    status = fields.CharEnumField((SSStatus), default=SSStatus.submitted)
+    status = fields.CharEnumField(SSStatus)
