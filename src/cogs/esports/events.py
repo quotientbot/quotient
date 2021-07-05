@@ -24,9 +24,10 @@ from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
 import discord, asyncio
-import utils
+import utils, json
 import re
 
+from config import IPC_BASE
 from discord.ext import tasks
 from typing import NamedTuple
 from datetime import datetime, timedelta
@@ -159,7 +160,6 @@ class ScrimEvents(Cog):
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
 
-        
         if not self.tourney_registration_worker.next_iteration or self.tourney_registration_worker.failed():
             # if for any fking reason its stopped , we want it to start again
             self.tourney_registration_worker.start()
@@ -468,7 +468,6 @@ class ScrimEvents(Cog):
             return
 
         records = await verify.data.filter(author_id=message.author.id)
-        submitted = sum(1 for i in records if i.status == SSStatus.submitted)
         approved = sum(1 for i in records if i.status == SSStatus.approved)
         disapproved = sum(1 for i in records if i.status == SSStatus.disapproved)
 
@@ -477,8 +476,8 @@ class ScrimEvents(Cog):
                 embed=discord.Embed(
                     color=discord.Color.red(),
                     description=(
-                        f"Your entry has already been confirmed, You don't need post more screenshots here.\n"
-                        f"{'**Message:** '+verify.success_message if verify.success_message else ''}"
+                        f"Your entry has already been confirmed, You don't need post more screenshots/messages here.\n"
+                        f"{'**Message:** '+verify.success_message}"
                     ),
                     delete_after=delete_after,
                 )
@@ -491,9 +490,8 @@ class ScrimEvents(Cog):
                     embed=discord.Embed(
                         color=discord.Color.red(),
                         description=(
-                            "Kindly send a valid screenshot to send for verification.\n"
+                            f"Kindly send a valid screenshot {verify.ss_type.value} to send for verification.\n"
                             "**Your history:**\n"
-                            f"\n- `{submitted}` screenshots are pending verification."
                             f"\n- `{approved}` approved screenshots."
                             f"\n- `{disapproved}` disapproved screenshots."
                             f"\n\nYou need a total of {verify.required_ss} approved screenshots."
@@ -503,9 +501,12 @@ class ScrimEvents(Cog):
                 )
 
             else:
-                with suppress(AttributeError):
-                    await message.add_reaction("⏱️")
-                    await message.reply("submitted", delete_after=delete_after)
+                url = IPC_BASE + "/image/verify"
+                headers = {"Content-Type": "application/json"}
 
-                embed = discord.Embed(color=self.bot.color)
-                embed.set_image(url=attachments[0].proxy_url)
+                for attachment in attachments:
+                    payload = json.dumps(
+                        {"type": verify.ss_type.name, "name": verify.channel_name, "url": attachment.proxy_url}
+                    )
+
+                    res = await self.bot.session.get(url=url, headers=headers, data=payload)

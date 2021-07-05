@@ -35,6 +35,12 @@ class SSStatus(Enum):
     disapproved = "disapproved"
 
 
+class VerifyImageError(Enum):
+    Invalid = "InvalidScreenshot"
+    NotSame = "NotSame"
+    NoFollow = "NotFollowed"
+
+
 class SSType(Enum):
     yt = "youtube"
     insta = "instagram"
