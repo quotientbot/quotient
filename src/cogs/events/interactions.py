@@ -175,14 +175,10 @@ class IpcRoutes(Cog):
                     perms.embed_links,
                 )
             ):
-                return self.deny_request(
-                    "Quotient do not have required permissions in the registration channel."
-                )
+                return self.deny_request("Quotient do not have required permissions in the registration channel.")
 
             if await Scrim.filter(registration_channel_id=registration_channel.id):
-                return self.deny_request(
-                    "The registration channel you selected is already assigned to another scrim."
-                )
+                return self.deny_request("The registration channel you selected is already assigned to another scrim.")
 
             _dict["registration_channel_id"] = registration_channel.id
 
@@ -249,7 +245,6 @@ class IpcRoutes(Cog):
             _dict["autoclean_time"] = autoclean_time
             await self.bot.reminders.create_timer(autoclean_time, "autoclean", scrim_id=int(data.get("id")))
 
-
         await Scrim.filter(id=int(data.get("id"))).update(**_dict)
         await self.bot.db.execute(
             """UPDATE public."sm.scrims" SET autoclean = $1 , open_days = $2 WHERE id = $3""",
@@ -281,4 +276,50 @@ class IpcRoutes(Cog):
             "color": guild.embed_color,
             "footer": guild.embed_footer,
         }
+        return self.positive
+
+    @ipc.server.route()
+    async def send_idp(self, payload):
+        data = payload.data
+
+        guild = self.bot.get_guild(int(data.get("guild_id")))
+        if not guild:
+            return self.deny_request("Quotient was removed from your server.")
+
+        channel = guild.get_channel(int(data.get("channel_id")))
+        if not channel:
+            return self.deny_request(
+                "Quotient cannot see send `Id/pass channel`, kindly make sure it has appropriate permissions."
+            )
+
+        perms = channel.permissions_for(guild.me)
+        if not all((perms.send_messages, perms.embed_links)):
+            return self.deny_request(
+                f"Kindly make sure Quotient has `send_messages` and `embed_links` permission in {str(channel)}"
+            )
+
+        if data.get("webhook") and not perms.manage_webhooks:
+            return self.deny_request(f"Kindly make sure Quotient has permissions to manage_webhooks in {str(channel)}")
+
+        embed = discord.Embed.from_dict(data.get("embed"))
+
+        if data.get("webhook"):
+            try:
+                to_send = await channel.create_webhook(
+                    name=guild.name, icon_url=guild.icon_url, reason="Created from dashboard to send ID/pass"
+                )
+
+            except:
+                return self.deny_request(f"Quotient couldn't create a webhook in {str(channel)}")
+
+        else:
+            to_send = channel
+
+        ping_role_id = data.get("ping_role_id")
+
+        await to_send.send(content=f"<@&{int(ping_role_id)}>" if ping_role_id else "", embed=embed)
+
+        if data.get("webhook"):
+            await to_send.delete()
+
         return self.positive

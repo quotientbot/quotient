@@ -440,7 +440,7 @@ class SSVerify(models.Model):
     role_id = fields.BigIntField()
     mod_role_id = fields.BigIntField()
     required_ss = fields.IntField()
-    channel_name = fields.CharField(max_length=50)
+    # channel_name = fields.CharField(max_length=50)
     channel_link = fields.CharField(max_length=150)
     ss_type = fields.CharEnumField(SSType)
     success_message = fields.TextField(null=True)
