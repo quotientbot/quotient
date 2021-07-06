@@ -311,6 +311,7 @@ class IpcRoutes(Cog):
 
         ping_role_id = data.get("ping_role_id")
 
+        role = None
         if ping_role_id:
             role = getattr(guild.get_role(int(ping_role_id)), "mention", "")
 
