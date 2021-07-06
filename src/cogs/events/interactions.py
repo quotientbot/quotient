@@ -1,3 +1,5 @@
+from contextlib import suppress
+import asyncio
 import discord
 from core import Cog
 from constants import IST
@@ -243,6 +245,10 @@ class IpcRoutes(Cog):
                 autoclean_time = autoclean_time + timedelta(hours=24)
 
             _dict["autoclean_time"] = autoclean_time
+            await Timer.filter(
+                extra={"args": [], "kwargs": {"scrim_id": int(data.get("id"))}}, event="autoclean"
+            ).delete()
+
             await self.bot.reminders.create_timer(autoclean_time, "autoclean", scrim_id=int(data.get("id")))
 
         await Scrim.filter(id=int(data.get("id"))).update(**_dict)
@@ -252,9 +258,7 @@ class IpcRoutes(Cog):
             data.get("open_days"),
             int(data.get("id")),
         )
-        await Timer.filter(
-            extra={"args": [], "kwargs": {"scrim_id": int(data.get("id"))}}, event__in=("scrim_open", "autoclean")
-        ).delete()
+        await Timer.filter(extra={"args": [], "kwargs": {"scrim_id": int(data.get("id"))}}, event="scrim_open").delete()
 
         await self.bot.reminders.create_timer(open_time, "scrim_open", scrim_id=int(data.get("id")))
 
@@ -278,6 +282,11 @@ class IpcRoutes(Cog):
         }
         return self.positive
 
+    async def delete_idp_message(self, message: discord.Message, seconds):
+        with suppress(AttributeError, discord.HTTPException, discord.NotFound, discord.Forbidden):
+            await asyncio.sleep(seconds)
+            await message.delete()
+
     @ipc.server.route()
     async def send_idp(self, payload):
         data = payload.data
@@ -298,28 +307,30 @@ class IpcRoutes(Cog):
                 f"Kindly make sure Quotient has `send_messages` and `embed_links` permission in {str(channel)}"
             )
 
-        if data.get("webhook") and not perms.manage_webhooks:
-            return self.deny_request(f"Kindly make sure Quotient has permissions to manage_webhooks in {str(channel)}")
-
         embed = discord.Embed.from_dict(data.get("embed"))
-
-        if data.get("webhook"):
-            try:
-                to_send = await channel.create_webhook(
-                    name=guild.name, icon_url=guild.icon_url, reason="Created from dashboard to send ID/pass"
-                )
-
-            except:
-                return self.deny_request(f"Quotient couldn't create a webhook in {str(channel)}")
-
-        else:
-            to_send = channel
 
         ping_role_id = data.get("ping_role_id")
 
-        await to_send.send(content=f"<@&{int(ping_role_id)}>" if ping_role_id else "", embed=embed)
+        if ping_role_id:
+            role = getattr(guild.get_role(int(ping_role_id)), "mention", "")
 
-        if data.get("webhook"):
-            await to_send.delete()
+        msg = await channel.send(
+            content=role if role else "",
+            embed=embed,
+            allowed_mentions=discord.AllowedMentions(roles=True),
+        )
+        delete_in = data.get("delete_in")
+        if delete_in:
+            self.bot.loop.create_task(self.delete_idp_message(msg, int(delete_in) * 30))
+
+        if data.get("slotlist"):
+            scrim_id = int(data.get("scrim_id"))
+            if scrim_id:
+                scrim = await Scrim.get_or_none(id=scrim_id, guild_id=guild.id)
+                if scrim and await scrim.teams_registered.count():
+                    embed, schannel = await scrim.create_slotlist()
+                    smsg = await channel.send(embed=embed)
+                    if delete_in:
+                        self.bot.loop.create_task(self.delete_idp_message(smsg, int(delete_in) * 30))
 
         return self.positive
