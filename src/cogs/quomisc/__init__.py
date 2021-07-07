@@ -26,7 +26,7 @@ class Quomisc(Cog, name="quomisc"):
         source_url = "https://github.com/quotientbot/Quotient-Bot"
 
         if search is None:
-            return await ctx.send(source_url)
+            return await ctx.send(f"<{source_url}>")
 
         command = ctx.bot.get_command(search)
 
@@ -275,6 +275,10 @@ class Quomisc(Cog, name="quomisc"):
         await ctx.send(
             f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
         )
+
+    @commands.command()
+    async def website(self, ctx: Context):
+        return await ctx.send(f"<{self.bot.config.WEBSITE}>")
 
     @commands.command()
     async def vote(self, ctx: Context):

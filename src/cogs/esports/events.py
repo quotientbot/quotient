@@ -19,7 +19,7 @@ from .utils import (
     check_tourney_requirements,
     registration_open_embed,
 )
-from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST
+from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError
 from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
@@ -510,3 +510,11 @@ class ScrimEvents(Cog):
                     )
 
                     res = await self.bot.session.get(url=url, headers=headers, data=payload)
+                    if not res.get("ok"):
+                        _error = res.get("error")
+                        if VerifyImageError(_error) == VerifyImageError.Invalid:
+                            return await message.reply(
+                                f"This doesn't seem to be a valid screenshot.\n"
+                                "\nYou need a screenshot of the following account:\n"
+                                f"{verify.channel_link}"
+                            )
