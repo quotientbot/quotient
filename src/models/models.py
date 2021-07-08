@@ -23,6 +23,7 @@ __all__ = (
     "Giveaway",
     "Web",
     "WebLogs",
+    "Article",
 )
 
 
@@ -379,32 +380,18 @@ class TimedMessage(models.Model):
 #         return self.bot.get_user(self.author_id)
 
 
-class Author(models.Model):
-    class Meta:
-        table = "authors"
-
-    author_id = fields.BigIntField(pk=True)
-    created_at = fields.DatetimeField(auto_now=True)
-    verified = fields.BooleanField(default=False)
-    points_per_article = fields.IntField(default=2)
-    total_points = fields.IntField(default=0)
-    articles: fields.ManyToManyRelation["Article"] = fields.ManyToManyField("models.Article")
-
-
 class Article(models.Model):
     class Meta:
         table = "articles"
 
     id = fields.BigIntField(pk=True)
-    author_id = fields.BigIntField()
-    title = fields.CharField(max_length=400, null=True)
-    aliases = ArrayField(fields.CharField(max_length=400), default=list)
-    approved = fields.BooleanField(default=False)
-    appoved_by = fields.BigIntField(null=True)
-    url = fields.CharField(max_length=400, null=True)
+    user_id = fields.BigIntField()
+    title = fields.CharField(max_length=200)
+    aliases = ArrayField(fields.CharField(max_length=200), default=list)
+    content = fields.TextField()
+    url = fields.CharField(max_length=50, null=True)
     views = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now=True)
-    published_at = fields.DatetimeField(null=True)
     edited_at = fields.DatetimeField(null=True)
     edited_by = fields.BigIntField(null=True)
 
