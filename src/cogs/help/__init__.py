@@ -28,6 +28,13 @@ class HelpCommand(commands.HelpCommand):
                     cats.append(cog)
 
         embed = discord.Embed(color=discord.Color(config.COLOR))
+        server = f"[Support Server]({config.SERVER_LINK})"
+        invite = f"[Invite Me]({config.BOT_INVITE})"
+        src = f"[Source]({config.REPOSITORY})"
+        dashboard = f"[Dashboard]({config.WEBSITE})"
+        donate = f"[Donate]({config.DONATE_LINK})"
+
+        embed.description = f"{server} **|** {invite} **|** {src} **|** {dashboard} **|** {donate}"
         for idx in cats:
             embed.add_field(
                 inline=False,
