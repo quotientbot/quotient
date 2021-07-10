@@ -80,6 +80,12 @@ class Quomisc(Cog, name="quomisc"):
         embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def donate(self, ctx: Context):
+        """Donate to Quotient"""
+        await ctx.send(self.bot.config.DONATE_LINK, embed_perms=True)
+
+        
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
         invite_link = f"[Invite Me]({ctx.config.BOT_INVITE})"

@@ -485,3 +485,16 @@ class WebLogs(models.Model):
     username = fields.CharField(max_length=100)
     action = fields.CharField(max_length=400)
     executed_at = fields.DatetimeField(auto_now=True)
+
+
+class AutoPrune(models.Model):
+    class Meta:
+        table = "autoprune"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+    start_at = fields.DatetimeField()
+    interval = fields.IntField()
+    amount = fields.IntField()
+    toggle = fields.BooleanField(default=True)

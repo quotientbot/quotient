@@ -1,6 +1,6 @@
 from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
-from core import Quotient, Cog
-from models.esports import SSVerify
+from core import Quotient, Cog, commands
+from models.esports import SSVerify, SSData
 from utils import emote, plural
 from .utils import (
     available_to_reserve,
@@ -510,11 +510,50 @@ class ScrimEvents(Cog):
                     )
 
                     res = await self.bot.session.get(url=url, headers=headers, data=payload)
+
                     if not res.get("ok"):
+                        status = SSStatus.approved
                         _error = res.get("error")
                         if VerifyImageError(_error) == VerifyImageError.Invalid:
                             return await message.reply(
                                 f"This doesn't seem to be a valid screenshot.\n"
                                 "\nYou need a screenshot of the following account:\n"
-                                f"{verify.channel_link}"
+                                f"<{verify.channel_link}>"
                             )
+
+                        elif VerifyImageError(_error) == VerifyImageError.NotSame:
+                            return await message.reply(
+                                f"This screenshot doesn't belong to **{verify.channel_name}**\n\n"
+                                "You need a screenshot of the following account:\n"
+                                f"<{verify.channel_link}>"
+                            )
+
+                    else:
+                        status = SSStatus.approved
+
+                    slot = await SSData.create(
+                        author_id=message.author.id,
+                        channel_id=message.channel.id,
+                        message_id=message.id,
+                        image={
+                            "name": attachment.filename,
+                        },
+                        status=status,
+                    )
+                    await verify.add(slot)
+
+                records = await verify.data.filter(author_id=message.author.id)
+                approved = sum(1 for i in records if i.status == SSStatus.approved)
+                disapproved = sum(1 for i in records if i.status == SSStatus.disapproved)
+
+                if approved >= verify.required_ss:
+                    return await message.reply(
+                        embed=discord.Embed(
+                            color=discord.Color.red(),
+                            description=(
+                                f"Your entry has been confirmed, You don't need to post more screenshots/messages here.\n"
+                                f"{'**Message:** '+verify.success_message}"
+                            ),
+                            delete_after=delete_after,
+                        )
+                    )
