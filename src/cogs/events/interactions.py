@@ -7,6 +7,8 @@ from discord.ext import ipc
 from models import Guild, Scrim, Timer
 from datetime import datetime, timedelta
 
+from models.esports import SSVerify
+
 
 class IpcRoutes(Cog):
     def __init__(self, bot):

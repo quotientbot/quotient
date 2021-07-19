@@ -14,4 +14,4 @@ def setup(bot):
     bot.add_cog(CmdEvents(bot))
     bot.add_cog(Votes(bot))
     bot.add_cog(Errors(bot))
-    bot.add_cog(IpcRoutes(bot))
+    # bot.add_cog(IpcRoutes(bot))

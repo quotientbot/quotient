@@ -445,6 +445,7 @@ class SSVerify(models.Model):
     ss_type = fields.CharEnumField(SSType)
     success_message = fields.TextField(null=True)
     delete_after = fields.IntField(default=0)
+    sstoggle = fields.BooleanField(default=True)
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
 
     @property
