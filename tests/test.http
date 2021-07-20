@@ -1,0 +1,19 @@
+POST http://0.0.0.0:5000/ssverify
+
+Content-Type: application/json
+
+{
+    "user_id":548163406537162782,
+    "guild_id":746337818388987967,
+    "msg_channel_id":855424955944402984,
+    "log_channel_id":855424955944402984,
+    "role_id":857153828200775700,
+    "mod_role_id":857153828200775700,
+    "required_ss":1,
+    "channel_name":"bb",
+    "channel_link":"bb",
+    "ss_type":"youtube",
+    "success_message":"hi babies",
+    "delete_after":0,
+    "sstoggle":true
+}

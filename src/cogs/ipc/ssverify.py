@@ -98,6 +98,7 @@ class SSverifyIpc(IpcCog):
             return self.deny_request(
                 f"My toprole ({top_role.name}) is below {role.name}. Kindky move it above the success role from server settings."
             )
+        ssverify.role_id = role.id
 
         await ssverify.save()
         self.bot.ssverify_channels.add(ssverify.msg_channel_id)
@@ -136,5 +137,5 @@ class SSverifyIpc(IpcCog):
         if not member or not member.guild_permissions.manage_guild:
             return self.deny_request(f"You need to have manage server permissions in {guild.name} to make changes.")
 
-        await SSVerify.filter(pk=int(payload.id), guild_id=guild_id).delete()
+        await SSVerify.filter(pk=int(data.get("id")), guild_id=guild_id).delete()
         return self.positive
