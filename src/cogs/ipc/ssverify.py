@@ -100,13 +100,41 @@ class SSverifyIpc(IpcCog):
             )
 
         await ssverify.save()
+        self.bot.ssverify_channels.add(ssverify.msg_channel_id)
         return self.positive
 
     @ipc.server.route()
     async def edit_ssverify(self, payload):
         data = payload.data
 
+        id = int(data.get("id"))
+        guild_id = int(data.get("guild_id"))
+        user_id = int(data.get("user_id"))
+
+        guild = self.bot.get_guild(guild_id)
+        ssverify = await SSVerify.get_or_none(pk=id, guild_id=guild_id)
+
+        if not all((guild, ssverify)):
+            return self.deny_request("Either the ssverify setup was deleted or Quotient was removed from the server.")
+
+        member = guild.get_member(user_id)
+        if not member or not member.guild_permissions.manage_guild:
+            return self.deny_request(f"You need to have manage server permissions in {guild.name} to make changes.")
+
     @ipc.server.route()
     async def delete_ssverify(self, payload):
-        await SSVerify.filter(pk=int(payload.id)).delete()
+        data = payload.data
+
+        user_id = int(data.get("user_id"))
+        guild_id = int(data.get("guild_id"))
+
+        guild = self.bot.get_guild(guild_id)
+        if not guild:
+            return self.deny_request("Quotient was removed from the server.")
+
+        member = guild.get_member(user_id)
+        if not member or not member.guild_permissions.manage_guild:
+            return self.deny_request(f"You need to have manage server permissions in {guild.name} to make changes.")
+
+        await SSVerify.filter(pk=int(payload.id), guild_id=guild_id).delete()
         return self.positive
