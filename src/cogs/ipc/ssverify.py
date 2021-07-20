@@ -53,6 +53,9 @@ class SSverifyIpc(IpcCog):
                 "Quotient couldn't see screenshots verify channel, make sure it has appropriate permissions"
             )
 
+        if msg_channel_id in self.bot.ssverify_channels:
+            return self.deny_request(f"{msg_channel.name} is already a screenshot verify channel.")
+
         perms = msg_channel.permissions_for(guild.me)
         if not all((perms.add_reactions, perms.send_messages, perms.embed_links, perms.manage_messages)):
             return self.deny_request(
@@ -111,6 +114,10 @@ class SSverifyIpc(IpcCog):
         id = int(data.get("id"))
         guild_id = int(data.get("guild_id"))
         user_id = int(data.get("user_id"))
+        msg_channel_id = int(data["msg_channel_id"])
+        log_channel_id = int(data["log_channel_id"])
+        role_id = int(data["role_id"])
+        mod_role_id = int(data["mod_role_id"])
 
         guild = self.bot.get_guild(guild_id)
         ssverify = await SSVerify.get_or_none(pk=id, guild_id=guild_id)
@@ -121,6 +128,56 @@ class SSverifyIpc(IpcCog):
         member = guild.get_member(user_id)
         if not member or not member.guild_permissions.manage_guild:
             return self.deny_request(f"You need to have manage server permissions in {guild.name} to make changes.")
+
+        if not guild.me.guild_permissions.manage_roles:
+            return self.deny_request("Quotient need manage roles permission in your server to work properly.")
+
+        if msg_channel_id != ssverify.msg_channel_id:
+            if msg_channel_id in self.bot.ssverify_channels:
+                return self.deny_request(f"{msg_channel_id} is already a screenshot verify channel.")
+
+            if not (msg_channel := guild.get_channel(msg_channel_id)):
+                return self.deny_request(
+                    "Quotient couldn't see screenshots verify channel, make sure it has appropriate permissions"
+                )
+
+            perms = msg_channel.permissions_for(guild.me)
+            if not all((perms.add_reactions, perms.send_messages, perms.embed_links, perms.manage_messages)):
+                return self.deny_request(
+                    "kindly make sure Quotient has add_reactions, send_messages, embed_links and manage_messages permission in screenshot channel."
+                )
+
+        if role_id != ssverify.role_id:
+            role = guild.get_role(role_id)
+            if not role:
+                return self.deny_request("Quotient couldn't find the role you specified.")
+
+            check = self.check_if_mod(role)
+            if not check == True:
+                return self.deny_request(
+                    f"Success role has moderation permissions. Kindly remove them first. ({', '.join(check)})"
+                )
+
+            if role >= (top_role := guild.me.top_role):
+                return self.deny_request(
+                    f"My toprole ({top_role.name}) is below {role.name}. Kindky move it above the success role from server settings."
+                )
+
+        _dict = {
+            "msg_channel_id": msg_channel_id,
+            "log_channel_id": log_channel_id,
+            "role_id": role_id,
+            "mod_role_id": mod_role_id,
+            "required_ss": int(data.get("required_ss", 1)),
+            "channel_name": data.get("channel_name"),
+            "channel_link": data.get("channel_link"),
+            "ss_type": SSType(data.get("ss_type", "youtube")),
+            "success_message": data.get("success_message"),
+            "delete_after": data.get("delete_after"),
+        }
+        self.bot.ssverify_channels.add(msg_channel_id)
+        await SSVerify.filter(id=int(data.get("id")), guild_id=guild_id).update(**_dict)
+        return self.positive
 
     @ipc.server.route()
     async def delete_ssverify(self, payload):
