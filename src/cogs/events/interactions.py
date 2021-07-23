@@ -5,6 +5,7 @@ from discord.ext import ipc
 from models import Guild, Scrim, Timer
 from datetime import datetime, timedelta
 
+
 class IpcRoutes(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -12,11 +13,6 @@ class IpcRoutes(Cog):
 
     def deny_request(self, reason):
         return {"ok": False, "result": {}, "error": reason}
-
-    @ipc.server.route()
-    async def get_member_count(self, data):
-        guild = self.bot.get_guild(data.guild_id)
-        return guild.member_count
 
     @ipc.server.route()
     async def create_new_scrim(self, payload):
