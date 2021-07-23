@@ -52,7 +52,7 @@ class Quotient(commands.AutoShardedBot):
         self.binclient = mystbin.Client()
         self.lockdown = False
 
-        self.ipc = ipc.Server(self, secret_key="some-key",host='0.0.0.0')
+        self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0")
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
