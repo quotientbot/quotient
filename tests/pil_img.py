@@ -6,8 +6,10 @@ _dict = {
     "3": "Changed",
 }
 
+image = Image.open("slot-rect.png")
+draw = ImageDraw.Draw(image)
+font = ImageFont.truetype("robo-bold.ttf", 80)
 
-_list = []
-image = Image.new("RGB", (105, 15), (255, 255, 255))
-
-image.save("rect.png")
+draw.text((95, 55), "01", font=font)
+draw.text((325, 55), "Team is something bro", (0, 0, 0), font=font)
+image.show()
