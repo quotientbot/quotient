@@ -3,8 +3,11 @@ from PIL import ImageColor
 import discord, re
 import contextlib
 
+from concurrent.futures import ThreadPoolExecutor
+from functools import wraps, partial
 from .exceptions import InvalidColor
 from typing import Optional
+import asyncio
 
 __all__ = (
     "ColorConverter",
@@ -18,6 +21,24 @@ __all__ = (
     "QuoTextChannel",
 )
 
+class to_async:
+    def __init__(self, *, executor: Optional[ThreadPoolExecutor]=None):
+       
+        self.executor =  executor
+    
+    def __call__(self, blocking):
+        @wraps(blocking)
+        async def wrapper(*args, **kwargs):
+
+            loop = asyncio.get_event_loop()
+            if not self.executor:
+                self.executor = ThreadPoolExecutor()
+
+            func = partial(blocking, *args, **kwargs)
+        
+            return await loop.run_in_executor(self.executor,func)
+
+        return wrapper
 
 class ColorConverter(commands.Converter):
     async def convert(self, ctx, arg: str):
