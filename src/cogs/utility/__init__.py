@@ -330,7 +330,7 @@ class Utility(Cog, name="utility"):
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error(f"This tag doesn't belong to you.")
 
-        await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=ctx.author.id).delete()
+        await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=tag.owner_id).delete()
         await ctx.success(f"Deleted {tag_name.name}")
 
     @tag.command(name="transfer")
