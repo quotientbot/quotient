@@ -24,6 +24,7 @@ discord-components = "^0.5.3"
 Quart = "^0.15.1"
 discord-ext-ipc = "^2.0.0"
 requests = "^2.25.1"
+dblpy = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}

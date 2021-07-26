@@ -211,6 +211,19 @@ tzlocal = "*"
 calendars = ["convertdate", "hijri-converter", "convertdate"]
 
 [[package]]
+name = "dblpy"
+version = "0.4.0"
+description = "A simple API wrapper for top.gg written in Python."
+category = "main"
+optional = false
+python-versions = ">= 3.5.3"
+
+[package.dependencies]
+aiohttp = "*"
+"discord.py" = "*"
+ratelimiter = "*"
+
+[[package]]
 name = "ddlparse"
 version = "1.9.0"
 description = "DDL parase and Convert to BigQuery JSON schema"
@@ -614,6 +627,17 @@ werkzeug = ">=2.0.0"
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "ratelimiter"
+version = "1.2.0.post0"
+description = "Simple python rate limiting object"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["pytest (>=3.0)", "pytest-asyncio"]
+
+[[package]]
 name = "regex"
 version = "2021.4.4"
 description = "Alternative regular expression module, to replace re."
@@ -753,7 +777,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f889ad5f3571986e509f24fee5e06c2dd2fef21b5ea8adc87bbb67c94c4156d2"
+content-hash = "919d0df34441b6302698327235e621d4b6636bd4004649acf6bf247872b01c62"
 
 [metadata.files]
 aerich = [
@@ -921,6 +945,10 @@ colorama = [
 dateparser = [
     {file = "dateparser-1.0.0-py2.py3-none-any.whl", hash = "sha256:17202df32c7a36e773136ff353aa3767e987f8b3e27374c39fd21a30a803d6f8"},
     {file = "dateparser-1.0.0.tar.gz", hash = "sha256:159cc4e01a593706a15cd4e269a0b3345edf3aef8bf9278a57dac8adf5bf1e4a"},
+]
+dblpy = [
+    {file = "dblpy-0.4.0-py3-none-any.whl", hash = "sha256:2d7d746ee7e7b3a2597f485ebf4089e7baabdcf1717743228991bd988c69e1b5"},
+    {file = "dblpy-0.4.0.tar.gz", hash = "sha256:744f5ee9493a945e5907466754b2dce4735715b34daabb9e6264f76ec79818c9"},
 ]
 ddlparse = [
     {file = "ddlparse-1.9.0-py3-none-any.whl", hash = "sha256:a7962615a9325be7d0f182cbe34011e6283996473fb98c784c6f675b9783bc18"},
@@ -1228,6 +1256,10 @@ pytz = [
 quart = [
     {file = "Quart-0.15.1-py3-none-any.whl", hash = "sha256:f35134fb1d81af61624e6d89bca33cd611dcedce2dc4e291f527ab04395f4e1a"},
     {file = "Quart-0.15.1.tar.gz", hash = "sha256:f80c91d1e0588662483e22dd9c368a5778886b62e128c5399d2cc1b1898482cf"},
+]
+ratelimiter = [
+    {file = "ratelimiter-1.2.0.post0-py3-none-any.whl", hash = "sha256:a52be07bc0bb0b3674b4b304550f10c769bbb00fead3072e035904474259809f"},
+    {file = "ratelimiter-1.2.0.post0.tar.gz", hash = "sha256:5c395dcabdbbde2e5178ef3f89b568a3066454a6ddc223b76473dac22f89b4f7"},
 ]
 regex = [
     {file = "regex-2021.4.4-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:619d71c59a78b84d7f18891fe914446d07edd48dc8328c8e149cbe0929b4e000"},

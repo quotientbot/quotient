@@ -18,6 +18,7 @@ import itertools
 import traceback
 import discord
 import mystbin
+import dbl
 
 init(autoreset=True)
 intents = Intents.default()
@@ -51,6 +52,7 @@ class Quotient(commands.AutoShardedBot):
         self.cmd_invokes = 0
         self.binclient = mystbin.Client()
         self.lockdown = False
+        self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0")
 
