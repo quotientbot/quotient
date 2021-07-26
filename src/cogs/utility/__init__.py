@@ -12,11 +12,14 @@ from discord.ext import commands
 from models import Tag
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
+from utils import checks, ColorConverter, Pages, emote, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
 from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
-from typing import Optional
 from contextlib import suppress
 import discord
+from io import BytesIO
+import zipfile
+
+
 import asyncio
 import config
 import re
@@ -167,6 +170,38 @@ class Utility(Cog, name="utility"):
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         await ctx.message.delete()
+
+
+    @commands.command(name="zipemojis")
+    @commands.has_guild_permissions(manage_emojis=True)
+    @commands.max_concurrency(1, per=commands.BucketType.guild)
+    async def zip_emojis(self, ctx:Context):
+        """
+        Get a zip file containing all the emojis in the current server.
+        `Note:` This can take some time and you need to be patient.
+        """
+
+        if len(ctx.guild.emojis) == 0:
+            return await ctx.error(f"Breh, Your server doesn't have any custom emojis.")
+
+        m = await ctx.simple(f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}")
+        buf = BytesIO()
+
+        async with ctx.typing():
+            with zipfile.ZipFile(buf, 'w') as f:
+                for emoji in ctx.guild.emojis:
+                    _bytes = await emoji.url.read()
+                    f.writestr(
+                        f'{emoji.name}.{"gif" if emoji.animated else "png"}', _bytes)
+
+            buf.seek(0)
+
+        try:
+            await m.delete()
+        except:
+            pass
+        finally:
+            await ctx.send(f'{ctx.author.mention} Sorry to keep you waiting, here you go:', file=discord.File(fp=buf, filename='emojis.zip'))
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
@@ -538,160 +573,6 @@ class Utility(Cog, name="utility"):
 
         else:
             await ctx.simple(f"Ok Aborting.")
-
-    # @commands.group(name="reaction-roles", aliases=("rr", "reactionrole"), invoke_without_command=True)
-    # async def reactrole(self, ctx: Context):
-    #     await ctx.send_help(ctx.command)
-
-    # @reactrole.command(name="create")
-    # @commands.bot_has_permissions(embed_links=True, manage_messages=True, manage_roles=True)
-    # @commands.has_permissions(manage_roles=True)
-    # @commands.max_concurrency(1, commands.cooldowns.BucketType.guild, wait=False)
-    # async def createreactrole(self, ctx: Context):
-    #     def check(m):
-    #         return m.author == ctx.author and m.channel.id == ctx.channel.id
-
-    #     async def cancel_msg(ctx):
-    #         embed = discord.Embed(color=discord.Color.red(), title="Reaction-Role Cancel")
-    #         embed.description = "Alright cancelling the process."
-    #         embed.set_footer(text="This message will be automatically deleted after 10 seconds.")
-    #         return await ctx.send(embed=embed, delete_after=10, embed_perms=True)
-
-    #     async def outta_chances(ctx):
-    #         embed = discord.Embed(color=discord.Color.red(), title="No Chance left :c")
-    #         embed.description = "Unfortunately, you have ran out of chances."
-    #         embed.set_footer(text=f'Run "{ctx.prefix}rr create" to start again')
-    #         return await ctx.send(embed=embed, embed_perms=True)
-
-    #     em = discord.Embed(color=self.bot.color, title="Reaction-Role Setup")
-    #     em.set_footer(text='Reply with "cancel" to stop the process')
-
-    #     try:
-    #         chances, first_part, role_dict, channel = 3, 0, {}, None
-    #         while chances:
-    #             em.description = (
-    #                 f"Do you want me to use an existing message or a new one? `(Tries Remaining:{chances})`\n"
-    #                 f"> `new` | `existing` | `n` | `e` | `old` | `cancel` *You have 60 seconds*"
-    #             )
-
-    #             msg = await ctx.send(embed=em)
-    #             res = await inputs.string_input(ctx, check, delete_after=True)
-    #             await inputs.safe_delete(msg)
-
-    #             if res.lower() in ("new", "n"):
-    #                 first_part = 1
-    #                 chances = 0
-
-    #             elif res.lower() in ("existing", "e", "old"):
-    #                 first_part = 2
-    #                 chances = 0
-
-    #             elif res.lower() == "cancel":
-    #                 chances = 0
-    #                 await cancel_msg(ctx)
-    #                 return
-
-    #             else:
-    #                 chances -= 1
-
-    #         if not first_part:
-    #             return await outta_chances(ctx)
-
-    #         if first_part == 1:  # means new msg
-    #             chances, embed_part, embed, second_part = 3, 0, False, 0
-
-    #             while chances:
-    #                 em.description = f"Should the message be an embed?(Tries Remaining:{chances}) \n\nReply with `yes` | `y` | `no` | `n` | "
-    #                 msg = await ctx.send(embed=em)
-    #                 res = await inputs.string_input(ctx, check, delete_after=True)
-    #                 await inputs.safe_delete(msg)
-
-    #                 if res.lower() in ("yes", "y"):
-    #                     chances, embed = 0, True
-    #                     embed_part = 1
-
-    #                 elif res.lower() in ("no", "n"):
-    #                     chances, embed_part = 0, 2
-
-    #                 elif res.lower() == "cancel":
-    #                     chances = 0
-    #                     return await cancel_msg(ctx)
-
-    #                 else:
-    #                     chances -= 1
-
-    #             if not embed_part:
-    #                 return await outta_chances(ctx)
-
-    #             chances = 3
-    #             while chances:
-    #                 em.description = f"In which channel should I send the message?(Tries Remaining:{chances})\n\n`Please enter the name or mention the channel`"
-    #                 msg = await ctx.send(embed=em)
-    #                 res = await self.bot.wait_for("message", check=check, timeout=60.0)
-    #                 await inputs.safe_delete(msg)
-    #                 await inputs.safe_delete(res)
-
-    #                 try:
-    #                     channel = await QuoTextChannel().convert(ctx, res.content)
-
-    #                     perms = channel.permissions_for(ctx.me)
-    #                     if not all((perms.send_messages, perms.embed_links, perms.manage_messages)):
-    #                         await ctx.error(
-    #                             f"I require `send_messages`, `embed_links` and `manage_messages` in {res.mention}",
-    #                             delete_after=3,
-    #                         )
-    #                         chances -= 1
-
-    #                 except:
-    #                     chances -= 1
-
-    #                 else:
-    #                     chances = 0
-    #                     second_part = 1
-
-    #             if not channel:
-    #                 return await outta_chances(ctx)
-
-    #         elif first_part == 2:  # means an old message
-    #             chances, second_part = 3, 0
-    #             while chances:
-    #                 em.description = (
-    #                     f"Send the link of the message you want to use for reaction roles.(Tries Remaining:{chances})"
-    #                 )
-    #                 msg = await ctx.send(embed=em)
-    #                 res = await inputs.string_input(ctx, check, delete_after=True)
-
-    #                 await inputs.safe_delete(msg)
-
-    #                 if res.lower() == "cancel":
-    #                     chances = 0
-    #                     return await cancel_msg(ctx)
-
-    #                 elif res.lower().startswith("https://"):
-    #                     url = res.split("/")
-
-    #                     try:
-    #                         channel = ctx.guild.get_channel(int(url[5]))
-    #                         message = await channel.fetch_message(int(url[6]))
-    #                         second_part, chances = 1, 0
-    #                     except Exception as e:
-    #                         chances -= 1
-    #                         await ctx.error(
-    #                             f"Can't find that message, please make sure the link is valid and I can see the channel, message history."
-    #                         )
-
-    #                 else:
-    #                     chances -= 1
-
-    #         if second_part == 1:
-    #             chances , third_part , emoji = 3, 0, None
-
-    #     except Exception as e:
-    #         await ctx.send(e)
-
-    #     else:
-    #         pass
-
 
 def setup(bot) -> None:
     bot.add_cog(Utility(bot))
