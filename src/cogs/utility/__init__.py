@@ -289,7 +289,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="claim")
     async def claim_tag(self, ctx: Context, *, tag: TagConverter):
-        """Claim if tag if its owner has left."""
+        """Claims a tag if the original owner left the server."""
 
         member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
 
