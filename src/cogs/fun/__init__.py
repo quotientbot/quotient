@@ -120,22 +120,22 @@ class Fun(Cog):
         else:
             await ctx.success(f"Autoadvice record updated!")
 
-    @commands.command()
-    @commands.has_permissions(manage_guild=True)
-    async def autopoem(self, ctx: Context, *, channel: discord.TextChannel):
-        """
-        Get some nice poetry automatically.
-        Must have `manage server` permissions.
-        Bot must have `manage webhooks` permission.
-        """
-        if not channel.permissions_for(ctx.me).manage_webhooks:
-            return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
+    # @commands.command()
+    # @commands.has_permissions(manage_guild=True)
+    # async def autopoem(self, ctx: Context, *, channel: discord.TextChannel):
+    #     """
+    #     Get some nice poetry automatically.
+    #     Must have `manage server` permissions.
+    #     Bot must have `manage webhooks` permission.
+    #     """
+    #     if not channel.permissions_for(ctx.me).manage_webhooks:
+    #         return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
-        record = await insert_or_update_config(ctx, EventType.poem, channel)
-        if not record:
-            await ctx.success(f"Autopoem enabled successfully!")
-        else:
-            await ctx.success(f"Autopeom record updated!")
+    #     record = await insert_or_update_config(ctx, EventType.poem, channel)
+    #     if not record:
+    #         await ctx.success(f"Autopoem enabled successfully!")
+    #     else:
+    #         await ctx.success(f"Autopeom record updated!")
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
@@ -150,7 +150,7 @@ class Fun(Cog):
             "autojoke",
             "autonsfw",
             "autoadvice",
-            "autopoem",
+            # "autopoem",
         )
 
         displayable_options = ",".join(map(lambda s: f"`{s}`", valids))
@@ -190,7 +190,7 @@ class Fun(Cog):
             "autojoke",
             "autonsfw",
             "autoadvice",
-            "autopoem",
+            # "autopoem",
         )
 
         displayable_options = ",".join(map(lambda s: f"`{s}`", valids))
