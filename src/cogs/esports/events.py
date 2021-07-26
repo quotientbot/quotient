@@ -251,14 +251,8 @@ class ScrimEvents(Cog):
         if not await should_open_scrim(scrim):
             return
 
-        # reserved_count = await scrim.reserved_slots.all().count()
-
-        # embed = discord.Embed(
-        #     color=self.bot.color,
-        #     title="Registration is now open!",
-        #     description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
-        #     f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
-        # )
+        if not guild.chunked:
+            self.bot.loop.create_task(guild.chunk())
 
         oldslots = await scrim.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
