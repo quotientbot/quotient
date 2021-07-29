@@ -13,3 +13,5 @@ font = ImageFont.truetype("robo-bold.ttf", 80)
 draw.text((95, 55), "01", font=font)
 draw.text((325, 55), "Team is something bro", (0, 0, 0), font=font)
 image.show()
+
+
