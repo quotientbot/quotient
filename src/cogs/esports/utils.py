@@ -94,6 +94,10 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
 
+    if scrim.autodelete_extras:
+        with suppress(discord.Forbidden, discord.HTTPException):
+            await ctx.channel.purge(limit=100,check = lambda x : all((not x.pinned,not x.reactions, not x.embeds, not x.author == ctx.bot.user)))
+
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
 
