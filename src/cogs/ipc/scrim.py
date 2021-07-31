@@ -9,7 +9,8 @@ from models import Guild, Scrim, Timer
 from discord.ext import ipc
 import discord
 from constants import IST
-from datetime import datetime , timedelta
+from datetime import datetime, timedelta
+
 
 class ScrimIpc(IpcCog):
     def __init__(self, bot: Quotient):
@@ -127,15 +128,18 @@ class ScrimIpc(IpcCog):
 
         return self.positive
 
-
     @ipc.server.route()
     async def edit_scrim(self, payload):
         data = payload.data
 
         guild = self.bot.get_guild(int(data.get("guild_id")))
+
+        if not guild:
+            return self.not_guild
+
         scrim = await Scrim.get_or_none(id=int(data.get("id")))
 
-        if not all((guild, scrim)):
+        if not scrim:
             return self.deny_request("Either this scrim was deleted or Quotient was removed from the server.")
 
         _dict = {
@@ -151,6 +155,7 @@ class ScrimIpc(IpcCog):
             "show_time_elapsed": data.get("show_time_elapsed"),
             "open_message": data.get("open_message"),
             "close_message": data.get("close_message"),
+            "autodelete_extras": data.get("autodelete_extras"),
         }
 
         registration_channel_id = int(data.get("registration_channel_id"))
@@ -261,5 +266,5 @@ class ScrimIpc(IpcCog):
 
     @ipc.server.route()
     async def delete_scrim(self, payload):
-        await Scrim.filter(id=int(payload.scrim_id)).delete()
+        await Scrim.filter(pk=int(payload.scrim_id)).delete()
         return self.positive
