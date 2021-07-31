@@ -1,7 +1,7 @@
 from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
-from core import Quotient, Cog, commands
+from core import Quotient, Cog
 from models.esports import SSVerify, SSData
-from utils import emote, plural
+from utils import emote
 from .utils import (
     available_to_reserve,
     check_scrim_requirements,
@@ -18,6 +18,7 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
     registration_open_embed,
+    process_ss_attachment
 )
 from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError
 from .converters import EasyMemberConverter
@@ -500,6 +501,8 @@ class ScrimEvents(Cog):
                 )
 
             else:
+                ctx = await self.bot.get_context(message)
+
                 url = IPC_BASE + "/image/verify"
                 headers = {"Content-Type": "application/json"}
 

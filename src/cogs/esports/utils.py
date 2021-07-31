@@ -7,6 +7,7 @@ from ast import literal_eval
 from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
+from models.esports import SSVerify
 from utils import find_team, strtime
 import discord
 import config
@@ -22,6 +23,18 @@ def get_slots(slots):
 def get_tourney_slots(slots):
     for slot in slots:
         yield slot.leader_id
+
+
+async def process_ss_attachment(ctx,verify:SSVerify, attachment:discord.Attachment):
+ ...
+
+
+
+
+
+
+
+
 
 
 async def add_role_and_reaction(ctx, role):
