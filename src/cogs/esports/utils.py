@@ -4,7 +4,7 @@ from typing import NoReturn, Optional, Union
 
 from prettytable.prettytable import PrettyTable
 from ast import literal_eval
-from models import Scrim, Tourney
+from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
@@ -25,6 +25,48 @@ def get_slots(slots):
 def get_tourney_slots(slots):
     for slot in slots:
         yield slot.leader_id
+
+
+async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
+
+    reason = f"Created for Scrims Slot Management by {ctx.author}"
+
+    overwrites = {
+        ctx.guild.default_role: discord.PermissionOverwrite(
+            read_messages=True, send_messages=False, read_message_history=True
+        ),
+        ctx.guild.me: discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            manage_channel=True,
+            manage_messages=True,
+            read_message_history=True,
+            embed_links=True,
+        ),
+    }
+
+    cancel_channel = await ctx.guild.create_channel(name="cancel-slot", overwrites=overwrites, reason=reason)
+    claim_channel = await ctx.guild.create_channel(name="claim-slot", overwrites=overwrites, reason=reason)
+
+    cancel_message = await cancel_channel.send(embed=await get_cancel_slot_message(ctx.guild))
+    claim_message = await claim_channel.send(embed=await get_claim_slot_message(ctx.guild))
+
+    await SlotManager.create(
+        guild_id=ctx.guild.id,
+        cancel_channel_id=cancel_channel.id,
+        claim_channel_id=claim_channel.id,
+        post_channel_id=post_channel.id,
+        cancel_message_id=cancel_message.id,
+        claim_message_id=claim_message.id,
+    )
+
+
+async def get_cancel_slot_message(guild: discord.Guild):
+    ...
+
+
+async def get_claim_slot_message(guild: discord.Guild):
+    ...
 
 
 async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):

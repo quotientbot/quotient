@@ -25,6 +25,7 @@ __all__ = (
     "PointsTable",
     "SSVerify",
     "SSData",
+    "SlotManager"
 )
 
 
@@ -467,6 +468,34 @@ class SSData(models.Model):
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
     message_id = fields.BigIntField()
-    hash = fields.CharField(max_length=50,null=True)
+    hash = fields.CharField(max_length=50, null=True)
     submitted_at = fields.DatetimeField(auto_now=True)
     status = fields.CharEnumField(SSStatus)
+
+
+class SlotManager(models.Model):
+    class Meta:
+        table = "slot_manager"
+
+    id = fields.BigIntField(pk=True)
+    guild_id = fields.BigIntField()
+    cancel_channel_id = fields.BigIntField()
+    claim_channel_id = fields.BigIntField()
+    post_channel_id = fields.BigIntField()
+
+    cancel_message_id = fields.BigIntField()
+    claim_message_id = fields.BigIntField()
+    toggle = fields.BooleanField(default=True)
+
+    @property
+    def cancel_channel(self):
+        return self.bot.get_channel(self.cancel_channel_id)
+
+    @property
+    def claim_channel(self):
+        return self.bot.get_channel(self.claim_channel_id)
+
+    @property
+    def post_channel(self):
+        return self.bot.get_channel(self.post_channel_id)
+        
