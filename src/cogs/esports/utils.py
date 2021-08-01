@@ -8,11 +8,13 @@ from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime
+from utils import find_team, strtime, emote
 import discord
 import config
 import asyncio
-import re
+import re, json
+
+from constants import VerifyImageError
 
 
 def get_slots(slots):
@@ -25,8 +27,53 @@ def get_tourney_slots(slots):
         yield slot.leader_id
 
 
-async def process_ss_attachment(ctx, verify: SSVerify, attachment: discord.Attachment):
-    ...
+async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):
+    message = ctx.message
+    delete_after = verify.delete_after if verify.delete_after else None
+
+    url = config.IPC_BASE + "/image/verify"
+    headers = {"Content-Type": "application/json"}
+
+    payload = json.dumps({"type": verify.ss_type.name, "name": verify.channel_name, "url": attachment.proxy_url})
+
+    res = await ctx.bot.session.post(url=url, headers=headers, data=payload)
+    res = await res.json()
+
+    if not res.get("ok"):
+        _error = res.get("error", "Internal Server Error")
+
+        with suppress(discord.HTTPException, discord.NotFound, AttributeError):
+            await message.add_reaction(emote.red + f"{idx}")
+
+            if VerifyImageError(_error) == VerifyImageError.Invalid:
+                await message.reply(
+                    f"This doesn't seem to be a valid screenshot.\n"
+                    "\nYou need a screenshot of the following account:\n"
+                    f"<{verify.channel_link}>",
+                    delete_after=delete_after,
+                )
+
+            elif VerifyImageError(_error) == VerifyImageError.NotSame:
+                await message.reply(
+                    f"This screenshot doesn't belong to **{verify.channel_name}**\n\n"
+                    "You need a screenshot of the following account:\n"
+                    f"<{verify.channel_link}>",
+                    delete_after=delete_after,
+                )
+
+            elif VerifyImageError(_error) == VerifyImageError.NoFollow:
+                await message.reply(
+                    f"You need to send a screenshot where you have actually followed/subscribed **{verify.channel_name}**",
+                    delete_after=delete_after,
+                )
+
+            else:
+                await message.reply(
+                    f"There was an error while processing your screenshot:\n" f"{_error}",
+                    delete_after=delete_after,
+                )
+    else:
+        ...
 
 
 async def add_role_and_reaction(ctx, role):
