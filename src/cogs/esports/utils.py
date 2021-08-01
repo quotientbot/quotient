@@ -25,16 +25,8 @@ def get_tourney_slots(slots):
         yield slot.leader_id
 
 
-async def process_ss_attachment(ctx,verify:SSVerify, attachment:discord.Attachment):
- ...
-
-
-
-
-
-
-
-
+async def process_ss_attachment(ctx, verify: SSVerify, attachment: discord.Attachment):
+    ...
 
 
 async def add_role_and_reaction(ctx, role):
@@ -94,8 +86,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
-    await registration_channel.send(embed = registration_close_embed(scrim))
-
+    await registration_channel.send(embed=registration_close_embed(scrim))
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
@@ -106,10 +97,14 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
             slotmsg = await channel.send(embed=embed)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
-
     if scrim.autodelete_extras:
+        await asyncio.sleep(7)
         with suppress(discord.Forbidden, discord.HTTPException):
-            await ctx.channel.purge(limit=100,check = lambda x : all((not x.pinned,not x.reactions, not x.embeds, not x.author == ctx.bot.user)))
+            await ctx.channel.purge(
+                limit=100,
+                check=lambda x: all((not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user)),
+            )
+
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
