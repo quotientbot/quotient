@@ -1673,47 +1673,47 @@ class ScrimManager(Cog, name="Esports"):
         await PointsTable.filter(id=record.id).delete()
         return await ctx.success("Successfully deleted points table.")
 
-    @commands.group()
-    async def slotmanager(self, ctx: Context):
-        await ctx.send_help(ctx.command)
+    # @commands.group()
+    # async def slotmanager(self, ctx: Context):
+    #     await ctx.send_help(ctx.command)
 
-    @slotmanager.command(name="setup")
-    @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_guild_permissions(manage_channels=True)
-    async def _slotmanager_setup(self, ctx: Context):
-        """Setup slot manager"""
+    # @slotmanager.command(name="setup")
+    # @commands.has_permissions(manage_guild=True)
+    # @commands.bot_has_guild_permissions(manage_channels=True)
+    # async def _slotmanager_setup(self, ctx: Context):
+    #     """Setup slot manager"""
 
-        check = await SlotManager.filter(guild_id=ctx.guild.id)
-        if check:
-            return await ctx.error(
-                "It seems that you have an existing slotmanager setup in your server."
-                f"\nKindly use `{ctx.prefix}slotmanager delete` if you want to delete that setup."
-            )
+    #     check = await SlotManager.filter(guild_id=ctx.guild.id)
+    #     if check:
+    #         return await ctx.error(
+    #             "It seems that you have an existing slotmanager setup in your server."
+    #             f"\nKindly use `{ctx.prefix}slotmanager delete` if you want to delete that setup."
+    #         )
 
-        check = await Scrim.filter(guild_id=ctx.guild.id)
-        if not check:
-            return await ctx.error(
-                "It seems that you don't have any scrims setup in your server. "
-                "\nYou need to use Quotient's scrims manager to use slotmanager."
-            )
+    #     check = await Scrim.filter(guild_id=ctx.guild.id)
+    #     if not check:
+    #         return await ctx.error(
+    #             "It seems that you don't have any scrims setup in your server. "
+    #             "\nYou need to use Quotient's scrims manager to use slotmanager."
+    #         )
 
-        prompt = await ctx.prompt(
-            "Two new channels for scrims slot management will be created. Are you sure you want to continue?"
-        )
-        if not prompt:
-            return await ctx.success("Alright, Aborting")
+    #     prompt = await ctx.prompt(
+    #         "Two new channels for scrims slot management will be created. Are you sure you want to continue?"
+    #     )
+    #     if not prompt:
+    #         return await ctx.success("Alright, Aborting")
 
-        await ctx.send("Creating channels...", delete_after=2)
-        await setup_slotmanager(ctx)
+    #     await ctx.send("Creating channels...", delete_after=2)
+    #     await setup_slotmanager(ctx)
 
-    @slotmanager.command(name="delete")
-    @commands.has_permissions(manage_guild=True)
-    async def _slotmanager_delete(self, ctx: Context):
-        """Delete slot manager"""
+    # @slotmanager.command(name="delete")
+    # @commands.has_permissions(manage_guild=True)
+    # async def _slotmanager_delete(self, ctx: Context):
+    #     """Delete slot manager"""
 
-    @slotmanager.command(name="fix")
-    async def _slotmanager_fix(self, ctx:Context):
-        """Fix slot manager"""
+    # @slotmanager.command(name="fix")
+    # async def _slotmanager_fix(self, ctx:Context):
+    #     """Fix slot manager"""
         
 
 
