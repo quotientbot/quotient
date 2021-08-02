@@ -107,10 +107,11 @@ def day_today():
     return dtm.datetime.now().strftime("%A").lower()
 
 
-# def strtime(target):
-#     return target.strftime("%d-%b-%Y %I:%M %p")
 def strtime(target):
-    return f"<t:{int(target.timestamp())}:R>"
+    return target.strftime("%d-%b-%Y %I:%M %p")
+    
+# def strtime(target):
+#     return f"<t:{int(target.timestamp())}:R>"
 
 
 
