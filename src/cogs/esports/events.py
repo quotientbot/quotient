@@ -295,16 +295,18 @@ class ScrimEvents(Cog):
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
-        channel_update = await toggle_channel(registration_channel, open_role, True)
+        
 
-        self.bot.scrim_channels.add(registration_channel.id)
-
+        
         await Scrim.filter(pk=scrim.id).update(
             opened_at=datetime.now(tz=IST),
             closed_at=None,
             slotlist_message_id=None,
         )
+        self.bot.scrim_channels.add(registration_channel.id)
 
+
+        await toggle_channel(registration_channel, open_role, True)
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
 
     # ==========================================================================================================
