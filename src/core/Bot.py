@@ -54,7 +54,7 @@ class Quotient(commands.AutoShardedBot):
         self.lockdown = False
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
-        self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0")
+        self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0", do_multicast=False)
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
