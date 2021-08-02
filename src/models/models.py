@@ -24,6 +24,7 @@ __all__ = (
     "Web",
     "WebLogs",
     "Article",
+    "Partner",
 )
 
 
@@ -498,3 +499,14 @@ class AutoPrune(models.Model):
     interval = fields.IntField()
     amount = fields.IntField()
     toggle = fields.BooleanField(default=True)
+
+
+class Partner(models.Model):
+    class Meta:
+        table = "partners"
+
+    id = fields.IntField(pk=True)
+    guild_id = fields.BigIntField()
+    description = fields.CharField(max_length=200)
+    invite = fields.CharField(max_length=100)
+    created_at = fields.DatetimeField(auto_now=True)
