@@ -25,6 +25,7 @@ __all__ = (
     "WebLogs",
     "Article",
     "Partner",
+    "AutoPurge",
 )
 
 
@@ -488,16 +489,14 @@ class WebLogs(models.Model):
     executed_at = fields.DatetimeField(auto_now=True)
 
 
-class AutoPrune(models.Model):
+class AutoPurge(models.Model):
     class Meta:
-        table = "autoprune"
+        table = "autopurge"
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
-    start_at = fields.DatetimeField()
-    interval = fields.IntField()
-    amount = fields.IntField()
+    delete_after = fields.IntField(default=10)
     toggle = fields.BooleanField(default=True)
 
 

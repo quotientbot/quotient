@@ -3,16 +3,26 @@ from core import Cog, Context
 
 import typing
 
-from utils.converters import QuoTextChannel
-
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 from discord.ext import commands
-from models import Tag
+from models import Tag, AutoPurge
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
-from utils import checks, ColorConverter, Pages, emote, inputs, strtime, plural, keycap_digit, QuoRole, QuoMember, QuoCategory
+from utils import (
+    checks,
+    ColorConverter,
+    Pages,
+    emote,
+    strtime,
+    plural,
+    QuoRole,
+    QuoMember,
+    QuoCategory,
+    QuoTextChannel,
+    simple_convert,
+)
 from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from contextlib import suppress
 import discord
@@ -171,11 +181,10 @@ class Utility(Cog, name="utility"):
         await ctx.send(embed=embed)
         await ctx.message.delete()
 
-
     @commands.command(name="zipemojis")
     @commands.has_guild_permissions(manage_emojis=True)
     @commands.max_concurrency(1, per=commands.BucketType.guild)
-    async def zip_emojis(self, ctx:Context):
+    async def zip_emojis(self, ctx: Context):
         """
         Get a zip file containing all the emojis in the current server.
         `Note:` This can take some time and you need to be patient.
@@ -184,15 +193,16 @@ class Utility(Cog, name="utility"):
         if len(ctx.guild.emojis) == 0:
             return await ctx.error(f"Breh, Your server doesn't have any custom emojis.")
 
-        m = await ctx.simple(f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}")
+        m = await ctx.simple(
+            f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}"
+        )
         buf = BytesIO()
 
         async with ctx.typing():
-            with zipfile.ZipFile(buf, 'w') as f:
+            with zipfile.ZipFile(buf, "w") as f:
                 for emoji in ctx.guild.emojis:
                     _bytes = await emoji.url.read()
-                    f.writestr(
-                        f'{emoji.name}.{"gif" if emoji.animated else "png"}', _bytes)
+                    f.writestr(f'{emoji.name}.{"gif" if emoji.animated else "png"}', _bytes)
 
             buf.seek(0)
 
@@ -201,7 +211,10 @@ class Utility(Cog, name="utility"):
         except:
             pass
         finally:
-            await ctx.send(f'{ctx.author.mention} Sorry to keep you waiting, here you go:', file=discord.File(fp=buf, filename='emojis.zip'))
+            await ctx.send(
+                f"{ctx.author.mention} Sorry to keep you waiting, here you go:",
+                file=discord.File(fp=buf, filename="emojis.zip"),
+            )
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
@@ -573,6 +586,28 @@ class Utility(Cog, name="utility"):
 
         else:
             await ctx.simple(f"Ok Aborting.")
+
+    @commands.group()
+    async def autopurge(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @autopurge.command(name="set")
+    async def autopurge_set(self, ctx: Context, channel: QuoTextChannel, delete_after):
+        """Set the autopurge for a channel"""
+        if not channel.permissions_for(ctx.me).manage_messages:
+            return await ctx.error("I don't have `manage messages` permission in {0}".format(channel.mention))
+
+        seconds = simple_convert(delete_after)
+
+        if not seconds > 3 and seconds > 86400:
+            return await ctx.error("Delete Time must be more than 3s and less than 24h.")
+
+        if (count := await AutoPurge.filter(guild_id=ctx.guild.id), count()) >= 1 and not await ctx.is_premium_guild:
+            return await ctx.error(
+                "You cannot set autopurge in more than 1 channel in free tier."
+                f"\nHowever [Quotient Premium]({ctx.config.WEBSITE}/premium) allows you to set autopurge in unlimited channels."
+            )
+
 
 def setup(bot) -> None:
     bot.add_cog(Utility(bot))

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from cogs.quomisc.helper import guild_msg_stats, member_msg_stats
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
-from models import Guild, Votes, Messages, User, Commands
+from models import Guild, Votes, Messages, User, Commands, Partner
 from discord.ext import commands
 from utils import ColorConverter, QuoUser
 from collections import Counter
@@ -85,7 +85,6 @@ class Quomisc(Cog, name="quomisc"):
         """Donate to Quotient"""
         await ctx.send(self.bot.config.DONATE_LINK, embed_perms=True)
 
-        
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
         invite_link = f"[Invite Me]({ctx.config.BOT_INVITE})"
@@ -346,6 +345,16 @@ class Quomisc(Cog, name="quomisc"):
         else:
             await guild_msg_stats(ctx)
 
+    # @commands.group(invoke_without_command=True)
+    # async def partnership(self, ctx: Context):
+    #     ...
+
+    # @partnership.command(name="apply")
+    # @commands.has_permissions(manage_guild=True)
+    # async def partner_apply(self, ctx: Context):
+    #     """
+    #     Apply for a Quotient partnership program.
+    #     """
 
 
 def setup(bot) -> None:
