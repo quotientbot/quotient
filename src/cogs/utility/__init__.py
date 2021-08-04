@@ -593,12 +593,18 @@ class Utility(Cog, name="utility"):
 
     @commands.group(invoke_without_command=True)
     async def autopurge(self, ctx: Context):
+        """
+        Set Quotient to delete every new message in a channel after  a specific interval.
+        """
         await ctx.send_help(ctx.command)
 
     @autopurge.command(name="set")
     @commands.has_permissions(manage_messages=True)
     async def autopurge_set(self, ctx: Context, channel: QuoTextChannel, delete_after):
-        """Set the autopurge for a channel"""
+        """
+        Set the autopurge for a channel
+        `delete_after` should be in this format: s|m|h|d
+        """
         if not channel.permissions_for(ctx.me).manage_messages:
             return await ctx.error("I don't have `manage messages` permission in {0}".format(channel.mention))
 
@@ -623,7 +629,7 @@ class Utility(Cog, name="utility"):
     @autopurge.command(name="list")
     @commands.has_permissions(manage_messages=True)
     async def autopurge_config(self, ctx: Context):
-        """Gte """
+        """Get a list of all autopurge channels"""
         records = await AutoPurge.filter(guild_id=ctx.guild.id)
         if not records:
             return await ctx.error("This server doesn't have any autopurge channels.")
@@ -637,6 +643,7 @@ class Utility(Cog, name="utility"):
     @autopurge.command(name="remove")
     @commands.has_permissions(manage_messages=True)
     async def autopurge_remove(self, ctx: Context, *, channel: QuoTextChannel):
+        """Remove a channel from autopurge"""
         if not channel.id in self.bot.autopurge_channels:
             return await ctx.error(f"{channel} is not an autopurge channel.")
 
