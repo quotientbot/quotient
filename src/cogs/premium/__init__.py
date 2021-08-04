@@ -193,17 +193,17 @@ class Premium(Cog):
     @commands.bot_has_permissions(embed_links=True)
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
-        table = PrettyTable()
-        table.field_names = ["Perks", "Free Tier", "Premium Tier"]
+        # table = PrettyTable()
+        # table.field_names = ["Perks", "Free Tier", "Premium Tier"]
 
-        for key, val in constants.perks.items():
-            a, b = val
-            table.add_row([key, a, b])
+        # for key, val in constants.perks.items():
+        #     a, b = val
+        #     table.add_row([key, a, b])
 
-        table = table.get_string()
+        # table = table.get_string()
         embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
-        embed.description = f"```{table}```"
-        # embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/856601287566557184/unknown.png")
+        # embed.description = f"```{table}```"
+        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/872541228762300516/unknown.png")
         await ctx.send(embed=embed)
 
 
