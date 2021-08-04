@@ -50,3 +50,9 @@ class UtilityEvents(Cog):
         message = channel.get_partial_message(message_id)
         with suppress(discord.NotFound, discord.Forbidden, discord.HTTPException):
             await message.delete()
+
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        if channel.id in self.bot.autopurge_channels:
+            await AutoPurge.filter(channel_id=channel.id).delete()
+            self.bot.autopurge_channels.discard(channel.id)
