@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from discord.utils import escape_markdown
 import typing
+from cogs.utility.events import UtilityEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -610,8 +611,8 @@ class Utility(Cog, name="utility"):
 
         seconds = simple_convert(delete_after)
 
-        if not seconds > 3 or seconds > 604800:
-            return await ctx.error("Delete Time must be more than 3s and less than 7 days.")
+        if not seconds > 4 or seconds > 604800:
+            return await ctx.error("Delete Time must be more than 5s and less than 7d.")
 
         if (count := await AutoPurge.filter(guild_id=ctx.guild.id).count()) >= 1 and not await ctx.is_premium_guild():
             return await ctx.error(
@@ -654,3 +655,4 @@ class Utility(Cog, name="utility"):
 
 def setup(bot) -> None:
     bot.add_cog(Utility(bot))
+    bot.add_cog(UtilityEvents(bot))

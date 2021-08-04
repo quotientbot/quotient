@@ -497,13 +497,11 @@ class AutoPurge(models.Model):
     guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
     delete_after = fields.IntField(default=10)
-    toggle = fields.BooleanField(default=True)
-
 
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
-        
+
 class Partner(models.Model):
     class Meta:
         table = "partners"
