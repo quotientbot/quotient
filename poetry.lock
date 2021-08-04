@@ -325,6 +325,17 @@ optional = false
 python-versions = ">=3.6.1"
 
 [[package]]
+name = "humanize"
+version = "3.11.0"
+description = "Python humanize utilities"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+tests = ["freezegun", "pytest", "pytest-cov"]
+
+[[package]]
 name = "hypercorn"
 version = "0.11.2"
 description = "A ASGI Server based on Hyper libraries and inspired by Gunicorn."
@@ -767,7 +778,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "899d6ae615448dd86af12e3bd55331bd78c57aa153eb94187a93df84a23a920c"
+content-hash = "62ab9918662c050d800d136b0f79e9f0364d2a27c2c1aef48ab35fd3c1961a1f"
 
 [metadata.files]
 aerich = [
@@ -974,6 +985,10 @@ h2 = [
 hpack = [
     {file = "hpack-4.0.0-py3-none-any.whl", hash = "sha256:84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c"},
     {file = "hpack-4.0.0.tar.gz", hash = "sha256:fc41de0c63e687ebffde81187a948221294896f6bdc0ae2312708df339430095"},
+]
+humanize = [
+    {file = "humanize-3.11.0-py3-none-any.whl", hash = "sha256:06c79af7873473c47477840010ccb9b11b0d431f37f4a81b71edd653211936be"},
+    {file = "humanize-3.11.0.tar.gz", hash = "sha256:4160cdc63fcd0daac27d2e1e218a31bb396fc3fe5712d153675d89432a03778f"},
 ]
 hypercorn = [
     {file = "Hypercorn-0.11.2-py3-none-any.whl", hash = "sha256:8007c10f81566920f8ae12c0e26e146f94ca70506da964b5a727ad610aa1d821"},
