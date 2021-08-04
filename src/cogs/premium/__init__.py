@@ -88,10 +88,10 @@ class Premium(Cog):
 
         if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
             end_time = guild.premium_end_time + timedelta(days=30)
-        
+
         else:
             end_time = datetime.now(tz=IST) + timedelta(days=30)
- 
+
         user = await User.get(user_id=code.user_id)
         prompt = await ctx.prompt(
             f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
@@ -128,10 +128,10 @@ class Premium(Cog):
 
         if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
             end_time = guild.premium_end_time + timedelta(days=30)
-        
+
         else:
             end_time = datetime.now(tz=IST) + timedelta(days=30)
- 
+
         prompt = await ctx.prompt(
             f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
             title="Are you sure you want to continue?",
@@ -193,17 +193,17 @@ class Premium(Cog):
     @commands.bot_has_permissions(embed_links=True)
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
-        # table = PrettyTable()
-        # table.field_names = ["Perks", "Free Tier", "Premium Tier"]
+        table = PrettyTable()
+        table.field_names = ["Perks", "Free Tier", "Premium Tier"]
 
-        # for key, val in constants.perks.items():
-        #     a, b = val
-        #     table.add_row([key, a, b])
+        for key, val in constants.perks.items():
+            a, b = val
+            table.add_row([key, a, b])
 
-        # table = table.get_string()
+        table = table.get_string()
         embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
-        # embed.description = f"```{table}```"
-        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/856601287566557184/unknown.png")
+        embed.description = f"```{table}```"
+        # embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/856601287566557184/unknown.png")
         await ctx.send(embed=embed)
 
 
