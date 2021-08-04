@@ -500,6 +500,10 @@ class AutoPurge(models.Model):
     toggle = fields.BooleanField(default=True)
 
 
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+        
 class Partner(models.Model):
     class Meta:
         table = "partners"

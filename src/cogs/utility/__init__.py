@@ -1,15 +1,17 @@
-from discord.utils import escape_markdown
-from core import Cog, Context
+from __future__ import annotations
 
+from discord.utils import escape_markdown
 import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
+from core import Cog, Context
 from discord.ext import commands
 from models import Tag, AutoPurge
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove, Tag
+
 from utils import (
     checks,
     ColorConverter,
@@ -29,6 +31,8 @@ import discord
 from io import BytesIO
 import zipfile
 
+from humanize import precisedelta
+from datetime import timedelta
 
 import asyncio
 import config
@@ -36,7 +40,7 @@ import re
 
 
 class Utility(Cog, name="utility"):
-    def __init__(self, bot):
+    def __init__(self, bot: Quotient):
         self.bot = bot
 
     @commands.group(invoke_without_command=True)
@@ -587,11 +591,12 @@ class Utility(Cog, name="utility"):
         else:
             await ctx.simple(f"Ok Aborting.")
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     async def autopurge(self, ctx: Context):
         await ctx.send_help(ctx.command)
 
     @autopurge.command(name="set")
+    @commands.has_permissions(manage_messages=True)
     async def autopurge_set(self, ctx: Context, channel: QuoTextChannel, delete_after):
         """Set the autopurge for a channel"""
         if not channel.permissions_for(ctx.me).manage_messages:
@@ -599,14 +604,45 @@ class Utility(Cog, name="utility"):
 
         seconds = simple_convert(delete_after)
 
-        if not seconds > 3 and seconds > 86400:
-            return await ctx.error("Delete Time must be more than 3s and less than 24h.")
+        if not seconds > 3 or seconds > 604800:
+            return await ctx.error("Delete Time must be more than 3s and less than 7 days.")
 
-        if (count := await AutoPurge.filter(guild_id=ctx.guild.id), count()) >= 1 and not await ctx.is_premium_guild:
+        if (count := await AutoPurge.filter(guild_id=ctx.guild.id).count()) >= 1 and not await ctx.is_premium_guild():
             return await ctx.error(
                 "You cannot set autopurge in more than 1 channel in free tier."
                 f"\nHowever [Quotient Premium]({ctx.config.WEBSITE}/premium) allows you to set autopurge in unlimited channels."
             )
+
+        if channel.id in self.bot.autopurge_channels:
+            return await ctx.error(f"**{channel}** is already an autopurge channel.")
+
+        await AutoPurge.create(guild_id=ctx.guild.id, channel_id=channel.id, delete_after=seconds)
+        self.bot.autopurge_channels.add(channel.id)
+        await ctx.success(f"**{channel}** added to autopurge channels.")
+
+    @autopurge.command(name="list")
+    @commands.has_permissions(manage_messages=True)
+    async def autopurge_config(self, ctx: Context):
+        """Gte """
+        records = await AutoPurge.filter(guild_id=ctx.guild.id)
+        if not records:
+            return await ctx.error("This server doesn't have any autopurge channels.")
+
+        text = ""
+        for idx, record in enumerate(records, start=1):
+            text += f"`{idx:02}` | {getattr(record.channel, 'mention','Deleted Channel')} ({precisedelta(timedelta(seconds= record.delete_after))})\n"
+
+        await ctx.send(embed=self.bot.embed(ctx, description=text, title="AutoPurge List"), embed_perms=True)
+
+    @autopurge.command(name="remove")
+    @commands.has_permissions(manage_messages=True)
+    async def autopurge_remove(self, ctx: Context, *, channel: QuoTextChannel):
+        if not channel.id in self.bot.autopurge_channels:
+            return await ctx.error(f"{channel} is not an autopurge channel.")
+
+        self.bot.autopurge_channels.discard(channel.id)
+        await AutoPurge.filter(channel_id=channel.id, guild_id=ctx.guild.id).delete()
+        await ctx.success(f"**{channel}** removed from autopurge channels.")
 
 
 def setup(bot) -> None:
