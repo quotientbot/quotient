@@ -285,6 +285,15 @@ class ScrimEvents(Cog):
             with suppress(AttributeError):
                 self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
+
+        await Scrim.filter(pk=scrim.id).update(
+            opened_at=datetime.now(tz=IST),
+            closed_at=None,
+            slotlist_message_id=None,
+        )
+
+        await asyncio.sleep(0.2)
+
         # Opening Channel for Normal Janta
         registration_channel = scrim.registration_channel
         open_role = scrim.open_role
@@ -295,16 +304,7 @@ class ScrimEvents(Cog):
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
-        
-
-        
-        await Scrim.filter(pk=scrim.id).update(
-            opened_at=datetime.now(tz=IST),
-            closed_at=None,
-            slotlist_message_id=None,
-        )
         self.bot.scrim_channels.add(registration_channel.id)
-
 
         await toggle_channel(registration_channel, open_role, True)
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
