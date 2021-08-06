@@ -185,3 +185,6 @@ class Quotient(commands.AutoShardedBot):
 
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
+
+    async def on_ipc_error(self, endpoint, error):
+        print(endpoint, "raised", error)
