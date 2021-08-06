@@ -13,6 +13,7 @@ import inspect, time
 from .dev import *
 import discord
 import pygit2
+import pkg_resources
 import psutil
 import itertools
 import os
@@ -161,6 +162,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def tits(self, ctx):
         """Statistics of Quotient."""
+        version = pkg_resources.get_distribution('discord.py').version
         revision = self.get_last_commits()
         
         total_memory = psutil.virtual_memory().total >> 20
@@ -172,21 +174,32 @@ class Quomisc(Cog, name="quomisc"):
         
         total_command_uses = await Commands.all().count()
         user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
+        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
         
         chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
         
-        owner = await self.bot.fetch_user(548163406537162782)
-                
-
-        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
-        embed = discord.Embed(description='Latest Changes:\n' + revision)
-        embed.title = 'Official Bot Server Invite'
-        embed.url = 'https://discord.gg/aBM5xz6'
-        embed.colour = discord.Colour.blurple()
-        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
-        {round(self.bot.latency * 1000, 2)}ms | IPM: {round(get_ipm(ctx.bot), 2)}"
+        owner = await self.bot.fetch_user(548163406537162782)         
         
-        embed.add_field(name="System", value=f"**RAM**: {mem_usage}/{memory} MB\n**CPU:** {cpu}% used")
+        embed = discord.Embed(description='Latest Changes:\n' + revision)
+        embed.title = 'Quotient Official Support Server'
+        embed.url = ctx.config.SERVER_LINK
+        embed.colour = discord.Colour.blurple()        
+        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
+        
+        if len(self.bot.guilds)[:-3] == 000 or len(self.bot.guilds)[:-2] < 10:
+            guild_value=f"{len(self.bot.guilds)} 🎉"
+        else:
+            guild_value=len(self.bot.guilds)
+        
+        embed.add_field(name='Guilds', value=guild_value)
+        embed.add_field(name='Uptime', value=len(self.get_bot_uptime(brief=False)))
+        embed.add_field(name='Members', value=f'{total_members} total\n{cached_members} cached')
+        embed.add_field(name='Channels', value=f'{chnl_count[discord.ChannelType.text] + chnl_count[discord.ChannelType.voice]} total\n{chnl_count[discord.ChannelType.text]} text\n{chnl_count[discord.ChannelType.voice]} voice')
+        embed.add_field(name='Total Commands Used', value=f"{total_command_uses} globally\n{server_invokes} in this server\n{user_invokes}")
+        embed.add_field(name='Stats', value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nIPM: {round(get_ipm(ctx.bot), 2)}")        
+        embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
+        embed.set_footer(text=f'Made with discord.py v{version}', icon_url='http://i.imgur.com/5BFecvA.png')
+        embed.timestamp = discord.utils.utcnow()
         
         await ctx.send(embed=embed)
         
