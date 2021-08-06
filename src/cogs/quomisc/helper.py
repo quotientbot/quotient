@@ -84,16 +84,18 @@ async def member_msg_stats(ctx: Context, member):
 async def guild_msg_stats(ctx):
     pass
 
+
 def format_dt(dt, style=None):
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)
-        
+
     if style is None:
-        return f'<t:{int(dt.timestamp())}>'
-    return f'<t:{int(dt.timestamp())}:{style}>'
+        return f"<t:{int(dt.timestamp())}>"
+    return f"<t:{int(dt.timestamp())}:{style}>"
+
 
 def format_relative(dt):
-    return format_dt(dt, 'R')
+    return format_dt(dt, "R")
 
 
 # async def find_query(ctx, query):
@@ -102,3 +104,10 @@ def format_relative(dt):
 #         return record
 
 #     return "\n".join(get_close_matches(query, (faq.aliases for faq in await FAQ.all())))
+
+
+def truncate_commit(value, max_length=128, suffix="..."):
+    string_value = str(value)
+    string_truncated = string_value[: min(len(string_value), (max_length - len(suffix)))]
+    suffix = suffix if len(string_value) > max_length else ""
+    return string_truncated + suffix
