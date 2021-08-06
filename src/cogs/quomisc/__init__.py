@@ -183,9 +183,9 @@ class Quomisc(Cog, name="quomisc"):
         embed.title = 'Quotient Official Support Server'
         embed.url = ctx.config.SERVER_LINK
         embed.colour = discord.Colour.blurple()        
-        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
+        embed.set_author(name=str(owner), icon_url=owner.avatar_url)
         
-        if len(self.bot.guilds)[:-3] == 000 or len(self.bot.guilds)[:-2] < 10:
+        if len(self.bot.guilds) % 1000 == 000 or len(self.bot.guilds) % 100 < 10:
             guild_value=f"{len(self.bot.guilds)} 🎉"
         else:
             guild_value=len(self.bot.guilds)
@@ -194,11 +194,10 @@ class Quomisc(Cog, name="quomisc"):
         embed.add_field(name='Uptime', value=len(self.get_bot_uptime(brief=False)))
         embed.add_field(name='Members', value=f'{total_members} total\n{cached_members} cached')
         embed.add_field(name='Channels', value=f'{chnl_count[discord.ChannelType.text] + chnl_count[discord.ChannelType.voice]} total\n{chnl_count[discord.ChannelType.text]} text\n{chnl_count[discord.ChannelType.voice]} voice')
-        embed.add_field(name='Total Commands Used', value=f"{total_command_uses} globally\n{server_invokes} in this server\n{user_invokes}")
+        embed.add_field(name='Total Commands Used', value=f"{total_command_uses} globally\n{server_invokes} in this server\n{user_invokes} by you.")
         embed.add_field(name='Stats', value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nIPM: {round(get_ipm(ctx.bot), 2)}")        
         embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
         embed.set_footer(text=f'Made with discord.py v{version}', icon_url='http://i.imgur.com/5BFecvA.png')
-        embed.timestamp = discord.utils.utcnow()
         
         await ctx.send(embed=embed)
         
