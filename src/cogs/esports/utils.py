@@ -4,14 +4,17 @@ from typing import NoReturn, Optional, Union
 
 from prettytable.prettytable import PrettyTable
 from ast import literal_eval
-from models import Scrim, Tourney
+from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
-from utils import find_team, strtime
+from models.esports import SSVerify
+from utils import find_team, strtime, emote
 import discord
 import config
 import asyncio
-import re
+import re, json
+
+from constants import VerifyImageError
 
 
 def get_slots(slots):
@@ -22,6 +25,97 @@ def get_slots(slots):
 def get_tourney_slots(slots):
     for slot in slots:
         yield slot.leader_id
+
+
+async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
+
+    reason = f"Created for Scrims Slot Management by {ctx.author}"
+
+    overwrites = {
+        ctx.guild.default_role: discord.PermissionOverwrite(
+            read_messages=True, send_messages=False, read_message_history=True
+        ),
+        ctx.guild.me: discord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            manage_channel=True,
+            manage_messages=True,
+            read_message_history=True,
+            embed_links=True,
+        ),
+    }
+
+    cancel_channel = await ctx.guild.create_channel(name="cancel-slot", overwrites=overwrites, reason=reason)
+    claim_channel = await ctx.guild.create_channel(name="claim-slot", overwrites=overwrites, reason=reason)
+
+    cancel_message = await cancel_channel.send(embed=await get_cancel_slot_message(ctx.guild))
+    claim_message = await claim_channel.send(embed=await get_claim_slot_message(ctx.guild))
+
+    await SlotManager.create(
+        guild_id=ctx.guild.id,
+        cancel_channel_id=cancel_channel.id,
+        claim_channel_id=claim_channel.id,
+        post_channel_id=post_channel.id,
+        cancel_message_id=cancel_message.id,
+        claim_message_id=claim_message.id,
+    )
+
+
+async def get_cancel_slot_message(guild: discord.Guild):
+    ...
+
+
+async def get_claim_slot_message(guild: discord.Guild):
+    ...
+
+
+async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):
+    message = ctx.message
+    delete_after = verify.delete_after if verify.delete_after else None
+
+    url = config.IPC_BASE + "/image/verify"
+    headers = {"Content-Type": "application/json"}
+
+    payload = json.dumps({"type": verify.ss_type.name, "name": verify.channel_name, "url": attachment.proxy_url})
+
+    res = await ctx.bot.session.post(url=url, headers=headers, data=payload)
+    res = await res.json()
+
+    if not res.get("ok"):
+        _error = res.get("error", "Internal Server Error")
+
+        with suppress(discord.HTTPException, discord.NotFound, AttributeError):
+            await message.add_reaction(emote.red + f"{idx}")
+
+            if VerifyImageError(_error) == VerifyImageError.Invalid:
+                await message.reply(
+                    f"This doesn't seem to be a valid screenshot.\n"
+                    "\nYou need a screenshot of the following account:\n"
+                    f"<{verify.channel_link}>",
+                    delete_after=delete_after,
+                )
+
+            elif VerifyImageError(_error) == VerifyImageError.NotSame:
+                await message.reply(
+                    f"This screenshot doesn't belong to **{verify.channel_name}**\n\n"
+                    "You need a screenshot of the following account:\n"
+                    f"<{verify.channel_link}>",
+                    delete_after=delete_after,
+                )
+
+            elif VerifyImageError(_error) == VerifyImageError.NoFollow:
+                await message.reply(
+                    f"You need to send a screenshot where you have actually followed/subscribed **{verify.channel_name}**",
+                    delete_after=delete_after,
+                )
+
+            else:
+                await message.reply(
+                    f"There was an error while processing your screenshot:\n" f"{_error}",
+                    delete_after=delete_after,
+                )
+    else:
+        ...
 
 
 async def add_role_and_reaction(ctx, role):
@@ -81,8 +175,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
-    await registration_channel.send(embed = registration_close_embed(scrim))
-
+    await registration_channel.send(embed=registration_close_embed(scrim))
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
@@ -92,6 +185,14 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
         with suppress(AttributeError, discord.Forbidden):
             slotmsg = await channel.send(embed=embed)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
+
+    if scrim.autodelete_extras:
+        await asyncio.sleep(7)
+        with suppress(discord.Forbidden, discord.HTTPException):
+            await ctx.channel.purge(
+                limit=100,
+                check=lambda x: all((not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user)),
+            )
 
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:

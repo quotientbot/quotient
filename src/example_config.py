@@ -5,17 +5,16 @@ from config import KSOFT_TOKEN
 
 TORTOISE = {}
 
-# for asyncpg connection
+
 POSTGRESQL = {}
 
-# loadable cogs
-EXTENSIONS = ()  # wiper says tuple better hai : )
+EXTENSIONS = ()  
 
 DISCORD_TOKEN = ""
 
-COLOR = 0x00FFB3  # default color
+COLOR = 0x00FFB3  
 
-FOOTER = "quo is lub!"  # default footer
+FOOTER = "quo is lub!"  
 
 PREFIX = "q"
 
@@ -27,9 +26,9 @@ WEBSITE = ""
 
 REPOSITORY = ""
 
-DEVS = ()  # mrko b lagne laga hai tuple better hai
+DEVS = ()  
 
 # LOGS
 SHARD_LOG = ""
-ERROR_LOG = ""  # should I make these accessible to all, I am not sure :C
+ERROR_LOG = ""  
 PUBLIC_LOG =""

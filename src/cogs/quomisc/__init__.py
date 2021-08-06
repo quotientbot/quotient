@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import guild_msg_stats, member_msg_stats, format_relative
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
-from models import Guild, Votes, Messages, User, Commands
+from models import Guild, Votes, Messages, User, Commands, Partner
 from discord.ext import commands
 from utils import ColorConverter, QuoUser
 from collections import Counter
@@ -88,7 +88,6 @@ class Quomisc(Cog, name="quomisc"):
         """Donate to Quotient"""
         await ctx.send(self.bot.config.DONATE_LINK, embed_perms=True)
 
-        
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
         invite_link = f"[Invite Me]({ctx.config.BOT_INVITE})"
@@ -311,62 +310,72 @@ class Quomisc(Cog, name="quomisc"):
     async def vote(self, ctx: Context):
         await ctx.send(f"You can vote for me here:\n<https://quotientbot.xyz/vote>")
 
-    @commands.group(aliases=("msg",), invoke_without_command=True)
-    async def message(self, ctx: Context, user: Optional[QuoUser]):
-        """
-        This returns a total number of messages a user has sent in a server or globally.
-        """
-        user = user or ctx.author
-        total = await Messages.filter(author_id=user.id).all().count() or 0
-        server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id).all().count() or 0
+    # @commands.group(aliases=("msg",), invoke_without_command=True)
+    # async def message(self, ctx: Context, user: Optional[QuoUser]):
+    #     """
+    #     This returns a total number of messages a user has sent in a server or globally.
+    #     """
+    #     user = user or ctx.author
+    #     total = await Messages.filter(author_id=user.id).all().count() or 0
+    #     server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id).all().count() or 0
 
-        embed = self.bot.embed(ctx, title="📧 Messages")
-        embed.description = (
-            f"**{user}** has sent `{plural(server):message|messages}` in this server. (`{total}` Globally)"
-        )
-        await ctx.send(embed=embed, embed_perms=True)
+    #     embed = self.bot.embed(ctx, title="📧 Messages")
+    #     embed.description = (
+    #         f"**{user}** has sent `{plural(server):message|messages}` in this server. (`{total}` Globally)"
+    #     )
+    #     await ctx.send(embed=embed, embed_perms=True)
 
-    @message.command(name="for")
-    async def msg_for(self, ctx: Context, user: Optional[QuoUser], days: Optional[int] = 7):
-        """
-        Returns no. of msges sent by a user withing some days.
-        """
-        user = user or ctx.author
-        sent_at = datetime.now(tz=IST) - timedelta(days=days)
+    # @message.command(name="for")
+    # async def msg_for(self, ctx: Context, user: Optional[QuoUser], days: Optional[int] = 7):
+    #     """
+    #     Returns no. of msges sent by a user withing some days.
+    #     """
+    #     user = user or ctx.author
+    #     sent_at = datetime.now(tz=IST) - timedelta(days=days)
 
-        total = await Messages.filter(author_id=user.id, sent_at__gte=sent_at).all().count() or 0
-        server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id, sent_at__gte=sent_at).all().count() or 0
+    #     total = await Messages.filter(author_id=user.id, sent_at__gte=sent_at).all().count() or 0
+    #     server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id, sent_at__gte=sent_at).all().count() or 0
 
-        embed = self.bot.embed(ctx, title=f"Messages for {plural(days):day|days}")
-        embed.description = f"**{user}** has sent `{plural(server):message|messages}` in this server in last `{plural(days):day|days}`. (`{total}` Globally)"
-        await ctx.send(embed=embed, embed_perms=True)
+    #     embed = self.bot.embed(ctx, title=f"Messages for {plural(days):day|days}")
+    #     embed.description = f"**{user}** has sent `{plural(server):message|messages}` in this server in last `{plural(days):day|days}`. (`{total}` Globally)"
+    #     await ctx.send(embed=embed, embed_perms=True)
 
-    @message.command(name="server")
-    async def msg_server(self, ctx: Context, days: Optional[int]):
-        """
-        Returns no. of messages sent in a server.
-        Days is an optional argument.
-        """
-        total = await Messages.filter(guild_id=ctx.guild.id).all().order_by("sent_at")
-        bots = sum(1 for i in (msg for msg in total if msg.bot))
+    # @message.command(name="server")
+    # async def msg_server(self, ctx: Context, days: Optional[int]):
+    #     """
+    #     Returns no. of messages sent in a server.
+    #     Days is an optional argument.
+    #     """
+    #     total = await Messages.filter(guild_id=ctx.guild.id).all().order_by("sent_at")
+    #     bots = sum(1 for i in (msg for msg in total if msg.bot))
 
-        embed = self.bot.embed(ctx, title="📧 Server Messages")
-        embed.add_field(name="Total", value=sum(1 for i in total))
-        embed.add_field(name="Bots", value=bots)
-        embed.set_footer(text=f"Counting Since {strtime(total[0].sent_at)}")
-        await ctx.send(embed=embed)
+    #     embed = self.bot.embed(ctx, title="📧 Server Messages")
+    #     embed.add_field(name="Total", value=sum(1 for i in total))
+    #     embed.add_field(name="Bots", value=bots)
+    #     embed.set_footer(text=f"Counting Since {strtime(total[0].sent_at)}")
+    #     await ctx.send(embed=embed)
 
-    @message.command(name="stats")
-    async def msg_stats(self, ctx: Context, user: Optional[QuoUser]):
-        """
-        Returns message stats of the server or a user.
-        """
-        return await ctx.error("This command is currently under development.")
-        if user:
-            await member_msg_stats(ctx, user)
-        else:
-            await guild_msg_stats(ctx)
+    # @message.command(name="stats")
+    # async def msg_stats(self, ctx: Context, user: Optional[QuoUser]):
+    #     """
+    #     Returns message stats of the server or a user.
+    #     """
+    #     return await ctx.error("This command is currently under development.")
+    #     if user:
+    #         await member_msg_stats(ctx, user)
+    #     else:
+    #         await guild_msg_stats(ctx)
 
+    # @commands.group(invoke_without_command=True)
+    # async def partnership(self, ctx: Context):
+    #     ...
+
+    # @partnership.command(name="apply")
+    # @commands.has_permissions(manage_guild=True)
+    # async def partner_apply(self, ctx: Context):
+    #     """
+    #     Apply for a Quotient partnership program.
+    #     """
 
 
 def setup(bot) -> None:

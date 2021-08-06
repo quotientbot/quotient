@@ -41,3 +41,7 @@ async def cache(bot):
     bot.ssverify_channels = set()
     async for record in records:
         bot.ssverify_channels.add(record.msg_channel_id)
+
+    bot.autopurge_channels = set()
+    async for record in models.AutoPurge.all():
+        bot.autopurge_channels.add(record.channel_id)

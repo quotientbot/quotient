@@ -24,6 +24,8 @@ __all__ = (
     "Web",
     "WebLogs",
     "Article",
+    "Partner",
+    "AutoPurge",
 )
 
 
@@ -487,14 +489,25 @@ class WebLogs(models.Model):
     executed_at = fields.DatetimeField(auto_now=True)
 
 
-class AutoPrune(models.Model):
+class AutoPurge(models.Model):
     class Meta:
-        table = "autoprune"
+        table = "autopurge"
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
     channel_id = fields.BigIntField()
-    start_at = fields.DatetimeField()
-    interval = fields.IntField()
-    amount = fields.IntField()
-    toggle = fields.BooleanField(default=True)
+    delete_after = fields.IntField(default=10)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+
+class Partner(models.Model):
+    class Meta:
+        table = "partners"
+
+    id = fields.IntField(pk=True)
+    guild_id = fields.BigIntField()
+    description = fields.CharField(max_length=200)
+    invite = fields.CharField(max_length=100)
+    created_at = fields.DatetimeField(auto_now=True)

@@ -121,6 +121,7 @@ perks = {
     "Auto-Event Interval": ["❌", "✅"],
     "Ptable Setup": ["2", "Unlimited"],
     "Edit Ptable Watermark": ["❌", "✅"],
+    "Autopurge":["1","Unlimited"]
 }
 
 
@@ -148,11 +149,11 @@ tips = (
     "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "We have an awesome support server:\ndiscord.gg/quotient",
     "I like your face : )",  # I really do
-    "You can enojoy 1 month Quotient Premium, by boosting my support server:\ndiscord.gg/quotient",
     "You can get a list of Quotient premium perks with `perks` command.",
     "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "You can look into my source code, use `source` command.",
+    "You can get a zipfile of all your server emojis with `zipemojis` command."
 )
 
 

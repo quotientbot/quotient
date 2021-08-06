@@ -85,7 +85,12 @@ class Premium(Cog):
             return await ctx.send(f"You are late bud! Someone already redeemed it.")
 
         guild = await Guild.get(guild_id=ctx.guild.id)
-        end_time = (guild.premium_end_time or datetime.now(tz=IST)) + timedelta(days=30)
+
+        if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
+            end_time = guild.premium_end_time + timedelta(days=30)
+
+        else:
+            end_time = datetime.now(tz=IST) + timedelta(days=30)
 
         user = await User.get(user_id=code.user_id)
         prompt = await ctx.prompt(
@@ -120,13 +125,23 @@ class Premium(Cog):
             )
 
         guild = await Guild.get(guild_id=ctx.guild.id)
-        end_time = (guild.premium_end_time or datetime.now(tz=IST)) + timedelta(days=30)
+
+        if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
+            end_time = guild.premium_end_time + timedelta(days=30)
+
+        else:
+            end_time = datetime.now(tz=IST) + timedelta(days=30)
 
         prompt = await ctx.prompt(
             f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
             title="Are you sure you want to continue?",
         )
         if prompt:
+
+            await user.refresh_from_db(("premiums",))
+            if not user.premiums:
+                return await ctx.send("don't be a dedh shana bruh")
+
             await Guild.filter(guild_id=ctx.guild.id).update(
                 is_premium=True, made_premium_by=ctx.author.id, premium_end_time=end_time
             )
@@ -188,7 +203,7 @@ class Premium(Cog):
         # table = table.get_string()
         embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
         # embed.description = f"```{table}```"
-        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/856601287566557184/unknown.png")
+        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/872541228762300516/unknown.png")
         await ctx.send(embed=embed)
 
 
