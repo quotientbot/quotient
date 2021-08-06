@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
-from cogs.quomisc.helper import guild_msg_stats, member_msg_stats
+from datetime import datetime, timedelta, timezone
+from cogs.quomisc.helper import guild_msg_stats, member_msg_stats, format_relative
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
 from models import Guild, Votes, Messages, User, Commands
@@ -12,7 +12,9 @@ from glob import glob
 import inspect, time
 from .dev import *
 import discord
+import pygit2
 import psutil
+import itertools
 import os
 
 
@@ -181,7 +183,33 @@ class Quomisc(Cog, name="quomisc"):
 
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
+    
+    def format_commit(self, commit): # source: R danny
+        short, _, _ = commit.message.partition('\n')
+        short_sha2 = commit.hex[0:6]
+        commit_tz = timezone(timedelta(minutes=commit.commit_time_offset))
+        commit_time = datetime.fromtimestamp(commit.commit_time).astimezone(commit_tz)
 
+        # [`hash`](url) message (offset)
+        offset = format_relative(commit_time.astimezone(timezone.utc))
+        return f'[`{short_sha2}`](https://github.com/quotientbot/Quotient-Bot/commit/{commit.hex}) {short} ({offset})'
+    
+    def get_last_commits(self, count=3):
+        repo = pygit2.Repository('.git')
+        commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
+        return '\n'.join(self.format_commit(c) for c in commits)
+    
+    @commands.command()
+    async def tits(self, ctx):
+        revision = self.get_last_commits()   
+        
+        embed = discord.Embed(description='Latest Changes:\n' + revision)
+        embed.title = 'Official Bot Server Invite'
+        embed.url = 'https://discord.gg/aBM5xz6'
+        embed.colour = discord.Colour.blurple()
+        
+        await ctx.send(embed=embed)
+        
     @commands.command()
     async def uptime(self, ctx):
         """Do you wonder when did we last restart Quotient?"""
