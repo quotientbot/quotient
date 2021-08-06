@@ -16,7 +16,6 @@ import discord
 class PtableIpc(IpcCog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.ptable_log = 873125181021900820
 
     @ipc.server.route()
     async def send_ptable(self, payload):
@@ -25,9 +24,6 @@ class PtableIpc(IpcCog):
         _bytes = base64.b64decode(data.get("image"))
         channel_id = int(data.get("channel_id"))
         size = data.get("size")
-        send = data.get("send")
-
-        channel_id = channel_id if send else self.ptable_log
 
         channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, channel_id)
         if not channel:
