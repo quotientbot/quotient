@@ -160,7 +160,7 @@ class Quomisc(Cog, name="quomisc"):
         return '\n'.join(self.format_commit(c) for c in commits)
     
     @commands.command()
-    async def tits(self, ctx):
+    async def stats(self, ctx):
         """Statistics of Quotient."""
         version = pkg_resources.get_distribution('discord.py').version
         revision = self.get_last_commits()
