@@ -1,5 +1,6 @@
 from difflib import get_close_matches
 import discord, io
+import datetime
 
 from core.Context import Context
 
@@ -82,6 +83,17 @@ async def member_msg_stats(ctx: Context, member):
 
 async def guild_msg_stats(ctx):
     pass
+
+def format_dt(dt, style=None):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        
+    if style is None:
+        return f'<t:{int(dt.timestamp())}>'
+    return f'<t:{int(dt.timestamp())}:{style}>'
+
+def format_relative(dt):
+    return format_dt(dt, 'R')
 
 
 # async def find_query(ctx, query):
