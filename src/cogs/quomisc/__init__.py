@@ -1,5 +1,5 @@
-from datetime import datetime, timedelta
-from cogs.quomisc.helper import guild_msg_stats, member_msg_stats
+from datetime import datetime, timedelta, timezone
+from cogs.quomisc.helper import guild_msg_stats, member_msg_stats, format_relative
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
 from models import Guild, Votes, Messages, User, Commands, Partner
@@ -12,7 +12,10 @@ from glob import glob
 import inspect, time
 from .dev import *
 import discord
+import pygit2
+import pkg_resources
 import psutil
+import itertools
 import os
 
 
@@ -137,50 +140,67 @@ class Quomisc(Cog, name="quomisc"):
             channel = await self.make_private_channel(ctx)
             await ctx.success(f"Created {channel.mention}")
 
-    @commands.command()
-    async def stats(self, ctx):
-        """Quotient's statistics"""
-        total_uses = await Commands.all().count()
-
-        user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
-
-        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
-
-        memory = psutil.virtual_memory().total >> 20
-        mem_usage = psutil.virtual_memory().used >> 20
-        cpu = str(psutil.cpu_percent())
-        members = sum(g.member_count for g in self.bot.guilds)
-
-        chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
-
-        embed = self.bot.embed(
-            ctx,
-            title="Official Bot Server Invite",
-            url=ctx.config.SERVER_LINK,
-            description=f"Quotient has been up for `{self.get_bot_uptime(brief=False)}`."
-            f"\nTotal of `{total_uses} commands` have been invoked and `{server_invokes} commands` were invoked in this server,"
-            f" out of which `{user_invokes} commands` were invoked by you.\nBot can see `{len(self.bot.guilds)} guilds`, "
-            f"`{members} users` and `{len(self.bot.users)} users` are cached.",
-        )
-
-        embed.add_field(name="System", value=f"**RAM**: {mem_usage}/{memory} MB\n**CPU:** {cpu}% used")
-        embed.add_field(
-            name="Channels",
-            value="{} `{} channels`\n{} `{} channels`".format(
-                emote.TextChannel,
-                chnl_count[discord.ChannelType.text],
-                emote.VoiceChannel,
-                chnl_count[discord.ChannelType.voice],
-            ),
-        )
-        embed.set_footer(
-            text=f"Websocket latency: {round(self.bot.latency * 1000, 2)}ms | IPM: {round(get_ipm(ctx.bot), 2)}"
-        )
-        await ctx.send(embed=embed)
-
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
+    
+    def format_commit(self, commit): # source: R danny
+        short, _, _ = commit.message.partition('\n')
+        short_sha2 = commit.hex[0:6]
+        commit_tz = timezone(timedelta(minutes=commit.commit_time_offset))
+        commit_time = datetime.fromtimestamp(commit.commit_time).astimezone(commit_tz)
 
+        # [`hash`](url) message (offset)
+        offset = format_relative(commit_time.astimezone(timezone.utc))
+        return f'[`{short_sha2}`](https://github.com/quotientbot/Quotient-Bot/commit/{commit.hex}) {short} ({offset})'
+    
+    def get_last_commits(self, count=3):
+        repo = pygit2.Repository('.git')
+        commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
+        return '\n'.join(self.format_commit(c) for c in commits)
+    
+    @commands.command()
+    async def stats(self, ctx):
+        """Statistics of Quotient."""
+        version = pkg_resources.get_distribution('discord.py').version
+        revision = self.get_last_commits()
+        
+        total_memory = psutil.virtual_memory().total >> 20
+        used_memory = psutil.virtual_memory().used >> 20
+        cpu_used = str(psutil.cpu_percent())
+        
+        total_members = sum(g.member_count for g in self.bot.guilds)
+        cached_members = len(self.bot.users)
+        
+        total_command_uses = await Commands.all().count()
+        user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
+        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
+        
+        chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
+        
+        owner = await self.bot.fetch_user(548163406537162782)         
+        
+        embed = discord.Embed(description='Latest Changes:\n' + revision)
+        embed.title = 'Quotient Official Support Server'
+        embed.url = ctx.config.SERVER_LINK
+        embed.colour = discord.Colour.blurple()        
+        embed.set_author(name=str(owner), icon_url=owner.avatar_url)
+        
+        if len(self.bot.guilds) % 1000 == 000 or len(self.bot.guilds) % 100 < 10:
+            guild_value=f"{len(self.bot.guilds)} 🎉"
+        else:
+            guild_value=len(self.bot.guilds)
+        
+        embed.add_field(name='Guilds', value=guild_value)
+        embed.add_field(name='Uptime', value=len(self.get_bot_uptime(brief=False)))
+        embed.add_field(name='Members', value=f'{total_members} total\n{cached_members} cached')
+        embed.add_field(name='Channels', value=f'{chnl_count[discord.ChannelType.text] + chnl_count[discord.ChannelType.voice]} total\n{chnl_count[discord.ChannelType.text]} text\n{chnl_count[discord.ChannelType.voice]} voice')
+        embed.add_field(name='Total Commands Used', value=f"{total_command_uses} globally\n{server_invokes} in this server\n{user_invokes} by you.")
+        embed.add_field(name='Stats', value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nIPM: {round(get_ipm(ctx.bot), 2)}")        
+        embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
+        embed.set_footer(text=f'Made with discord.py v{version}', icon_url='http://i.imgur.com/5BFecvA.png')
+        
+        await ctx.send(embed=embed)
+        
     @commands.command()
     async def uptime(self, ctx):
         """Do you wonder when did we last restart Quotient?"""
