@@ -140,47 +140,6 @@ class Quomisc(Cog, name="quomisc"):
             channel = await self.make_private_channel(ctx)
             await ctx.success(f"Created {channel.mention}")
 
-    @commands.command()
-    async def stats(self, ctx):
-        """Quotient's statistics"""
-        total_uses = await Commands.all().count()
-
-        user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
-
-        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
-
-        memory = psutil.virtual_memory().total >> 20
-        mem_usage = psutil.virtual_memory().used >> 20
-        cpu = str(psutil.cpu_percent())
-        members = sum(g.member_count for g in self.bot.guilds)
-
-        chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
-
-        embed = self.bot.embed(
-            ctx,
-            title="Official Bot Server Invite",
-            url=ctx.config.SERVER_LINK,
-            description=f"Quotient has been up for `{self.get_bot_uptime(brief=False)}`."
-            f"\nTotal of `{total_uses} commands` have been invoked and `{server_invokes} commands` were invoked in this server,"
-            f" out of which `{user_invokes} commands` were invoked by you.\nBot can see `{len(self.bot.guilds)} guilds`, "
-            f"`{members} users` and `{len(self.bot.users)} users` are cached.",
-        )
-
-        embed.add_field(name="System", value=f"**RAM**: {mem_usage}/{memory} MB\n**CPU:** {cpu}% used")
-        embed.add_field(
-            name="Channels",
-            value="{} `{} channels`\n{} `{} channels`".format(
-                emote.TextChannel,
-                chnl_count[discord.ChannelType.text],
-                emote.VoiceChannel,
-                chnl_count[discord.ChannelType.voice],
-            ),
-        )
-        embed.set_footer(
-            text=f"Websocket latency: {round(self.bot.latency * 1000, 2)}ms | IPM: {round(get_ipm(ctx.bot), 2)}"
-        )
-        await ctx.send(embed=embed)
-
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
     
@@ -201,12 +160,33 @@ class Quomisc(Cog, name="quomisc"):
     
     @commands.command()
     async def tits(self, ctx):
-        revision = self.get_last_commits()   
+        """Statistics of Quotient."""
+        revision = self.get_last_commits()
         
+        total_memory = psutil.virtual_memory().total >> 20
+        used_memory = psutil.virtual_memory().used >> 20
+        cpu_used = str(psutil.cpu_percent())
+        
+        total_members = sum(g.member_count for g in self.bot.guilds)
+        cached_members = len(self.bot.users)
+        
+        total_command_uses = await Commands.all().count()
+        user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
+        
+        chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
+        
+        owner = await self.bot.fetch_user(548163406537162782)
+                
+
+        server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
         embed = discord.Embed(description='Latest Changes:\n' + revision)
         embed.title = 'Official Bot Server Invite'
         embed.url = 'https://discord.gg/aBM5xz6'
         embed.colour = discord.Colour.blurple()
+        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
+        {round(self.bot.latency * 1000, 2)}ms | IPM: {round(get_ipm(ctx.bot), 2)}"
+        
+        embed.add_field(name="System", value=f"**RAM**: {mem_usage}/{memory} MB\n**CPU:** {cpu}% used")
         
         await ctx.send(embed=embed)
         
