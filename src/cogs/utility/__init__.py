@@ -194,7 +194,6 @@ class Utility(Cog, name="utility"):
         Get a zip file containing all the emojis in the current server.
         `Note:` This can take some time and you need to be patient.
         """
-
         if len(ctx.guild.emojis) == 0:
             return await ctx.error(f"Breh, Your server doesn't have any custom emojis.")
 
@@ -308,7 +307,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="claim")
     async def claim_tag(self, ctx: Context, *, tag: TagConverter):
         """Claims a tag if the original owner left the server."""
-
         member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
 
         if member is not None:
@@ -320,7 +318,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="create")
     async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
-
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
 
@@ -354,7 +351,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="transfer")
     async def transfer_tag(self, ctx: Context, member: QuoMember, *, tag: TagConverter):
         """Transfer the ownership of a tag."""
-
         if tag.owner_id != ctx.author.id:
             return await ctx.error(f"This tag doesn't belong to you.")
 
@@ -387,7 +383,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="purge")
     async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
-
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
         if not count:
             return await ctx.error(f"{member} doesn't own any tag.")

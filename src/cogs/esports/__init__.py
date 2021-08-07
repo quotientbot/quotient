@@ -108,7 +108,6 @@ class ScrimManager(Cog, name="Esports"):
         Setup Scrims Manager for a channel.
         Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
         """
-
         count = await Scrim.filter(guild_id=ctx.guild.id).count()
 
         guild = await Guild.get(guild_id=ctx.guild.id)
@@ -338,7 +337,6 @@ class ScrimManager(Cog, name="Esports"):
         """
         Get config of all the scrims you have setup.
         """
-
         allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
 
         if not allscrims:
@@ -442,7 +440,6 @@ class ScrimManager(Cog, name="Esports"):
         """
         Send slotlist of a scrim.
         """
-
         if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
@@ -971,7 +968,6 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney: TourneyConverter):
         """Edit a tournament's config."""
-
         menu = TourneyEditor(tourney=tourney)
         await menu.start(ctx)
 
@@ -1482,7 +1478,6 @@ class ScrimManager(Cog, name="Esports"):
     @commands.max_concurrency(1, BucketType.guild)
     async def points_leaderboard(self, ctx: Context, points_id: PointsConverter, days: typing.Optional[int] = 7):
         """Get leaderboard a ptable for desired no. of days"""
-
         date = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
         records = await points_id.data.filter(created_at__gte=date).all()
         if not records:

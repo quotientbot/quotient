@@ -124,7 +124,6 @@ class Mod(Cog):
     @commands.has_permissions(manage_messages=True)
     async def _reactions(self, ctx, search=100):
         """Removes all reactions from messages that have them."""
-
         if search > 2000:
             return await ctx.send(f"Too many messages to search for ({search}/2000)")
 
@@ -162,7 +161,6 @@ class Mod(Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permission.
         """
-
         if reason is None:
             reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
@@ -180,7 +178,6 @@ class Mod(Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permissions.
         """
-
         if reason is None:
             reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
