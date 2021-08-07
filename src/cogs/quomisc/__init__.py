@@ -237,7 +237,7 @@ class Quomisc(Cog, name="quomisc"):
         check = await Votes.get_or_none(user_id=ctx.author.id)
         if check:
             await Votes.filter(user_id=ctx.author.id).update(reminder=not (check.reminder))
-            await ctx.success(f"Turned vote-reminder {'ON' if not(check.reminder) else 'OFF'}!")
+            await ctx.success(f"Turned vote-reminder {'ON' if not check.reminder else 'OFF'}!")
         else:
             await Votes.create(user_id=ctx.author.id, reminder=True)
             await ctx.success(f"Turned vote-reminder ON!")
