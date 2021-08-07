@@ -54,8 +54,7 @@ async def is_valid_name(ctx: Context, name: str) -> bool:
 
     if tag:
         return False
-    else:
-        return True
+    return True
 
 
 async def increment_usage(ctx: Context, name) -> None:

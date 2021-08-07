@@ -73,8 +73,7 @@ class ScrimManager(Cog, name="Esports"):
             ]
             if not slot:  # means their registration was denied
                 return
-            else:
-                slot = slot[0]
+            slot = slot[0]
 
             self.bot.dispatch("scrim_registration_delete", scrim, message, slot)
 
@@ -319,15 +318,13 @@ class ScrimManager(Cog, name="Esports"):
         """
         if scrim.opened_at is None:
             return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
+        prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
+        if prompt:
+            await scrim_end_process(ctx, scrim)
+            await ctx.message.add_reaction(emote.check)
 
         else:
-            prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
-            if prompt:
-                await scrim_end_process(ctx, scrim)
-                await ctx.message.add_reaction(emote.check)
-
-            else:
-                await ctx.success(f"Ok!")
+            await ctx.success("Ok!")
 
     @smanager.command(name="config")
     @checks.can_use_sm()
@@ -443,21 +440,19 @@ class ScrimManager(Cog, name="Esports"):
         """
         if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
+        embed, schannel = await scrim.create_slotlist()
+        channel = channel or schannel
 
-        else:
-            embed, schannel = await scrim.create_slotlist()
-            channel = channel or schannel
-
-            await ctx.send(embed=embed)
-            prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
-            if prompt:
-                if channel is not None and channel.permissions_for(ctx.me).send_messages:
-                    await channel.send(embed=embed)
-                    await ctx.success(f"Slotlist sent successfully!")
-                else:
-                    await ctx.error(f"I can't send messages in {channel}")
+        await ctx.send(embed=embed)
+        prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
+        if prompt:
+            if channel is not None and channel.permissions_for(ctx.me).send_messages:
+                await channel.send(embed=embed)
+                await ctx.success("Slotlist sent successfully!")
             else:
-                await ctx.success(f"Ok!")
+                await ctx.error(f"I can't send messages in {channel}")
+        else:
+            await ctx.success("Ok!")
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()

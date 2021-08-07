@@ -47,7 +47,7 @@ class CmdEvents(Cog):
             if not record:
                 return
 
-            elif not member.bot and record.humans:
+            if not member.bot and record.humans:
                 for role in record.humans:
                     try:
                         await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
