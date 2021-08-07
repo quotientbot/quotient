@@ -72,7 +72,7 @@ class Tourney(models.Model):
 
     @property
     def closed(self):
-        return True if self.closed_at else False
+        return bool(self.closed_at)
 
     @property
     def role(self):
