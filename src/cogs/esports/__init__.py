@@ -531,7 +531,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
             )
 
-        if time != None:
+        if time is not None:
 
             expire_time = time.dt
         else:
@@ -540,7 +540,7 @@ class ScrimManager(Cog, name="Esports"):
         ban = await BannedTeam.create(user_id=user.id, expires=expire_time)
         await scrim.banned_teams.add(ban)
 
-        if time != None:
+        if time is not None:
             await self.reminders.create_timer(
                 time.dt, "scrim_unban", scrim_id=scrim.id, user_id=user.id, banned_by=ctx.author.id
             )
@@ -979,7 +979,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_start(self, ctx, tourney: TourneyConverter):
         """Start a tournament."""
-        if tourney.started_at != None:
+        if tourney.started_at is not None:
             raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already open.")
 
         channel = tourney.registration_channel
@@ -1009,7 +1009,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
     async def tourney_stop(self, ctx, tourney: TourneyConverter):
         """Stop / Pause a tournament."""
-        if tourney.closed_at != None:
+        if tourney.closed_at is not None:
             raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already closed.")
 
         channel = tourney.registration_channel

@@ -910,7 +910,7 @@ class SlotEditor(menus.Menu):
         if not channel:
             await self.ctx.error("I couldn't find slotlist channel.")
 
-        elif self.scrim.slotlist_message_id != None:
+        elif self.scrim.slotlist_message_id is not None:
             slotmsg = channel.get_partial_message(self.scrim.slotlist_message_id)
 
             if slotmsg:
