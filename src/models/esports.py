@@ -25,7 +25,7 @@ __all__ = (
     "PointsTable",
     "SSVerify",
     "SSData",
-    "SlotManager"
+    "SlotManager",
 )
 
 
@@ -496,4 +496,3 @@ class SlotManager(models.Model):
     @property
     def post_channel(self):
         return self.bot.get_channel(self.post_channel_id)
-        

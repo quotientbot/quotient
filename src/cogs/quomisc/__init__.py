@@ -157,8 +157,8 @@ class Quomisc(Cog, name="quomisc"):
         commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
         return "\n".join(self.format_commit(c) for c in commits)
 
-    @commands.command(aliases=('stats',))
-    async def about(self, ctx:Context):
+    @commands.command(aliases=("stats",))
+    async def about(self, ctx: Context):
         """Statistics of Quotient."""
         version = pkg_resources.get_distribution("discord.py").version
         revision = self.get_last_commits()

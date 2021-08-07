@@ -79,16 +79,16 @@ class Funevents(Cog):
         #     if data[0]["content"] is None:
         #         return
 
-            # if not len(data[0]["content"]) > 2000:
-            #     poem = data[0]["content"]
-            # else:
-            #     post = await self.bot.binclient.post(data[0]["content"])
-            #     poem = post.url
+        # if not len(data[0]["content"]) > 2000:
+        #     poem = data[0]["content"]
+        # else:
+        #     post = await self.bot.binclient.post(data[0]["content"])
+        #     poem = post.url
 
-            # embed = discord.Embed(color=self.bot.color, title=f"Title: {data[0]['title']}", description=poem)
-            # embed.set_author(name=f"Author: {data[0]['poet']['name']}", url=data[0]["poet"]["url"])
+        # embed = discord.Embed(color=self.bot.color, title=f"Title: {data[0]['title']}", description=poem)
+        # embed.set_author(name=f"Author: {data[0]['poet']['name']}", url=data[0]["poet"]["url"])
 
-            # embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+        # embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
 
         else:
             return print("Unhandled Type...", _type)

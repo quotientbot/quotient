@@ -8,13 +8,13 @@ TORTOISE = {}
 
 POSTGRESQL = {}
 
-EXTENSIONS = ()  
+EXTENSIONS = ()
 
 DISCORD_TOKEN = ""
 
-COLOR = 0x00FFB3  
+COLOR = 0x00FFB3
 
-FOOTER = "quo is lub!"  
+FOOTER = "quo is lub!"
 
 PREFIX = "q"
 
@@ -26,9 +26,9 @@ WEBSITE = ""
 
 REPOSITORY = ""
 
-DEVS = ()  
+DEVS = ()
 
 # LOGS
 SHARD_LOG = ""
-ERROR_LOG = ""  
-PUBLIC_LOG =""
+ERROR_LOG = ""
+PUBLIC_LOG = ""

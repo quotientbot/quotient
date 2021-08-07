@@ -1706,7 +1706,6 @@ class ScrimManager(Cog, name="Esports"):
     # @slotmanager.command(name="fix")
     # async def _slotmanager_fix(self, ctx:Context):
     #     """Fix slot manager"""
-        
 
 
 def setup(bot):

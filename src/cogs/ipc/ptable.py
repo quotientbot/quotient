@@ -28,7 +28,7 @@ class PtableIpc(IpcCog):
         channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, channel_id)
         if not channel:
             return self.deny_request("Quotient couldn't find the points table channel.")
-        
+
         if not channel.permissions_for(channel.guild.me).embed_links:
             return self.deny_request(f"Quotient needs embed_links permission in {str(channel)} to send points table.")
 
