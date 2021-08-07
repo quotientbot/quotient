@@ -11,7 +11,7 @@ from core import Cog, Context
 from discord.ext import commands
 from models import Tag, AutoPurge
 from ast import literal_eval as leval
-from models import Autorole, ArrayAppend, ArrayRemove, Tag
+from models import Autorole, ArrayAppend, ArrayRemove
 
 from utils import (
     checks,
