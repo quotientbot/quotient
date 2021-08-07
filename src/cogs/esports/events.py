@@ -385,7 +385,7 @@ class ScrimEvents(Cog):
 
             tags = set(re.findall(r"\b\d{18}\b|\b@\w+", message.content, re.IGNORECASE))
 
-            if not len(tags):
+            if not tags:
                 await message.add_reaction("❌")
                 return await ctx.reply(
                     "I couldn't find any discord tag in this form.\nYou can write your teammate's id , @their_name or @their_full_discord_tag",

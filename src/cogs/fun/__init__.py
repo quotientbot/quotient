@@ -236,7 +236,7 @@ class Fun(Cog):
     async def autoconfig(self, ctx: Context):
         """Get config for autocommands."""
         records = await Autoevent.filter(guild_id=ctx.guild.id)
-        if not len(records):
+        if not records:
             return await ctx.error(
                 f"You don't have any autoevent setup.\n\nSetup autoevents: `{ctx.prefix}automeme #{ctx.channel.name}`"
             )

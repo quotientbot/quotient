@@ -41,7 +41,7 @@ class TagConverter(commands.Converter, Tag):
         if not tag:
             search = await Tag.filter(guild_id=ctx.guild.id, name__icontains=argument).limit(3)
             text = f"**{argument}** is not a valid Tag Name or ID."
-            if len(search):
+            if search:
                 tags = "\n".join((f"- {tag.name}" for tag in search))
                 text += f"\n\nMaybe you were looking for:\n{tags}"
             raise commands.BadArgument(text)
@@ -75,7 +75,7 @@ async def guild_tag_stats(ctx: Context):
 
     records = await Tag.filter(guild_id=ctx.guild.id).all().order_by("-usage").only("id", "name", "usage").limit(3)
 
-    if not len(records):
+    if not records:
         e.description = "No tag statistics here."
 
     else:
@@ -118,7 +118,7 @@ async def guild_tag_stats(ctx: Context):
                 """
     # I don't think they made group_by clause in tortoise
     records = await ctx.db.fetch(query, ctx.guild.id)
-    if not len(records):
+    if not records:
         text = "No statistics to show here."
     else:
         value = "\n".join(f"{emoji}: <@{owner_id}> ({count} tags)" for (emoji, (count, owner_id)) in emojize(records))

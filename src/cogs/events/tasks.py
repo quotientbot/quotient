@@ -70,12 +70,12 @@ class QuoTasks(Cog):
         This task fetches if someone purchased premium or voted for Quotient
         """
         records = await models.Votes.filter(is_voter=True, notified=False)
-        if len(records):
+        if records:
             for record in records:
                 self.bot.dispatch("vote", record)
 
         records = await models.Premium.filter(is_done=True, is_notified=False)
-        if len(records):
+        if records:
             for record in records:
                 self.bot.dispatch("premium_purchase", record)
 
@@ -86,11 +86,11 @@ class QuoTasks(Cog):
         users = await models.User.filter(is_premium=True, premium_expire_time__lte=datetime.now(tz=IST))
         guilds = await models.Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST))
 
-        if len(users):
+        if users:
             for user in users:
                 self.bot.dispatch("user_premium_expire", user)
 
-        if len(guilds):
+        if guilds:
             for guild in guilds:
                 self.bot.dispatch("guild_premium_expire", guild)
 
