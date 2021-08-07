@@ -195,7 +195,7 @@ async def lb_files(points: PointsInfo, records):
 
     ds = [literal_eval(record.points_table) for record in records]
 
-    _dict = dict()
+    _dict = {}
     for dict_item in ds:
         for key, value in dict_item.items():
             if key in _dict:
