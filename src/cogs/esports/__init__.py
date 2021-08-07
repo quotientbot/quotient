@@ -71,7 +71,7 @@ class ScrimManager(Cog, name="Esports"):
                 for slot in await scrim.assigned_slots.all()
                 if slot.user_id == message.author.id and slot.message_id == message.id
             ]
-            if not len(slot):  # means their registration was denied
+            if not slot:  # means their registration was denied
                 return
             else:
                 slot = slot[0]
@@ -341,7 +341,7 @@ class ScrimManager(Cog, name="Esports"):
 
         allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
 
-        if not len(allscrims):
+        if not allscrims:
             return await ctx.send(
                 f"You do not have any scrims setup on this server.\n\nKindly use `{ctx.prefix}smanager setup` to setup one."
             )
@@ -629,7 +629,7 @@ class ScrimManager(Cog, name="Esports"):
         banned = [x.user_id for x in await scrim.banned_teams]
         text += f"\n\n> Reserved Slots: `{sum(1 for i in (x.user_id for x in await scrim.reserved_slots))}`"
         text += f"\n> Banned Users: `{len(banned)}` "
-        if len(banned):
+        if banned:
             text += ", ".join((getattr(x, "mention", "Not Found!") for x in map(self.bot.get_user, banned)))
 
         embed = self.bot.embed(ctx, title="Scrims Info: ({0})".format(scrim.id))
@@ -828,7 +828,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_config(self, ctx):
         """Get config of all running tourneys"""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
-        if not len(records):
+        if not records:
             raise TourneyError(
                 f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
             )
@@ -877,7 +877,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_group(self, ctx, tourney: TourneyConverter, group_size: int = 20):
         """Get groups of the tournament."""
         records = await tourney.assigned_slots.all().order_by("id")
-        if not len(records):
+        if not records:
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
         m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
@@ -903,7 +903,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_data(self, ctx, tourney: TourneyConverter):
         """Get all the data that Quotient collected for a tourney."""
         records = await tourney.assigned_slots.all().order_by("id")
-        if not len(records):
+        if not records:
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
         m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
@@ -914,7 +914,7 @@ class ScrimManager(Cog, name="Esports"):
         for idx, record in enumerate(records, start=1):
             leader = str(ctx.guild.get_member(record.leader_id))
 
-            if not len(record.members):
+            if not record.members:
                 teammates = "No Teammates!"
                 all_here = "No team :("
 
@@ -935,7 +935,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_list(self, ctx):
         """A list of all running tournaments."""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
-        if not len(records):
+        if not records:
             raise TourneyError(
                 f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
             )
@@ -1199,7 +1199,7 @@ class ScrimManager(Cog, name="Esports"):
     async def config_eztag(self, ctx: Context):
         """Get a list of all your easytag channels."""
         records = await EasyTag.filter(guild_id=ctx.guild.id)
-        if not len(records):
+        if not records:
             return await ctx.error(
                 f"You haven't set any easytag channel yet.\n\nUse `{ctx.prefix}eztag set #{ctx.channel}`"
             )
@@ -1290,7 +1290,7 @@ class ScrimManager(Cog, name="Esports"):
         Get tagcheck config.
         """
         records = await TagCheck.filter(guild_id=ctx.guild.id)
-        if not len(records):
+        if not records:
             return await ctx.error(
                 f"You haven't set any tagcheck channel yet.\n\nUse `{ctx.prefix}tagcheck set #{ctx.channel}`"
             )
@@ -1451,7 +1451,7 @@ class ScrimManager(Cog, name="Esports"):
     async def points_config(self, ctx: Context):
         """Get all the ptables you have created so far"""
         records = await PointsInfo.filter(guild_id=ctx.guild.id).all()
-        if not len(records):
+        if not records:
             raise PointsError(
                 f"You haven't create any points table setup yet.\n\nKindly use `{ctx.prefix}pt setup` to create one."
             )
@@ -1491,7 +1491,7 @@ class ScrimManager(Cog, name="Esports"):
             )
 
         files = await lb_files(points_id, records)
-        if len(files):
+        if files:
             for file in files:
                 embed = self.bot.embed(ctx, color=0x2F3136)
                 embed.set_image(url="attachment://leaderboard.png")
@@ -1597,7 +1597,7 @@ class ScrimManager(Cog, name="Esports"):
             raise PointsError(f"I couldn't find any points table created on **{date.strftime('%d/%b/%Y')}**")
 
         files = await ptable_files(points_id, data)
-        if len(files):
+        if files:
             for file in files:
                 embed = self.bot.embed(ctx)
                 embed.set_image(url="attachment://points_table.png")
@@ -1635,7 +1635,7 @@ class ScrimManager(Cog, name="Esports"):
             )
 
         files = await ptable_files(points_id, data)
-        if not len(files):
+        if not files:
             raise PointsError(
                 f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
             )

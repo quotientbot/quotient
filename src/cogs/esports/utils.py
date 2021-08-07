@@ -179,7 +179,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
-    if scrim.autoslotlist and len(await scrim.teams_registered):
+    if scrim.autoslotlist and await scrim.teams_registered:
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
         with suppress(AttributeError, discord.Forbidden):

@@ -93,7 +93,7 @@ class Funevents(Cog):
         else:
             return print("Unhandled Type...", _type)
 
-        if len(records):
+        if records:
             for record in records:
                 webhook = Webhook.from_url(record.webhook, adapter=AsyncWebhookAdapter(self.bot.session))
                 self.bot.loop.create_task(deliver_webhook(webhook, embed, _type, self.bot.user.avatar_url))
@@ -102,7 +102,7 @@ class Funevents(Cog):
     async def autoevent_dispatcher(self):
         current_time = datetime.now(tz=IST)
         records = await Autoevent.all().filter(webhook__isnull=False, send_time__lte=current_time, toggle=True)
-        if not len(records):
+        if not records:
             return
 
         for key, group in itertools.groupby(records, key=lambda rec: rec.type):

@@ -47,7 +47,7 @@ class CmdEvents(Cog):
             if not record:
                 return
 
-            elif not member.bot and len(record.humans):
+            elif not member.bot and record.humans:
                 for role in record.humans:
                     try:
                         await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")
@@ -55,7 +55,7 @@ class CmdEvents(Cog):
                         await Autorole.filter(guild_id=guild.id).update(humans=ArrayRemove("humans", role))
                         continue
 
-            elif member.bot and len(record.bots):
+            elif member.bot and record.bots:
                 for role in record.bots:
                     try:
                         await member.add_roles(discord.Object(id=role), reason="Quotient's autorole")

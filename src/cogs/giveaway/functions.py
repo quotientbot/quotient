@@ -161,7 +161,7 @@ async def end_giveaway(giveaway: Giveaway):
     )
     embed.set_footer(text=f"{plural(giveaway.winners):winner|winners} | Ended At")
 
-    if not len(giveaway.participants):
+    if not giveaway.participants:
         embed.color = discord.Color.red()
         embed.description = "I couldn't pick a winner because there is no valid participant."
 
@@ -172,7 +172,7 @@ async def end_giveaway(giveaway: Giveaway):
     with suppress(discord.Forbidden, discord.NotFound, discord.HTTPException):
         await giveaway.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
 
-        if len(giveaway.participants):
+        if giveaway.participants:
             embed = discord.Embed(description=f"You won [**{giveaway.prize}**]({giveaway.jump_url})!", color=config.COLOR)
             await giveaway.message.reply(
                 content=f"**Congratulations** {', '.join((winner.mention for winner in winners))}!",

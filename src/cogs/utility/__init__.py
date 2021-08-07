@@ -131,8 +131,8 @@ class Utility(Cog, name="utility"):
                 f"You have not set any autorole yet.\n\nDo it like: `{ctx.prefix}autorole humans @role`"
             )
 
-        humans = ", ".join(record.human_roles) if len(list(record.human_roles)) else "Not Set!"
-        bots = ", ".join(record.bot_roles) if len(list(record.bot_roles)) else "Not Set!"
+        humans = ", ".join(record.human_roles) if list(record.human_roles) else "Not Set!"
+        bots = ", ".join(record.bot_roles) if list(record.bot_roles) else "Not Set!"
 
         embed = self.bot.embed(ctx, title="Autorole Config")
         embed.add_field(name="Humans", value=humans, inline=False)
@@ -158,7 +158,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
 
         embed = discord.Embed(color=color, description=text)
-        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+        if ctx.message.attachments and "image" in ctx.message.attachments[0].content_type:
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         prompt = await ctx.prompt(
@@ -181,7 +181,7 @@ class Utility(Cog, name="utility"):
         Tip: You can send hyperlinks too. Example: `[anytext](any link)`
         """
         embed = self.bot.embed(ctx, description=text)
-        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+        if ctx.message.attachments and "image" in ctx.message.attachments[0].content_type:
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         await ctx.message.delete()
@@ -271,12 +271,12 @@ class Utility(Cog, name="utility"):
         if not member:
             tags = await Tag.filter(guild_id=ctx.guild.id)
 
-            if not len(tags):
+            if not tags:
                 return await ctx.error("This server doesn't have any tags.")
 
         else:
             tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=member.id)
-            if not len(tags):
+            if not tags:
                 return await ctx.error(f"{member} doesn't own any tag.")
 
         tag_list = []
@@ -324,7 +324,7 @@ class Utility(Cog, name="utility"):
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
 
-        if len(ctx.message.attachments):
+        if ctx.message.attachments:
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         if len(content) > 1990:
@@ -411,7 +411,7 @@ class Utility(Cog, name="utility"):
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot edit tag.")
 
-        if len(ctx.message.attachments):
+        if ctx.message.attachments:
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         await Tag.filter(id=tag.id).update(content=content)
@@ -443,7 +443,7 @@ class Utility(Cog, name="utility"):
         """Search in all your tags."""
         tags = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
-        if not len(tags):
+        if not tags:
             return await ctx.error("No tags found.")
 
         tag_list = []
@@ -473,7 +473,7 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_delete(self, ctx: Context, *, category: QuoCategory):
         """Delete a category and all the channels under it."""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -505,7 +505,7 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_hide(self, ctx: Context, *, category: QuoCategory):
         """Hide a category and all its channels"""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -534,7 +534,7 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_unhide(self, ctx: Context, *, category: QuoCategory):
         """Unhide a hidden category and all its channels."""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -566,7 +566,7 @@ class Utility(Cog, name="utility"):
         Delete a category completely and create a new one
         This will delete all the channels under the category and will make a new one with same perms and channels.
         """
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(

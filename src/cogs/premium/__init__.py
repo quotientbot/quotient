@@ -23,7 +23,7 @@ class Premium(Cog):
             code = "QR_" + str(secrets.token_urlsafe(5).replace("_", "").replace("-", ""))
 
             check = await Redeem.filter(code=code)
-            if not len(check):
+            if not check:
                 break
 
         return code

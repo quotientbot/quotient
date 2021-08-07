@@ -130,7 +130,7 @@ class Mod(Cog):
 
         total_reactions = 0
         async for message in ctx.history(limit=search, before=ctx.message):
-            if len(message.reactions):
+            if message.reactions:
                 total_reactions += sum(r.count for r in message.reactions)
                 await message.clear_reactions()
 
@@ -451,7 +451,7 @@ class Mod(Cog):
         mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
         # len list would use additional memory so : )
 
-        if not (len(channels)):
+        if not (channels):
             return await ctx.error(f"@everyone doesn't have `send_messages` enabled in any channel.")
 
         elif not mine:
@@ -565,7 +565,7 @@ class Mod(Cog):
         mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
         # len list would use additional memory so : )
 
-        if not (len(channels)):
+        if not (channels):
             return await ctx.error(f"**{role}** doesn't have `read_messages` enabled in any channel.")
 
         elif not mine:
@@ -596,7 +596,7 @@ class Mod(Cog):
                 continue
 
         await ctx.success(f"Updated settings for `{len(success)} channels`.(`{failed}` failed)")
-        if len(success):
+        if success:
             await Lockdown.create(
                 guild_id=ctx.guild.id,
                 type=LockType.maintenance,

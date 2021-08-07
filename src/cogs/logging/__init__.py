@@ -281,7 +281,7 @@ class Logging(Cog, name="logging"):
         Get complete log config.
         """
         records = await LM.filter(guild_id=ctx.guild.id).all()
-        if not len(records):
+        if not records:
             return await ctx.error(f"You haven't set logging yet.")
         text = "**`Toggle` | `Type` | `Channel` | `Ignore Bots` | `Color`**\n\n"
 
