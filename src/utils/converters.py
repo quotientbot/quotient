@@ -21,11 +21,12 @@ __all__ = (
     "QuoTextChannel",
 )
 
+
 class to_async:
-    def __init__(self, *, executor: Optional[ThreadPoolExecutor]=None):
-       
-        self.executor =  executor
-    
+    def __init__(self, *, executor: Optional[ThreadPoolExecutor] = None):
+
+        self.executor = executor
+
     def __call__(self, blocking):
         @wraps(blocking)
         async def wrapper(*args, **kwargs):
@@ -35,10 +36,11 @@ class to_async:
                 self.executor = ThreadPoolExecutor()
 
             func = partial(blocking, *args, **kwargs)
-        
-            return await loop.run_in_executor(self.executor,func)
+
+            return await loop.run_in_executor(self.executor, func)
 
         return wrapper
+
 
 class ColorConverter(commands.Converter):
     async def convert(self, ctx, arg: str):

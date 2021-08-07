@@ -36,6 +36,7 @@ from .utils import (
 
 #         self._dict
 
+
 class PointsConfigEditor(menus.Menu):
     def __init__(self, points: PointsInfo):
         super().__init__(

@@ -18,7 +18,7 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
     registration_open_embed,
-    process_ss_attachment
+    process_ss_attachment,
 )
 from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError
 from .converters import EasyMemberConverter
@@ -284,7 +284,6 @@ class ScrimEvents(Cog):
             with suppress(AttributeError):
                 self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
-
         await Scrim.filter(pk=scrim.id).update(
             opened_at=datetime.now(tz=IST),
             closed_at=None,
@@ -459,7 +458,7 @@ class ScrimEvents(Cog):
 
         if not verify.sstoggle:
             return
-            
+
         delete_after = verify.delete_after if verify.delete_after else None
 
         if verify.mod_role_id in (role.id for role in message.author.roles):
@@ -548,7 +547,7 @@ class ScrimEvents(Cog):
                             status = SSStatus.approved
 
                         elif (current_hash := res.get("hash")) in hashes:
-                            await message.reply(f"You cannot copy/repeat same screenshots.",delete_after = delete_after)
+                            await message.reply(f"You cannot copy/repeat same screenshots.", delete_after=delete_after)
 
                         else:
                             url = IPC_BASE + "/image/match"
@@ -560,7 +559,7 @@ class ScrimEvents(Cog):
                             if newres.get("matches"):
                                 await message.reply(
                                     f"Your screenshot seem to be a duplicate of previously posted images.",
-                                    delete_after = delete_after
+                                    delete_after=delete_after,
                                 )
 
                             else:
@@ -577,8 +576,9 @@ class ScrimEvents(Cog):
 
                     if count > 1:
                         if slot.status == SSStatus.approved:
-                            await message.reply(f"{emote.check} | {attachment.filename} Verified.",delete_after = delete_after)
-
+                            await message.reply(
+                                f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after
+                            )
 
                 records = await verify.data.filter(author_id=message.author.id)
                 approved = sum(1 for i in records if i.status == SSStatus.approved)
@@ -603,7 +603,7 @@ class ScrimEvents(Cog):
 
                 else:
                     return await message.reply(
-                        delete_after = delete_after,
+                        delete_after=delete_after,
                         embed=discord.Embed(
                             color=self.bot.color,
                             description=(
@@ -612,5 +612,5 @@ class ScrimEvents(Cog):
                                 f"\n- `{disapproved}` disapproved screenshots."
                                 f"\n\nYou need a total of {verify.required_ss} approved screenshots."
                             ),
-                        )
+                        ),
                     )
