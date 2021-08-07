@@ -392,7 +392,7 @@ class ScrimEvents(Cog):
                     delete_after=10,
                 )
 
-            members = list()
+            members = []
             for m in tags:
                 members.append(await EasyMemberConverter().convert(ctx, m))
 
