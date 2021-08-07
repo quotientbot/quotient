@@ -33,7 +33,8 @@ class SMError(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def red_embed(self, description: str):
+    @staticmethod
+    def red_embed(description: str):
         embed = discord.Embed(color=discord.Color.red(), description=description)
         return embed
 

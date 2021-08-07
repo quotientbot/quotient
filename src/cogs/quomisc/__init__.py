@@ -143,7 +143,8 @@ class Quomisc(Cog, name="quomisc"):
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
 
-    def format_commit(self, commit):  # source: R danny
+    @staticmethod
+    def format_commit(commit):  # source: R danny
         short, _, _ = commit.message.partition("\n")
         short_sha2 = commit.hex[0:6]
         commit_tz = timezone(timedelta(minutes=commit.commit_time_offset))

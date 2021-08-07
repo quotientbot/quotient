@@ -310,7 +310,8 @@ class IDPMenu(menus.Menu):
         )
         return embed
 
-    def inital_embed(self):
+    @staticmethod
+    def inital_embed():
         embed = discord.Embed(color=config.COLOR, title="ID-PASS Menu")
         embed.description = (
             "🇹 | Set Title\n"
@@ -497,7 +498,8 @@ class SlotlistFormatMenu(menus.Menu):
 
         return embed
 
-    def desc_embed(self):
+    @staticmethod
+    def desc_embed():
         embed = discord.Embed(title="Slotlist Format Editor", color=config.COLOR)
         embed.description = (
             "🇹 | Set Title\n"
