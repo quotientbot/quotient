@@ -92,7 +92,7 @@ class SSverifyIpc(IpcCog):
             return self.deny_request("Quotient couldn't find the role you specified.")
 
         check = self.check_if_mod(role)
-        if not check == True:
+        if check != True:
             return self.deny_request(
                 f"Success role has moderation permissions. Kindly remove them first. ({', '.join(check)})"
             )
@@ -153,7 +153,7 @@ class SSverifyIpc(IpcCog):
                 return self.deny_request("Quotient couldn't find the role you specified.")
 
             check = self.check_if_mod(role)
-            if not check == True:
+            if check != True:
                 return self.deny_request(
                     f"Success role has moderation permissions. Kindly remove them first. ({', '.join(check)})"
                 )
