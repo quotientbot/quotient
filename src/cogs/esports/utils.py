@@ -240,9 +240,7 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
         or not channel.permissions_for(me).add_reactions
     ):
         return False
-
-    else:
-        return True
+    return True
 
 
 async def check_tourney_requirements(bot, message: discord.Message, tourney: Tourney) -> bool:
@@ -365,18 +363,14 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
 
     if role == scrim.guild.default_role:
         return "@everyone"
-
-    else:
-        return getattr(role, "mention", "Role deleted!")
+    return getattr(role, "mention", "Role deleted!")
 
 
 def tourney_work_role(tourney: Tourney):
     role = tourney.open_role
     if role == tourney.guild.default_role:
         return "@everyone"
-
-    else:
-        return getattr(role, "mention", "Role deleted!")
+    return getattr(role, "mention", "Role deleted!")
 
 
 async def get_pretty_slotlist(scrim: Scrim):

@@ -21,10 +21,8 @@ class Giveaways(Cog):
                 role.name.lower() for role in ctx.author.roles
             ):
                 return True
-
-            else:
-                await ctx.error("You either need `giveaways` role or `manage server` permissions to use this command.")
-                return False
+            await ctx.error("You either need `giveaways` role or `manage server` permissions to use this command.")
+            return False
 
         return commands.check(predicate)
 

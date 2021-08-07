@@ -47,7 +47,7 @@ def keycap_digit(c: Union[int, str]) -> str:
     c = int(c)
     if 0 < c < 10:
         return str(c) + "\U0000FE0F\U000020E3"
-    elif c == 10:
+    if c == 10:
         return "\U000FE83B"
     raise ValueError("Invalid keycap digit")
 

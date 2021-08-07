@@ -84,8 +84,7 @@ class Tourney(models.Model):
         if self.guild is not None:
             if self.open_role_id is not None:
                 return self.guild.get_role(self.open_role_id)
-            else:
-                return self.guild.default_role
+            return self.guild.default_role
 
     @property
     def modrole(self):
@@ -219,8 +218,7 @@ class Scrim(models.Model):
         if self.guild is not None:
             if self.open_role_id is not None:
                 return self.guild.get_role(self.open_role_id)
-            else:
-                return self.guild.default_role
+            return self.guild.default_role
 
     @property  # what? you think its useless , i know :)
     def toggle(self):

@@ -135,10 +135,8 @@ class Quomisc(Cog, name="quomisc"):
         record = await Guild.get(guild_id=ctx.guild.id)
         if record.private_ch is not None:
             return await ctx.error(f"You already have a private channel ({record.private_ch.mention})")
-
-        else:
-            channel = await self.make_private_channel(ctx)
-            await ctx.success(f"Created {channel.mention}")
+        channel = await self.make_private_channel(ctx)
+        await ctx.success(f"Created {channel.mention}")
 
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)

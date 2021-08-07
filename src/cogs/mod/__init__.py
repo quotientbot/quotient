@@ -56,7 +56,7 @@ class Mod(Cog):
             search = Amount or 5
             return await do_removal(ctx, search, lambda e: e.author == Choice)
 
-        elif isinstance(Choice, int):
+        if isinstance(Choice, int):
             return await do_removal(ctx, Choice, lambda e: True)
 
     @clear.command()
@@ -208,8 +208,7 @@ class Mod(Cog):
 
             if len(failed) > 0:
                 return await ctx.error(f"Unfortunately, I couldn't add roles to:\n{', '.join(failed)}")
-            else:
-                await ctx.message.add_reaction(emote.check)
+            await ctx.message.add_reaction(emote.check)
 
     @role.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
@@ -235,9 +234,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
 
     @role.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
@@ -262,9 +259,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} bots.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
 
     @role.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -289,9 +284,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=["removerole", "takerole"])
     @commands.has_guild_permissions(manage_roles=True)
@@ -311,8 +304,7 @@ class Mod(Cog):
 
             if len(failed) > 0:
                 return await ctx.error(f"Unfortunately, I couldn't remove roles from:\n{', '.join(failed)}")
-            else:
-                await ctx.message.add_reaction(emote.check)
+            await ctx.message.add_reaction(emote.check)
 
     @rrole.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
@@ -338,9 +330,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @rrole.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
@@ -366,9 +356,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} bots.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
 
     @rrole.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -394,9 +382,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=("lockdown",))
     async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
@@ -412,7 +398,7 @@ class Mod(Cog):
         if not channel.permissions_for(ctx.me).manage_channels:
             return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
 
-        elif not channel.permissions_for(ctx.author).manage_channels:
+        if not channel.permissions_for(ctx.author).manage_channels:
             return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
 
         perms = channel.overwrites_for(ctx.guild.default_role)
@@ -452,7 +438,7 @@ class Mod(Cog):
         if not (channels):
             return await ctx.error(f"@everyone doesn't have `send_messages` enabled in any channel.")
 
-        elif not mine:
+        if not mine:
             return await ctx.error(
                 f"`{sum(1 for i in channels)} channels` have send messages enabled. But unfortunately I don't permission to edit any of them."
             )
@@ -505,7 +491,7 @@ class Mod(Cog):
         if not channel.permissions_for(ctx.me).manage_channels:
             return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
 
-        elif not channel.permissions_for(ctx.author).manage_channels:
+        if not channel.permissions_for(ctx.author).manage_channels:
             return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
 
         perms = channel.overwrites_for(ctx.guild.default_role)
@@ -566,7 +552,7 @@ class Mod(Cog):
         if not (channels):
             return await ctx.error(f"**{role}** doesn't have `read_messages` enabled in any channel.")
 
-        elif not mine:
+        if not mine:
             return await ctx.error(
                 f"`{sum(1 for i in channels)} channels` have read messages enabled. But unfortunately I don't permission to edit any of them."
             )

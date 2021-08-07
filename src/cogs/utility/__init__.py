@@ -60,17 +60,15 @@ class Utility(Cog, name="utility"):
                 f"You have not set any autorole yet.\n\nDo it like: `{ctx.prefix}autorole humans @role`"
             )
 
-        elif not any([len(record.humans), len(record.bots)]):
+        if not any([len(record.humans), len(record.bots)]):
             return await ctx.error("Autoroles already OFF!")
-
+        prompt = await ctx.prompt("Are you sure you want to turn off autorole?")
+        if prompt:
+            # await Autorole.filter(guild_id=ctx.guild.id).update(humans=list, bots=list)
+            await ctx.db.execute("UPDATE autoroles SET humans = '{}' , bots = '{}' WHERE guild_id = $1", ctx.guild.id)
+            await ctx.success("Autoroles turned OFF!")
         else:
-            prompt = await ctx.prompt("Are you sure you want to turn off autorole?")
-            if prompt:
-                # await Autorole.filter(guild_id=ctx.guild.id).update(humans=list, bots=list)
-                await ctx.db.execute("UPDATE autoroles SET humans = '{}' , bots = '{}' WHERE guild_id = $1", ctx.guild.id)
-                await ctx.success("Autoroles turned OFF!")
-            else:
-                await ctx.success("OK!")
+            await ctx.success("OK!")
 
     @autorole.command(name="humans")
     @checks.is_mod()

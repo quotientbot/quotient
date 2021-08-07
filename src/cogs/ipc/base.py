@@ -31,6 +31,4 @@ class IpcCog(Cog):
         ]
         if _list:
             return _list
-
-        else:
-            return True
+        return True
