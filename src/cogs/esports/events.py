@@ -150,7 +150,7 @@ class ScrimEvents(Cog):
 
         modrole = tourney.modrole
 
-        if modrole != None and modrole in message.author.roles:
+        if modrole is not None and modrole in message.author.roles:
             return
 
         if not before_registrations(message, tourney.role):

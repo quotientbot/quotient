@@ -404,7 +404,7 @@ class Mod(Cog):
         channel = channel or ctx.channel
         check = await Lockdown.filter(guild_id=ctx.guild.id, channel_id=channel.id, type=LockType.channel).first()
 
-        if check != None:
+        if check is not None:
             return await ctx.error(
                 f"**{channel}** is already locked.\n\nTime Remaining: {human_timedelta(check.expire_time)}"
             )
@@ -526,7 +526,7 @@ class Mod(Cog):
 
         success = 0
         for channel in check.channels:
-            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+            if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
 
                 perms = channel.overwrites_for(channel.guild.default_role)
                 perms.send_messages = True
@@ -636,7 +636,7 @@ class Mod(Cog):
 
         success = 0
         for channel in check.channels:
-            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+            if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
 
                 perms = channel.overwrites_for(role)
                 perms.read_messages = True

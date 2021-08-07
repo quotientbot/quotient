@@ -28,7 +28,7 @@ class Dev(Cog):
         for record in records:
             channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, record["private_channel"])
 
-            if channel != None and channel.permissions_for(channel.guild.me).send_messages:
+            if channel is not None and channel.permissions_for(channel.guild.me).send_messages:
                 try:
                     await channel.send(message)
                     success += 1

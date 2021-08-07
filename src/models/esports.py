@@ -82,7 +82,7 @@ class Tourney(models.Model):
     @property
     def open_role(self):
         if self.guild is not None:
-            if self.open_role_id != None:
+            if self.open_role_id is not None:
                 return self.guild.get_role(self.open_role_id)
             else:
                 return self.guild.default_role
@@ -245,7 +245,7 @@ class Scrim(models.Model):
 
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in fslots)
 
-        if self.slotlist_format != None:
+        if self.slotlist_format is not None:
             format = leval(self.slotlist_format)
 
             embed = discord.Embed.from_dict(format)
