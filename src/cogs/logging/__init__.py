@@ -254,7 +254,7 @@ class Logging(Cog, name="logging"):
                 f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}{logtype.value} {ctx.channel.mention}`"
             )
 
-        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(ignore_bots=not (check.ignore_bots))
+        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(ignore_bots=not check.ignore_bots)
         await ctx.success(
             f"Bots logging turned {'ON' if not check.ignore_bots else 'OFF'} for {logtype.value.title()} logs."
         )
@@ -271,7 +271,7 @@ class Logging(Cog, name="logging"):
                 f"You haven't enabled **`{logtype.value} logging`** yet.\n\nDo it like: `{ctx.prefix}{logtype.value} {ctx.channel.mention}`"
             )
 
-        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(toggle=not (check.toggle))
+        await LM.filter(guild_id=ctx.guild.id, type=logtype).update(toggle=not check.toggle)
         await ctx.success(f"**{logtype.value} logs** turned {'ON' if not check.toggle else 'OFF'}!")
 
     @commands.command()
