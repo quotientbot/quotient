@@ -324,7 +324,7 @@ class ScrimManager(Cog, name="Esports"):
             await ctx.message.add_reaction(emote.check)
 
         else:
-            await ctx.success(f"Ok!")
+            await ctx.success("Ok!")
 
     @smanager.command(name="config")
     @checks.can_use_sm()
@@ -448,11 +448,11 @@ class ScrimManager(Cog, name="Esports"):
         if prompt:
             if channel is not None and channel.permissions_for(ctx.me).send_messages:
                 await channel.send(embed=embed)
-                await ctx.success(f"Slotlist sent successfully!")
+                await ctx.success("Slotlist sent successfully!")
             else:
                 await ctx.error(f"I can't send messages in {channel}")
         else:
-            await ctx.success(f"Ok!")
+            await ctx.success("Ok!")
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()

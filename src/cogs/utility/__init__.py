@@ -193,7 +193,7 @@ class Utility(Cog, name="utility"):
         `Note:` This can take some time and you need to be patient.
         """
         if len(ctx.guild.emojis) == 0:
-            return await ctx.error(f"Breh, Your server doesn't have any custom emojis.")
+            return await ctx.error("Breh, Your server doesn't have any custom emojis.")
 
         m = await ctx.simple(
             f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}"
@@ -257,9 +257,8 @@ class Utility(Cog, name="utility"):
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
         if not name.content:
-            return await ctx.error(f"Tag doesn't have any content")
-        else:
-            await ctx.send(name.content, reference=ctx.replied_reference)
+            return await ctx.error("Tag doesn't have any content")
+        await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
@@ -323,7 +322,7 @@ class Utility(Cog, name="utility"):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         if len(content) > 1990:
-            return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
+            return await ctx.error("Tag content cannot contain more than 1990 characters.")
 
         if len(name) > 99:
             return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
@@ -334,14 +333,14 @@ class Utility(Cog, name="utility"):
             await ctx.success(f"Created Tag (ID: `{tag.id}`)")
 
         else:
-            await ctx.error(f"Tag Name is already taken.")
+            await ctx.error("Tag Name is already taken.")
 
     @tag.command(name="delete", aliases=["del"])
     async def delete_tag(self, ctx: Context, *, tag_name: TagConverter):
         """Delete a tag"""
         tag = tag_name
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=tag.owner_id).delete()
         await ctx.success(f"Deleted {tag_name.name}")
@@ -350,7 +349,7 @@ class Utility(Cog, name="utility"):
     async def transfer_tag(self, ctx: Context, member: QuoMember, *, tag: TagConverter):
         """Transfer the ownership of a tag."""
         if tag.owner_id != ctx.author.id:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         await Tag.filter(id=tag.id).update(owner_id=member.id)
         await ctx.success("Transfer successful.")
@@ -359,9 +358,9 @@ class Utility(Cog, name="utility"):
     async def nsfw_status_toggle(self, ctx: Context, *, tag: TagConverter):
         """Toggle NSFW for a tag."""
         if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
-        await Tag.filter(id=tag.id).update(is_nsfw=not (tag.is_nsfw))
+        await Tag.filter(id=tag.id).update(is_nsfw=not tag.is_nsfw)
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
 
     @tag.command("mine")
@@ -393,13 +392,13 @@ class Utility(Cog, name="utility"):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
-            return await ctx.error(f"Tag name is invalid.")
+            return await ctx.error("Tag name is invalid.")
 
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         if len(content) > 1990:
-            return await ctx.error(f"Tag content cannot exceed 1990 characters.")
+            return await ctx.error("Tag content cannot exceed 1990 characters.")
 
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot edit tag.")
@@ -408,7 +407,7 @@ class Utility(Cog, name="utility"):
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         await Tag.filter(id=tag.id).update(content=content)
-        await ctx.success(f"Tag updated.")
+        await ctx.success("Tag updated.")
 
     # @tag.command(name="make")
     # async def tag_make(self, ctx: Context):
@@ -491,7 +490,7 @@ class Utility(Cog, name="utility"):
                 await ctx.success(f"Successfully deleted **{category}**. (Deleted: `{success}`, Failed: `{failed}`)")
 
         else:
-            await ctx.simple(f"Ok Aborting.")
+            await ctx.simple("Ok Aborting.")
 
     @category.command(name="hide")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
@@ -583,7 +582,7 @@ class Utility(Cog, name="utility"):
             await ctx.success(f"Successfully nuked **{category}**. (Cloned: `{success}`, Failed: `{failed}`)")
 
         else:
-            await ctx.simple(f"Ok Aborting.")
+            await ctx.simple("Ok Aborting.")
 
     @commands.group(invoke_without_command=True)
     async def autopurge(self, ctx: Context):

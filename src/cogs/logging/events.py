@@ -91,13 +91,13 @@ class LoggingEvents(Cog):
             embed.description = f"A [message]({before.jump_url}) was edited in {before.channel.mention}."
             embed.set_author(name=str(before.author), icon_url=before.author.avatar_url)
             embed.add_field(
-                name="Before:", value=truncate_string(before.content) or f"*[Content Unavailable]*", inline=False
+                name="Before:", value=truncate_string(before.content) or "*[Content Unavailable]*", inline=False
             )
-            embed.add_field(name="After:", value=truncate_string(after.content) or f"*[Content Unavailable]*")
+            embed.add_field(name="After:", value=truncate_string(after.content) or "*[Content Unavailable]*")
 
             return embed, channel
 
-        elif _type == LogType.join:
+        if _type == LogType.join:
             member = kwargs.get("member")
 
             guild = member.guild
@@ -124,7 +124,7 @@ class LoggingEvents(Cog):
 
             return embed, channel
 
-        elif _type == LogType.leave:
+        if _type == LogType.leave:
             member = kwargs.get("member")
 
             guild = member.guild
@@ -148,7 +148,7 @@ class LoggingEvents(Cog):
 
             return embed, channel
 
-        elif _type == LogType.invite:
+        if _type == LogType.invite:
             subtype = kwargs.get("subtype")
 
             invite = kwargs.get("invite")
