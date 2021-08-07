@@ -8,13 +8,13 @@ from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime, emote
+from utils import find_team, strtime, emote, QuoUser
 import discord
 import config
 import asyncio
 import re, json
 
-from constants import VerifyImageError
+from constants import VerifyImageError, ScrimBanType
 
 
 def get_slots(slots):
@@ -25,6 +25,10 @@ def get_slots(slots):
 def get_tourney_slots(slots):
     for slot in slots:
         yield slot.leader_id
+
+
+async def log_scrim_ban(scrim:Scrim, status:ScrimBanType,user:QuoUser,**kwargs):
+    ...
 
 
 async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:

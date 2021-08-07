@@ -8,6 +8,7 @@ from core import Cog, Context
 from contextlib import suppress
 from .utils import (
     delete_denied_message,
+    log_scrim_ban,
     scrim_work_role,
     toggle_channel,
     scrim_end_process,
@@ -18,10 +19,10 @@ from .utils import (
     setup_slotmanager,
 )
 
-from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate
+from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate , QuoUser
 
 from .converters import PointsConverter, ScrimConverter, TourneyConverter
-from constants import EsportsType, IST, RegMsg
+from constants import EsportsType, IST, RegMsg, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime, timedelta
@@ -523,7 +524,7 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="ban")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_ban(self, ctx, scrim: ScrimConverter, user: discord.Member, *, time: FutureTime = None):
+    async def s_ban(self, ctx, scrim: ScrimConverter, user: QuoUser, *, time: FutureTime = None):
         """
         Ban someone from the scrims temporarily or permanently.
         Time argument is optional.
@@ -553,10 +554,14 @@ class ScrimManager(Cog, name="Esports"):
         else:
             await ctx.success(f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`)")
 
+
+        if scrim.banlog_channel:
+            return await log_scrim_ban(scrim, ScrimBanType.ban, user)
+
     @smanager.command(name="unban")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_unban(self, ctx, scrim: ScrimConverter, user: discord.Member):
+    async def s_unban(self, ctx, scrim: ScrimConverter, user: QuoUser):
         """
         Unban a banned team from a scrim.
         """
@@ -568,6 +573,10 @@ class ScrimManager(Cog, name="Esports"):
         ban = await scrim.banned_teams.filter(user_id=user.id).first()
         await BannedTeam.filter(id=ban.id).delete()
         await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
+
+        if scrim.banlog_channel:
+            return await log_scrim_ban(scrim, ScrimBanType.unban)
+
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)

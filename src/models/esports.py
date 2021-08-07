@@ -25,7 +25,7 @@ __all__ = (
     "PointsTable",
     "SSVerify",
     "SSData",
-    "SlotManager"
+    "SlotManager",
 )
 
 
@@ -148,6 +148,7 @@ class Scrim(models.Model):
 
     open_message = fields.JSONField(default=dict)
     close_message = fields.JSONField(default=dict)
+    banlog_channel_id = fields.BigIntField(null=True)
 
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
@@ -176,6 +177,10 @@ class Scrim(models.Model):
     def registration_channel(self):
         return self.bot.get_channel(self.registration_channel_id)
 
+    @property
+    def banlog_channel(self):
+        return self.bot.get_channel(self.banlog_channel_id)
+        
     @property
     def slotlist_channel(self):
         return self.bot.get_channel(self.slotlist_channel_id)
@@ -498,4 +503,3 @@ class SlotManager(models.Model):
     @property
     def post_channel(self):
         return self.bot.get_channel(self.post_channel_id)
-        
