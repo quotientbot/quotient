@@ -37,7 +37,6 @@ class TabularData:
         |  Bob  | 19  |
         +-------+-----+
         """
-
         sep = "+".join("-" * w for w in self._widths)
         sep = f"+{sep}+"
 

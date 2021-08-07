@@ -247,7 +247,7 @@ class PointsMenu(menus.Menu):
                         f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
                     )
 
-                if not len(teamname):
+                if not teamname:
                     return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
 
                 if len(teamname) > 22:
@@ -310,7 +310,8 @@ class IDPMenu(menus.Menu):
         )
         return embed
 
-    def inital_embed(self):
+    @staticmethod
+    def inital_embed():
         embed = discord.Embed(color=config.COLOR, title="ID-PASS Menu")
         embed.description = (
             "🇹 | Set Title\n"
@@ -497,7 +498,8 @@ class SlotlistFormatMenu(menus.Menu):
 
         return embed
 
-    def desc_embed(self):
+    @staticmethod
+    def desc_embed():
         embed = discord.Embed(title="Slotlist Format Editor", color=config.COLOR)
         embed.description = (
             "🇹 | Set Title\n"
@@ -698,7 +700,7 @@ class ReserveEditorMenu(menus.Menu):
         for i in self.scrim.available_to_reserve:
             check = [j.team_name for j in reserves if j.num == i]
 
-            if len(check):
+            if check:
                 info = check[0]
             else:
                 info = "❌"
@@ -719,7 +721,7 @@ class ReserveEditorMenu(menus.Menu):
     @menus.button(emote.add)
     async def reserve_a_slot(self, payload):
         available = await available_to_reserve(self.scrim)
-        if not len(available):
+        if not available:
             return await self.ctx.error("No slots left to reserve.", delete_after=3)
 
         msg = await self.ctx.send(
@@ -780,7 +782,7 @@ class ReserveEditorMenu(menus.Menu):
     @menus.button(emote.remove)
     async def remove_reserved_slot(self, payload):
         available = await already_reserved(self.scrim)
-        if not len(available):
+        if not available:
             return await self.ctx.error("There are 0 reserved slots.", delete_after=3)
 
         msg = await self.ctx.send(
@@ -908,7 +910,7 @@ class SlotEditor(menus.Menu):
         if not channel:
             await self.ctx.error("I couldn't find slotlist channel.")
 
-        elif self.scrim.slotlist_message_id != None:
+        elif self.scrim.slotlist_message_id is not None:
             slotmsg = channel.get_partial_message(self.scrim.slotlist_message_id)
 
             if slotmsg:

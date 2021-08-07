@@ -72,7 +72,7 @@ class Tourney(models.Model):
 
     @property
     def closed(self):
-        return True if self.closed_at else False
+        return bool(self.closed_at)
 
     @property
     def role(self):
@@ -82,10 +82,9 @@ class Tourney(models.Model):
     @property
     def open_role(self):
         if self.guild is not None:
-            if self.open_role_id != None:
+            if self.open_role_id is not None:
                 return self.guild.get_role(self.open_role_id)
-            else:
-                return self.guild.default_role
+            return self.guild.default_role
 
     @property
     def modrole(self):
@@ -224,8 +223,7 @@ class Scrim(models.Model):
         if self.guild is not None:
             if self.open_role_id is not None:
                 return self.guild.get_role(self.open_role_id)
-            else:
-                return self.guild.default_role
+            return self.guild.default_role
 
     @property  # what? you think its useless , i know :)
     def toggle(self):
@@ -243,14 +241,14 @@ class Scrim(models.Model):
 
     async def create_slotlist(self):
         slots = await self.teams_registered
-        ids = set(slot.num for slot in slots)
+        ids = {slot.num for slot in slots}
         fslots = []
         for id in ids:
             fslots.append([slot for slot in slots if slot.num == id][0])
 
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in fslots)
 
-        if self.slotlist_format != None:
+        if self.slotlist_format is not None:
             format = leval(self.slotlist_format)
 
             embed = discord.Embed.from_dict(format)

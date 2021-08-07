@@ -19,25 +19,25 @@ class Errors(Cog):
         if isinstance(err, ignored):
             return
 
-        elif isinstance(err, commands.NotOwner):
+        if isinstance(err, commands.NotOwner):
             return await ctx.send("Hmmm!😷")
 
-        elif isinstance(err, exceptions.QuotientError):
+        if isinstance(err, exceptions.QuotientError):
             return await ctx.error(err.__str__().format(ctx=ctx))
 
-        elif isinstance(err, errors.MissingRequiredArgument):
+        if isinstance(err, errors.MissingRequiredArgument):
             return await ctx.send(
                 f"{random_greeting()}, You missed the `{err.param.name}` argument.\n\nDo it like: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
             )
 
-        elif isinstance(err, commands.BadArgument):
+        if isinstance(err, commands.BadArgument):
             if isinstance(err, commands.MessageNotFound):
                 return await ctx.error("Try the command again, and this time with a real message.")
-            elif isinstance(err, commands.MemberNotFound):
+            if isinstance(err, commands.MemberNotFound):
                 return await ctx.error("Use the command again, and this time mention a real user.")
-            elif isinstance(err, commands.ChannelNotFound):
+            if isinstance(err, commands.ChannelNotFound):
                 return await ctx.error("Use the command again, and this time mention a real channel/category.")
-            elif isinstance(err, commands.RoleNotFound):
+            if isinstance(err, commands.RoleNotFound):
                 await ctx.error("Try again and this time use a real role.")
             elif isinstance(err, commands.EmojiNotFound):
                 await ctx.error("Try again and this time use a real emoji.")

@@ -26,8 +26,7 @@ class LoggingDispatchers(Cog):
         if check:
             if message.author.bot and check.ignore_bots:
                 return
-            else:
-                self.bot.dispatch("log", LogType.msg, message=message, subtype="single")
+            self.bot.dispatch("log", LogType.msg, message=message, subtype="single")
 
     @Cog.listener()
     async def on_bulk_message_delete(self, messages):
@@ -39,8 +38,7 @@ class LoggingDispatchers(Cog):
         if check:
             if messages[0].author.bot and check.ignore_bots:
                 return
-            else:
-                self.bot.dispatch("log", LogType.msg, message=messages, subtype="bulk")
+            self.bot.dispatch("log", LogType.msg, message=messages, subtype="bulk")
 
     @Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
@@ -55,9 +53,7 @@ class LoggingDispatchers(Cog):
         if check:
             if before.author.bot and check.ignore_bots:
                 return
-
-            else:
-                self.bot.dispatch("log", LogType.msg, message=(before, after))
+            self.bot.dispatch("log", LogType.msg, message=(before, after))
 
     @Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -67,8 +63,7 @@ class LoggingDispatchers(Cog):
         if check:
             if member.bot and check.ignore_bots:
                 return
-            else:
-                self.bot.dispatch("log", LogType.join, member=member)
+            self.bot.dispatch("log", LogType.join, member=member)
 
     @Cog.listener()
     async def on_member_remove(self, member: discord.Member):
@@ -78,8 +73,7 @@ class LoggingDispatchers(Cog):
         if check:
             if member.bot and check.ignore_bots:
                 return
-            else:
-                self.bot.dispatch("log", LogType.leave, member=member)
+            self.bot.dispatch("log", LogType.leave, member=member)
 
     @Cog.listener(name="on_message")
     async def on_invite_post(self, message: discord.Message):
@@ -92,15 +86,14 @@ class LoggingDispatchers(Cog):
             if check:
                 if message.author.bot and check.ignore_bots:
                     return
-                else:
-                    for invite in invites:
-                        try:
-                            inv = await self.bot.fetch_invite(invite)
+                for invite in invites:
+                    try:
+                        inv = await self.bot.fetch_invite(invite)
 
-                            self.bot.dispatch("log", LogType.invite, invite=inv, message=message)
+                        self.bot.dispatch("log", LogType.invite, invite=inv, message=message)
 
-                        except (discord.NotFound, discord.HTTPException):
-                            continue
+                    except (discord.NotFound, discord.HTTPException):
+                        continue
 
     @Cog.listener()
     async def on_invite_create(self, invite):
@@ -111,9 +104,7 @@ class LoggingDispatchers(Cog):
         if check:
             if invite.inviter.bot and check.ignore_bots:
                 return
-
-            else:
-                self.bot.dispatch("log", LogType.invite, invite=invite, subtype="create")
+            self.bot.dispatch("log", LogType.invite, invite=invite, subtype="create")
 
     @Cog.listener()
     async def on_invite_delete(self, invite):
@@ -143,8 +134,7 @@ class LoggingDispatchers(Cog):
 
                 if message.author.bot and check.ignore_bots:
                     return
-                else:
-                    self.bot.dispatch("log", LogType.ping, message=message, mentions=mentions)
+                self.bot.dispatch("log", LogType.ping, message=message, mentions=mentions)
 
     @Cog.listener()
     async def on_command(self, ctx):
@@ -164,9 +154,7 @@ class LoggingDispatchers(Cog):
         if check:
             if member.bot and check.ignore_bots:
                 return
-
-            else:
-                self.bot.dispatch("log", LogType.voice, member=member, before=before, after=after)
+            self.bot.dispatch("log", LogType.voice, member=member, before=before, after=after)
 
     @Cog.listener()
     async def on_guild_role_create(self, role: discord.Role):

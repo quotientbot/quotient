@@ -78,7 +78,8 @@ class Pages:
         base = (page - 1) * self.per_page
         return self.entries[base : base + self.per_page]
 
-    def get_content(self, entries, page, *, first=False):
+    @staticmethod
+    def get_content(entries, page, *, first=False):
         return None
 
     def get_embed(self, entries, page, *, first=False):

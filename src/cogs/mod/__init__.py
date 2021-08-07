@@ -15,7 +15,8 @@ class Mod(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    def cog_check(self, ctx):
+    @staticmethod
+    def cog_check(ctx):
         return ctx.guild is not None
 
     @commands.command()
@@ -55,7 +56,7 @@ class Mod(Cog):
             search = Amount or 5
             return await do_removal(ctx, search, lambda e: e.author == Choice)
 
-        elif isinstance(Choice, int):
+        if isinstance(Choice, int):
             return await do_removal(ctx, Choice, lambda e: True)
 
     @clear.command()
@@ -124,13 +125,12 @@ class Mod(Cog):
     @commands.has_permissions(manage_messages=True)
     async def _reactions(self, ctx, search=100):
         """Removes all reactions from messages that have them."""
-
         if search > 2000:
             return await ctx.send(f"Too many messages to search for ({search}/2000)")
 
         total_reactions = 0
         async for message in ctx.history(limit=search, before=ctx.message):
-            if len(message.reactions):
+            if message.reactions:
                 total_reactions += sum(r.count for r in message.reactions)
                 await message.clear_reactions()
 
@@ -162,7 +162,6 @@ class Mod(Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permission.
         """
-
         if reason is None:
             reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
@@ -180,7 +179,6 @@ class Mod(Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permissions.
         """
-
         if reason is None:
             reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
@@ -210,8 +208,7 @@ class Mod(Cog):
 
             if len(failed) > 0:
                 return await ctx.error(f"Unfortunately, I couldn't add roles to:\n{', '.join(failed)}")
-            else:
-                await ctx.message.add_reaction(emote.check)
+            await ctx.message.add_reaction(emote.check)
 
     @role.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
@@ -237,9 +234,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
 
     @role.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
@@ -264,9 +259,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} bots.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
 
     @role.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -291,9 +284,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=["removerole", "takerole"])
     @commands.has_guild_permissions(manage_roles=True)
@@ -313,8 +304,7 @@ class Mod(Cog):
 
             if len(failed) > 0:
                 return await ctx.error(f"Unfortunately, I couldn't remove roles from:\n{', '.join(failed)}")
-            else:
-                await ctx.message.add_reaction(emote.check)
+            await ctx.message.add_reaction(emote.check)
 
     @rrole.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
@@ -340,9 +330,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @rrole.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
@@ -368,9 +356,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} bots.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
 
     @rrole.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
@@ -396,9 +382,7 @@ class Mod(Cog):
 
                 if failed > 0:
                     return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-
-                else:
-                    await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
 
     @commands.group(invoke_without_command=True, aliases=("lockdown",))
     async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
@@ -406,7 +390,7 @@ class Mod(Cog):
         channel = channel or ctx.channel
         check = await Lockdown.filter(guild_id=ctx.guild.id, channel_id=channel.id, type=LockType.channel).first()
 
-        if check != None:
+        if check is not None:
             return await ctx.error(
                 f"**{channel}** is already locked.\n\nTime Remaining: {human_timedelta(check.expire_time)}"
             )
@@ -414,7 +398,7 @@ class Mod(Cog):
         if not channel.permissions_for(ctx.me).manage_channels:
             return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
 
-        elif not channel.permissions_for(ctx.author).manage_channels:
+        if not channel.permissions_for(ctx.author).manage_channels:
             return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
 
         perms = channel.overwrites_for(ctx.guild.default_role)
@@ -451,10 +435,10 @@ class Mod(Cog):
         mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
         # len list would use additional memory so : )
 
-        if not (len(channels)):
+        if not (channels):
             return await ctx.error(f"@everyone doesn't have `send_messages` enabled in any channel.")
 
-        elif not mine:
+        if not mine:
             return await ctx.error(
                 f"`{sum(1 for i in channels)} channels` have send messages enabled. But unfortunately I don't permission to edit any of them."
             )
@@ -507,7 +491,7 @@ class Mod(Cog):
         if not channel.permissions_for(ctx.me).manage_channels:
             return await ctx.error(f"I need `manage_channels` permission in **{channel}**")
 
-        elif not channel.permissions_for(ctx.author).manage_channels:
+        if not channel.permissions_for(ctx.author).manage_channels:
             return await ctx.error(f"You need `manage channels` permission in **{channel}** to use this.")
 
         perms = channel.overwrites_for(ctx.guild.default_role)
@@ -528,7 +512,7 @@ class Mod(Cog):
 
         success = 0
         for channel in check.channels:
-            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+            if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
 
                 perms = channel.overwrites_for(channel.guild.default_role)
                 perms.send_messages = True
@@ -565,10 +549,10 @@ class Mod(Cog):
         mine = sum(1 for i in filter(lambda x: x.permissions_for(ctx.me).manage_channels, (channels)))
         # len list would use additional memory so : )
 
-        if not (len(channels)):
+        if not (channels):
             return await ctx.error(f"**{role}** doesn't have `read_messages` enabled in any channel.")
 
-        elif not mine:
+        if not mine:
             return await ctx.error(
                 f"`{sum(1 for i in channels)} channels` have read messages enabled. But unfortunately I don't permission to edit any of them."
             )
@@ -596,7 +580,7 @@ class Mod(Cog):
                 continue
 
         await ctx.success(f"Updated settings for `{len(success)} channels`.(`{failed}` failed)")
-        if len(success):
+        if success:
             await Lockdown.create(
                 guild_id=ctx.guild.id,
                 type=LockType.maintenance,
@@ -638,7 +622,7 @@ class Mod(Cog):
 
         success = 0
         for channel in check.channels:
-            if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+            if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
 
                 perms = channel.overwrites_for(role)
                 perms.read_messages = True

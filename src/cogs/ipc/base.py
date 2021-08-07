@@ -4,7 +4,8 @@ from core import Cog
 class IpcCog(Cog):
     positive = {"ok": True, "result": {}, "error": None}
 
-    def deny_request(self, reason):
+    @staticmethod
+    def deny_request(reason):
         return {"ok": False, "result": {}, "error": reason}
 
     @property
@@ -19,7 +20,8 @@ class IpcCog(Cog):
     def not_manage_guild(self):
         return self.deny_request("You need Manage Server permissions to use dashboard.")
 
-    def check_if_mod(self, role):
+    @staticmethod
+    def check_if_mod(role):
         _list = [
             k
             for k, v in dict(role.permissions).items()
@@ -29,6 +31,4 @@ class IpcCog(Cog):
         ]
         if _list:
             return _list
-
-        else:
-            return True
+        return True

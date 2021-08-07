@@ -23,7 +23,7 @@ class Premium(Cog):
             code = "QR_" + str(secrets.token_urlsafe(5).replace("_", "").replace("-", ""))
 
             check = await Redeem.filter(code=code)
-            if not len(check):
+            if not check:
                 break
 
         return code
@@ -59,7 +59,6 @@ class Premium(Cog):
     @checks.is_premium_user()
     async def mycodes(self, ctx: Context):
         """Get all the redeem codes you have."""
-
         records = await Redeem.filter(user_id=ctx.author.id).order_by("-is_used")
 
         x = PrettyTable()

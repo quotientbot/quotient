@@ -33,7 +33,8 @@ class SMError(Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def red_embed(self, description: str):
+    @staticmethod
+    def red_embed(description: str):
         embed = discord.Embed(color=discord.Color.red(), description=description)
         return embed
 
@@ -147,7 +148,7 @@ class SMError(Cog):
 
         with suppress(discord.Forbidden, AttributeError):
             await logschan.send(
-                content=modrole.mention if modrole != None and important is True else None,
+                content=modrole.mention if modrole is not None and important is True else None,
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
@@ -196,7 +197,7 @@ class SMError(Cog):
                 embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
 
             await logschan.send(
-                content=modrole.mention if modrole != None and important is True else None,
+                content=modrole.mention if modrole is not None and important is True else None,
                 embed=embed,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
@@ -358,7 +359,7 @@ class SMError(Cog):
         self.bot.loop.create_task(message.author.remove_roles(scrim.role))
         await AssignedSlot.filter(id=slot.id).delete()
         await Scrim.filter(id=scrim.id).update(available_slots=ArrayAppend("available_slots", slot.num))
-        if scrim.logschan != None:
+        if scrim.logschan is not None:
             embed = discord.Embed(color=discord.Color.red())
             embed.description = f"Slot of {message.author.mention} was deleted from Scrim: {scrim.id}, because their registration was deleted from {message.channel.mention}"
             await scrim.logschan.send(embed=embed)

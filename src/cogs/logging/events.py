@@ -75,7 +75,7 @@ class LoggingEvents(Cog):
 
                 return embed, channel
 
-            elif subtype == "bulk":
+            if subtype == "bulk":
 
                 msg = message[0]
                 msg_str = f"\n\n{'-'*50}\n\n".join((f"Author: {str(m.author)}\nContent: {m.content}" for m in message))
@@ -85,21 +85,19 @@ class LoggingEvents(Cog):
                 embed.add_field(name="Messages", value=f"[Click Me ...]({str(await self.bot.binclient.post(msg_str))})")
                 embed.set_footer(text=f"Bulk Delete: {len(message)}", icon_url=self.bot.user.avatar_url)
                 return embed, channel
+            before, after = message
+            embed.color = discord.Color(color)
+            embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
+            embed.description = f"A [message]({before.jump_url}) was edited in {before.channel.mention}."
+            embed.set_author(name=str(before.author), icon_url=before.author.avatar_url)
+            embed.add_field(
+                name="Before:", value=truncate_string(before.content) or "*[Content Unavailable]*", inline=False
+            )
+            embed.add_field(name="After:", value=truncate_string(after.content) or "*[Content Unavailable]*")
 
-            else:
-                before, after = message
-                embed.color = discord.Color(color)
-                embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
-                embed.description = f"A [message]({before.jump_url}) was edited in {before.channel.mention}."
-                embed.set_author(name=str(before.author), icon_url=before.author.avatar_url)
-                embed.add_field(
-                    name="Before:", value=truncate_string(before.content) or f"*[Content Unavailable]*", inline=False
-                )
-                embed.add_field(name="After:", value=truncate_string(after.content) or f"*[Content Unavailable]*")
+            return embed, channel
 
-                return embed, channel
-
-        elif _type == LogType.join:
+        if _type == LogType.join:
             member = kwargs.get("member")
 
             guild = member.guild
@@ -126,7 +124,7 @@ class LoggingEvents(Cog):
 
             return embed, channel
 
-        elif _type == LogType.leave:
+        if _type == LogType.leave:
             member = kwargs.get("member")
 
             guild = member.guild
@@ -150,7 +148,7 @@ class LoggingEvents(Cog):
 
             return embed, channel
 
-        elif _type == LogType.invite:
+        if _type == LogType.invite:
             subtype = kwargs.get("subtype")
 
             invite = kwargs.get("invite")
@@ -189,7 +187,7 @@ class LoggingEvents(Cog):
                 )
 
                 return embed, channel
-            elif subtype == "delete":
+            if subtype == "delete":
                 pass
                 # print(invite.created_at)
 
@@ -338,7 +336,7 @@ class LoggingEvents(Cog):
 
                 return embed, channel
 
-            elif subtype == "delete":
+            if subtype == "delete":
                 embed.title = "Role was deleted"
                 color = "#{:06x}".format(role.color.value)
                 embed.description = (
@@ -346,49 +344,47 @@ class LoggingEvents(Cog):
                     f"\n**Color:** {color}\n**Mentionable:** {role.mentionable}\n**Position:** {role.position}"
                 )
                 return embed, channel
+            before = kwargs.get("before")
 
-            else:
-                before = kwargs.get("before")
+            before_r = {
+                "Name": before.name,
+                "Color": "#{:06x}".format(before.color.value),
+                "Separated": before.hoist,
+                "Mentionable": before.mentionable,
+                "Position": before.position,
+            }
+            after_r = {
+                "Name": role.name,
+                "Color": "#{:06x}".format(role.color.value),
+                "Separated": role.hoist,
+                "Mentionable": role.mentionable,
+                "Position": role.position,
+            }
 
-                before_r = {
-                    "Name": before.name,
-                    "Color": "#{:06x}".format(before.color.value),
-                    "Separated": before.hoist,
-                    "Mentionable": before.mentionable,
-                    "Position": before.position,
-                }
-                after_r = {
-                    "Name": role.name,
-                    "Color": "#{:06x}".format(role.color.value),
-                    "Separated": role.hoist,
-                    "Mentionable": role.mentionable,
-                    "Position": role.position,
-                }
+            diff = [k for k in before_r if before_r[k] != after_r[k]]
+            b_text = ""
+            for i in diff:
+                b_text += f"**{i}:** {before_r.get(i)}\n"
 
-                diff = [k for k in before_r if before_r[k] != after_r[k]]
-                b_text = ""
-                for i in diff:
-                    b_text += f"**{i}:** {before_r.get(i)}\n"
+            a_text = ""
+            for i in diff:
+                a_text += f"**{i}:** {after_r.get(i)}\n"
 
-                a_text = ""
-                for i in diff:
-                    a_text += f"**{i}:** {after_r.get(i)}\n"
+            added_perms = set()
+            removed_perms = set()
+            for p, v in before.permissions:
+                if not v and getattr(role.permissions, p):
+                    added_perms.add(p)
 
-                added_perms = set()
-                removed_perms = set()
-                for p, v in before.permissions:
-                    if not v and getattr(role.permissions, p):
-                        added_perms.add(p)
+                elif v and not getattr(role.permissions, p):
+                    removed_perms.add(p)
 
-                    elif v and not getattr(role.permissions, p):
-                        removed_perms.add(p)
-
-                embed.title = "Role was Updated"
-                embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
-                embed.add_field(name="Before", value=b_text)
-                embed.add_field(name="After", value=a_text)
-                embed.add_field(
-                    name="Permissions",
-                    value=f"**Added:** {', '.join(added_perms)}\n**Removed:** {' '.join(removed_perms)}",
-                )
-                return embed, channel
+            embed.title = "Role was Updated"
+            embed.set_footer(text=f"ID: {before.id}", icon_url=self.bot.user.avatar_url)
+            embed.add_field(name="Before", value=b_text)
+            embed.add_field(name="After", value=a_text)
+            embed.add_field(
+                name="Permissions",
+                value=f"**Added:** {', '.join(added_perms)}\n**Removed:** {' '.join(removed_perms)}",
+            )
+            return embed, channel

@@ -11,7 +11,7 @@ from core import Cog, Context
 from discord.ext import commands
 from models import Tag, AutoPurge
 from ast import literal_eval as leval
-from models import Autorole, ArrayAppend, ArrayRemove, Tag
+from models import Autorole, ArrayAppend, ArrayRemove
 
 from utils import (
     checks,
@@ -60,17 +60,15 @@ class Utility(Cog, name="utility"):
                 f"You have not set any autorole yet.\n\nDo it like: `{ctx.prefix}autorole humans @role`"
             )
 
-        elif not any([len(record.humans), len(record.bots)]):
+        if not any([len(record.humans), len(record.bots)]):
             return await ctx.error("Autoroles already OFF!")
-
+        prompt = await ctx.prompt("Are you sure you want to turn off autorole?")
+        if prompt:
+            # await Autorole.filter(guild_id=ctx.guild.id).update(humans=list, bots=list)
+            await ctx.db.execute("UPDATE autoroles SET humans = '{}' , bots = '{}' WHERE guild_id = $1", ctx.guild.id)
+            await ctx.success("Autoroles turned OFF!")
         else:
-            prompt = await ctx.prompt("Are you sure you want to turn off autorole?")
-            if prompt:
-                # await Autorole.filter(guild_id=ctx.guild.id).update(humans=list, bots=list)
-                await ctx.db.execute("UPDATE autoroles SET humans = '{}' , bots = '{}' WHERE guild_id = $1", ctx.guild.id)
-                await ctx.success("Autoroles turned OFF!")
-            else:
-                await ctx.success("OK!")
+            await ctx.success("OK!")
 
     @autorole.command(name="humans")
     @checks.is_mod()
@@ -131,8 +129,8 @@ class Utility(Cog, name="utility"):
                 f"You have not set any autorole yet.\n\nDo it like: `{ctx.prefix}autorole humans @role`"
             )
 
-        humans = ", ".join(record.human_roles) if len(list(record.human_roles)) else "Not Set!"
-        bots = ", ".join(record.bot_roles) if len(list(record.bot_roles)) else "Not Set!"
+        humans = ", ".join(record.human_roles) if list(record.human_roles) else "Not Set!"
+        bots = ", ".join(record.bot_roles) if list(record.bot_roles) else "Not Set!"
 
         embed = self.bot.embed(ctx, title="Autorole Config")
         embed.add_field(name="Humans", value=humans, inline=False)
@@ -158,7 +156,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
 
         embed = discord.Embed(color=color, description=text)
-        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+        if ctx.message.attachments and "image" in ctx.message.attachments[0].content_type:
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         prompt = await ctx.prompt(
@@ -181,7 +179,7 @@ class Utility(Cog, name="utility"):
         Tip: You can send hyperlinks too. Example: `[anytext](any link)`
         """
         embed = self.bot.embed(ctx, description=text)
-        if len(ctx.message.attachments) and "image" in ctx.message.attachments[0].content_type:
+        if ctx.message.attachments and "image" in ctx.message.attachments[0].content_type:
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         await ctx.message.delete()
@@ -194,9 +192,8 @@ class Utility(Cog, name="utility"):
         Get a zip file containing all the emojis in the current server.
         `Note:` This can take some time and you need to be patient.
         """
-
         if len(ctx.guild.emojis) == 0:
-            return await ctx.error(f"Breh, Your server doesn't have any custom emojis.")
+            return await ctx.error("Breh, Your server doesn't have any custom emojis.")
 
         m = await ctx.simple(
             f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}"
@@ -260,9 +257,8 @@ class Utility(Cog, name="utility"):
             await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
 
         if not name.content:
-            return await ctx.error(f"Tag doesn't have any content")
-        else:
-            await ctx.send(name.content, reference=ctx.replied_reference)
+            return await ctx.error("Tag doesn't have any content")
+        await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
 
     @tag.command(name="all", aliases=("list",))
@@ -271,12 +267,12 @@ class Utility(Cog, name="utility"):
         if not member:
             tags = await Tag.filter(guild_id=ctx.guild.id)
 
-            if not len(tags):
+            if not tags:
                 return await ctx.error("This server doesn't have any tags.")
 
         else:
             tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=member.id)
-            if not len(tags):
+            if not tags:
                 return await ctx.error(f"{member} doesn't own any tag.")
 
         tag_list = []
@@ -308,7 +304,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="claim")
     async def claim_tag(self, ctx: Context, *, tag: TagConverter):
         """Claims a tag if the original owner left the server."""
-
         member = await self.bot.get_or_fetch_member(ctx.guild, tag.owner_id)
 
         if member is not None:
@@ -320,15 +315,14 @@ class Utility(Cog, name="utility"):
     @tag.command(name="create")
     async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
         """Create a new tag"""
-
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
 
-        if len(ctx.message.attachments):
+        if ctx.message.attachments:
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         if len(content) > 1990:
-            return await ctx.error(f"Tag content cannot contain more than 1990 characters.")
+            return await ctx.error("Tag content cannot contain more than 1990 characters.")
 
         if len(name) > 99:
             return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
@@ -339,14 +333,14 @@ class Utility(Cog, name="utility"):
             await ctx.success(f"Created Tag (ID: `{tag.id}`)")
 
         else:
-            await ctx.error(f"Tag Name is already taken.")
+            await ctx.error("Tag Name is already taken.")
 
     @tag.command(name="delete", aliases=["del"])
     async def delete_tag(self, ctx: Context, *, tag_name: TagConverter):
         """Delete a tag"""
         tag = tag_name
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=tag.owner_id).delete()
         await ctx.success(f"Deleted {tag_name.name}")
@@ -354,9 +348,8 @@ class Utility(Cog, name="utility"):
     @tag.command(name="transfer")
     async def transfer_tag(self, ctx: Context, member: QuoMember, *, tag: TagConverter):
         """Transfer the ownership of a tag."""
-
         if tag.owner_id != ctx.author.id:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         await Tag.filter(id=tag.id).update(owner_id=member.id)
         await ctx.success("Transfer successful.")
@@ -365,9 +358,9 @@ class Utility(Cog, name="utility"):
     async def nsfw_status_toggle(self, ctx: Context, *, tag: TagConverter):
         """Toggle NSFW for a tag."""
         if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
-        await Tag.filter(id=tag.id).update(is_nsfw=not (tag.is_nsfw))
+        await Tag.filter(id=tag.id).update(is_nsfw=not tag.is_nsfw)
         await ctx.success(f"Tag NSFW toggled {'ON' if not tag.is_nsfw else 'OFF'}!")
 
     @tag.command("mine")
@@ -387,7 +380,6 @@ class Utility(Cog, name="utility"):
     @tag.command(name="purge")
     async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
-
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
         if not count:
             return await ctx.error(f"{member} doesn't own any tag.")
@@ -400,22 +392,22 @@ class Utility(Cog, name="utility"):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
-            return await ctx.error(f"Tag name is invalid.")
+            return await ctx.error("Tag name is invalid.")
 
         if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
-            return await ctx.error(f"This tag doesn't belong to you.")
+            return await ctx.error("This tag doesn't belong to you.")
 
         if len(content) > 1990:
-            return await ctx.error(f"Tag content cannot exceed 1990 characters.")
+            return await ctx.error("Tag content cannot exceed 1990 characters.")
 
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot edit tag.")
 
-        if len(ctx.message.attachments):
+        if ctx.message.attachments:
             content += f"\n{ctx.message.attachments[0].proxy_url}"
 
         await Tag.filter(id=tag.id).update(content=content)
-        await ctx.success(f"Tag updated.")
+        await ctx.success("Tag updated.")
 
     # @tag.command(name="make")
     # async def tag_make(self, ctx: Context):
@@ -443,7 +435,7 @@ class Utility(Cog, name="utility"):
         """Search in all your tags."""
         tags = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
-        if not len(tags):
+        if not tags:
             return await ctx.error("No tags found.")
 
         tag_list = []
@@ -473,7 +465,7 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_delete(self, ctx: Context, *, category: QuoCategory):
         """Delete a category and all the channels under it."""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -498,14 +490,14 @@ class Utility(Cog, name="utility"):
                 await ctx.success(f"Successfully deleted **{category}**. (Deleted: `{success}`, Failed: `{failed}`)")
 
         else:
-            await ctx.simple(f"Ok Aborting.")
+            await ctx.simple("Ok Aborting.")
 
     @category.command(name="hide")
     @commands.has_permissions(manage_channels=True, manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
     async def category_hide(self, ctx: Context, *, category: QuoCategory):
         """Hide a category and all its channels"""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -534,7 +526,7 @@ class Utility(Cog, name="utility"):
     @commands.bot_has_permissions(manage_channels=True)
     async def category_unhide(self, ctx: Context, *, category: QuoCategory):
         """Unhide a hidden category and all its channels."""
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -566,7 +558,7 @@ class Utility(Cog, name="utility"):
         Delete a category completely and create a new one
         This will delete all the channels under the category and will make a new one with same perms and channels.
         """
-        if not len(category.channels):
+        if not category.channels:
             return await ctx.error(f"**{category}** doesn't have any channels.")
 
         prompt = await ctx.prompt(
@@ -590,7 +582,7 @@ class Utility(Cog, name="utility"):
             await ctx.success(f"Successfully nuked **{category}**. (Cloned: `{success}`, Failed: `{failed}`)")
 
         else:
-            await ctx.simple(f"Ok Aborting.")
+            await ctx.simple("Ok Aborting.")
 
     @commands.group(invoke_without_command=True)
     async def autopurge(self, ctx: Context):

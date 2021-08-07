@@ -38,9 +38,7 @@ async def get_channel(_type: LogType, guild) -> Optional[discord.TextChannel]:
 
     if not channel:
         return await handle_no_channel(_type, guild)
-
-    else:
-        return channel, color
+    return channel, color
 
 
 def truncate_string(value, max_length=128, suffix="..."):

@@ -165,19 +165,19 @@ class Votes(Cog):
         eztag = (await models.EasyTag.filter(guild_id=guild_id).all())[1:]
         points = (await models.PointsInfo.filter(guild_id=guild_id).all())[2:]
 
-        if len(scrims):
+        if scrims:
             await models.Scrim.filter(id__in=(scrim.id for scrim in scrims)).delete()
 
-        if len(tourneys):
+        if tourneys:
             await models.Tourney.filter(id__in=(tourney.id for tourney in tourneys)).delete()
 
-        if len(tagchecks):
+        if tagchecks:
             await models.TagCheck.filter(id__in=(tc.id for tc in tagchecks)).delete()
 
-        if len(eztag):
+        if eztag:
             await models.EasyTag.filter(id__in=(tc.id for tc in eztag)).delete()
 
-        if len(points):
+        if points:
             await models.PointsInfo.filter(id__in=(pt.id for pt in points)).delete()
 
         # TODO: remove this from cache too maybe

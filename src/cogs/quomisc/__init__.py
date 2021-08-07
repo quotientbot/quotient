@@ -137,15 +137,14 @@ class Quomisc(Cog, name="quomisc"):
         record = await Guild.get(guild_id=ctx.guild.id)
         if record.private_ch is not None:
             return await ctx.error(f"You already have a private channel ({record.private_ch.mention})")
-
-        else:
-            channel = await self.make_private_channel(ctx)
-            await ctx.success(f"Created {channel.mention}")
+        channel = await self.make_private_channel(ctx)
+        await ctx.success(f"Created {channel.mention}")
 
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
 
-    def format_commit(self, commit):  # source: R danny
+    @staticmethod
+    def format_commit(commit):  # source: R danny
         short, _, _ = commit.message.partition("\n")
         short_sha2 = commit.hex[0:6]
         commit_tz = timezone(timedelta(minutes=commit.commit_time_offset))
@@ -221,7 +220,6 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
-
         ping_at = time.monotonic()
         message = await ctx.send("Pinging...")
         diff = "%.2f" % (1000 * (time.monotonic() - ping_at))
@@ -240,7 +238,7 @@ class Quomisc(Cog, name="quomisc"):
         check = await Votes.get_or_none(user_id=ctx.author.id)
         if check:
             await Votes.filter(user_id=ctx.author.id).update(reminder=not (check.reminder))
-            await ctx.success(f"Turned vote-reminder {'ON' if not(check.reminder) else 'OFF'}!")
+            await ctx.success(f"Turned vote-reminder {'ON' if not check.reminder else 'OFF'}!")
         else:
             await Votes.create(user_id=ctx.author.id, reminder=True)
             await ctx.success(f"Turned vote-reminder ON!")

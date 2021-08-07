@@ -47,7 +47,7 @@ class ModEvents(Cog):
                 return
 
             for channel in check.channels:
-                if channel != None and channel.permissions_for(channel.guild.me).manage_channels:
+                if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
 
                     perms = channel.overwrites_for(channel.guild.default_role)
                     perms.send_messages = True
@@ -56,5 +56,5 @@ class ModEvents(Cog):
                     )
             await Lockdown.filter(guild_id=guild_id, type=LockType.guild).delete()
             channel = self.bot.get_channel(check.channel_id)
-            if channel != None and channel.permissions_for(channel.guild.me).send_messages:
+            if channel is not None and channel.permissions_for(channel.guild.me).send_messages:
                 await channel.send(f"Unlocked **server**.")

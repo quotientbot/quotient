@@ -129,12 +129,12 @@ async def add_role_and_reaction(ctx, role):
 
 
 async def already_reserved(scrim: Scrim):
-    return list(i.num for i in await scrim.reserved_slots.all())
+    return [i.num for i in await scrim.reserved_slots.all()]
 
 
 async def available_to_reserve(scrim: Scrim):
     reserved = await already_reserved(scrim)
-    return list(i for i in scrim.available_to_reserve if i not in reserved)
+    return [i for i in scrim.available_to_reserve if i not in reserved]
 
 
 async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, Tourney]):
@@ -183,7 +183,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
-    if scrim.autoslotlist and len(await scrim.teams_registered):
+    if scrim.autoslotlist and await scrim.teams_registered:
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
         with suppress(AttributeError, discord.Forbidden):
@@ -244,9 +244,7 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
         or not channel.permissions_for(me).add_reactions
     ):
         return False
-
-    else:
-        return True
+    return True
 
 
 async def check_tourney_requirements(bot, message: discord.Message, tourney: Tourney) -> bool:
@@ -369,18 +367,14 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
 
     if role == scrim.guild.default_role:
         return "@everyone"
-
-    else:
-        return getattr(role, "mention", "Role deleted!")
+    return getattr(role, "mention", "Role deleted!")
 
 
 def tourney_work_role(tourney: Tourney):
     role = tourney.open_role
     if role == tourney.guild.default_role:
         return "@everyone"
-
-    else:
-        return getattr(role, "mention", "Role deleted!")
+    return getattr(role, "mention", "Role deleted!")
 
 
 async def get_pretty_slotlist(scrim: Scrim):

@@ -150,7 +150,7 @@ class ScrimEvents(Cog):
 
         modrole = tourney.modrole
 
-        if modrole != None and modrole in message.author.roles:
+        if modrole is not None and modrole in message.author.roles:
             return
 
         if not before_registrations(message, tourney.role):
@@ -216,7 +216,6 @@ class ScrimEvents(Cog):
     @Cog.listener()
     async def on_scrim_open_timer_complete(self, timer: Timer):
         """This listener opens the scrim registration at time."""
-
         scrim_id = timer.kwargs["scrim_id"]
         scrim = await Scrim.get_or_none(pk=scrim_id)
 
@@ -385,14 +384,14 @@ class ScrimEvents(Cog):
 
             tags = set(re.findall(r"\b\d{18}\b|\b@\w+", message.content, re.IGNORECASE))
 
-            if not len(tags):
+            if not tags:
                 await message.add_reaction("❌")
                 return await ctx.reply(
                     "I couldn't find any discord tag in this form.\nYou can write your teammate's id , @their_name or @their_full_discord_tag",
                     delete_after=10,
                 )
 
-            members = list()
+            members = []
             for m in tags:
                 members.append(await EasyMemberConverter().convert(ctx, m))
 

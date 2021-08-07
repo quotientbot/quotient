@@ -197,11 +197,9 @@ def human_timedelta(dt, *, source=None, accuracy=3, brief=False, suffix=True):
 
     if len(output) == 0:
         return "now"
-    else:
-        if not brief:
-            return human_join(output, final="and") + suffix
-        else:
-            return " ".join(output) + suffix
+    if not brief:
+        return human_join(output, final="and") + suffix
+    return " ".join(output) + suffix
 
 
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}

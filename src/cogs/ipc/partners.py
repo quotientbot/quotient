@@ -19,7 +19,7 @@ class QuoPartners(IpcCog):
 
     @ipc.server.route()
     async def get_quo_partners(self, payload):
-        _list = list()
+        _list = []
 
         async for partner in Partner.all():
             guild: discord.Guild = self.bot.get_guild(partner.guild_id)

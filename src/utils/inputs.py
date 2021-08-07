@@ -100,11 +100,9 @@ async def integer_input(ctx, check, timeout=120, limits=(None, None), delete_aft
 
             if all(limits):
                 return low <= digit <= high
-            else:
-                if low is not None:
-                    return low <= digit
-                else:
-                    return high <= digit
+            if low is not None:
+                return low <= digit
+            return high <= digit
 
     try:
         message = await ctx.bot.wait_for("message", check=new_check, timeout=timeout)
@@ -184,5 +182,5 @@ async def text_or_embed(ctx, check, timeout=120, delete_after=False):
 
         return text
 
-    elif str(reaction.emoji) == keycap_digit(2):
+    if str(reaction.emoji) == keycap_digit(2):
         msg = await ctx.simple(f"embed ki .......")
