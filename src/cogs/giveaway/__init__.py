@@ -15,7 +15,8 @@ class Giveaways(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    def can_use_giveaways(self):
+    @staticmethod
+    def can_use_giveaways():
         async def predicate(ctx: Context):
             if ctx.author.guild_permissions.manage_guild or "giveaways" in (
                 role.name.lower() for role in ctx.author.roles
