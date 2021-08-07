@@ -45,7 +45,6 @@ def can_use_sm():
     """
     Returns True if the user has manage roles or scrim-mod role in the server.
     """
-
     async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "scrims-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
@@ -59,7 +58,6 @@ def can_use_tm():
     """
     Returns True if the user has manage roles or scrim-mod role in the server.
     """
-
     async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "tourney-mod" in (role.name.lower() for role in ctx.author.roles):
             return True

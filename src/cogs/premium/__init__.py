@@ -59,7 +59,6 @@ class Premium(Cog):
     @checks.is_premium_user()
     async def mycodes(self, ctx: Context):
         """Get all the redeem codes you have."""
-
         records = await Redeem.filter(user_id=ctx.author.id).order_by("-is_used")
 
         x = PrettyTable()

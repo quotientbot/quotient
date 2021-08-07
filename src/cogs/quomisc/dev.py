@@ -82,7 +82,6 @@ class Dev(Cog):
     @command_history.command(name="for")
     async def command_history_for(self, ctx, days: typing.Optional[int] = 7, *, command: str):
         """Command history for a command."""
-
         query = """SELECT *, t.success + t.failed AS "total"
                    FROM (
                        SELECT guild_id,
@@ -102,7 +101,6 @@ class Dev(Cog):
     @command_history.command(name="guild", aliases=["server"])
     async def command_history_guild(self, ctx, guild_id: int):
         """Command history for a guild."""
-
         query = """SELECT
                         CASE failed
                             WHEN TRUE THEN cmd || ' [!]'
@@ -122,7 +120,6 @@ class Dev(Cog):
     @commands.is_owner()
     async def command_history_user(self, ctx, user_id: int):
         """Command history for a user."""
-
         query = """SELECT
                         CASE failed
                             WHEN TRUE THEN cmd || ' [!]'
@@ -140,7 +137,6 @@ class Dev(Cog):
     @command_history.command(name="cog")
     async def command_history_cog(self, ctx, days: typing.Optional[int] = 7, *, cog: str = None):
         """Command history for a cog or grouped by a cog."""
-
         interval = datetime.timedelta(days=days)
         if cog is not None:
             cog = self.bot.get_cog(cog)

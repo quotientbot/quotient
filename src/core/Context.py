@@ -40,7 +40,6 @@ class Context(commands.Context):
         """
         An interactive reaction confirmation dialog.
         """
-
         if not self.channel.permissions_for(self.me).add_reactions:
             raise RuntimeError("Bot does not have Add Reactions permission.")
 

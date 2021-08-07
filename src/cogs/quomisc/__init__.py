@@ -219,7 +219,6 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
-
         ping_at = time.monotonic()
         message = await ctx.send("Pinging...")
         diff = "%.2f" % (1000 * (time.monotonic() - ping_at))
