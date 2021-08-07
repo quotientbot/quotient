@@ -919,7 +919,7 @@ class ScrimManager(Cog, name="Esports"):
 
             else:
                 teamlist = tuple(map(ctx.guild.get_member, record.members))
-                teammates = ", ".join(tuple(map(lambda x: str(x), teamlist)))
+                teammates = ", ".join(tuple(map(str, teamlist)))
                 all_here = ("No!", "Yes!")[all(teamlist)]
 
             y.add_row([idx, record.team_name, leader, teammates, all_here, record.jump_url])
