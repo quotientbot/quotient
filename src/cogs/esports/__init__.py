@@ -87,7 +87,8 @@ class ScrimManager(Cog, name="Esports"):
         """
         await ctx.send_help(ctx.command)
 
-    def config_embed(self, value, description: str):
+    @staticmethod
+    def config_embed(value, description: str):
         embed = discord.Embed(
             color=discord.Color(config.COLOR),
             title=f"🛠️ Scrims Manager ({value}/6)",
@@ -662,7 +663,8 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    def tcembed(self, value, description: str):
+    @staticmethod
+    def tcembed(value, description: str):
         embed = discord.Embed(
             color=discord.Color(config.COLOR),
             title=f"🛠️ Tournament Manager ({value}/5)",
