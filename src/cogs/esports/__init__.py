@@ -581,7 +581,7 @@ class ScrimManager(Cog, name="Esports"):
         Unban a banned team from a scrim.
         Use `all` to unban from all scrims.
         """
-        if len(scrim) == 1 and not user.id in await scrim.banned_user_ids():
+        if len(scrim) == 1 and not user.id in await scrim[0].banned_user_ids():
             return await ctx.send(
                 f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban all {str(user)}` to ban them."
             )
