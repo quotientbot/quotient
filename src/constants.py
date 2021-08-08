@@ -97,9 +97,11 @@ class LockType(Enum):
     category = "category"
     maintenance = "maintenance"
 
+
 class ScrimBanType(Enum):
     ban = "banned"
     unban = "unbanned"
+
 
 class EventType(Enum):
     meme = "meme"
