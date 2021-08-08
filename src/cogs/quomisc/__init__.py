@@ -159,8 +159,8 @@ class Quomisc(Cog, name="quomisc"):
         commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
         return "\n".join(self.format_commit(c) for c in commits)
 
-    @commands.command(aliases=('stats',))
-    async def about(self, ctx:Context):
+    @commands.command(aliases=("stats",))
+    async def about(self, ctx: Context):
         """Statistics of Quotient."""
         version = pkg_resources.get_distribution("discord.py").version
         revision = self.get_last_commits()
@@ -191,16 +191,16 @@ class Quomisc(Cog, name="quomisc"):
         else:
             guild_value = len(self.bot.guilds)
 
-        embed.add_field(name="Guilds", value=guild_value)
+        embed.add_field(name="Guilds", value=f"{guild_value:,}")
         embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
-        embed.add_field(name="Members", value=f"{total_members} Total\n{cached_members} cached")
+        embed.add_field(name="Members", value=f"{total_members:,} Total\n{cached_members:,} cached")
         embed.add_field(
             name="Channels",
-            value=f"{chnl_count[discord.ChannelType.text] + chnl_count[discord.ChannelType.voice]} total\n{chnl_count[discord.ChannelType.text]} text\n{chnl_count[discord.ChannelType.voice]} voice",
+            value=f"{chnl_count[discord.ChannelType.text] + chnl_count[discord.ChannelType.voice]:,} total\n{chnl_count[discord.ChannelType.text]:,} text\n{chnl_count[discord.ChannelType.voice]:,} voice",
         )
         embed.add_field(
             name="Total Commands Used",
-            value=f"{total_command_uses} globally\n{server_invokes} in this server\n{user_invokes} by you.",
+            value=f"{total_command_uses:,} globally\n{server_invokes:,} in this server\n{user_invokes:,} by you.",
         )
         embed.add_field(
             name="Stats", value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nIPM: {round(get_ipm(ctx.bot), 2)}"
@@ -388,25 +388,23 @@ class Quomisc(Cog, name="quomisc"):
                 "I am very sorry to be the bearer of bad news but for now we only allow servers with **8000+ members** to apply for "
                 f"Quotient's Partnership Program. \nYou can talk to [deadshot#7999]({self.bot.config.SERVER_LINK}) "
                 "if you plan to host more than 15 scrims with Quotient to get **1 Month Free Trial**."
-                )
-        
+            )
 
-        await ctx.send(
-            "Tell us about your server in 200 characters."
-        )
+        await ctx.send("Tell us about your server in 200 characters.")
 
         description = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
         if len(description) > 200:
-            return await ctx.error(f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200.")
+            return await ctx.error(
+                f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200."
+            )
 
         await ctx.send("ok")
-    
+
     @partnership.command(name="msg")
-    async def partnership_msg(self, ctx:Context, *,channel:QuoTextChannel):
+    async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
         """
         Send the monthly Promotion message
         """
-
 
 
 def setup(bot) -> None:
