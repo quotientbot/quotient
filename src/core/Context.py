@@ -4,6 +4,9 @@ import discord, asyncio
 from models.models import Guild
 import utils, io
 
+from async_property import async_property
+from models import BanLog
+
 
 class Context(commands.Context):
     def __init__(self, **kwargs):
@@ -21,6 +24,12 @@ class Context(commands.Context):
     @property
     def config(self):
         return self.bot.config
+
+    @async_property
+    async def banlog_channel(self):
+        record = await BanLog.get_or_none(guild_id=self.guild.id)
+        if record:
+            return record.channel
 
     @discord.utils.cached_property
     def replied_reference(self):
