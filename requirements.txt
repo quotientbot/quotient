@@ -3,6 +3,7 @@ aiofiles==0.7.0; python_version >= "3.6" and python_version < "4.0" and python_f
 aiohttp==3.7.4.post0; python_version >= "3.8" and python_full_version >= "3.5.3" and python_version < "4.0"
 aiosqlite==0.16.1; python_version >= "3.7" and python_version < "4.0"
 astunparse==1.6.3; python_full_version >= "3.8.0"
+async-property==0.2.1
 async-timeout==3.0.1; python_version >= "3.6" and python_full_version >= "3.5.3"
 asyncpg==0.22.0; python_full_version >= "3.5.0"
 attrs==21.2.0; python_version >= "3.6" and python_full_version >= "3.5.3"
@@ -24,6 +25,7 @@ discord.py==1.7.3; python_full_version >= "3.5.3"
 h11==0.12.0; python_version >= "3.7" and python_full_version >= "3.7.0"
 h2==4.0.0; python_version >= "3.7" and python_full_version >= "3.7.0"
 hpack==4.0.0; python_version >= "3.7" and python_full_version >= "3.7.0"
+humanize==3.11.0; python_version >= "3.6"
 hypercorn==0.11.2; python_version >= "3.7" and python_full_version >= "3.7.0"
 hyperframe==6.0.1; python_version >= "3.7" and python_full_version >= "3.7.0"
 idna==2.10; python_version >= "3.6" and python_full_version >= "3.5.3"
@@ -42,6 +44,7 @@ priority==2.0.0; python_version >= "3.7" and python_full_version >= "3.7.0"
 psutil==5.8.0; (python_version >= "2.6" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 pycparser==2.20; python_version >= "2.7" and python_full_version < "3.0.0" or python_full_version >= "3.4.0"
 pydantic==1.8.2; python_version >= "3.7" and python_version < "4.0" and python_full_version >= "3.6.1"
+pygit2==1.6.1
 pynacl==1.4.0; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
 pyparsing==2.4.7; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4.0" or python_version >= "3.7" and python_version < "4.0" and python_full_version >= "3.3.0"
 pypika-tortoise==0.1.1; python_version >= "3.7" and python_version < "4.0"
