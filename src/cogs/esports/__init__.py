@@ -13,15 +13,13 @@ from .utils import (
     toggle_channel,
     scrim_end_process,
     tourney_work_role,
-    embed_or_content,
     registration_close_embed,
     registration_open_embed,
-    setup_slotmanager,
 )
 
-from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate , QuoUser
+from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate, QuoUser
 
-from .converters import PointsConverter, ScrimConverter, TourneyConverter
+from .converters import PointsConverter, ScrimConverter, TourneyConverter, MultiScrimConverter
 from constants import EsportsType, IST, RegMsg, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
 from models import *
@@ -514,42 +512,53 @@ class ScrimManager(Cog, name="Esports"):
         else:
             await ctx.success(f"Alright! Aborting")
 
-    @smanager.command(name="ban")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_ban(self, ctx, scrim: ScrimConverter, user: QuoUser, *, time: FutureTime = None):
-        """
-        Ban someone from the scrims temporarily or permanently.
-        Time argument is optional.
-        """
-        if user.id in await scrim.banned_user_ids():
-            return await ctx.send(
-                f"**{str(user)}** is already banned from the scrims.\n\nUse `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
-            )
+    # @smanager.command(name="ban")
+    # @checks.can_use_sm()
+    # @checks.has_done_setup()
+    # async def s_ban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, time: FutureTime = None):
+    #     """
+    #     Ban someone from the scrims temporarily or permanently.
+    #     Time argument is optional.
+    #     """
+    #     expire_time = time.dt if time else None
 
-        if time is not None:
+    #     if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids():
+    #         return await ctx.send(
+    #             f"**{str(user)}** is already banned from the scrims.\n\n"
+    #             f"Use `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
+    #         )
 
-            expire_time = time.dt
-        else:
-            expire_time = None
+    #     prompt = await ctx.prompt("Do you want to give a reason for the ban?")
+    #     reason = None
+    #     if prompt:
+    #         await ctx.send("Enter reason:")
+    #         reason = await inputs.string_input(ctx, lambda msg: msg.author == ctx.author and msg.channel == ctx.channel)
 
-        ban = await BannedTeam.create(user_id=user.id, expires=expire_time)
-        await scrim.banned_teams.add(ban)
+    #     scrims = []
+    #     for s in scrim:
+    #         if not user.id in await s.banned_user_ids():
+    #             ban = await BannedTeam.create(user_id=user.id, expires=expire_time, reason=reason)
+    #             await s.banned_teams.add(ban)
+    #             scrims.append(s)
 
-        if time is not None:
-            await self.reminders.create_timer(
-                time.dt, "scrim_unban", scrim_id=scrim.id, user_id=user.id, banned_by=ctx.author.id
-            )
+    #             if time is not None:
+    #                 await self.reminders.create_timer(
+    #                     time.dt, "scrim_unban", scrim_id=s.id, user_id=user.id, banned_by=ctx.author.id
+    #                 )
 
-            await ctx.success(
-                f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`) for **{human_timedelta(time.dt)}**"
-            )
-        else:
-            await ctx.success(f"**{str(user)}** has been successfully banned from Scrim (`{scrim.id}`)")
+    #                 await ctx.success(
+    #                     f"**{str(user)}** has been successfully banned from Scrim `{s.id}`: {getattr(s.registration_channel, 'mention','Deleted Channel')}"
+    #                     f" for **{human_timedelta(time.dt)}**"
+    #                 )
 
+    #             else:
+    #                 await ctx.success(f"**{str(user)}** has been banned from Scrim `{s.id}`: {getattr(s.registration_channel, 'mention','Deleted Channel')}")
 
-        if scrim.banlog_channel:
-            return await log_scrim_ban(scrim, ScrimBanType.ban, user)
+    #     if not scrims:
+    #         return await ctx.send(
+    #             f"**{str(user)}** is already banned from all scrims.\n\n"
+    #             f"Use `{ctx.prefix}smanager unban all {str(user)}` to unban them."
+    #         )
 
     @smanager.command(name="unban")
     @checks.can_use_sm()
@@ -569,7 +578,6 @@ class ScrimManager(Cog, name="Esports"):
 
         if scrim.banlog_channel:
             return await log_scrim_ban(scrim, ScrimBanType.unban)
-
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)
@@ -1715,7 +1723,28 @@ class ScrimManager(Cog, name="Esports"):
     # @slotmanager.command(name="fix")
     # async def _slotmanager_fix(self, ctx:Context):
     #     """Fix slot manager"""
-        
+
+    @commands.command(name="banlog")
+    @checks.can_use_sm()
+    async def _banlog(self, ctx: Context, *, channel: QuoTextChannel=None):
+        """
+        Set a channel for all esports ban/unban logs
+        """
+        if not channel:
+            record = await BanLog.get_or_none(guild_id = ctx.guild.id)
+            if not record:
+                return await ctx.simple(
+                    f"You haven't setup any esports ban log channel yet.\n"
+                    f"Use `{ctx.prefix}banlog #{ctx.channel}` to do it."
+                )
+            
+            else:
+                return await ctx.simple(f"Currently {getattr(record.channel, 'mention', 'deleted-channel')} is serving as ban/unban log channel.")
+        if not channel.permissions_for(ctx.me).embed_links:
+            return await ctx.error(f"I need `embed_links` permission in {channel.mention} to send logs.")
+
+        await BanLog.update_or_create(guild_id=ctx.guild.id, defaults={"channel_id": channel.id})
+        await ctx.success(f"Successfully set {channel.mention} as esports ban/unban log channel.")
 
 
 def setup(bot):

@@ -5,6 +5,21 @@ from discord.ext.commands import Converter, BadArgument
 import tortoise.exceptions
 
 
+class MultiScrimConverter(Converter):
+    async def convert(self, ctx, argument: str):
+        try:
+            argument = int(argument)
+        except ValueError:
+            if str(argument).lower() == "all":
+                return await Scrim.filter(guild_id=ctx.guild.id).order_by("id")
+
+        else:
+            scrims = await Scrim.filter(pk=argument, guild_id=ctx.guild.id)
+            if scrims:
+                return scrims
+        raise BadArgument("Kindly enter a valid Scrim ID or use **`all`** if you want denote all scrims.")
+
+
 class ScrimConverter(Converter, Scrim):
     async def convert(self, ctx, argument: str):
         try:

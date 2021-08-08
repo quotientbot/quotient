@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
-from cogs.quomisc.helper import guild_msg_stats, member_msg_stats, format_relative, truncate_commit
+from cogs.quomisc.helper import format_relative, truncate_commit
 from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
 from core import Cog, Quotient, Context
-from models import Guild, Votes, Messages, User, Commands, Partner
+from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
 from utils import ColorConverter, QuoUser, string_input
 from collections import Counter

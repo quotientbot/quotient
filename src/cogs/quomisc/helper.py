@@ -76,14 +76,6 @@ async def tabulate_query(ctx, query, *args):
         await ctx.send(fmt)
 
 
-async def member_msg_stats(ctx: Context, member):
-    embed = ctx.bot.embed(ctx)
-
-
-async def guild_msg_stats(ctx):
-    pass
-
-
 def format_dt(dt, style=None):
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=datetime.timezone.utc)

@@ -26,6 +26,7 @@ __all__ = (
     "SSVerify",
     "SSData",
     "SlotManager",
+    "BanLog",
 )
 
 
@@ -179,7 +180,7 @@ class Scrim(models.Model):
     @property
     def banlog_channel(self):
         return self.bot.get_channel(self.banlog_channel_id)
-        
+
     @property
     def slotlist_channel(self):
         return self.bot.get_channel(self.slotlist_channel_id)
@@ -342,7 +343,21 @@ class BannedTeam(BaseSlot):
     class Meta:
         table = "sm.banned_teams"
 
+    reason = fields.CharField(max_length=200, null=True)
     expires = fields.DatetimeField(null=True)
+
+
+class BanLog(models.Model):
+    class Meta:
+        table = "esports_bans"
+
+    id = fields.IntField(pk=True)
+    guild_id = fields.BigIntField()
+    channel_id = fields.BigIntField()
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
 
 
 # ************************************************************************************************
