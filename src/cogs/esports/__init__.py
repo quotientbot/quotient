@@ -549,7 +549,12 @@ class ScrimManager(Cog, name="Esports"):
 
         if time is not None:
             await self.reminders.create_timer(
-                expire_time, "scrim_ban", scrims=[scrim.id for scrim in scrims], user_id=user.id, mod=ctx.author.id, reason=reason
+                expire_time,
+                "scrim_ban",
+                scrims=[scrim.id for scrim in scrims],
+                user_id=user.id,
+                mod=ctx.author.id,
+                reason=reason,
             )
 
         format = "\n".join(
