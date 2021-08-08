@@ -518,9 +518,9 @@ class ScrimManager(Cog, name="Esports"):
     async def s_ban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, time: FutureTime = None):
         """
         Ban someone from the scrims temporarily or permanently.
-        Time argument is optional.
+        Time argument is optional, use `all` in place of scrim id if you want to ban from all scrims.
         """
-        expire_time = time.dt if time else None
+        expire_time = time.dt + timedelta(seconds=10) if time else None
 
         if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids():
             return await ctx.send(
@@ -548,37 +548,63 @@ class ScrimManager(Cog, name="Esports"):
             )
 
         if time is not None:
-            await self.reminders.create_timer(time.dt, "scrim_ban", scrims=scrims, user_id=user.id, mod=ctx.author.id)
+            await self.reminders.create_timer(
+                expire_time, "scrim_ban", scrims=[scrim.id for scrim in scrims], user_id=user.id, mod=ctx.author.id, reason=reason
+            )
 
         format = "\n".join(
-            (f"✅ Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}" for scrim in scrims)
+            (
+                f"✅ Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
+                for scrim in scrims
+            )
         )
         await ctx.success(
-            f"**{user}** has been successfully banned {'for ' if time else ''}{human_timedelta(time.dt) if time else '' } "
+            f"**{user}** has been successfully banned {'for ' if time else ''}{human_timedelta(expire_time) if time else '' } "
             f"from:\n{format}"
         )
 
-        if await ctx.banlog_channel:
-            await log_scrim_ban()
+        if logs := await ctx.banlog_channel:
+            return await log_scrim_ban(
+                logs, scrims, ScrimBanType.ban, user, reason=reason, mod=ctx.author, expire_time=expire_time
+            )
 
     @smanager.command(name="unban")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_unban(self, ctx, scrim: MultiScrimConverter, user: QuoUser):
+    async def s_unban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, reason: str = None):
         """
         Unban a banned team from a scrim.
+        Use `all` to unban from all scrims.
         """
-        if not user.id in await scrim.banned_user_ids():
+        if len(scrim) == 1 and not user.id in await scrim.banned_user_ids():
             return await ctx.send(
-                f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban {str(user)}` to ban them."
+                f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban all {str(user)}` to ban them."
             )
 
-        ban = await scrim.banned_teams.filter(user_id=user.id).first()
-        await BannedTeam.filter(id=ban.id).delete()
-        await ctx.success(f"Successfully unbanned {str(user)} from Scrim (`{scrim.id}`)")
+        scrims = []
+        for s in scrim:
+            ban = await s.banned_teams.filter(user_id=user.id).first()
+            if ban:
+                await BannedTeam.filter(id=ban.id).delete()
+                scrims.append(s)
 
-        if scrim.banlog_channel:
-            return await log_scrim_ban(scrim, ScrimBanType.unban)
+        if not scrims:
+            return await ctx.send(
+                f"**{str(user)}** is not banned from scrims.\n\n"
+                f"Use `{ctx.prefix}smanager ban all {str(user)}` to ban them."
+            )
+
+        format = "\n".join(
+            (
+                f"✅ Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
+                for scrim in scrims
+            )
+        )
+
+        await ctx.success(f"Successfully unbanned {str(user)} from \n" f"{format}")
+
+        if logs := await ctx.banlog_channel:
+            return await log_scrim_ban(logs, scrims, ScrimBanType.unban, user, mod=ctx.author, reason=reason)
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)

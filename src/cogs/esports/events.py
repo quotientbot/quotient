@@ -1,6 +1,18 @@
-from models import EasyTag, TagCheck, Scrim, Tourney, AssignedSlot, ArrayRemove, TMSlot, Timer
+from models import (
+    EasyTag,
+    TagCheck,
+    Scrim,
+    Tourney,
+    AssignedSlot,
+    ArrayRemove,
+    TMSlot,
+    Timer,
+    BanLog,
+    BannedTeam,
+    SSVerify,
+    SSData,
+)
 from core import Quotient, Cog
-from models.esports import SSVerify, SSData
 from utils import emote
 from .utils import (
     available_to_reserve,
@@ -18,9 +30,10 @@ from .utils import (
     cannot_take_registration,
     check_tourney_requirements,
     registration_open_embed,
-    process_ss_attachment
+    process_ss_attachment,
+    log_scrim_ban,
 )
-from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError
+from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError, ScrimBanType
 from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
@@ -284,7 +297,6 @@ class ScrimEvents(Cog):
             with suppress(AttributeError):
                 self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
-
         await Scrim.filter(pk=scrim.id).update(
             opened_at=datetime.now(tz=IST),
             closed_at=None,
@@ -444,6 +456,45 @@ class ScrimEvents(Cog):
 
     # ==========================================================================================================
 
+    @Cog.listener()
+    async def on_scrim_ban_timer_complete(self, timer: Timer):
+        scrims = timer.kwargs["scrims"]
+        user_id = timer.kwargs["user_id"]
+        mod = timer.kwargs["mod"]
+        reason = timer.kwargs["reason"]
+
+        realreason = "[Auto-Unban] because ban time's up."
+        if reason:
+            reason += f"Banned for: {reason}"
+
+        scrims = await Scrim.filter(pk__in=scrims)
+        if not scrims:
+            return
+
+        guild = scrims[0].guild
+        if not guild:
+            return
+
+        banner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, mod)
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+        for scrim in scrims:
+            ban = await scrim.banned_teams.filter(user_id=user_id).first()
+            await BannedTeam.filter(pk=ban.id).delete()
+
+            logschan = scrim.logschan
+            if logschan is not None and logschan.permissions_for(guild.me).embed_links:
+                embed = discord.Embed(
+                    color=discord.Color.green(),
+                    description=f"{user} ({user_id}) have been unbanned from Scrim (`{scrim.id}`).\nThey were banned by {banner} ({mod}).",
+                )
+                await logschan.send(embed=embed)
+
+        banlog = await BanLog.get_or_none(guild_id=guild.id)
+        if banlog and banlog.channel:
+            await log_scrim_ban(banlog.channel, scrims, ScrimBanType.unban, user, reason=realreason, mod=self.bot.user)
+
+    # ==========================================================================================================
+
     @Cog.listener(name="on_message")
     async def on_ssverify_message(self, message: discord.Message):
         if not message.guild or message.author.bot:
@@ -459,7 +510,7 @@ class ScrimEvents(Cog):
 
         if not verify.sstoggle:
             return
-            
+
         delete_after = verify.delete_after if verify.delete_after else None
 
         if verify.mod_role_id in (role.id for role in message.author.roles):
@@ -548,7 +599,7 @@ class ScrimEvents(Cog):
                             status = SSStatus.approved
 
                         elif (current_hash := res.get("hash")) in hashes:
-                            await message.reply(f"You cannot copy/repeat same screenshots.",delete_after = delete_after)
+                            await message.reply(f"You cannot copy/repeat same screenshots.", delete_after=delete_after)
 
                         else:
                             url = IPC_BASE + "/image/match"
@@ -560,7 +611,7 @@ class ScrimEvents(Cog):
                             if newres.get("matches"):
                                 await message.reply(
                                     f"Your screenshot seem to be a duplicate of previously posted images.",
-                                    delete_after = delete_after
+                                    delete_after=delete_after,
                                 )
 
                             else:
@@ -577,8 +628,9 @@ class ScrimEvents(Cog):
 
                     if count > 1:
                         if slot.status == SSStatus.approved:
-                            await message.reply(f"{emote.check} | {attachment.filename} Verified.",delete_after = delete_after)
-
+                            await message.reply(
+                                f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after
+                            )
 
                 records = await verify.data.filter(author_id=message.author.id)
                 approved = sum(1 for i in records if i.status == SSStatus.approved)
@@ -603,7 +655,7 @@ class ScrimEvents(Cog):
 
                 else:
                     return await message.reply(
-                        delete_after = delete_after,
+                        delete_after=delete_after,
                         embed=discord.Embed(
                             color=self.bot.color,
                             description=(
@@ -612,5 +664,5 @@ class ScrimEvents(Cog):
                                 f"\n- `{disapproved}` disapproved screenshots."
                                 f"\n\nYou need a total of {verify.required_ss} approved screenshots."
                             ),
-                        )
+                        ),
                     )

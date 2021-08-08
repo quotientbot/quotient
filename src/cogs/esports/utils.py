@@ -8,13 +8,14 @@ from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime, emote, QuoUser
+from utils import find_team, strtime, emote, QuoUser, plural
 import discord
 import config
 import asyncio
 import re, json
 
-from constants import VerifyImageError, ScrimBanType
+from constants import VerifyImageError, ScrimBanType, IST
+from utils.time import human_timedelta
 
 
 def get_slots(slots):
@@ -27,8 +28,33 @@ def get_tourney_slots(slots):
         yield slot.leader_id
 
 
-async def log_scrim_ban(scrim:Scrim, status:ScrimBanType,user:QuoUser,**kwargs):
-    ...
+async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **kwargs):
+    mod = kwargs.get("mod")
+    reason = kwargs.get("reason") or "No Reason Provided..."
+    format = ", ".join((f"{getattr(scrim.registration_channel, 'mention','deleted-channel')}" for scrim in scrims))
+
+    if status == ScrimBanType.ban:
+        expire_time = kwargs.get("expire_time")
+
+        embed = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(len(scrims)):Scrim|Scrims}")
+        embed.add_field(name="User", value=f"{user} ({user.mention})")
+        embed.add_field(name="Moderator", value=mod)
+        embed.add_field(name="Effected Scrims", value=format, inline=False)
+        embed.add_field(name="Reason", value=reason, inline=False)
+
+        if expire_time:
+            embed.set_footer(text=f"Expires in {human_timedelta(expire_time)}")
+
+    else:
+        embed = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from {plural(len(scrims)):Scrim|Scrims}")
+        embed.add_field(name="User", value=f"{user} ({user.mention})")
+        embed.add_field(name="Moderator", value=mod)
+        embed.add_field(name="Effected Scrims", value=format, inline=False)
+        embed.add_field(name="Reason", value=reason, inline=False)
+
+    with suppress(AttributeError, discord.HTTPException, discord.Forbidden):
+        embed.timestamp = datetime.now(tz=IST)
+        await channel.send(embed=embed)
 
 
 async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
