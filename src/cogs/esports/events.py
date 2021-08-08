@@ -248,7 +248,7 @@ class ScrimEvents(Cog):
             scrim_id=scrim.id,
         )  # we don't want to risk this
 
-        if scrim.toggle != True or not Day(utils.day_today()) in scrim.open_days:
+        if scrim.toggle is not True or not Day(utils.day_today()) in scrim.open_days:
             return
 
         if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime(
@@ -340,7 +340,7 @@ class ScrimEvents(Cog):
 
         ignore_role = tagcheck.ignorerole
 
-        if ignore_role != None and ignore_role in message.author.roles:
+        if ignore_role is not None and ignore_role in message.author.roles:
             return
 
         with suppress(discord.Forbidden, discord.NotFound):
@@ -388,7 +388,7 @@ class ScrimEvents(Cog):
 
         ignore_role = eztag.ignorerole
 
-        if ignore_role != None and ignore_role in message.author.roles:
+        if ignore_role is not None and ignore_role in message.author.roles:
             return
 
         with suppress(discord.Forbidden, discord.NotFound):

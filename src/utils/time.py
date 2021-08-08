@@ -109,10 +109,10 @@ def day_today():
 
 def strtime(target):
     return target.strftime("%d-%b-%Y %I:%M %p")
-    
+
+
 # def strtime(target):
 #     return f"<t:{int(target.timestamp())}:R>"
-
 
 
 class plural:

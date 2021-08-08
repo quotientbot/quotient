@@ -124,7 +124,7 @@ perks = {
     "Auto-Event Interval": ["❌", "✅"],
     "Ptable Setup": ["2", "Unlimited"],
     "Edit Ptable Watermark": ["❌", "✅"],
-    "Autopurge":["1","Unlimited"]
+    "Autopurge": ["1", "Unlimited"],
 }
 
 
@@ -156,7 +156,7 @@ tips = (
     "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "You can look into my source code, use `source` command.",
-    "You can get a zipfile of all your server emojis with `zipemojis` command."
+    "You can get a zipfile of all your server emojis with `zipemojis` command.",
 )
 
 

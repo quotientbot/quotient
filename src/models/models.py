@@ -502,6 +502,7 @@ class AutoPurge(models.Model):
     def channel(self):
         return self.bot.get_channel(self.channel_id)
 
+
 class Partner(models.Model):
     class Meta:
         table = "partners"

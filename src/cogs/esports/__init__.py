@@ -1459,7 +1459,7 @@ class ScrimManager(Cog, name="Esports"):
 
                 if "-" in line_values[0]:
                     range_idx = line_values[0].split("-")
-                    num_range = [i for i in range(int(range_idx[0]), int(range_idx[1]) + 1)]
+                    num_range = list(range(int(range_idx[0]), int(range_idx[1]) + 1))
                     for key in num_range:
                         result[key] = points
                 else:
