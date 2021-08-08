@@ -37,7 +37,7 @@ async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **
         expire_time = kwargs.get("expire_time")
 
         embed = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(len(scrims)):Scrim|Scrims}")
-        embed.add_field(name="User", value=f"{user} ({user.mention})")
+        embed.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
         embed.add_field(name="Moderator", value=mod)
         embed.add_field(name="Effected Scrims", value=format, inline=False)
         embed.add_field(name="Reason", value=reason, inline=False)
@@ -47,14 +47,14 @@ async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **
 
     else:
         embed = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from {plural(len(scrims)):Scrim|Scrims}")
-        embed.add_field(name="User", value=f"{user} ({user.mention})")
+        embed.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
         embed.add_field(name="Moderator", value=mod)
         embed.add_field(name="Effected Scrims", value=format, inline=False)
         embed.add_field(name="Reason", value=reason, inline=False)
 
     with suppress(AttributeError, discord.HTTPException, discord.Forbidden):
         embed.timestamp = datetime.now(tz=IST)
-        await channel.send(embed=embed)
+        await channel.send(content=getattr(user, 'mention','unknown-user'), embed=embed)
 
 
 async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
