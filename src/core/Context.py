@@ -45,7 +45,7 @@ class Context(commands.Context):
 
         fmt = f"**{message}**\n\nReact with \N{WHITE HEAVY CHECK MARK} to confirm or \N{CROSS MARK} to deny."
         embed = discord.Embed(description=fmt, color=self.config.COLOR)
-        if title != None:
+        if title is not None:
             embed.title = title
         author_id = author_id or self.author.id
         msg = await self.send(embed=embed)

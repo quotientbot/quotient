@@ -92,7 +92,7 @@ class Fun(Cog):
         if not channel.permissions_for(ctx.me).manage_webhooks:
             return await ctx.error(f"I need `manage_webhooks` permission in **{channel}**")
 
-        if channel.is_nsfw() == False:
+        if channel.is_nsfw() is False:
             return await ctx.error("The channel is not NSFW.")
 
         record = await insert_or_update_config(ctx, EventType.nsfw, channel)
