@@ -186,10 +186,7 @@ class Quomisc(Cog, name="quomisc"):
         embed.colour = self.bot.color
         embed.set_author(name=str(owner), icon_url=owner.avatar_url)
 
-        if len(self.bot.guilds) % 1000 == 000 or len(self.bot.guilds) % 100 < 10:
-            guild_value = f"{len(self.bot.guilds)} 🎉"
-        else:
-            guild_value = len(self.bot.guilds)
+        guild_value = len(self.bot.guilds)
 
         embed.add_field(name="Guilds", value=f"{guild_value:,}")
         embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
