@@ -15,8 +15,7 @@ class Mod(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @staticmethod
-    def cog_check(ctx):
+    def cog_check(self, ctx):
         return ctx.guild is not None
 
     @commands.command()
