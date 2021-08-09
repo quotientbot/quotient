@@ -373,38 +373,38 @@ class Quomisc(Cog, name="quomisc"):
     #     else:
     #         await guild_msg_stats(ctx)
 
-    @commands.group(invoke_without_command=True)
-    async def partnership(self, ctx: Context):
-        ...
+    # @commands.group(invoke_without_command=True)
+    # async def partnership(self, ctx: Context):
+    #     ...
 
-    @partnership.command(name="apply")
-    @commands.has_permissions(manage_guild=True)
-    async def partner_apply(self, ctx: Context):
-        """
-        Apply for a Quotient partnership program.
-        """
-        if not ctx.guild.member_count <= 8000:
-            return await ctx.error(
-                "I am very sorry to be the bearer of bad news but for now we only allow servers with **8000+ members** to apply for "
-                f"Quotient's Partnership Program. \nYou can talk to [deadshot#7999]({self.bot.config.SERVER_LINK}) "
-                "if you plan to host more than 15 scrims with Quotient to get **1 Month Free Trial**."
-            )
+    # @partnership.command(name="apply")
+    # @commands.has_permissions(manage_guild=True)
+    # async def partner_apply(self, ctx: Context):
+    #     """
+    #     Apply for a Quotient partnership program.
+    #     """
+    #     if not ctx.guild.member_count <= 8000:
+    #         return await ctx.error(
+    #             "I am very sorry to be the bearer of bad news but for now we only allow servers with **8000+ members** to apply for "
+    #             f"Quotient's Partnership Program. \nYou can talk to [deadshot#7999]({self.bot.config.SERVER_LINK}) "
+    #             "if you plan to host more than 15 scrims with Quotient to get **1 Month Free Trial**."
+    #         )
 
-        await ctx.send("Tell us about your server in 200 characters.")
+    #     await ctx.send("Tell us about your server in 200 characters.")
 
-        description = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
-        if len(description) > 200:
-            return await ctx.error(
-                f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200."
-            )
+    #     description = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
+    #     if len(description) > 200:
+    #         return await ctx.error(
+    #             f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200."
+    #         )
 
-        await ctx.send("ok")
+    #     await ctx.send("ok")
 
-    @partnership.command(name="msg")
-    async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
-        """
-        Send the monthly Promotion message
-        """
+    # @partnership.command(name="msg")
+    # async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
+    #     """
+    #     Send the monthly Promotion message
+    #     """
 
 
 def setup(bot) -> None:
