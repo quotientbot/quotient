@@ -62,7 +62,7 @@ class ScrimEvents(Cog):
         self.scrim_registration_worker.stop()
         self.tourney_registration_worker.stop()
 
-    @tasks.loop(seconds=2, reconnect=True)
+    @tasks.loop(seconds=1.5, reconnect=True)
     async def scrim_registration_worker(self):
         while not self.scrim_queue.empty():
             queue_message: QueueMessage = await self.scrim_queue.get()
