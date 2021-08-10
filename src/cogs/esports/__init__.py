@@ -1752,7 +1752,7 @@ class ScrimManager(Cog, name="Esports"):
     #         return await ctx.success("Alright, Aborting")
 
     #     await ctx.send("Creating channels...", delete_after=2)
-    #     await setup_slotmanager(ctx)
+    #     # await setup_slotmanager(ctx)
 
     # @slotmanager.command(name="delete")
     # @commands.has_permissions(manage_guild=True)
@@ -1762,6 +1762,16 @@ class ScrimManager(Cog, name="Esports"):
     # @slotmanager.command(name="fix")
     # async def _slotmanager_fix(self, ctx:Context):
     #     """Fix slot manager"""
+
+    
+    # @slotmanager.command(name="lock")
+    # async def _slotmanager_lock(self, ctx:Context):
+    #     """Lock slot management of any scrim"""
+    
+    # @slotmanager.command(name="unlock")
+    # async def _slotmanager_unlock(self, ctx:Context):
+    #     """Unlock slot management for any scrim"""
+
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
