@@ -65,6 +65,7 @@ class RegDeny(Enum):
     noteamname = "no_team_name"
     reqperms = "lack_permissions"
     duplicate = "duplicate_name"
+    bannedteammate = "banned_teammate"
 
 
 class RegMsg(Enum):

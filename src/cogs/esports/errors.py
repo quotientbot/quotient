@@ -263,6 +263,15 @@ class SMError(Cog):
                 )
                 text += f"No duplicate team names is ON and someone has already registered with the same team name\nIf you wish to allow duplicate team names,\nUse: `smanager edit {scrim.id}`"
 
+            # elif _type == RegDeny.bannedteammate:
+            #     await message.reply(
+            #         embed = self.red_embed(
+            #             f"{str(message.author)}, Your registration cannot be accepted because one your teammates is banned from scrims."
+            #     ),
+            #     delete_after = 5,
+            #     )
+            #     text += f"One of their teammate is banned from scrims."
+
             if scrim.autodelete_rejects:
                 self.bot.loop.create_task(delete_denied_message(message))
 

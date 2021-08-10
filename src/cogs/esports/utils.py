@@ -318,9 +318,13 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.nomention, scrim)
 
-    elif message.author.id in await scrim.banned_user_ids():
+    elif message.author.id in (banned := await scrim.banned_user_ids()):
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.banned, scrim)
+    
+    # elif any(x in banned for x in (i.id for i in message.mentions)):
+    #     _bool = False
+    #     bot.dispatch("scrim_registration_deny", message, constants.RegDeny.bannedteammate, scrim)
 
     elif not scrim.multiregister and message.author.id in get_slots(await scrim.assigned_slots.all()):
         _bool = False
