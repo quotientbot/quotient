@@ -53,7 +53,7 @@ async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **
 
     with suppress(AttributeError, discord.HTTPException, discord.Forbidden):
         embed.timestamp = datetime.now(tz=IST)
-        await channel.send(content=getattr(user, 'mention','unknown-user'), embed=embed)
+        await channel.send(content=getattr(user, "mention", "unknown-user"), embed=embed)
 
 
 async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
@@ -90,10 +90,15 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
     )
 
 
-async def get_cancel_slot_message(guild: discord.Guild):
-    ...
+def get_cancel_slot_message(guild: discord.Guild):
+    embed = discord.Embed(color=config.COLOR, title="Cancel your Scrims Slot")
+    embed.description = (
+        f"Kindly react the below message with __ to cancel your slot.\n"
+        "Please Note that the **action is irreversible.**"
+    )
 
-async def get_claim_slot_message(guild: discord.Guild):
+
+def get_claim_slot_message():
     ...
 
 
@@ -319,7 +324,7 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
     elif message.author.id in (banned := await scrim.banned_user_ids()):
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.banned, scrim)
-    
+
     # elif any(x in banned for x in (i.id for i in message.mentions)):
     #     _bool = False
     #     bot.dispatch("scrim_registration_deny", message, constants.RegDeny.bannedteammate, scrim)

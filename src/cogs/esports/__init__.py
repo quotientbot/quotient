@@ -1735,7 +1735,7 @@ class ScrimManager(Cog, name="Esports"):
     #     if check:
     #         return await ctx.error(
     #             "It seems that you have an existing slotmanager setup in your server."
-    #             f"\nKindly use `{ctx.prefix}slotmanager delete` if you want to delete that setup."
+    #             f"\nKindly use `{ctx.prefix}slotmanager fix` if you think there's something wrong."
     #         )
 
     #     check = await Scrim.filter(guild_id=ctx.guild.id)
@@ -1745,6 +1745,11 @@ class ScrimManager(Cog, name="Esports"):
     #             "\nYou need to use Quotient's scrims manager to use slotmanager."
     #         )
 
+
+    #     await ctx.simple(
+    #         "In which channel do you want me to post available slots?\n"
+    #         "As soon as any slot becomes vacant, I will post a message in the channel you select now."
+    #     )
     #     prompt = await ctx.prompt(
     #         "Two new channels for scrims slot management will be created. Are you sure you want to continue?"
     #     )
