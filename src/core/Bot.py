@@ -12,6 +12,7 @@ from .Context import Context
 from datetime import datetime
 from utils import cache, IST
 from typing import NoReturn, Optional
+from async_property import async_property
 import aiohttp, asyncio, os
 import config, constants
 import itertools
@@ -19,6 +20,7 @@ import traceback
 import discord
 import mystbin
 import dbl
+import time
 
 init(autoreset=True)
 intents = Intents.default()
@@ -174,6 +176,14 @@ class Quotient(commands.AutoShardedBot):
     def reminders(self) -> Reminders:  # since we use it a lot
         return self.get_cog("Reminders")
 
+
+    @async_property
+    async def db_latency(self):
+        t1 = time.perf_counter()
+        await self.db.execute("SELECT 1;")
+        t2 = time.perf_counter() - t1
+        return f"{t2*1000:.2f} ms"
+
     @staticmethod
     async def getch(get_method, fetch_method, _id):  # why does c have all the fun?
         try:
@@ -182,6 +192,9 @@ class Quotient(commands.AutoShardedBot):
             return None
         else:
             return _result
+
+
+
 
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)

@@ -8,14 +8,13 @@ from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime, emote, QuoUser, plural
+from utils import find_team, strtime, emote, QuoUser, plural, human_timedelta
 import discord
 import config
 import asyncio
 import re, json
 
 from constants import VerifyImageError, ScrimBanType, IST
-from utils.time import human_timedelta
 
 
 def get_slots(slots):
@@ -93,7 +92,6 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
 
 async def get_cancel_slot_message(guild: discord.Guild):
     ...
-
 
 async def get_claim_slot_message(guild: discord.Guild):
     ...
