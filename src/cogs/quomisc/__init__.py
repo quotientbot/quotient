@@ -200,7 +200,7 @@ class Quomisc(Cog, name="quomisc"):
             value=f"{total_command_uses:,} globally\n{server_invokes:,} in this server\n{user_invokes:,} by you.",
         )
         embed.add_field(
-            name="Stats", value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nIPM: {round(get_ipm(ctx.bot), 2)}"
+            name="Stats", value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nDatabase: {await self.bot.db_latency}\nIPM: {round(get_ipm(ctx.bot), 2)}"
         )
         embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
         embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
