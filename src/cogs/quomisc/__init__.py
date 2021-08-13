@@ -475,7 +475,7 @@ class Quomisc(Cog, name="quomisc"):
                 "- Lifetime Quotient Premium.\n"
                 "- Special Partner Role to the owner in our support server.\n"
                 "- Free lifetime promotions on our official site, along with your invite link.\n"
-                "- Lifetime entery of your server in `partners` page on our site.\n"
+                "- Lifetime entry of your server in `partners` page on our site.\n"
             ),
             inline=False,
         )
