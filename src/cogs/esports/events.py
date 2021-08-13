@@ -598,7 +598,7 @@ class ScrimEvents(Cog):
                     status = SSStatus.approved
 
                 elif (current_hash := res.get("hash")) in hashes:
-                    await message.reply(f"You cannot copy/repeat same screenshots.", delete_after=delete_after)
+                    await message.reply("You cannot copy/repeat same screenshots.", delete_after=delete_after)
 
                 else:
                     url = IPC_BASE + "/image/match"
@@ -609,7 +609,7 @@ class ScrimEvents(Cog):
                     newres = await newres.json()
                     if newres.get("matches"):
                         await message.reply(
-                            f"Your screenshot seem to be a duplicate of previously posted images.",
+                            "Your screenshot seem to be a duplicate of previously posted images.",
                             delete_after=delete_after,
                         )
 
@@ -625,11 +625,10 @@ class ScrimEvents(Cog):
             )
             await verify.data.add(slot)
 
-            if count > 1:
-                if slot.status == SSStatus.approved:
-                    await message.reply(
-                        f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after
-                    )
+            if count > 1 and slot.status == SSStatus.approved:
+                await message.reply(
+                    f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after
+                )
 
         records = await verify.data.filter(author_id=message.author.id)
         approved = sum(1 for i in records if i.status == SSStatus.approved)
