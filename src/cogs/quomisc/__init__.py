@@ -373,6 +373,7 @@ class Quomisc(Cog, name="quomisc"):
 
     @commands.group(invoke_without_command=True)
     async def partnership(self, ctx: Context):
+        """Be a partner of a cool Esports management bot."""
         await ctx.send_help(ctx.command)
 
     @partnership.command(name="apply")
