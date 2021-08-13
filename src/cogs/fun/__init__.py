@@ -157,7 +157,7 @@ class Fun(Cog):
                 f"Which autoevent do you want to toggle?\nValid options are: {displayable_options}.\n\nExample: `{ctx.prefix}autotoggle automeme`"
             )
 
-        elif eventype.lower() not in valids:
+        if eventype.lower() not in valids:
             return await ctx.send(
                 f"What you chose isn't a valid option mate!\nChoose from: {displayable_options}.\n\nExample: `{ctx.prefix}autotoggle autofact`"
             )

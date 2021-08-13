@@ -397,7 +397,7 @@ class Quomisc(Cog, name="quomisc"):
             if record.status == PartnerRequest.pending:
                 return await ctx.error(f"You have already submitted a request and its pending review, please wait.")
 
-            elif record.status == PartnerRequest.approved:
+            if record.status == PartnerRequest.approved:
                 return await ctx.error(f"You have already been approved for the program.")
 
         await ctx.send("Tell us about your server in 200 characters.")
@@ -454,15 +454,13 @@ class Quomisc(Cog, name="quomisc"):
         if record.status == PartnerRequest.pending:
             return await ctx.simple("Your Quotient Partnership Program Application is pending review.")
 
-        elif record.status == PartnerRequest.approved:
+        if record.status == PartnerRequest.approved:
             return await ctx.simple("Your server is a member of Quotient's Partnership Program.")
-
-        else:
-            mod = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.mod)
-            return await ctx.simple(
-                f"Your application for Quotient's Partnership Program was denied by **{mod}**."
-                f"**Reason**: {record.review_note or 'No Reason Given...'}"
-            )
+        mod = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.mod)
+        return await ctx.simple(
+            f"Your application for Quotient's Partnership Program was denied by **{mod}**."
+            f"**Reason**: {record.review_note or 'No Reason Given...'}"
+        )
 
     @partnership.command(name="info")
     async def partnership_info(self, ctx: Context):
