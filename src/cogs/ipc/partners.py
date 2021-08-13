@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import typing
-
 import discord
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
+
+from constants import PartnerRequest
 from .base import IpcCog
 from discord.ext import ipc
 
@@ -21,7 +22,7 @@ class QuoPartners(IpcCog):
     async def get_quo_partners(self, payload):
         _list = []
 
-        async for partner in Partner.all():
+        async for partner in Partner.filter(status=PartnerRequest.approved):
             guild: discord.Guild = self.bot.get_guild(partner.guild_id)
             if not guild:
                 continue

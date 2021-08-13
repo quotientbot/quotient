@@ -512,3 +512,9 @@ class Partner(models.Model):
     description = fields.CharField(max_length=200)
     invite = fields.CharField(max_length=100)
     created_at = fields.DatetimeField(auto_now=True)
+
+    status = fields.CharEnumField(constants.PartnerRequest, default=constants.PartnerRequest.pending)
+    mod = fields.BigIntField(null=True)
+    review_note = fields.CharField(max_length=500, null=True)
+    review_time = fields.DatetimeField(null=True)
+    message_id = fields.BigIntField(null=True)

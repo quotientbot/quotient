@@ -20,6 +20,12 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class PartnerRequest(Enum):
+    pending = "1"
+    approved = "2"
+    denied = "3"
+
+
 class EsportsType(Enum):
     tourney = "tourney"
     scrim = "scrim"
