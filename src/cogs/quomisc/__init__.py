@@ -488,6 +488,8 @@ class Quomisc(Cog, name="quomisc"):
                 "- Monthly promotion with everyone ping.\n"
             ),
         )
+
+        embed.set_footer(text="Fulfilling the requirements does not gurantee you partnership, our team have the sole right to accept or deny your application")
         await ctx.send(embed=embed, embed_perms=True)
 
     # @partnership.command(name="msg")
