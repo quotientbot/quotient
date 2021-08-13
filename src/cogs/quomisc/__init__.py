@@ -484,13 +484,13 @@ class Quomisc(Cog, name="quomisc"):
             name="Requirements",
             value=(
                 "- Atleast 8000 members in your server.\n"
-                "- Willing to have seprate channel containg your description on your server.\n"
+                "- Willing to have separate channel containing our description on your server.\n"
                 "- Monthly promotion with everyone ping.\n"
             ),
         )
 
         embed.set_footer(
-            text="Note that Fulfilling the requirements does not guarantee you partnership, our team have the sole right to accept or deny your application"
+            text="Note that fulfilling the requirements does not guarantee you partnership, our team have the sole right to accept or deny your application"
         )
         await ctx.send(embed=embed, embed_perms=True)
 
