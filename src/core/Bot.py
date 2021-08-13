@@ -71,13 +71,16 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def config(self):
+        """import and return config.py"""
         return __import__("config")
 
     @property
     def db(self):
+        """to execute raw queries"""
         return Tortoise.get_connection("default")._pool
 
     async def init_quo(self):
+        """Instantiating aiohttps ClientSession and asking ORM to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
@@ -88,6 +91,7 @@ class Quotient(commands.AutoShardedBot):
             model.bot = self
 
     async def get_prefix(self, message: discord.Message) -> str:
+        """Get a guild's prefix"""
         if not message.guild:
             return
 
