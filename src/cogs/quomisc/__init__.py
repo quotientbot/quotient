@@ -490,7 +490,7 @@ class Quomisc(Cog, name="quomisc"):
         )
 
         embed.set_footer(
-            text="Note that Fulfilling the requirements does not gurantee you partnership, our team have the sole right to accept or deny your application"
+            text="Note that Fulfilling the requirements does not guarantee you partnership, our team have the sole right to accept or deny your application"
         )
         await ctx.send(embed=embed, embed_perms=True)
 
