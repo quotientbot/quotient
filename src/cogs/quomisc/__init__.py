@@ -424,7 +424,7 @@ class Quomisc(Cog, name="quomisc"):
         if not channels:
             return await ctx.error(f"I do not have perms to create invite in any channel, please gib me perms.")
 
-        invite = await channels[0].create_invite(reason="Partner program application")
+        invite = await channels[0].create_invite(reason="Partner program application", unique=False)
 
         embed = discord.Embed(color=self.bot.color, title=f"{ctx.guild.name} ({ctx.guild.member_count})", url=str(invite))
         embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar_url)
