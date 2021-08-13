@@ -432,6 +432,9 @@ class ScrimEvents(Cog):
         await Scrim.filter(pk=scrim.id).update(autoclean_time=scrim.autoclean_time + timedelta(hours=24))
         await self.bot.reminders.create_timer(scrim.autoclean_time + timedelta(hours=24), "autoclean", scrim_id=scrim.id)
 
+        if not scrim.toggle:
+            return
+
         if AutocleanType.channel in scrim.autoclean:
             self.bot.loop.create_task(purge_channel(scrim.registration_channel))
 

@@ -48,7 +48,6 @@ class Quotient(commands.AutoShardedBot):
         )
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
-        self.config = config
         self.color = config.COLOR
         self.start_time = datetime.now(tz=IST)
         self.cmd_invokes = 0
@@ -69,6 +68,10 @@ class Quotient(commands.AutoShardedBot):
                 tbe = "".join(tb) + ""
                 print(Fore.RED + f"[WARNING] Could not load extension {ext}: {tbe}")
         print(Fore.RED + "-----------------------------------------------------")
+
+    @property
+    def config(self):
+        return __import__("config")
 
     @property
     def db(self):
