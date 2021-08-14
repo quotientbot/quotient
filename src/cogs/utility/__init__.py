@@ -378,6 +378,7 @@ class Utility(Cog, name="utility"):
         await paginator.paginate()
 
     @tag.command(name="purge")
+    @commands.has_guild_permissions(manage_guild=True)
     async def purge_tags(self, ctx: Context, member: QuoMember):
         """Delete all the tags of a member"""
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
