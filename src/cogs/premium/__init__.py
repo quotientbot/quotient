@@ -80,7 +80,7 @@ class Premium(Cog):
         if not code:
             return await ctx.send("That's an invalid code :c")
 
-        elif code.is_used:
+        if code.is_used:
             return await ctx.send(f"You are late bud! Someone already redeemed it.")
 
         guild = await Guild.get(guild_id=ctx.guild.id)

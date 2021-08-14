@@ -1791,11 +1791,9 @@ class ScrimManager(Cog, name="Esports"):
                     f"You haven't setup any esports ban log channel yet.\n"
                     f"Use `{ctx.prefix}banlog #{ctx.channel}` to do it."
                 )
-
-            else:
-                return await ctx.simple(
-                    f"Currently {getattr(record.channel, 'mention', 'deleted-channel')} is serving as ban/unban log channel."
-                )
+            return await ctx.simple(
+                f"Currently {getattr(record.channel, 'mention', 'deleted-channel')} is serving as ban/unban log channel."
+            )
         if not channel.permissions_for(ctx.me).embed_links:
             return await ctx.error(f"I need `embed_links` permission in {channel.mention} to send logs.")
 

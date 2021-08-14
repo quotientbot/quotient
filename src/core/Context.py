@@ -72,7 +72,7 @@ class Context(commands.Context):
             if codepoint == "\N{WHITE HEAVY CHECK MARK}":
                 confirm = True
                 return True
-            elif codepoint == "\N{CROSS MARK}":
+            if codepoint == "\N{CROSS MARK}":
                 confirm = False
                 return True
 

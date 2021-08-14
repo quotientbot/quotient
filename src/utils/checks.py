@@ -49,8 +49,7 @@ def can_use_sm():
     async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "scrims-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
-        else:
-            raise SMNotUsable()
+        raise SMNotUsable()
 
     return commands.check(predicate)
 
@@ -63,8 +62,7 @@ def can_use_tm():
     async def predicate(ctx: Context):
         if ctx.author.guild_permissions.manage_guild or "tourney-mod" in (role.name.lower() for role in ctx.author.roles):
             return True
-        else:
-            raise TMNotUsable()
+        raise TMNotUsable()
 
     return commands.check(predicate)
 
