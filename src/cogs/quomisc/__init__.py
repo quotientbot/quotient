@@ -233,6 +233,7 @@ class Quomisc(Cog, name="quomisc"):
 
     @commands.command()
     async def voteremind(self, ctx: Context):
+        """Get a reminder when your vote expires"""
         check = await Votes.get_or_none(user_id=ctx.author.id)
         if check:
             await Votes.filter(user_id=ctx.author.id).update(reminder=not (check.reminder))
@@ -244,7 +245,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     async def prefix(self, ctx, *, new_prefix: str):
-
+        """Change your server's prefix"""
         if len(new_prefix) > 5:
             return await ctx.error(f"Prefix cannot contain more than 5 characters.")
 
@@ -256,6 +257,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.has_permissions(manage_guild=True)
     @checks.is_premium_guild()
     async def color(self, ctx, *, new_color: ColorConverter):
+        """Change color of Quotient's embeds"""
         color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
 
         self.bot.guild_data[ctx.guild.id]["color"] = color
@@ -266,6 +268,7 @@ class Quomisc(Cog, name="quomisc"):
     @checks.is_premium_guild()
     @commands.has_permissions(manage_guild=True)
     async def footer(self, ctx, *, new_footer: str):
+        """Change footer of embeds sent by Quotient"""
         if len(new_footer) > 50:
             return await ctx.success(f"Footer cannot contain more than 50 characters.")
 
