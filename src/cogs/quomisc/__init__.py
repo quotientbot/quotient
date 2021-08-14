@@ -188,7 +188,7 @@ class Quomisc(Cog, name="quomisc"):
 
         guild_value = len(self.bot.guilds)
 
-        embed.add_field(name="Guilds", value=f"{guild_value:,}")
+        embed.add_field(name="Servers", value=f"{guild_value:,} total\n{len(self.bot.shards)} shards")
         embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
         embed.add_field(name="Members", value=f"{total_members:,} Total\n{cached_members:,} cached")
         embed.add_field(
