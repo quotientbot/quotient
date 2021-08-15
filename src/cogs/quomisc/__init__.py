@@ -497,7 +497,7 @@ class Quomisc(Cog, name="quomisc"):
 
     @partnership.command(name="msg")
     @commands.has_permissions(manage_guild=True)
-    async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
+    async def partnership_msg(self, ctx: Context):
         """
         Send the monthly Promotion message
         """
