@@ -3,9 +3,12 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 from .helper import tabulate_query
 from time import perf_counter as pf
-from models.models import Commands
+from models.models import Commands, Partner
 from utils import get_ipm
 import typing, datetime
+import discord
+from contextlib import suppress
+from constants import PartnerRequest, IST
 
 __all__ = ("Dev",)
 
@@ -17,9 +20,49 @@ class Dev(Cog):
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
-    # TODO: add flags for webhooks and embeds
+    @commands.command()
+    async def partner_approve(self, ctx: Context, message_id: int, author_id: int):
+        record = await Partner.get(message_id=message_id)
+        guild = self.bot.get_guild(record.guild_id)
+
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
+
+        embed = discord.Embed(
+            color=self.bot.color,
+            description=(
+                f"Dear {user} ({guild.name}),"
+                f"Congrats! Your request for Quotient Partnership Program has been approved,\n"
+                f"Kindly join the support server and talk to {ctx.author} to receive perks."
+            ),
+        )
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+
+        with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
+            await user.send(embed=embed)
+
+        await Partner.filter(message_id=message_id).update(
+            status=PartnerRequest.approved, review_time=datetime.datetime.now(tz=IST), mod=ctx.author.id
+        )
+        await ctx.success("done")
 
     @commands.command()
+    async def partner_deny(self, ctx: Context, message_id: int, author_id: int, *, reason):
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
+
+        embed = discord.Embed(color=discord.Color.red(), description=reason)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+
+        with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
+            await user.send(embed=embed)
+
+        await Partner.filter(message_id=message_id).update(
+            status=PartnerRequest.denied, review_time=datetime.datetime.now(tz=IST), review_note=reason, mod=ctx.author.id
+        )
+        await ctx.success("done")
+
+    # TODO: add flags for webhooks and embeds
+
+    @commands.command(hidden=True)
     async def broadcast(self, ctx: Context, *, msg):
         message = f"{msg}\n\n- {str(ctx.author)}, Team Quotient"
         records = await ctx.db.fetch("SELECT private_channel FROM guild_data WHERE private_channel IS NOT NULL")
@@ -39,7 +82,7 @@ class Dev(Cog):
         end = pf()
         await ctx.send(f"Sent {success}: {failed} finished in {end - start:.3f}s.")
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def cmds(self, ctx):
         total_uses = await Commands.all().count()
 
