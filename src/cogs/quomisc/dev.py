@@ -30,9 +30,10 @@ class Dev(Cog):
         embed = discord.Embed(
             color=self.bot.color,
             description=(
-                f"Dear {user} ({guild.name}),"
+                f"Dear {user} ({guild.name}),\n"
                 f"Congrats! Your request for Quotient Partnership Program has been approved,\n"
                 f"Kindly join the support server and talk to {ctx.author} to receive perks."
+                f"\n\nUse `qinvite` if you don't have the support server link."
             ),
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
