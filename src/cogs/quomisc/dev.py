@@ -20,7 +20,7 @@ class Dev(Cog):
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def partner_approve(self, ctx: Context, message_id: int, author_id: int):
         record = await Partner.get(message_id=message_id)
         guild = self.bot.get_guild(record.guild_id)
@@ -46,7 +46,7 @@ class Dev(Cog):
         )
         await ctx.success("done")
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def partner_deny(self, ctx: Context, message_id: int, author_id: int, *, reason):
         user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
 
