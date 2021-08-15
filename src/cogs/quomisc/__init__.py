@@ -495,11 +495,16 @@ class Quomisc(Cog, name="quomisc"):
         )
         await ctx.send(embed=embed, embed_perms=True)
 
-    # @partnership.command(name="msg")
-    # async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
-    #     """
-    #     Send the monthly Promotion message
-    #     """
+    @partnership.command(name="msg")
+    @commands.has_permissions(manage_guild=True)
+    async def partnership_msg(self, ctx: Context, *, channel: QuoTextChannel):
+        """
+        Send the monthly Promotion message
+        """
+
+        channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 782161513825042462)
+        msg = await channel.fetch_message(876480309519081563)
+        await ctx.send(f"```{msg.content}```")
 
 
 def setup(bot) -> None:
