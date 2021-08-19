@@ -151,8 +151,23 @@ def random_greeting():
         "Bonjour!",
         "Yo! You know who this is.",
     ]
-    greeting = random.choice(greetings)
-    return greeting
+    return random.choice(greetings)
+
+
+def random_thanks():
+    msges = (
+        "https://cdn.discordapp.com/attachments/877888851241238548/877890130478784532/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877890377426821140/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877890550399918122/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877891011349725194/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877891209421549628/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877891348869550100/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877891767058444359/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877891874671706162/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877892011720572988/unknown.png",
+        "https://cdn.discordapp.com/attachments/877888851241238548/877893727383863356/unknown.png",
+    )
+    return random.choice(msges)
 
 
 tips = (

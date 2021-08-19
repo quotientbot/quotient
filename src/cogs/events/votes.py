@@ -42,11 +42,10 @@ class Votes(Cog):
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
         with suppress(discord.HTTPException, AttributeError):
             record = await models.Votes.get(pk=record.user_id)
-            embed = discord.Embed(color=discord.Color.green(), description=f"{member} just voted.")
-            embed.set_footer(text=f"Total Votes: {record.total_votes}")
-            await self.hook.send(
-                embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar_url
-            )
+            embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
+            embed.set_image(url=constants.random_thanks())
+            embed.set_footer(text=f"Your total votes: {record.total_votes}")
+            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
     async def on_vote_timer_complete(self, timer: models.Timer):
