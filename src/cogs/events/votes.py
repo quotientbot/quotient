@@ -40,9 +40,12 @@ class Votes(Cog):
             await member.add_roles(discord.Object(id=self.bot.config.VOTER_ROLE), reason="They voted for me.")
 
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
-        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+        with suppress(discord.HTTPException, AttributeError):
+            record = await models.Votes.get(pk=record.user_id)
+            embed = discord.Embed(color=discord.Color.green(), description=f"{member} just voted.")
+            embed.set_footer(text=f"Total Votes: {record.total_votes}")
             await self.hook.send(
-                content=f"{str(member)} just voted!", username="vote-logs", avatar_url=self.bot.user.avatar_url
+                embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar_url
             )
 
     @Cog.listener()
