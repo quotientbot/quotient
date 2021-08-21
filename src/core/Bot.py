@@ -188,7 +188,7 @@ class Quotient(commands.AutoShardedBot):
         t1 = time.perf_counter()
         await self.db.execute("SELECT 1;")
         t2 = time.perf_counter() - t1
-        return f"{t2*1000:.2f}ms"
+        return f"{t2*1000:.2f} ms"
 
     @staticmethod
     async def getch(get_method, fetch_method, _id):  # why does c have all the fun?

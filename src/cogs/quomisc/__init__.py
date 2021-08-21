@@ -228,7 +228,7 @@ class Quomisc(Cog, name="quomisc"):
             name="<:prime:878493632720699392> | websocket",
             value=f"`{round(self.bot.latency*1000, 2)} ms`",
         )
-        emb.add_field(name="<:postgresql:878492440066129920> | database", value=f"`{await self.bot.db_latency} ms`")
+        emb.add_field(name="<:postgresql:878492440066129920> | database", value=f"`{await self.bot.db_latency}`")
 
         await message.edit(content=None, embed=emb)
 
