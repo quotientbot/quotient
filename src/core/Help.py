@@ -95,11 +95,15 @@ class HelpCommand(commands.HelpCommand):
         if cmd.aliases:
             embed.add_field(name="Aliases", value=", ".join((f"`{alias}`" for alias in cmd.aliases)))
 
+        if cmd.extras:
+            if _gif := cmd.extras.get("gif"):
+                embed.set_image(url=_gif)
+
         await self.context.send(embed=embed, embed_perms=True)
 
     async def command_not_found(self, string: str):
         message = f"Could not find the `{string}` command. "
-        commands_list = [str(cmd) for cmd in self.context.bot.walk_commands()]
+        commands_list = (str(cmd) for cmd in self.context.bot.walk_commands())
 
         if dym := "\n".join(get_close_matches(string, commands_list)):
             message += f"Did you mean...\n{dym}"
