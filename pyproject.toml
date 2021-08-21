@@ -6,8 +6,8 @@ authors = ["deadaf <askpygod@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-"discord.py" = "^1.7.2"
-tortoise-orm = "^0.17.2"
+"discord.py" = {git = "https://github.com/Rapptz/discord.py.git"}
+tortoise-orm = "^0.17.6"
 colorama = "^0.4.4"
 asyncpg = "^0.22.0"
 dateparser = "^1.0.0"
