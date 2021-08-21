@@ -223,11 +223,12 @@ class Quomisc(Cog, name="quomisc"):
         diff = "%.2f" % (1000 * (time.monotonic() - ping_at))
 
         emb = ctx.bot.embed(ctx)
-        emb.add_field(name="Ping", value=f"`{diff} ms`")
+        emb.add_field(name="<a:typing:878492334222884924> | typing", value=f"`{diff} ms`")
         emb.add_field(
-            name="Latency",
+            name="<:prime:878493632720699392> | websocket",
             value=f"`{round(self.bot.latency*1000, 2)} ms`",
         )
+        emb.add_field(name="<:postgresql:878492440066129920> | database", value=f"`{await self.bot.db_latency} ms`")
 
         await message.edit(content=None, embed=emb)
 
@@ -295,7 +296,7 @@ class Quomisc(Cog, name="quomisc"):
         embed = discord.Embed(color=self.bot.color)
         embed.set_footer(text=f"Use '{ctx.prefix}buy <item>' to buy something")
         embed.description = (
-            f"<:premium:858728502634610708> **Quotient Premium** — [⏣ 120]({self.bot.config.SERVER_LINK})"
+            f"<:prime:878493632720699392> **Quotient Premium** — [⏣ 120]({self.bot.config.SERVER_LINK})"
             f"\nGet a Quotient Premium redeem code, this can be used to upgrade any server with Quotient Premium for 1 Month."
         )
         await ctx.send(embed=embed, embed_perms=True)
