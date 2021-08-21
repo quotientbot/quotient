@@ -64,11 +64,9 @@ class Errors(Cog):
             return await ctx.error(f"This command is already running in this server. You have wait for it to finish.")
 
         elif isinstance(err, errors.CommandOnCooldown):
-            is_owner = await ctx.bot.is_owner(ctx.author)
-            if is_owner is True:
+            if await ctx.bot.is_owner(ctx.author):
                 return await ctx.reinvoke()
-            await ctx.send(f"You are in cooldown.\n\nTry again in `{err.retry_after:.2f}` seconds.")
-            return
+            return await ctx.send(f"You are in cooldown.\n\nTry again in `{err.retry_after:.2f}` seconds.")
 
         elif isinstance(err, commands.MissingPermissions):
             permissions = ", ".join([f"{permission}" for permission in err.missing_perms])
