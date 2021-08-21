@@ -20,6 +20,13 @@ class Day(Enum):
     sunday = "sunday"
 
 
+class PremiumPurchase(Enum):
+    GIFT = "gift"
+    PARTNERSHIP = "partner"
+    SHOP = "shop"
+    REGULAR = "regular"
+
+
 class PartnerRequest(Enum):
     pending = "1"
     approved = "2"

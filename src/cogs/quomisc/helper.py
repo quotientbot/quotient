@@ -1,8 +1,5 @@
-from difflib import get_close_matches
 import discord, io
 import datetime
-
-from core.Context import Context
 
 
 class TabularData:

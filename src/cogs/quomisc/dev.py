@@ -1,10 +1,12 @@
 from prettytable import PrettyTable
 from core import Cog, Quotient, Context
 from discord.ext import commands
-from .helper import tabulate_query
+
+
+from .helper import PremiumPurchase, tabulate_query
 from time import perf_counter as pf
 from models.models import Commands, Partner
-from utils import get_ipm
+from utils import get_ipm, QuoUser
 import typing, datetime
 import discord
 from contextlib import suppress
@@ -19,6 +21,10 @@ class Dev(Cog):
 
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
+
+    @commands.command(hidden=True)
+    async def pgift(self, ctx: Context, user: QuoUser, _type: PremiumPurchase):
+        await ctx.send(_type)
 
     @commands.command(hidden=True)
     async def partner_approve(self, ctx: Context, message_id: int, author_id: int):
