@@ -42,9 +42,7 @@ class Context(commands.Context):
         self,
         message,
         title=None,
-        timeout=60.0,
         delete_after=True,
-        author_id=None,
     ):
         """
         An interactive reaction confirmation dialog.
@@ -52,45 +50,20 @@ class Context(commands.Context):
         if not self.channel.permissions_for(self.me).add_reactions:
             raise RuntimeError("Bot does not have Add Reactions permission.")
 
-        fmt = f"**{message}**\n\nReact with \N{WHITE HEAVY CHECK MARK} to confirm or \N{CROSS MARK} to deny."
+        fmt = f"**{message}**"
         embed = discord.Embed(description=fmt, color=self.config.COLOR)
         if title is not None:
             embed.title = title
-        author_id = author_id or self.author.id
-        msg = await self.send(embed=embed)
 
-        confirm = None
-
-        def check(payload):
-            nonlocal confirm
-
-            if payload.message_id != msg.id or payload.user_id != author_id:
-                return False
-
-            codepoint = str(payload.emoji)
-
-            if codepoint == "\N{WHITE HEAVY CHECK MARK}":
-                confirm = True
-                return True
-            if codepoint == "\N{CROSS MARK}":
-                confirm = False
-                return True
-
-            return False
-
-        for emoji in ("\N{WHITE HEAVY CHECK MARK}", "\N{CROSS MARK}"):
-            await msg.add_reaction(emoji)
-
-        try:
-            await self.bot.wait_for("raw_reaction_add", check=check, timeout=timeout)
-        except asyncio.TimeoutError:
-            confirm = None
+        view = utils.Prompt(self.author.id)
+        msg = await self.send(embed=embed, view=view)
+        await view.wait()
 
         try:
             if delete_after:
                 await msg.delete()
         finally:
-            return confirm
+            return view.value
 
     async def error(self, message, delete_after=None):
         return await self.send(
