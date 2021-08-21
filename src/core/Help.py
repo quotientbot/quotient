@@ -1,6 +1,6 @@
 from difflib import get_close_matches
 from discord.ext import commands
-from utils import get_ipm, Pages, truncate_string
+from utils import get_ipm, Pages, truncate_string, LinkType, LinkButton
 import discord
 
 
@@ -46,7 +46,9 @@ class HelpCommand(commands.HelpCommand):
         cmds = sum(1 for i in self.context.bot.walk_commands())
 
         embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
-        await ctx.send(embed=embed, embed_perms=True)
+
+        links = [LinkType("Support Server", self.config.SERVER_LINK), LinkType("Invite Me", self.config.BOT_INVITE)]
+        await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))
 
     async def send_group_help(self, group):
         prefix = self.context.prefix
