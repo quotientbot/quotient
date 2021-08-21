@@ -4,7 +4,7 @@ from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
-from utils import ColorConverter, string_input
+from utils import ColorConverter, string_input, LinkType, LinkButton
 from collections import Counter
 from constants import IST, PartnerRequest
 from glob import glob
@@ -204,7 +204,8 @@ class Quomisc(Cog, name="quomisc"):
         embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
         embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
 
-        await ctx.send(embed=embed)
+        links = [LinkType("Support Server", ctx.config.SERVER_LINK), LinkType("Invite Me", ctx.config.BOT_INVITE)]
+        await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))
 
     @commands.command()
     async def uptime(self, ctx):
