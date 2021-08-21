@@ -20,7 +20,7 @@ class MultiScrimConverter(Converter):
         raise BadArgument("Kindly enter a valid Scrim ID or use **`all`** if you want denote all scrims.")
 
 
-class ScrimConverter(Converter, Scrim):
+class ScrimConverter(Converter):
     async def convert(self, ctx, argument: str):
         try:
             argument = int(argument)
@@ -35,7 +35,7 @@ class ScrimConverter(Converter, Scrim):
         raise BadArgument(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
 
-class TourneyConverter(Converter, Tourney):
+class TourneyConverter(Converter):
     async def convert(self, ctx, argument: str):
         try:
             argument = int(argument)
@@ -59,7 +59,7 @@ class EasyMemberConverter(Converter):
             return "Invalid Member!"
 
 
-class PointsConverter(Converter, PointsInfo):
+class PointsConverter(Converter):
     async def convert(self, ctx, argument: str):
         try:
             argument = int(argument)
