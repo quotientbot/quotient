@@ -74,7 +74,7 @@ class Errors(Cog):
 
         elif isinstance(err, commands.BotMissingPermissions):
             permissions = ", ".join([f"{permission}" for permission in err.missing_permissions])
-            message = f"Unfortunately I am missing **`{permissions}`** permissions to run the command `{ctx.command}`.\nYou can fix this by going to server settings > roles > Quotient and granting Quotient role **`{permissions}`** there."
+            message = f"Unfortunately I am missing **`{permissions}`** permissions to run the command `{ctx.command}`.\nThis can be fixed by going to server settings > roles > Quotient and granting Quotient role **`{permissions}`** there."
             try:
                 await ctx.send(message)
             except discord.Forbidden:

@@ -7,7 +7,7 @@ import discord, config
 import utils, random
 import tortoise.exceptions
 from constants import IST
-from utils.time import plural, strtime
+from utils import plural, strtime
 
 
 class GiveawayConverter(Converter):

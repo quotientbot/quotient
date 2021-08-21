@@ -3,6 +3,7 @@ import parsedatetime as pdt
 from discord.ext import commands
 import datetime as dtm
 from .regex import TIME_REGEX
+from .formats import plural
 from utils import exceptions
 from constants import IST
 from dateutil.relativedelta import relativedelta
@@ -113,19 +114,6 @@ def strtime(target):
 
 # def strtime(target):
 #     return f"<t:{int(target.timestamp())}:R>"
-
-
-class plural:
-    def __init__(self, value):
-        self.value = value
-
-    def __format__(self, format_spec):
-        v = self.value
-        singular, sep, plural = format_spec.partition("|")
-        plural = plural or f"{singular}s"
-        if abs(v) != 1:
-            return f"{v} {plural}"
-        return f"{v} {singular}"
 
 
 def human_join(seq, delim=", ", final="or"):
