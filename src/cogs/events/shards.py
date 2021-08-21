@@ -3,7 +3,7 @@ from colorama import Fore, init
 from utils import emote
 from contextlib import suppress
 import config, discord
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook
 
 init(autoreset=True)
 
@@ -17,7 +17,7 @@ class ShardEvents(Cog, name="Shard Events"):
 
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.webhook = Webhook.from_url(config.SHARD_LOG, adapter=AsyncWebhookAdapter(session=self.bot.session))
+        self.webhook = Webhook.from_url(config.SHARD_LOG, session=self.bot.session)
 
     @Cog.listener()
     async def on_shard_ready(self, shard_id):

@@ -1,5 +1,5 @@
 from models import Guild, Tourney, Scrim, Autorole
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook
 from core import Cog, Quotient
 from contextlib import suppress
 from constants import random_greeting
@@ -38,7 +38,7 @@ class MainEvents(Cog, name="Main Events"):
             )
 
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+                webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
                 await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()
@@ -68,7 +68,7 @@ class MainEvents(Cog, name="Main Events"):
                 value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
             )
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = Webhook.from_url(config.JOIN_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+                webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
                 await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
 
     @Cog.listener()

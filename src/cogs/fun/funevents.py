@@ -1,5 +1,4 @@
-from contextlib import suppress
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook
 from cogs.fun.helper import deliver_webhook
 from utils import IST
 from constants import EventType
@@ -95,7 +94,7 @@ class Funevents(Cog):
 
         if records:
             for record in records:
-                webhook = Webhook.from_url(record.webhook, adapter=AsyncWebhookAdapter(self.bot.session))
+                webhook = Webhook.from_url(record.webhook, session=self.bot.session)
                 self.bot.loop.create_task(deliver_webhook(webhook, embed, _type, self.bot.user.avatar_url))
 
     @tasks.loop(seconds=60)

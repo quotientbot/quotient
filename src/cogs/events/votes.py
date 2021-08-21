@@ -1,4 +1,4 @@
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook
 from datetime import datetime, timedelta
 from core import Cog, Quotient
 from contextlib import suppress
@@ -11,7 +11,7 @@ from utils.time import strtime
 class Votes(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.hook = Webhook.from_url(self.bot.config.PUBLIC_LOG, adapter=AsyncWebhookAdapter(self.bot.session))
+        self.hook = Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
 
     @property
     def reminders(self):

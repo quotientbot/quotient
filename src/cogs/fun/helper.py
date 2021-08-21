@@ -35,10 +35,8 @@ async def insert_or_update_config(ctx: Context, _type: EventType, channel: disco
         else:
             # Try to delete webhooks at first....
             try:
-                webhook = discord.Webhook.from_url(
-                    record.webhook,
-                    adapter=discord.AsyncWebhookAdapter(ctx.bot.session),
-                )
+                webhook = discord.Webhook.from_url(record.webhook, session=ctx.bot.session)
+
                 await webhook.delete()
             except:
                 pass
