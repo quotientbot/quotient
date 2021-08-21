@@ -33,8 +33,8 @@ class QuoPartners(IpcCog):
                     "description": partner.description,
                     "members": guild.member_count,
                     "scrims": await Scrim.filter(guild_id=guild.id).count(),
-                    "icon": str(guild.icon_url),
-                    "banner": str(guild.banner_url),
+                    "icon": str(guild.icon.url) if guild.icon else None,
+                    "banner": str(guild.banner.url) if guild.banner else None,
                     "invite": partner.invite,
                 }
             )

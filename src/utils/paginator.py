@@ -110,7 +110,7 @@ class Pages:
         if self.thumbnail:
             self.embed.set_thumbnail(url=self.thumbnail)
         if self.embed_author:
-            self.embed.set_author(icon_url=self.author.avatar_url, name=self.embed_author)
+            self.embed.set_author(icon_url=self.author.avatar.url, name=self.embed_author)
 
     async def show_page(self, page, *, first=False):
         self.current_page = page

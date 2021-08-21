@@ -41,13 +41,13 @@ class Funevents(Cog):
             URL = "https://happy-meme-a.glitch.me/fact"
             data = await self.request_json(URL)
             embed = discord.Embed(color=self.bot.color, title=f"{data['fact']}")
-            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar.url)
 
         elif _type == EventType.quote:
             URL = "https://api.quotable.io/random"
             data = await self.request_json(URL)
             embed = discord.Embed(color=self.bot.color, title=f"{data['content']}")
-            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar.url)
             embed.set_author(name=f"Author: {data['author']}")
 
         elif _type == EventType.joke:
@@ -55,7 +55,7 @@ class Funevents(Cog):
             data = await self.request_json(URL)
             embed = discord.Embed(color=self.bot.color)
             embed.description = f"**`Setup:`** {data['setup']}\n**`Punchline:`** ||{data['punchline']}||"
-            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar.url)
 
         elif _type == EventType.nsfw:
             URL = "https://api.ksoft.si/images/random-nsfw"
@@ -70,7 +70,7 @@ class Funevents(Cog):
             data = await res.json(content_type="text/html")
 
             embed = discord.Embed(color=self.bot.color, title=f"{data['slip']['advice']}")
-            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+            embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar.url)
 
         # elif _type == EventType.poem:
         #     URL = "https://www.poemist.com/api/v1/randompoems"
@@ -87,7 +87,7 @@ class Funevents(Cog):
         # embed = discord.Embed(color=self.bot.color, title=f"Title: {data[0]['title']}", description=poem)
         # embed.set_author(name=f"Author: {data[0]['poet']['name']}", url=data[0]["poet"]["url"])
 
-        # embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar_url)
+        # embed.set_footer(text=self.bot.config.FOOTER, icon_url=self.bot.user.avatar.url)
 
         else:
             return print("Unhandled Type...", _type)
@@ -95,7 +95,7 @@ class Funevents(Cog):
         if records:
             for record in records:
                 webhook = Webhook.from_url(record.webhook, session=self.bot.session)
-                self.bot.loop.create_task(deliver_webhook(webhook, embed, _type, self.bot.user.avatar_url))
+                self.bot.loop.create_task(deliver_webhook(webhook, embed, _type, self.bot.user.avatar.url))
 
     @tasks.loop(seconds=60)
     async def autoevent_dispatcher(self):

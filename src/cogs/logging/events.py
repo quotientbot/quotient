@@ -58,10 +58,10 @@ class LoggingEvents(Cog):
             if subtype == "single":
 
                 embed.color = discord.Color(color)
-                embed.set_footer(text=f"ID: {message.id}", icon_url=self.bot.user.avatar_url)
+                embed.set_footer(text=f"ID: {message.id}", icon_url=self.bot.user.avatar.url)
 
                 embed.description = f"Message sent by {message.author.mention} deleted in {message.channel.mention}."
-                embed.set_author(name=str(message.author), icon_url=message.author.avatar_url)
+                embed.set_author(name=str(message.author), icon_url=message.author.avatar.url)
 
                 cont = escape_markdown(message.content)
 

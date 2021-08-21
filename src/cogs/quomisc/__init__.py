@@ -1,17 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import format_relative, truncate_commit
-from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks, plural
+from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
 from core import Cog, Quotient, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
-from utils import ColorConverter, QuoUser, string_input
+from utils import ColorConverter, string_input
 from collections import Counter
-from typing import Optional
 from constants import IST, PartnerRequest
 from glob import glob
 import inspect, time
 
-from utils.converters import QuoTextChannel
 from .dev import *
 import discord
 import pygit2
@@ -106,7 +104,7 @@ class Quomisc(Cog, name="quomisc"):
             "quotient-private", overwrites=overwrites, reason=f"Made by {str(ctx.author)}"
         )
         webhook = await channel.create_webhook(
-            name="Quotient", avatar=await ctx.me.avatar_url.read(), reason=f"Made by {str(ctx.author)}"
+            name="Quotient", avatar=await ctx.me.avatar.read(), reason=f"Made by {str(ctx.author)}"
         )
         await Guild.filter(guild_id=ctx.guild.id).update(private_channel=channel.id, private_webhook=webhook.url)
 
@@ -184,7 +182,7 @@ class Quomisc(Cog, name="quomisc"):
         embed.title = "Quotient Official Support Server"
         embed.url = ctx.config.SERVER_LINK
         embed.colour = self.bot.color
-        embed.set_author(name=str(owner), icon_url=owner.avatar_url)
+        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
 
         guild_value = len(self.bot.guilds)
 
@@ -431,7 +429,7 @@ class Quomisc(Cog, name="quomisc"):
         invite = await channels[0].create_invite(reason="Partner program application", unique=False)
 
         embed = discord.Embed(color=self.bot.color, title=f"{ctx.guild.name} ({ctx.guild.member_count})", url=str(invite))
-        embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar_url)
+        embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar.url)
         embed.description = description
         embed.add_field(name="Scrims Info", value=truncate_commit(num_scrims))
         embed.add_field(

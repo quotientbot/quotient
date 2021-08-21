@@ -3,14 +3,14 @@ from core import Cog, Quotient, Context
 from discord.ext import commands
 
 
-from .helper import PremiumPurchase, tabulate_query
+from .helper import tabulate_query
 from time import perf_counter as pf
 from models.models import Commands, Partner
 from utils import get_ipm, QuoUser
 import typing, datetime
 import discord
 from contextlib import suppress
-from constants import PartnerRequest, IST
+from constants import PartnerRequest, IST, PremiumPurchase
 
 __all__ = ("Dev",)
 
@@ -42,7 +42,7 @@ class Dev(Cog):
                 f"\n\nUse `qinvite` if you don't have the support server link."
             ),
         )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
 
         with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
             await user.send(embed=embed)
@@ -57,7 +57,7 @@ class Dev(Cog):
         user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
 
         embed = discord.Embed(color=discord.Color.red(), description=reason)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
 
         with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
             await user.send(embed=embed)

@@ -45,7 +45,7 @@ class Votes(Cog):
             embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
             embed.set_image(url=constants.random_thanks())
             embed.set_footer(text=f"Your total votes: {record.total_votes}")
-            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar_url)
+            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_vote_timer_complete(self, timer: models.Timer):

@@ -15,7 +15,7 @@ async def insert_or_update_config(ctx: Context, _type: EventType, channel: disco
         hook = await channel.create_webhook(
             name="Quotient",
             reason=f"[{ctx.author}] created the webhook for auto{_type.value}!",
-            avatar=await ctx.me.avatar_url.read(),
+            avatar=await ctx.me.avatar.read(),
         )
 
     except (discord.Forbidden, discord.HTTPException):

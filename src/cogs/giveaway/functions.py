@@ -10,7 +10,7 @@ from constants import IST
 from utils.time import plural, strtime
 
 
-class GiveawayConverter(Converter, Giveaway):
+class GiveawayConverter(Converter):
     async def convert(self, ctx, argument):
         try:
             argument = int(argument)
@@ -44,7 +44,7 @@ async def create_giveaway(giveaway: Giveaway):
 async def gembed(ctx: Context, value: int, description: str):
     embed = discord.Embed(color=ctx.bot.color, title=f"🎉 Giveaway Setup • ({value}/6)")
     embed.description = description
-    embed.set_footer(text=f'Reply with "cancel" to stop the process.', icon_url=ctx.bot.user.avatar_url)
+    embed.set_footer(text=f'Reply with "cancel" to stop the process.', icon_url=ctx.bot.user.avatar.url)
     return await ctx.send(embed=embed, embed_perms=True)
 
 
@@ -70,7 +70,7 @@ def get_giveaway_embed(giveaway: Giveaway):
 async def check_giveaway_requirements(giveaway: Giveaway, member: discord.Member) -> bool:
     _bool = True
     embed = discord.Embed(color=discord.Color.red(), title="Giveaway Entery Denied!", url=giveaway.jump_url)
-    embed.set_footer(text=config.FOOTER, icon_url=member.guild.me.avatar_url)
+    embed.set_footer(text=config.FOOTER, icon_url=member.guild.me.avatar.url)
     if giveaway.required_msg:
         msgs = await Messages.filter(author_id=member.id, sent_at__gte=giveaway.started_at).count()
         if not msgs >= giveaway.required_msg:

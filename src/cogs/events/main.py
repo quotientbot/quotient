@@ -31,7 +31,7 @@ class MainEvents(Cog, name="Main Events"):
             await guild.chunk()
 
             embed = discord.Embed(color=discord.Color.green(), title=f"I've joined a guild ({guild.member_count})")
-            embed.set_thumbnail(url=guild.icon_url)
+            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
             embed.add_field(
                 name="__**General Info**__",
                 value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
@@ -39,7 +39,7 @@ class MainEvents(Cog, name="Main Events"):
 
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
                 webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
-                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
@@ -62,14 +62,14 @@ class MainEvents(Cog, name="Main Events"):
                 pass
 
             embed = discord.Embed(color=discord.Color.red(), title=f"I have left a guild ({guild.member_count})")
-            embed.set_thumbnail(url=guild.icon_url)
+            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
             embed.add_field(
                 name="__**General Info**__",
                 value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
             )
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
                 webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
-                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar_url)
+                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):

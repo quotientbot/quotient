@@ -1140,11 +1140,11 @@ class ScrimManager(Cog, name="Esports"):
         """
         await ctx.message.delete()
         embed = self.bot.embed(ctx, title="New Custom Room. JOIN NOW!")
-        embed.set_thumbnail(url=ctx.guild.icon_url)
+        embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.add_field(name="Room ID", value=room_id)
         embed.add_field(name="Password", value=password)
         embed.add_field(name="Map", value=map)
-        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.avatar.url)
         msg = await ctx.send(
             content=role_to_ping.mention if role_to_ping else None,
             embed=embed,
@@ -1379,21 +1379,15 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    async def pointsembed(self, ctx: Context, value: int, description: str):
-        embed = discord.Embed(color=ctx.bot.color, title=f"📊 Points Table Setup • ({value}/4)")
-        embed.description = description
-        embed.set_footer(text=f'Reply with "cancel" to stop the process.', icon_url=ctx.bot.user.avatar_url)
-        return await ctx.send(embed=embed, embed_perms=True)
-
     @commands.group(aliases=("pt",), invoke_without_command=True)
     async def ptable(self, ctx):
         """Points tables commands"""
-        embed = discord.Embed(color = self.bot.color, title = "Shifted to Dashboard",url=self.bot.config.WEBSITE)
+        embed = discord.Embed(color=self.bot.color, title="Shifted to Dashboard", url=self.bot.config.WEBSITE)
         embed.description = (
             f"Points table command has been moved to the dashboard [here]({self.bot.config.WEBSITE}/dashboard) for ease of use."
             f"\n\nTo create beautiful points tables, use the link above or use `{ctx.prefix}dashboard` command to get a direct link"
             "to the dashboard"
-            )
+        )
         embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
         await ctx.send(embed=embed, embed_perms=True)
 
@@ -1745,7 +1739,6 @@ class ScrimManager(Cog, name="Esports"):
     #             "\nYou need to use Quotient's scrims manager to use slotmanager."
     #         )
 
-
     #     await ctx.simple(
     #         "In which channel do you want me to post available slots?\n"
     #         "As soon as any slot becomes vacant, I will post a message in the channel you select now."
@@ -1768,15 +1761,13 @@ class ScrimManager(Cog, name="Esports"):
     # async def _slotmanager_fix(self, ctx:Context):
     #     """Fix slot manager"""
 
-    
     # @slotmanager.command(name="lock")
     # async def _slotmanager_lock(self, ctx:Context):
     #     """Lock slot management of any scrim"""
-    
+
     # @slotmanager.command(name="unlock")
     # async def _slotmanager_unlock(self, ctx:Context):
     #     """Unlock slot management for any scrim"""
-
 
     @commands.command(name="banlog")
     @checks.can_use_sm()

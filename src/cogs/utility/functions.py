@@ -29,7 +29,7 @@ class TagName(commands.clean_content):
         return converted if not self.lower else lower
 
 
-class TagConverter(commands.Converter, Tag):
+class TagConverter(commands.Converter):
     async def convert(self, ctx, argument: str):
         try:
             argument = int(argument)
@@ -128,7 +128,7 @@ async def guild_tag_stats(ctx: Context):
 
 async def member_tag_stats(ctx: Context, member: QuoMember):
     e = ctx.bot.embed(ctx)
-    e.set_author(name=str(member), icon_url=member.avatar_url)
+    e.set_author(name=str(member), icon_url=member.avatar.url)
 
     e.set_footer(text="These statistics are server-specific.")
 
