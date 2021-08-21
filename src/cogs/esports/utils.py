@@ -392,8 +392,11 @@ async def should_open_scrim(scrim: Scrim):
 
 
 def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
+    if _type == constants.EsportsRole.ping:
+        role = scrim.ping_role
 
-    role = scrim.ping_role if _type == constants.EsportsRole.ping else scrim.open_role
+    elif _type == constants.EsportsRole.open:
+        role = scrim.open_role
 
     if not role:
         return None
