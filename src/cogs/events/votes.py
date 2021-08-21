@@ -81,9 +81,13 @@ class Votes(Cog):
 
         member = member if member is not None else await self.bot.fetch_user(record.user_id)
 
-        with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
+        with suppress(discord.HTTPException, AttributeError):
+            embed = discord.Embed(
+                color=discord.Color.green(), description=f"Thanks **{member}** for purchasing Quotient Premium."
+            )
+            embed.set_image(url=constants.random_thanks())
             await self.hook.send(
-                content=f"{str(member)} just purchased Quotient Premium!",
+                embed=embed,
                 username="premium-logs",
                 avatar_url=self.bot.config.PREMIUM_AVATAR,
             )
