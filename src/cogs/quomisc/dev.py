@@ -82,17 +82,6 @@ class Dev(Cog):
     @commands.command(hidden=True)
     async def broadcast(self, ctx: Context, *, msg):
         msg = msg.strip().split("|")
-
-        _files = []
-        if len(msg) > 1:
-
-            links = msg[1].strip().split("\n")
-            for link in links:
-                async with self.bot.session.get(link) as res:
-                    invert = io.BytesIO(await res.read())
-                    file = discord.File(invert, f"help_{str(secrets.token_urlsafe(5))}.png")
-                    _files.append(file)
-
         content = f"{msg[0]}\n\n- {str(ctx.author)}, Team Quotient"
 
         links = [LinkType("Support Server", ctx.config.SERVER_LINK)]
@@ -107,6 +96,18 @@ class Dev(Cog):
 
         for record in records:
             channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, record["private_channel"])
+            if channel is None:
+                failed += 1
+                continue
+
+            _files = []
+            if len(msg) > 1:
+                links = msg[1].strip().split("\n")
+                for link in links:
+                    async with self.bot.session.get(link) as res:
+                        invert = io.BytesIO(await res.read())
+                        file = discord.File(invert, f"help_{str(secrets.token_urlsafe(5))}.png")
+                        _files.append(file)
 
             try:
                 await channel.send(content=content, view=view, files=_files)
