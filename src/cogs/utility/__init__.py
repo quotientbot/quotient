@@ -16,7 +16,7 @@ from models import Autorole, ArrayAppend, ArrayRemove
 from utils import (
     checks,
     ColorConverter,
-    Pages,
+    QuoPaginator,
     emote,
     strtime,
     plural,
@@ -275,14 +275,12 @@ class Utility(Cog, name="utility"):
             if not tags:
                 return await ctx.error(f"{member} doesn't own any tag.")
 
-        tag_list = []
-        for idx, tag in enumerate(tags, start=1):
-            tag_list.append(f"`{idx:02}` {escape_markdown(tag.name)} (ID: {tag.id})\n")
+        paginator = QuoPaginator(ctx, title=f"Total Tags: {len(tags)}", per_page=12)
 
-        paginator = Pages(
-            ctx, title="Total tags: {}".format(len(tag_list)), entries=tag_list, per_page=12, show_entry_count=True
-        )
-        await paginator.paginate()
+        for idx, tag in enumerate(tags, start=1):
+            paginator.add_line(f"`{idx:02}` {escape_markdown(tag.name)} (ID: {tag.id})")
+
+        await paginator.start()
 
     @tag.command(name="info")
     async def tag_info(self, ctx: Context, *, tag: TagConverter):
@@ -368,14 +366,15 @@ class Utility(Cog, name="utility"):
         """Get a list of all tags owned by you."""
         tags = await Tag.filter(guild_id=ctx.guild.id, owner_id=ctx.author.id)
 
-        tag_list = []
-        for idx, tag in enumerate(tags, start=1):
-            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
+        if not tags:
+            return await ctx.error("You do not own any tag.")
 
-        paginator = Pages(
-            ctx, title="Tags you own: {}".format(len(tag_list)), entries=tag_list, per_page=12, show_entry_count=True
-        )
-        await paginator.paginate()
+        paginator = QuoPaginator(ctx, title=f"Tags you own: {len(tags)}", per_page=12)
+
+        for idx, tag in enumerate(tags, start=1):
+            paginator.add_line(f"`{idx:02}` {tag.name} (ID: {tag.id})")
+
+        await paginator.start()
 
     @tag.command(name="purge")
     @commands.has_guild_permissions(manage_guild=True)
@@ -439,14 +438,11 @@ class Utility(Cog, name="utility"):
         if not tags:
             return await ctx.error("No tags found.")
 
-        tag_list = []
+        paginator = QuoPaginator(ctx, title=f"Matching Tags: {len(tags)}", per_page=10)
         for idx, tag in enumerate(tags, start=1):
-            tag_list.append(f"`{idx:02}` {tag.name} (ID: {tag.id})\n")
+            paginator.add_line(f"`{idx:02}` {tag.name} (ID: {tag.id})")
 
-        paginator = Pages(
-            ctx, title="Matching Tags: {}".format(len(tag_list)), entries=tag_list, per_page=10, show_entry_count=True
-        )
-        await paginator.paginate()
+        await paginator.start()
 
     @tag.command(name="stats")
     async def tag_stats(self, ctx: Context, *, member: QuoMember = None):

@@ -1,6 +1,6 @@
 from difflib import get_close_matches
 from discord.ext import commands
-from utils import get_ipm, Pages, truncate_string, LinkType, LinkButton
+from utils import get_ipm, QuoPaginator, truncate_string, LinkType, LinkButton
 import discord
 
 
@@ -71,22 +71,16 @@ class HelpCommand(commands.HelpCommand):
         await self.context.send(embed=embed, embed_perms=True)
 
     async def send_cog_help(self, cog):
-        commands = []
+        paginator = QuoPaginator(self.context, per_page=14)
         c = 0
         for cmd in cog.get_commands():
             if not cmd.hidden:
                 _brief = "No Information..." if not cmd.short_doc else truncate_string(cmd.short_doc, 60)
-                commands.append(f"`{cmd.qualified_name}` : {_brief}\n")
+                paginator.add_line(f"`{cmd.qualified_name}` : {_brief}")
                 c += 1
 
-        paginator = Pages(
-            self.context,
-            title=f"{cog.qualified_name.title()} ({c})",
-            entries=commands,
-            per_page=14,
-            show_entry_count=True,
-        )
-        await paginator.paginate()
+        paginator.title = f"{cog.qualified_name.title()} ({c})"
+        await paginator.start()
 
     async def send_command_help(self, cmd):
         embed = discord.Embed(color=self.color)

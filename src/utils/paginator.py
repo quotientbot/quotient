@@ -48,7 +48,7 @@ class Pages:
         return len(self.pages)
 
 
-class Paginator:
+class QuoPaginator:
     def __init__(self, ctx, *, per_page=10, timeout=60.0, title=None, show_page_count=True):
         self.ctx = ctx
         self.per_page = per_page
@@ -84,10 +84,13 @@ class Paginator:
 
         self.pages = Pages(_pages)
 
-        view = PaginatorView(
-            self.ctx, pages=self.pages, embed=self.embed, timeout=self.timeout, show_page_count=self.show_page_count
-        )
-        await self.ctx.send(embed=self.embed, view=view)
+        if self.pages.total > 1:
+            view = PaginatorView(
+                self.ctx, pages=self.pages, embed=self.embed, timeout=self.timeout, show_page_count=self.show_page_count
+            )
+            return await self.ctx.send(embed=self.embed, view=view)
+
+        await self.ctx.send(embed=self.embed)
 
 
 class PaginatorView(discord.ui.View):

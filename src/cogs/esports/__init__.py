@@ -17,7 +17,18 @@ from .utils import (
     registration_open_embed,
 )
 
-from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, PastDate, QuoUser
+from utils import (
+    inputs,
+    checks,
+    FutureTime,
+    human_timedelta,
+    get_chunks,
+    QuoRole,
+    QuoTextChannel,
+    PastDate,
+    QuoUser,
+    QuoPaginator,
+)
 
 from .converters import PointsConverter, ScrimConverter, TourneyConverter, MultiScrimConverter
 from constants import EsportsType, IST, RegMsg, ScrimBanType
@@ -341,7 +352,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"You do not have any scrims setup on this server.\n\nKindly use `{ctx.prefix}smanager setup` to setup one."
             )
 
-        to_paginate = []
+        paginator = QuoPaginator(ctx, title=f"Total Scrims: {len(allscrims)}", per_page=1)
         for idx, scrim in enumerate(allscrims, start=1):
             reg_channel = getattr(scrim.registration_channel, "mention", "`Channel Deleted!`")
             slot_channel = getattr(scrim.slotlist_channel, "mention", "`Channel Deleted!`")
@@ -352,13 +363,9 @@ class ScrimManager(Cog, name="Esports"):
             ping_role = scrim_work_role(scrim, constants.EsportsRole.ping)
             mystring = f"> Scrim ID: `{scrim.id}`\n> Name: `{scrim.name}`\n> Registration Channel: {reg_channel}\n> Slotlist Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{scrim.required_mentions}`\n> Total Slots: `{scrim.total_slots}`\n> Open Time: `{open_time}`\n> Toggle: `{scrim.stoggle}`\n> Open Role: {open_role}\n> Ping Role: {ping_role}\n> Slotlist start from: {scrim.start_from}"
 
-            to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")
+            paginator.add_line(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}")
 
-        paginator = Pages(
-            ctx, title="Total Scrims: {}".format(len(to_paginate)), entries=to_paginate, per_page=1, show_entry_count=True
-        )
-
-        await paginator.paginate()
+        await paginator.start()
 
     # ************************************************************************************************
 
@@ -876,7 +883,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
             )
 
-        to_paginate = []
+        paginator = QuoPaginator(ctx, title=f"Total Tourneys: {len(records)}", per_page=1)
         for idx, tourney in enumerate(records, start=1):
             reg_channel = getattr(tourney.registration_channel, "mention", "`Channel Deleted!`")
             slot_channel = getattr(tourney.confirm_channel, "mention", "`Channel Deleted!`")
@@ -885,17 +892,9 @@ class ScrimManager(Cog, name="Esports"):
             open_role = tourney_work_role(tourney)
             mystring = f"> Tourney ID: `{tourney.id}`\n> Name: `{tourney.name}`\n> Registration Channel: {reg_channel}\n> Confirm Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{tourney.required_mentions}`\n> Total Slots: `{tourney.total_slots}`\n> Open Role: {open_role}\n> Status: {'Open' if tourney.started_at else 'Closed'}"
 
-            to_paginate.append(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}\n")
+            paginator.add_line(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}")
 
-        paginator = Pages(
-            ctx,
-            title="Total Tourney: {}".format(len(to_paginate)),
-            entries=to_paginate,
-            per_page=1,
-            show_entry_count=True,
-        )
-
-        await paginator.paginate()
+        await paginator.start()
 
     @tourney.command(name="delete")
     @checks.can_use_tm()
