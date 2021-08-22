@@ -172,6 +172,7 @@ class Quomisc(Cog, name="quomisc"):
         total_members = sum(g.member_count for g in self.bot.guilds)
         cached_members = len(self.bot.users)
 
+        db_latency = await self.bot.db_latency
         total_command_uses = await Commands.all().count()
         user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
         server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
@@ -201,7 +202,7 @@ class Quomisc(Cog, name="quomisc"):
         )
         embed.add_field(
             name="Stats",
-            value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nDatabase: {await self.bot.db_latency}\nIPM: {round(get_ipm(ctx.bot), 2)}",
+            value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nDatabase: {db_latency}\nIPM: {round(get_ipm(ctx.bot), 2)}",
         )
         embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
         embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
