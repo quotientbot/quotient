@@ -39,7 +39,8 @@ class QuoPartners(IpcCog):
                 }
             )
 
+        _list = sorted(_list, key=lambda x: x["scrims"], reverse=True)
         if payload.n:
             _list = _list[: payload.n]
 
-        return {"ok": True, "result": sorted(_list, key=lambda x: x["scrims"], reverse=True)}
+        return {"ok": True, "result": _list}
