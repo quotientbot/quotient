@@ -112,7 +112,7 @@ class Dev(Cog):
                 await channel.send(content=content, view=view, files=_files)
                 success += 1
             except Exception as e:
-                return await ctx.send(e)
+                print(e)
                 failed += 1
                 continue
 
