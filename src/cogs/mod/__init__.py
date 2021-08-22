@@ -44,7 +44,7 @@ class Mod(Cog):
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
     @commands.has_permissions(manage_messages=True)
-    async def clear(self, ctx: Context, Choice: Union[discord.Member, int], Amount: int = None):
+    async def clear(self, ctx: Context, Choice: Union[discord.Member, int], amount: int = 5):
         """
         An all in one purge command.
         Choice can be a Member or a number
@@ -52,11 +52,10 @@ class Mod(Cog):
         await ctx.message.delete()
 
         if isinstance(Choice, discord.Member):
-            search = Amount or 5
-            return await do_removal(ctx, search, lambda e: e.author == Choice)
+            return await do_removal(ctx, amount, lambda e: e.author == Choice)
 
         if isinstance(Choice, int):
-            return await do_removal(ctx, Choice, lambda e: True)
+            return await do_removal(ctx, Choice, lambda e: not e.pinned)
 
     @clear.command()
     @commands.has_permissions(manage_messages=True)
@@ -80,7 +79,7 @@ class Mod(Cog):
     @commands.has_permissions(manage_messages=True)
     async def _remove_all(self, ctx, search=100):
         """Removes all messages."""
-        await do_removal(ctx, search, lambda e: True)
+        await do_removal(ctx, search, lambda e: not e.pinned)
 
     @clear.command()
     @commands.has_permissions(manage_messages=True)
