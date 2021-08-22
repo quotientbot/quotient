@@ -172,7 +172,7 @@ def random_thanks():
         "https://cdn.discordapp.com/attachments/877888851241238548/877891767058444359/unknown.png",
         "https://cdn.discordapp.com/attachments/877888851241238548/877891874671706162/unknown.png",
         "https://cdn.discordapp.com/attachments/877888851241238548/877892011720572988/unknown.png",
-        "https://cdn.discordapp.com/attachments/829953427336593429/878290682731700294/unknown.png",
+        "https://cdn.discordapp.com/attachments/829953427336593429/878898567509573652/unknown.png",
     )
     return random.choice(msges)
 
