@@ -123,6 +123,11 @@ class PaginatorView(discord.ui.View):
             self.children[2].disabled = False
             self.children[3].disabled = False
 
+        elif 1< self.pages.cur_page <self.pages.total:
+            for b in self.children:
+                b.disabled = False
+
+
     def update_embed(self, page: Page):
         if self.show_page_count:
             self.embed.set_footer(text=f"Page {page.index} of {self.pages.total}")
