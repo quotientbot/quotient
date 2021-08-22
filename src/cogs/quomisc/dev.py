@@ -1,16 +1,28 @@
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from prettytable import PrettyTable
-from core import Cog, Quotient, Context
+from core import Cog, Context
 from discord.ext import commands
 
 
 from .helper import tabulate_query
 from time import perf_counter as pf
 from models.models import Commands, Partner
-from utils import get_ipm, QuoUser
-import typing, datetime
+from utils import get_ipm, QuoUser, LinkButton, LinkType
+
+import datetime
 import discord
+
 from contextlib import suppress
 from constants import PartnerRequest, IST, PremiumPurchase
+
+import secrets
+import io
 
 __all__ = ("Dev",)
 
@@ -67,24 +79,41 @@ class Dev(Cog):
         )
         await ctx.success("done")
 
-    # TODO: add flags for webhooks and embeds
-
     @commands.command(hidden=True)
     async def broadcast(self, ctx: Context, *, msg):
-        message = f"{msg}\n\n- {str(ctx.author)}, Team Quotient"
-        records = await ctx.db.fetch("SELECT private_channel FROM guild_data WHERE private_channel IS NOT NULL")
+        msg = msg.strip().split("|")
+
+        _files = []
+        if len(msg) > 1:
+
+            links = msg[1].strip().split("\n")
+            for link in links:
+                async with self.bot.session.get(link) as res:
+                    invert = io.BytesIO(await res.read())
+                    file = discord.File(invert, f"help_{str(secrets.token_urlsafe(5))}.png")
+                    _files.append(file)
+
+        content = f"{msg[0]}\n\n- {str(ctx.author)}, Team Quotient"
+
+        links = [LinkType("Support Server", ctx.config.SERVER_LINK)]
+        view = LinkButton(links)
+
+        await ctx.send("sending...")
+
         success, failed = 0, 0
         start = pf()
+
+        records = await ctx.db.fetch("SELECT private_channel FROM guild_data WHERE private_channel IS NOT NULL")
+
         for record in records:
             channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, record["private_channel"])
 
-            if channel is not None and channel.permissions_for(channel.guild.me).send_messages:
-                try:
-                    await channel.send(message)
-                    success += 1
-                except:
-                    failed += 1
-                    continue
+            try:
+                await channel.send(content=content, view=view, files=_files)
+                success += 1
+            except:
+                failed += 1
+                continue
 
         end = pf()
         await ctx.send(f"Sent {success}: {failed} finished in {end - start:.3f}s.")
