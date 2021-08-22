@@ -53,6 +53,7 @@ class Quotient(commands.AutoShardedBot):
         self.color = config.COLOR
         self.start_time = datetime.now(tz=IST)
         self.cmd_invokes = 0
+        self.seen_messages = 0
         self.binclient = mystbin.Client()
         self.lockdown = False
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
@@ -127,6 +128,8 @@ class Quotient(commands.AutoShardedBot):
         await self.invoke(ctx)
 
     async def on_message(self, message: discord.Message):
+        self.seen_messages += 1
+
         if not message.guild or message.author.bot:
             return
 

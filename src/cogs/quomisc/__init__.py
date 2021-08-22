@@ -181,6 +181,8 @@ class Quomisc(Cog, name="quomisc"):
 
         owner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, 548163406537162782)
 
+        msges = self.bot.seen_messages
+
         embed = discord.Embed(description="Latest Changes:\n" + revision)
         embed.title = "Quotient Official Support Server"
         embed.url = ctx.config.SERVER_LINK
@@ -190,7 +192,7 @@ class Quomisc(Cog, name="quomisc"):
         guild_value = len(self.bot.guilds)
 
         embed.add_field(name="Servers", value=f"{guild_value:,} total\n{len(self.bot.shards)} shards")
-        embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
+        embed.add_field(name="Uptime", value=f"{self.get_bot_uptime(brief=True)}\n{msges:,} messages seen")
         embed.add_field(name="Members", value=f"{total_members:,} Total\n{cached_members:,} cached")
         embed.add_field(
             name="Channels",
