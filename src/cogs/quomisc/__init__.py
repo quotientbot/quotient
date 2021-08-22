@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
-from cogs.quomisc.helper import format_relative, truncate_commit
+from cogs.quomisc.helper import format_relative
 from utils import get_ipm, strtime, human_timedelta, split_list, checks, LinkButton, LinkType
 from core import Cog, Quotient, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
-from utils import ColorConverter, string_input, LinkType, LinkButton
+from utils import ColorConverter, string_input, LinkType, LinkButton, truncate_string
 from collections import Counter
 from constants import PartnerRequest
 from glob import glob
@@ -152,7 +152,7 @@ class Quomisc(Cog, name="quomisc"):
 
         # [`hash`](url) message (offset)
         offset = format_relative(commit_time.astimezone(timezone.utc))
-        return f"[`{short_sha2}`](https://github.com/quotientbot/Quotient-Bot/commit/{commit.hex}) {truncate_commit(short,40)} ({offset})"
+        return f"[`{short_sha2}`](https://github.com/quotientbot/Quotient-Bot/commit/{commit.hex}) {truncate_string(short,40)} ({offset})"
 
     def get_last_commits(self, count=3):
         repo = pygit2.Repository(".git")
@@ -434,7 +434,7 @@ class Quomisc(Cog, name="quomisc"):
         embed = discord.Embed(color=self.bot.color, title=f"{ctx.guild.name} ({ctx.guild.member_count})", url=str(invite))
         embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar.url)
         embed.description = description
-        embed.add_field(name="Scrims Info", value=truncate_commit(num_scrims))
+        embed.add_field(name="Scrims Info", value=truncate_string(num_scrims))
         embed.add_field(
             name="Information", value=f"Server ID: {ctx.guild.id}\nOwner: {ctx.guild.owner} ({ctx.guild.owner.id})"
         )
