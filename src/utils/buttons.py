@@ -1,5 +1,7 @@
 from typing import NamedTuple
 import discord
+import config
+from .default import split_list
 
 
 class LinkType(NamedTuple):
@@ -21,7 +23,7 @@ class Prompt(discord.ui.View):
         self.user_id = user_id
         self.value = None
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.user_id:
             await interaction.response.send_message(
                 "Sorry, you can't use this interaction as it is not started by you.", ephemeral=True

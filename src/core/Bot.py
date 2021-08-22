@@ -114,6 +114,10 @@ class Quotient(commands.AutoShardedBot):
         await super().close()
         await self.session.close()
 
+    def get_message(self, message_id: int) -> discord.Message:
+        """Gets the message from the cache"""
+        return self._connection._get_message(message_id)
+
     async def process_commands(self, message: discord.Message):
         ctx = await self.get_context(message, cls=Context)
 
