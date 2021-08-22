@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import format_relative, truncate_commit
-from utils import emote, get_ipm, strtime, human_timedelta, split_list, checks
+from utils import get_ipm, strtime, human_timedelta, split_list, checks, LinkButton, LinkType
 from core import Cog, Quotient, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
 from utils import ColorConverter, string_input, LinkType, LinkButton
 from collections import Counter
-from constants import IST, PartnerRequest
+from constants import PartnerRequest
 from glob import glob
 import inspect, time
 
@@ -97,16 +97,15 @@ class Quomisc(Cog, name="quomisc"):
         guild = ctx.guild
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
+            guild.me: discord.PermissionOverwrite(
+                read_messages=True, send_messages=True, read_message_history=True, embed_links=True, attach_files=True,manage_channels=True
+            ),
             ctx.author: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
         }
         channel = await guild.create_text_channel(
             "quotient-private", overwrites=overwrites, reason=f"Made by {str(ctx.author)}"
         )
-        webhook = await channel.create_webhook(
-            name="Quotient", avatar=await ctx.me.avatar.read(), reason=f"Made by {str(ctx.author)}"
-        )
-        await Guild.filter(guild_id=ctx.guild.id).update(private_channel=channel.id, private_webhook=webhook.url)
+        await Guild.filter(guild_id=ctx.guild.id).update(private_channel=channel.id)
 
         e = self.bot.embed(ctx)
         e.add_field(
@@ -117,7 +116,10 @@ class Quomisc(Cog, name="quomisc"):
         e.add_field(
             name="**__Important Links__**", value=f"{support_link} | {invite_link} | {vote_link} | {source}", inline=False
         )
-        m = await channel.send(embed=e)
+
+        links = [LinkType("Support Server", ctx.config.SERVER_LINK)]
+        view = LinkButton(links)
+        m = await channel.send(embed=e,view=view)
         await m.pin()
 
         return channel
