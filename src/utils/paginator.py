@@ -84,13 +84,13 @@ class QuoPaginator:
 
         self.pages = Pages(_pages)
 
-        if self.pages.total > 1:
-            view = PaginatorView(
-                self.ctx, pages=self.pages, embed=self.embed, timeout=self.timeout, show_page_count=self.show_page_count
-            )
-            return await self.ctx.send(embed=self.embed, view=view)
+        if not self.pages.total > 1:
+            await self.ctx.send(embed=self.embed)
 
-        await self.ctx.send(embed=self.embed)
+        view = PaginatorView(
+            self.ctx, pages=self.pages, embed=self.embed, timeout=self.timeout, show_page_count=self.show_page_count
+        )
+        view.message = await self.ctx.send(embed=self.embed, view=view)
 
 
 class PaginatorView(discord.ui.View):
@@ -123,10 +123,9 @@ class PaginatorView(discord.ui.View):
             self.children[2].disabled = False
             self.children[3].disabled = False
 
-        elif 1< self.pages.cur_page <self.pages.total:
+        elif 1 < self.pages.cur_page < self.pages.total:
             for b in self.children:
                 b.disabled = False
-
 
     def update_embed(self, page: Page):
         if self.show_page_count:
@@ -143,21 +142,11 @@ class PaginatorView(discord.ui.View):
         return True
 
     async def on_timeout(self) -> None:
-        bot = self.ctx.bot
-
-        message = None
-        for m_id, view in bot._connection._view_store._synced_message_views.items():
-            if view is self:
-                if m := bot.get_message(m_id):
-                    message = m
-
-        if message is None:
-            return
 
         for b in self.children:
             b.style, b.disabled = discord.ButtonStyle.grey, True
 
-        await message.edit(view=self)
+        await self.message.edit(view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="first", emoji="<:double_left:878668594530099220>")
     async def first(self, button: discord.ui.Button, interaction: discord.Interaction):

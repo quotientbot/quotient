@@ -27,6 +27,7 @@ __all__ = (
     "SSData",
     "SlotManager",
     "BanLog",
+    "SlotLocks",
 )
 
 
@@ -497,22 +498,28 @@ class SlotManager(models.Model):
 
     id = fields.BigIntField(pk=True)
     guild_id = fields.BigIntField()
-    cancel_channel_id = fields.BigIntField()
-    claim_channel_id = fields.BigIntField()
-    post_channel_id = fields.BigIntField()
+    main_channel_id = fields.BigIntField()
+    updates_channel_id = fields.BigIntField()
 
-    cancel_message_id = fields.BigIntField()
-    claim_message_id = fields.BigIntField()
+    message_id = fields.BigIntField()
+
     toggle = fields.BooleanField(default=True)
+    locks: fields.ManyToManyRelation["SlotLocks"] = fields.ManyToManyField("models.SlotLocks", index=True)
 
     @property
-    def cancel_channel(self):
-        return self.bot.get_channel(self.cancel_channel_id)
+    def main_channel(self):
+        return self.bot.get_channel(self.main_channel_id)
 
     @property
-    def claim_channel(self):
-        return self.bot.get_channel(self.claim_channel_id)
+    def updates_channel(self):
+        return self.bot.get_channel(self.updates_channel_id)
 
-    @property
-    def post_channel(self):
-        return self.bot.get_channel(self.post_channel_id)
+
+class SlotLocks(models.Model):
+    class Meta:
+        table = "slot_locks"
+
+    id = fields.BigIntField(pk=True)
+    autolock = fields.BooleanField(default=True)
+    lock_at = fields.DatetimeField(auto_now=True)
+    locked = fields.BooleanField(default=True)

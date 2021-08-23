@@ -28,23 +28,26 @@ from utils import (
     PastDate,
     QuoUser,
     QuoPaginator,
+    BaseSelector,
+    ChannelSelector,
 )
 
-from .converters import PointsConverter, ScrimConverter, TourneyConverter, MultiScrimConverter
-from constants import EsportsType, IST, RegMsg, ScrimBanType
+from .converters import ScrimConverter, TourneyConverter, MultiScrimConverter
+from constants import IST, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime, timedelta
 from discord.ext import commands
 
 from .events import ScrimEvents
-from .errors import ScrimError, SMError, TourneyError, PointsError, VerifyError
+from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
 from .image import lb_files, ptable_files
 
 import discord
 import config
 from .menus import *
+from .views import *
 
 
 class ScrimManager(Cog, name="Esports"):
