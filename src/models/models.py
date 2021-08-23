@@ -160,13 +160,6 @@ class Snipes(models.Model):
     class Meta:
         table = "snipes"
 
-    # since it isn't recomended to create index on tables which are updated very frequently,
-    # I am not sure if I should create an Index on channel_id :c
-
-    # I have read about it a lot and I learnt a lot too, yes I understand select speed matters with commands like snipe but because,
-    # this table is gonna be updated very very frequently, I will not create index here because this will very badly affect the insert,
-    # update and delete queries and ultimately the whole database performance.
-    # I will leave the above comment as it is, with a hope that it might be helpful for anyone reading it.
     id = fields.BigIntField(pk=True)
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()

@@ -1,12 +1,21 @@
-from models import Guild, Tourney, Scrim, Autorole
-from discord import Webhook
-from core import Cog, Quotient
-from contextlib import suppress
-from constants import random_greeting
-import discord, config
-import re
+from __future__ import annotations
 
-from models.models import Autoevent, Giveaway, Lockdown, Logging, Tag
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+from models import Guild, Timer
+from core import Cog
+
+from contextlib import suppress
+from constants import random_greeting, IST
+import discord
+
+from .utils import erase_guild
+from datetime import datetime, timedelta
+import re
+import config
 
 
 class MainEvents(Cog, name="Main Events"):
@@ -38,24 +47,15 @@ class MainEvents(Cog, name="Main Events"):
             )
 
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
+                webhook = discord.Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
                 await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
+        await self.bot.reminders.create_timer(
+            "erase_guild", datetime.now(tz=IST) + timedelta(minutes=5), guild_id=guild.id
+        )
         with suppress(AttributeError):
-            check = await Guild.get_or_none(guild_id=guild.id)
-            if check and not check.is_premium:
-                await Guild.filter(guild_id=guild.id).delete()
-
-            await Scrim.filter(guild_id=guild.id).delete()
-            await Tourney.filter(guild_id=guild.id).delete()
-            await Autorole.filter(guild_id=guild.id).delete()
-            await Tag.filter(guild_id=guild.id).delete()
-            await Lockdown.filter(guild_id=guild.id).delete()
-            await Autoevent.filter(guild_id=guild.id).delete()
-            await Giveaway.filter(guild_id=guild.id).delete()
-
             try:
                 self.bot.guild_data.pop(guild.id)
             except KeyError:
@@ -68,8 +68,15 @@ class MainEvents(Cog, name="Main Events"):
                 value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
             )
             with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
+                webhook = discord.Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
                 await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
+
+    @Cog.listener()
+    async def on_erase_guild_timer_complete(self, timer: Timer):
+        guild_id = timer.kwargs["guild_id"]
+        guild = self.bot.get_guild(guild_id)
+        if not guild:
+            await erase_guild(guild_id)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
