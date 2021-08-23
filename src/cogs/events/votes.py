@@ -93,7 +93,7 @@ class Votes(Cog):
             )
 
         embed = discord.Embed(
-            color=self.bot.color,
+            color=discord.Color.gold(),
             title="Premium Purchase Successful",
             description=f"{constants.random_greeting()} {member.mention},\nThanks for purchasing Quotient Premium.\nYou have now access to all Premium Perks and A special role in our server.",
         )
