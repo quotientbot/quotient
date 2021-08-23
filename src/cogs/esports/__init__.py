@@ -65,6 +65,10 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     # ************************************************************************************************
+    # @commands.command()
+    # async def slotmanager(self, ctx):
+    #     view = SlotManagerView()
+    #     await ctx.send(embed=discord.Embed(description="hi bros"), view=view)
 
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):

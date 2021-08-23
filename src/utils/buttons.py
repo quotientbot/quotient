@@ -58,7 +58,7 @@ class BaseSelector(discord.ui.View):
         return True
 
     async def on_timeout(self) -> None:
-        if self.message:
+        if hasattr(self, "message"):
             await self.message.delete()
 
 
@@ -79,5 +79,14 @@ class ChannelSelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options)
 
     async def callback(self, interaction: discord.Interaction):
-        self.view.stop()
         self.view.custom_id = interaction.data["values"][0]
+        self.view.stop()
+
+
+class CustomSelector(discord.ui.Select):
+    def __init__(self, placeholder: str, options: List[discord.SelectOption]):
+        super().__init__(placeholder=placeholder, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        self.view.custom_id = interaction.data["values"][0]
+        self.view.stop()
