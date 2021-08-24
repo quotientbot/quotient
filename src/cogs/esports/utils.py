@@ -106,7 +106,7 @@ async def get_slot_manager_message(guild_id: int):
         _claimable = "\n".join(_free)
 
     embed = discord.Embed(color=config.COLOR, title="Cancel or Claim a Scrims Slot")
-    embed.description = f"● Press `cancel-your-slot` to cancel a slot.\n\n" f"● Claim Slots: {_claimable}"
+    embed.description = f"● Press `cancel-your-slot` to cancel a slot.\n\n" f"● Claim Slots: \n{_claimable}"
     return embed
 
 
@@ -117,7 +117,7 @@ async def free_slots(guild_id: int):
     records = Scrim.filter(guild_id=guild_id, closed_at__gte=_time, available_slots__not=[])
     async for idx, scrim in aenumerate(records, start=1):
         _list.append(
-            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(scrim.available_slots)} (ID: {scrim.id})"
+            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,scrim.available_slots))} (ID: {scrim.id})"
         )
 
     return _list

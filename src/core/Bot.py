@@ -153,7 +153,7 @@ class Quotient(commands.AutoShardedBot):
         if not self.persistent_views_added:
             from cogs.esports.views import SlotManagerView
 
-            self.add_view(SlotManagerView(), message_id=879649868732309514)
+            self.add_view(SlotManagerView(), message_id=879687198159544321)
 
             self.persistent_views_added = True
 
