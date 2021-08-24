@@ -8,13 +8,15 @@ from models import Scrim, Tourney, SlotManager
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime, emote, QuoUser, plural, human_timedelta
+from utils import find_team, strtime, emote, QuoUser, plural, human_timedelta, aenumerate
 import discord
 import config
 import asyncio
 import re, json
 
 from constants import VerifyImageError, ScrimBanType, IST
+
+from .views import SlotManagerView
 
 
 def get_slots(slots):
@@ -67,7 +69,7 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
         ctx.guild.me: discord.PermissionOverwrite(
             read_messages=True,
             send_messages=True,
-            manage_channel=True,
+            manage_channels=True,
             manage_messages=True,
             read_message_history=True,
             embed_links=True,
@@ -80,24 +82,45 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
         if category:
             break
     try:
-        main_channel = await ctx.guild.create_channel(
-            name="cancel-slot", overwrites=overwrites, reason=reason, category=category
+        main_channel = await ctx.guild.create_text_channel(
+            name="cancel-claim-slot", overwrites=overwrites, reason=reason, category=category
         )
     except discord.Forbidden:
         return await ctx.error(f"I don't have permissions to create channel in scrims category. {category}")
 
-    await SlotManager.create(
-        guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=None
+    _embed = await get_slot_manager_message(ctx.guild.id)
+
+    msg: discord.Message = await main_channel.send(embed=_embed, view=SlotManagerView())
+
+    sm = await SlotManager.create(
+        guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=msg.id
     )
+    return sm
 
 
-def get_slot_manager_message(guild: discord.Guild):
-    embed = discord.Embed(color=config.COLOR, title="Cancel your Scrims Slot")
-    embed.description = (
-        f"Kindly react the below message with __ to cancel your slot.\n"
-        "Please Note that the **action is irreversible.**"
-    )
+async def get_slot_manager_message(guild_id: int):
+
+    _claimable = "**No Slots Available**"
+
+    if _free := await free_slots(guild_id):
+        _claimable = "\n".join(_free)
+
+    embed = discord.Embed(color=config.COLOR, title="Cancel or Claim a Scrims Slot")
+    embed.description = f"● Press `cancel-your-slot` to cancel a slot.\n\n" f"● Claim Slots: {_claimable}"
     return embed
+
+
+async def free_slots(guild_id: int):
+    _list = []
+    _time = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    records = Scrim.filter(guild_id=guild_id, closed_at__gte=_time, available_slots__not=[])
+    async for idx, scrim in aenumerate(records, start=1):
+        _list.append(
+            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(scrim.available_slots)} (ID: {scrim.id})"
+        )
+
+    return _list
 
 
 async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):

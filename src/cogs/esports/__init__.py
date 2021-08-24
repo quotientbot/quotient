@@ -15,6 +15,7 @@ from .utils import (
     tourney_work_role,
     registration_close_embed,
     registration_open_embed,
+    setup_slotmanager,
 )
 
 from utils import (
@@ -1397,72 +1398,74 @@ class ScrimManager(Cog, name="Esports"):
         embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
         await ctx.send(embed=embed, embed_perms=True)
 
-    # @commands.group()
-    # async def slotmanager(self, ctx: Context):
-    #     await ctx.send_help(ctx.command)
+    @commands.group(invoke_without_command=True)
+    async def slotmanager(self, ctx: Context):
+        await ctx.send_help(ctx.command)
 
-    # @slotmanager.command(name="setup")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_guild_permissions(manage_channels=True)
-    # async def _slotmanager_setup(self, ctx: Context):
-    #     """Setup slot manager"""
+    @slotmanager.command(name="setup")
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    async def _slotmanager_setup(self, ctx: Context):
+        """Setup slot manager"""
 
-    #     check = await SlotManager.filter(guild_id=ctx.guild.id)
-    #     if check:
-    #         return await ctx.error(
-    #             "It seems that you have an existing slotmanager setup in your server."
-    #             f"\nKindly use `{ctx.prefix}slotmanager fix` if you think there's something wrong."
-    #         )
+        check = await SlotManager.filter(guild_id=ctx.guild.id)
+        if check:
+            return await ctx.error(
+                "It seems that you have an existing slotmanager setup in your server."
+                f"\nKindly use `{ctx.prefix}slotmanager fix` if you think there's something wrong."
+            )
 
-    #     check = await Scrim.filter(guild_id=ctx.guild.id)
-    #     if not check:
-    #         return await ctx.error(
-    #             "It seems that you don't have any scrims setup in your server. "
-    #             "\nYou need to use Quotient's scrims manager to use slotmanager."
-    #         )
+        check = await Scrim.filter(guild_id=ctx.guild.id)
+        if not check:
+            return await ctx.error(
+                "It seems that you don't have any scrims setup in your server. "
+                "\nYou need to use Quotient's scrims manager to use slotmanager."
+            )
 
-    #     def check(message: discord.Message):
-    #         if message.content.strip().lower() == "cancel":
-    #             raise ScrimError("Alright, reverting all process.")
+        def check(message: discord.Message):
+            if message.content.strip().lower() == "cancel":
+                raise ScrimError("Alright, reverting all process.")
 
-    #         return message.author == ctx.author and ctx.channel == message.channel
+            return message.author == ctx.author and ctx.channel == message.channel
 
-    #     await ctx.simple(
-    #         "In which channel do you want me to post available slots?\n"
-    #         "As soon as any slot becomes vacant, I will post a message in the channel you select now."
-    #     )
-    #     channel = await inputs.channel_input(ctx, check)
-    #     perms = channel.permissions_for(ctx.me)
-    #     if not all((perms.send_messages, perms.embed_links)):
-    #         return await ctx.error(
-    #             f"I don't have permission to send messages in this **{channel}**.\n"
-    #             "Please give me permission to send messages and embed links in this channel."
-    #         )
+        await ctx.simple(
+            "In which channel do you want me to post available slots?\n"
+            "As soon as any slot becomes vacant, I will post a message in the channel you select now."
+        )
+        channel = await inputs.channel_input(ctx, check)
+        perms = channel.permissions_for(ctx.me)
+        if not all((perms.send_messages, perms.embed_links)):
+            return await ctx.error(
+                f"I don't have permission to send messages in this **{channel}**.\n"
+                "Please give me permission to send messages and embed links in this channel."
+            )
 
-    #     prompt = await ctx.prompt(
-    #         "A new channel will be created for slot-manager in your scrims category." "Are you sure you want to continue?"
-    #     )
-    #     if not prompt:
-    #         await ctx.simple('Alright, aborting.')
+        prompt = await ctx.prompt(
+            "A new channel will be created for slot-manager in your scrims category." "Are you sure you want to continue?"
+        )
+        if not prompt:
+            return await ctx.simple("Alright, aborting.")
 
+        sm = await setup_slotmanager(ctx, channel)
+        if isinstance(sm, SlotManager):
+            await ctx.success(f"Slot-Manager setup complete ({sm.main_channel.mention})")
 
+    @slotmanager.command(name="delete")
+    @commands.has_permissions(manage_guild=True)
+    async def _slotmanager_delete(self, ctx: Context):
+        """Delete slot manager"""
 
-    # @slotmanager.command(name="delete")
-    # @commands.has_permissions(manage_guild=True)
-    # async def _slotmanager_delete(self, ctx: Context):
-    #     """Delete slot manager"""
+    @slotmanager.command(name="fix")
+    async def _slotmanager_fix(self, ctx: Context):
+        """Fix slot manager"""
 
-    # @slotmanager.command(name="fix")
-    # async def _slotmanager_fix(self, ctx: Context):
-    #     """Fix slot manager"""
+    @slotmanager.command(name="lock")
+    async def _slotmanager_lock(self, ctx: Context):
+        """Lock slot management of any scrim"""
 
-    # @slotmanager.command(name="lock")
-    # async def _slotmanager_lock(self, ctx: Context):
-    #     """Lock slot management of any scrim"""
-
-    # @slotmanager.command(name="unlock")
-    # async def _slotmanager_unlock(self, ctx: Context):
-    #     """Unlock slot management for any scrim"""
+    @slotmanager.command(name="unlock")
+    async def _slotmanager_unlock(self, ctx: Context):
+        """Unlock slot management for any scrim"""
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
