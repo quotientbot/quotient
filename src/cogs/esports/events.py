@@ -1,3 +1,9 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from models import (
     EasyTag,
     TagCheck,
@@ -12,7 +18,7 @@ from models import (
     SSVerify,
     SSData,
 )
-from core import Quotient, Cog
+from core import Cog
 from utils import emote
 from .utils import (
     available_to_reserve,
@@ -43,11 +49,10 @@ import re
 
 from config import IPC_BASE
 from discord.ext import tasks
-from typing import NamedTuple
 from datetime import datetime, timedelta
 
-QueueMessage = NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
-TourneyQueueMessage = NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
+QueueMessage = typing.NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
+TourneyQueueMessage = typing.NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
 
 
 class ScrimEvents(Cog):
@@ -559,9 +564,7 @@ class ScrimEvents(Cog):
 
         count = len(attachments)
         for attachment in attachments:
-            payload = json.dumps(
-                {"type": verify.ss_type.name, "name": verify.channel_name, "url": attachment.proxy_url}
-            )
+            payload = json.dumps({"type": verify.ss_type.name, "name": verify.channel_name, "url": attachment.proxy_url})
 
             res = await self.bot.session.post(url=url, headers=headers, data=payload)
             res = await res.json()
@@ -626,9 +629,7 @@ class ScrimEvents(Cog):
             await verify.data.add(slot)
 
             if count > 1 and slot.status == SSStatus.approved:
-                await message.reply(
-                    f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after
-                )
+                await message.reply(f"{emote.check} | {attachment.filename} Verified.", delete_after=delete_after)
 
         records = await verify.data.filter(author_id=message.author.id)
         approved = sum(1 for i in records if i.status == SSStatus.approved)

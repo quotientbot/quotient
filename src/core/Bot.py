@@ -4,6 +4,7 @@ import typing
 
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
+
 from discord import AllowedMentions, Intents
 from colorama import Fore, Style, init
 from discord.ext import commands, ipc
@@ -56,6 +57,8 @@ class Quotient(commands.AutoShardedBot):
         self.seen_messages = 0
         self.binclient = mystbin.Client()
         self.lockdown = False
+        self.persistent_views_added = False
+
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0")
@@ -146,6 +149,13 @@ class Quotient(commands.AutoShardedBot):
         print(Fore.BLUE + f"[Quotient] Currently in {len(self.guilds)} Guilds")
         print(Fore.BLUE + f"[Quotient] Connected to {len(self.users)} Users")
         print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
+
+        if not self.persistent_views_added:
+            from cogs.esports.views import SlotManagerView
+
+            self.add_view(SlotManagerView(), message_id=879649868732309514)
+
+            self.persistent_views_added = True
 
     def embed(self, ctx: Context, **kwargs) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
