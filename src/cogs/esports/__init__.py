@@ -1397,330 +1397,6 @@ class ScrimManager(Cog, name="Esports"):
         embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
         await ctx.send(embed=embed, embed_perms=True)
 
-    # @ptable.command(name="setup")
-    # @commands.bot_has_permissions(embed_links=True)
-    # @commands.has_permissions(manage_guild=True)
-    # async def ptable_setup(self, ctx: Context):
-    #     """
-    #     Create a ptable setup.
-    #     You can use this to create points tables daily.
-    #     """
-    #     count = await PointsInfo.filter(guild_id=ctx.guild.id).count()
-
-    #     if count >= 2 and not await ctx.is_premium_guild():
-    #         raise PointsError(
-    #             f"You cannot create more than 2 point table setup in free tier.\nKindly checkout [Quotient Premium]({config.WEBSITE}/premium) to enjoy unlimited point table setup."
-    #         )
-
-    #     def check(message: discord.Message):
-    #         if message.content.strip().lower() == "cancel":
-    #             raise PointsError("Alright, reverting all process.")
-
-    #         return message.author == ctx.author and ctx.channel == message.channel
-
-    #     ptinfo = PointsInfo(guild_id=ctx.guild.id)
-
-    #     await self.pointsembed(
-    #         ctx, 1, "How many points due you want to give per kill?\n\n`Please enter a number between 0 and 10`"
-    #     )
-    #     kill_point = await inputs.integer_input(ctx, check, limits=(0, 10))
-    #     ptinfo.kill_points = kill_point
-
-    #     await self.pointsembed(
-    #         ctx, 2, "What should be the title of every points table?\n\n`Please keep the character length under 22`"
-    #     )
-    #     title = await inputs.string_input(ctx, check)
-    #     if len(title) > 22:
-    #         raise PointsError("Character length of title cannot exceed 22 characters.")
-    #     ptinfo.title = title
-
-    #     await self.pointsembed(
-    #         ctx,
-    #         3,
-    #         "In which channel do you want me to send points tables?\n\n`Please mention a channel or write its name`",
-    #     )
-    #     channel = await inputs.channel_input(ctx, check)
-    #     if not channel.permissions_for(ctx.me).embed_links:
-    #         raise PointsError(
-    #             f"Kindly make sure I have `add_reactions`, `send_messages` and `embed_links` permission in {channel.mention}"
-    #         )
-    #     ptinfo.channel_id = channel.id
-
-    #     await self.pointsembed(
-    #         ctx,
-    #         4,
-    #         "What should be default position points format?\n"
-    #         "Format:\n`<Rank> = <Place Point>`\nRank can be a single number or a range\n"
-    #         "Separate them with comma (`,`)\n"
-    #         "Example:\n"
-    #         "```1 = 20,\n"
-    #         "2 = 14,\n"
-    #         "3-5 = 10```\n"
-    #         "Here, from 6th, everyone will get `0` posi points.",
-    #     )
-
-    #     points = await inputs.string_input(ctx, check)
-
-    #     result = {}
-    #     try:
-    #         for line in points.replace("\n", "").split(","):
-    #             line_values = [value.strip() for value in line.split("=")]
-    #             points = int(line_values[1])
-    #             if points > 99:
-    #                 raise PointsError(f"You cannot give more than 99 points to any rank.")
-
-    #             if "-" in line_values[0]:
-    #                 range_idx = line_values[0].split("-")
-    #                 num_range = list(range(int(range_idx[0]), int(range_idx[1]) + 1))
-    #                 for key in num_range:
-    #                     result[key] = points
-    #             else:
-    #                 result[int(line_values[0])] = points
-
-    #     except (ValueError, IndexError):
-    #         raise PointsError(
-    #             "You didn't provide a valid default points format.\n\nClick me to get an example of valid format."
-    #         )
-
-    #     if len(result) > 25:
-    #         raise PointsError("You can only set position points till rank 25.")
-
-    #     result = dict(sorted(result.items()))
-
-    #     ptinfo.posi_points = result
-
-    #     await ptinfo.save()
-    #     await ctx.success(
-    #         f"Successfully create Points Setup. \nYour points id is `{ptinfo.id}`.\n\nUse `{ctx.prefix}pt match create {ptinfo.id}` to create a new points table."
-    #     )
-
-    # @ptable.command(name="config")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(manage_messages=True)
-    # async def points_config(self, ctx: Context):
-    #     """Get all the ptables you have created so far"""
-    #     records = await PointsInfo.filter(guild_id=ctx.guild.id).all()
-    #     if not records:
-    #         raise PointsError(
-    #             f"You haven't create any points table setup yet.\n\nKindly use `{ctx.prefix}pt setup` to create one."
-    #         )
-
-    #     to_pagi = []
-    #     for idx, record in enumerate(records, start=1):
-    #         text = f"`{idx:02})` Points ID: `{record.id}` | **{record.title}** | Per Kill: `{record.kill_points}`\n"
-    #         to_pagi.append(text)
-
-    #     paginator = Pages(
-    #         ctx,
-    #         title="Total Points Setup: {}".format(len(to_pagi)),
-    #         entries=to_pagi,
-    #         per_page=10,
-    #         show_entry_count=True,
-    #     )
-    #     await paginator.paginate()
-
-    # @ptable.command(name="edit")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.max_concurrency(1, BucketType.guild)
-    # async def points_edit(self, ctx: Context, points_id: PointsConverter):
-    #     """Edit ptable config of a setup"""
-    #     await PointsConfigEditor(points=points_id).start(ctx)
-
-    # @ptable.command(name="leaderboard", aliases=("lb",))
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.max_concurrency(1, BucketType.guild)
-    # async def points_leaderboard(self, ctx: Context, points_id: PointsConverter, days: typing.Optional[int] = 7):
-    #     """Get leaderboard a ptable for desired no. of days"""
-    #     date = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days)
-    #     records = await points_id.data.filter(created_at__gte=date).all()
-    #     if not records:
-    #         raise PointsError(
-    #             f"You haven't created any points table between `{date.strftime('%d-%b-%Y')}` and `{datetime.now().strftime('%d-%b-%Y')}`"
-    #         )
-
-    #     files = await lb_files(points_id, records)
-    #     if files:
-    #         for file in files:
-    #             embed = self.bot.embed(ctx, color=0x2F3136)
-    #             embed.set_image(url="attachment://leaderboard.png")
-    #             embed.set_footer(
-    #                 text=f"Leaderboard: {date.strftime('%d-%b-%Y')} to {datetime.now().date().strftime('%d-%b-%Y')}"
-    #             )
-    #             await ctx.send(file=file, embed=embed)
-
-    #         if channel := points_id.channel:
-    #             prompt = await ctx.prompt(f"Should I send these to {channel.mention}?")
-    #             if not prompt:
-    #                 await ctx.error("ok Aborting!")
-
-    #             else:
-    #                 for file in await lb_files(points_id, records):
-    #                     embed = self.bot.embed(ctx, color=0x2F3136)
-    #                     embed.set_image(url="attachment://leaderboard.png")
-    #                     embed.set_footer(
-    #                         text=f"Leaderboard: {date.strftime('%d-%b-%Y')} to {datetime.now().date().strftime('%d-%b-%Y')}"
-    #                     )
-    #                     await channel.send(file=file, embed=embed)
-    #                 await ctx.success("sent!")
-
-    #     else:
-    #         raise PointsError(f"You haven't saved any points in the points table.")
-
-    # @ptable.command(name="delete")
-    # @commands.has_permissions(manage_guild=True)
-    # async def points_delete(self, ctx: Context, points_id: PointsConverter):
-    #     """Delete a ptable setup, along with its matches."""
-    #     prompt = await ctx.prompt(
-    #         f"Points Table setup ({points_id.id}) will be deleted, along with all its matches.",
-    #         title="Are you sure you want to continue?",
-    #     )
-    #     if not prompt:
-    #         return await ctx.success("ok, Aborting")
-
-    #     await PointsInfo.filter(id=points_id.id).delete()
-    #     await ctx.send(f"Deleted points setup (`{points_id.id}`)")
-
-    # @ptable.group(name="match", invoke_without_command=True)
-    # async def _ptable(self, ctx: Context):
-    #     """ptable match cmds"""
-    #     await ctx.send_help(ctx.command)
-
-    # @_ptable.command(name="create")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(manage_messages=True)
-    # async def _ptable_create(self, ctx: Context, points_id: PointsConverter):
-    #     """Create a match or points table."""
-    #     points = points_id
-    #     record = await points.data.filter(
-    #         created_at=datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)
-    #     ).first()
-    #     if record:
-    #         raise PointsError(
-    #             "You have already created today's points table. If you want to delete it and create a new one,\n"
-    #             f"Kindly use: `{ctx.prefix}pt match delete {points.id}`\n"
-    #             f"If you want to see, what is looks like, use: `{ctx.prefix}pt match show {record.id}`"
-    #         )
-
-    #     msg = await ctx.simple(
-    #         "Starting the Points Table Creator...\n\n`Tip:` It is recommended to use this command on a computer."
-    #     )
-    #     await asyncio.sleep(2)
-    #     await PointsMenu(points=points_id, msg=msg).start(ctx)
-
-    # @_ptable.command(name="all")
-    # @commands.has_permissions(manage_guild=True)
-    # async def _ptable_all(self, ctx: Context, points_id: PointsConverter):
-    #     """Get a list of all matches created for a specific ptable"""
-    #     records = await points_id.data.all()
-    #     if not records:
-    #         raise PointsError(
-    #             f"You haven't created any match yet.\n\nKindly use `{ctx.prefix}pt match create {points_id.id}`"
-    #         )
-
-    #     matches = []
-    #     for idx, record in enumerate(records, start=1):
-    #         matches.append(f"`{idx:02}` **{record.created_at.strftime('%d-%m-%Y')}** (<@{record.created_by}>)\n")
-
-    #     paginator = Pages(
-    #         ctx,
-    #         title="Total Points Tables: {}".format(len(matches)),
-    #         entries=matches,
-    #         per_page=12,
-    #         show_entry_count=True,
-    #         footertext=f'Use "{ctx.prefix}pt match show {points_id.id} <date>" to get image version',
-    #     )
-    #     await paginator.paginate()
-
-    # @_ptable.command(name="show")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(embed_links=True)
-    # @commands.max_concurrency(1, BucketType.guild)
-    # async def _ptable_show(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
-    #     """Get a points table in image format"""
-    #     date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
-
-    #     data = await points_id.data.filter(created_at=date).first()
-
-    #     if not data:
-    #         raise PointsError(f"I couldn't find any points table created on **{date.strftime('%d/%b/%Y')}**")
-
-    #     files = await ptable_files(points_id, data)
-    #     if files:
-    #         for file in files:
-    #             embed = self.bot.embed(ctx)
-    #             embed.set_image(url="attachment://points_table.png")
-    #             embed.set_footer(text=f"Date: {data.created_at.strftime('%d/%b/%Y')}")
-    #             await ctx.send(file=file, embed=embed)
-
-    #     else:
-    #         raise PointsError(
-    #             f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
-    #         )
-
-    # @_ptable.command(name="send")
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(embed_links=True)
-    # @commands.max_concurrency(1, BucketType.guild)
-    # async def _ptable_send(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
-    #     """Send points table to set channel"""
-    #     date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
-
-    #     data = await points_id.data.filter(created_at=date).first()
-
-    #     if not data:
-    #         raise PointsError(f"I couldn't find any points table created on **{date.strftime('%d/%b/%Y')}**")
-
-    #     channel = points_id.channel
-
-    #     if not channel:
-    #         raise PointsError(f"I couldn't find default points table send channel for `{points_id.id}`")
-
-    #     perms = channel.permissions_for(ctx.me)
-
-    #     if not all((perms.send_messages, perms.embed_links)):
-    #         raise PointsError(
-    #             f"Kindly make sure I have following permissions in {channel.mention}:\n\n- `send messages`\n- `embed links`"
-    #         )
-
-    #     files = await ptable_files(points_id, data)
-    #     if not files:
-    #         raise PointsError(
-    #             f"You haven't saved any points in the points table.\n\nKindly delete it with `{ctx.prefix}pt match delete {points_id.id}`\nand create a new one again."
-    #         )
-
-    #     for file in files:
-    #         embed = self.bot.embed(ctx)
-    #         embed.set_image(url="attachment://points_table.png")
-    #         embed.set_footer(text=f"Date: {data.created_at.strftime('%d/%b/%Y')}")
-    #         await channel.send(file=file, embed=embed)
-
-    #     await ctx.success(f"Sent points table successfully.")
-
-    # @_ptable_show.before_invoke
-    # @points_leaderboard.before_invoke
-    # @_ptable_send.before_invoke
-    # async def before_points_invoke(self, ctx):
-    #     await ctx.trigger_typing()
-
-    # @_ptable.command(name="delete")
-    # @commands.has_permissions(manage_guild=True)
-    # async def _ptable_delete(self, ctx: Context, points_id: PointsConverter, *, date: typing.Optional[PastDate]):
-    #     """Delete a points table/ match."""
-    #     date = date or datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
-    #     points = points_id
-    #     record = await points.data.filter(created_at=date).first()
-    #     if not record:
-    #         raise PointsError(f"No points table found for date: `{date.strftime('%d-%b-%Y')}`")
-
-    #     prompt = await ctx.prompt(
-    #         "Are you sure you want to delete the points table created on `{0}`".format(date.strftime("%d-%b-%Y"))
-    #     )
-    #     if not prompt:
-    #         return await ctx.success("ok Aborting")
-
-    #     await PointsTable.filter(id=record.id).delete()
-    #     return await ctx.success("Successfully deleted points table.")
-
     # @commands.group()
     # async def slotmanager(self, ctx: Context):
     #     await ctx.send_help(ctx.command)
@@ -1745,18 +1421,31 @@ class ScrimManager(Cog, name="Esports"):
     #             "\nYou need to use Quotient's scrims manager to use slotmanager."
     #         )
 
+    #     def check(message: discord.Message):
+    #         if message.content.strip().lower() == "cancel":
+    #             raise ScrimError("Alright, reverting all process.")
+
+    #         return message.author == ctx.author and ctx.channel == message.channel
+
     #     await ctx.simple(
     #         "In which channel do you want me to post available slots?\n"
     #         "As soon as any slot becomes vacant, I will post a message in the channel you select now."
     #     )
+    #     channel = await inputs.channel_input(ctx, check)
+    #     perms = channel.permissions_for(ctx.me)
+    #     if not all((perms.send_messages, perms.embed_links)):
+    #         return await ctx.error(
+    #             f"I don't have permission to send messages in this **{channel}**.\n"
+    #             "Please give me permission to send messages and embed links in this channel."
+    #         )
+
     #     prompt = await ctx.prompt(
-    #         "Two new channels for scrims slot management will be created. Are you sure you want to continue?"
+    #         "A new channel will be created for slot-manager in your scrims category." "Are you sure you want to continue?"
     #     )
     #     if not prompt:
-    #         return await ctx.success("Alright, Aborting")
+    #         await ctx.simple('Alright, aborting.')
 
-    #     await ctx.send("Creating channels...", delete_after=2)
-    #     # await setup_slotmanager(ctx)
+
 
     # @slotmanager.command(name="delete")
     # @commands.has_permissions(manage_guild=True)
@@ -1764,15 +1453,15 @@ class ScrimManager(Cog, name="Esports"):
     #     """Delete slot manager"""
 
     # @slotmanager.command(name="fix")
-    # async def _slotmanager_fix(self, ctx:Context):
+    # async def _slotmanager_fix(self, ctx: Context):
     #     """Fix slot manager"""
 
     # @slotmanager.command(name="lock")
-    # async def _slotmanager_lock(self, ctx:Context):
+    # async def _slotmanager_lock(self, ctx: Context):
     #     """Lock slot management of any scrim"""
 
     # @slotmanager.command(name="unlock")
-    # async def _slotmanager_unlock(self, ctx:Context):
+    # async def _slotmanager_unlock(self, ctx: Context):
     #     """Unlock slot management for any scrim"""
 
     @commands.command(name="banlog")

@@ -74,32 +74,30 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
         ),
     }
 
-    cancel_channel = await ctx.guild.create_channel(name="cancel-slot", overwrites=overwrites, reason=reason)
-    claim_channel = await ctx.guild.create_channel(name="claim-slot", overwrites=overwrites, reason=reason)
-
-    cancel_message = await cancel_channel.send(embed=await get_cancel_slot_message(ctx.guild))
-    claim_message = await claim_channel.send(embed=await get_claim_slot_message(ctx.guild))
+    scrims = Scrim.filter(guild_id=ctx.guild.id)
+    async for scrim in scrims:
+        category = getattr(scrim.registration_channel, "category", None)
+        if category:
+            break
+    try:
+        main_channel = await ctx.guild.create_channel(
+            name="cancel-slot", overwrites=overwrites, reason=reason, category=category
+        )
+    except discord.Forbidden:
+        return await ctx.error(f"I don't have permissions to create channel in scrims category. {category}")
 
     await SlotManager.create(
-        guild_id=ctx.guild.id,
-        cancel_channel_id=cancel_channel.id,
-        claim_channel_id=claim_channel.id,
-        post_channel_id=post_channel.id,
-        cancel_message_id=cancel_message.id,
-        claim_message_id=claim_message.id,
+        guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=None
     )
 
 
-def get_cancel_slot_message(guild: discord.Guild):
+def get_slot_manager_message(guild: discord.Guild):
     embed = discord.Embed(color=config.COLOR, title="Cancel your Scrims Slot")
     embed.description = (
         f"Kindly react the below message with __ to cancel your slot.\n"
         "Please Note that the **action is irreversible.**"
     )
-
-
-def get_claim_slot_message():
-    ...
+    return embed
 
 
 async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):
