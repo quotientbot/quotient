@@ -49,7 +49,9 @@ class UtilityEvents(Cog):
 
         message = channel.get_partial_message(message_id)
         with suppress(discord.NotFound, discord.Forbidden, discord.HTTPException):
-            await message.delete()
+            msg = await message.fetch()
+            if not msg.pinned:
+                await msg.delete()
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
