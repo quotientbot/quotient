@@ -11,6 +11,8 @@ from constants import AutocleanType, Day, SSStatus, SSType
 from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
+from async_property import async_property
+
 
 __all__ = (
     "Tourney",
@@ -513,6 +515,12 @@ class SlotManager(models.Model):
     @property
     def updates_channel(self):
         return self.bot.get_channel(self.updates_channel_id)
+
+    @async_property
+    async def message(self):
+        channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, self.main_channel_id)
+        if channel:
+            return await channel.fetch_message(self.message_id)
 
 
 class SlotLocks(models.Model):

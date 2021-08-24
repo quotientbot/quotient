@@ -47,11 +47,8 @@ class Context(commands.Context):
         """
         An interactive reaction confirmation dialog.
         """
-        if not self.channel.permissions_for(self.me).add_reactions:
-            raise RuntimeError("Bot does not have Add Reactions permission.")
 
-        fmt = f"**{message}**"
-        embed = discord.Embed(description=fmt, color=self.config.COLOR)
+        embed = discord.Embed(description=message, color=self.config.COLOR)
         if title is not None:
             embed.title = title
 

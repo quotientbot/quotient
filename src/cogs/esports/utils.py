@@ -16,7 +16,6 @@ import re, json
 
 from constants import VerifyImageError, ScrimBanType, IST
 
-from .views import SlotManagerView
 
 
 def get_slots(slots):
@@ -90,6 +89,8 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
 
     _embed = await get_slot_manager_message(ctx.guild.id)
 
+    from .views import SlotManagerView
+
     msg: discord.Message = await main_channel.send(embed=_embed, view=SlotManagerView())
 
     sm = await SlotManager.create(
@@ -98,12 +99,12 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
     return sm
 
 
-async def get_slot_manager_message(guild_id: int):
+async def get_slot_manager_message(guild_id: int, _free=None):
 
-    _claimable = "**No Slots Available**"
+    if not isinstance(_free, list):
+        _free = await free_slots(guild_id)
 
-    if _free := await free_slots(guild_id):
-        _claimable = "\n".join(_free)
+    _claimable = "\n".join(_free) or "**No Slots Available**"
 
     embed = discord.Embed(color=config.COLOR, title="Cancel or Claim a Scrims Slot")
     embed.description = f"● Press `cancel-your-slot` to cancel a slot.\n\n" f"● Claim Slots: \n{_claimable}"

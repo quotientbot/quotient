@@ -1,9 +1,14 @@
-from utils import emote, BaseSelector
+from contextlib import suppress
+from models.esports import SlotManager
+from models.functions import ArrayAppend
+from utils import emote, BaseSelector, Prompt
 from datetime import datetime
 from constants import IST
 from typing import List, NamedTuple
 from models import Scrim, AssignedSlot
 import discord
+
+from cogs.esports.utils import get_slot_manager_message, free_slots
 
 __all__ = ("ScrimSelector", "SlotManagerView")
 
@@ -48,7 +53,7 @@ class ClaimSlotSelector(discord.ui.Select):
                 discord.SelectOption(
                     label=f"Slot {slot.num} ─ {getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{slot.scrim.name} (ID: {slot.scrim.id})",
-                    value=f"{slot.scrim.id} {slot.num}",
+                    value=f"{slot.scrim.id}:{slot.num}",
                     emoji="📇",
                 )
             )
@@ -69,7 +74,7 @@ class CancelSlotSelector(discord.ui.Select):
                 discord.SelectOption(
                     label=f"Slot {slot.obj.num} ─ {getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{slot.obj.team_name} (ID: {slot.scrim.id})",
-                    value=slot.obj.id,
+                    value=f"{slot.scrim.id}:{slot.obj.id}",
                     emoji="📇",
                 )
             )
@@ -108,7 +113,45 @@ class SlotManagerView(discord.ui.View):
         cancel_view = BaseSelector(interaction.user.id, CancelSlotSelector, placeholder="select a slot", slots=_slots)
         await interaction.followup.send("Choose a slot to cancel", view=cancel_view, ephemeral=True)
         await cancel_view.wait()
-        print(cancel_view.custom_id)
+
+        if c_id := cancel_view.custom_id:
+            prompt = Prompt(interaction.user.id)
+            await interaction.followup.send("Are you sure you want to cancel your slot?", view=prompt, ephemeral=True)
+            await prompt.wait()
+            if not prompt.value:
+                return await interaction.followup.send("Alright, Aborting.", ephemeral=True)
+
+            scrim_id, slot_id = c_id.split(":")
+            scrim = await Scrim.get(pk=scrim_id)
+
+            with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
+                await interaction.user.remove_roles(discord.Object(id=scrim.role_id))
+
+            await AssignedSlot.filter(pk=slot_id).update(team_name="Cancelled Slot")
+
+            slot = await AssignedSlot.get(pk=slot_id)
+            embed, channel = await scrim.create_slotlist()
+
+            msg = await channel.fetch_message(scrim.slotlist_message_id)
+            if msg:
+                await msg.edit(embed=embed)
+
+            else:
+                await channel.send(embed=embed)
+
+            await AssignedSlot.filter(pk=slot_id).delete()
+
+            await Scrim.filter(pk=scrim_id).update(available_slots=ArrayAppend("available_slots", slot.num))
+
+            _free = await free_slots(interaction.guild_id)
+            self.children[1].disabled = False
+            if not _free:
+                self.children[1].disabled = True
+
+            sm = await SlotManager.get(guild_id=interaction.guild_id)
+            msg = await sm.message
+            await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
+            return await interaction.followup.send("done bro", ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.success, custom_id="claim-slot", label="Claim Slot")
     async def claim_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
