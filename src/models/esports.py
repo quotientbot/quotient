@@ -6,12 +6,13 @@ import discord
 import utils
 from PIL import Image, ImageFont, ImageDraw
 from typing import Optional
-from tortoise import models, fields
+from tortoise import models, fields, exceptions
 from constants import AutocleanType, Day, SSStatus, SSType
 from pathlib import Path
 from .functions import *
 from ast import literal_eval as leval
 from async_property import async_property
+from discord.ext.commands import BadArgument
 
 
 __all__ = (
@@ -54,6 +55,21 @@ class Tourney(models.Model):
     teamname_compulsion = fields.BooleanField(default=False)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
+
+
+    @classmethod
+    async def convert(cls, ctx, argument: str):
+        try:
+            argument = int(argument)
+        except ValueError:
+            pass
+        else:
+            try:
+                return await cls.get(pk=argument, guild_id=ctx.guild.id)
+            except exceptions.DoesNotExist:
+                pass
+
+        raise BadArgument(f"This is not a valid Tourney ID.\n\nGet a valid ID with `{ctx.prefix}tourney config`")
 
     @property
     def guild(self) -> Optional[discord.Guild]:
@@ -156,6 +172,20 @@ class Scrim(models.Model):
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
+
+    @classmethod
+    async def convert(cls, ctx, argument: str):
+        try:
+            argument = int(argument)
+        except ValueError:
+            pass
+        else:
+            try:
+                return await cls.get(pk=argument, guild_id=ctx.guild.id)
+            except exceptions.DoesNotExist:
+                pass
+
+        raise BadArgument(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
 
     @property
     def guild(self) -> Optional[discord.Guild]:
