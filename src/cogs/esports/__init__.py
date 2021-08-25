@@ -1460,8 +1460,20 @@ class ScrimManager(Cog, name="Esports"):
         """Fix slot manager"""
 
     @slotmanager.command(name="lock")
-    async def _slotmanager_lock(self, ctx: Context):
+    async def _slotmanager_lock(self, ctx: Context,scrim: ScrimConverter):
         """Lock slot management of any scrim"""
+        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
+        if not sm:
+            return await ctx.error("no setup")
+        
+        lock = await sm.locks.filter(id=scrim.id).first()
+
+        if not lock:
+            prompt = await ctx.prompt(f"Do you want me to lock slot-manager everyday at this time for {getattr(scrim.registration_channel,'mention')} (ID: {scrim.id})")
+
+        if lock.locked:
+            return await ctx.error("already locked")
+        
 
     @slotmanager.command(name="unlock")
     async def _slotmanager_unlock(self, ctx: Context):

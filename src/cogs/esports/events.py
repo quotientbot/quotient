@@ -663,3 +663,11 @@ class ScrimEvents(Cog):
                 ),
             ),
         )
+
+
+    @Cog.listener()
+    async def on_scrim_lock_timer_complete(self, timer:Timer):
+        ...
+    @Cog.listener()
+    async def on_slotmanager_log(self):
+        ...

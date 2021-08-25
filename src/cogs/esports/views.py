@@ -1,12 +1,14 @@
 from contextlib import suppress
 from models.esports import SlotManager
-from models.functions import ArrayAppend
+from models.functions import ArrayAppend, ArrayRemove
 from utils import emote, BaseSelector, Prompt
 from datetime import datetime
 from constants import IST
 from typing import List, NamedTuple
 from models import Scrim, AssignedSlot
 import discord
+
+from collections import Counter
 
 from cogs.esports.utils import get_slot_manager_message, free_slots
 
@@ -86,12 +88,12 @@ class CancelSlotSelector(discord.ui.Select):
         self.view.custom_id = interaction.data["values"][0]
 
 
+# TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked
+
+
 class SlotManagerView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-
-    async def update_buttons(self):
-        ...
 
     @discord.ui.button(style=discord.ButtonStyle.danger, custom_id="cancel-slot", label="Cancel Your Slot")
     async def cancel_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -178,4 +180,48 @@ class SlotManagerView(discord.ui.View):
         claim_view = BaseSelector(interaction.user.id, ClaimSlotSelector, placeholder="select slot", slots=_slots)
         await interaction.followup.send("Choose a slot to claim", view=claim_view, ephemeral=True)
         await claim_view.wait()
-        print(claim_view.custom_id)
+        if c_id := claim_view.custom_id:
+            scrim_id, num = c_id.split(":")
+            scrim = await Scrim.get_or_none(pk=scrim_id)
+
+            if not scrim:
+                return await interaction.followup.send("Scrim not found.", ephemeral=True)
+
+            await Scrim.filter(pk=scrim_id).update(available_slots=ArrayRemove("available_slots", num))
+            with suppress(discord.Forbidden, discord.HTTPException, AttributeError):
+                await interaction.user.add_roles(discord.Object(id=scrim.role_id))
+
+            team_name = f"Claimed by {interaction.user}"
+
+            team_names = Counter()
+            records = AssignedSlot.filter(user_id=interaction.user.id)
+            async for record in records:
+                team_names[record.team_name] += 1
+
+            team_names = team_names.most_common(1)
+
+            if team_names:
+                team_name, count = team_names[0]
+                team_name = f"{team_name} ({interaction.user})"
+
+            slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
+            await scrim.assigned_slots.add(slot)
+
+            embed, channel = await scrim.create_slotlist()
+
+            msg = await channel.fetch_message(scrim.slotlist_message_id)
+            if msg:
+                await msg.edit(embed=embed)
+
+            else:
+                await channel.send(embed=embed)
+
+            _free = await free_slots(interaction.guild_id)
+            self.children[1].disabled = False
+            if not _free:
+                self.children[1].disabled = True
+
+            sm = await SlotManager.get(guild_id=interaction.guild_id)
+            msg = await sm.message
+            await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
+            return await interaction.followup.send("done bro", ephemeral=True)
