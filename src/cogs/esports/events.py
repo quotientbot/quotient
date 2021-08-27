@@ -20,7 +20,7 @@ from models import (
 )
 from core import Cog
 from utils import emote
-from .utils import (
+from .helpers import (
     available_to_reserve,
     check_scrim_requirements,
     delete_denied_message,

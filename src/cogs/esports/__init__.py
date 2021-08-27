@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
 
 from core import Cog, Context
 from contextlib import suppress
-from .utils import (
+from .helpers import (
     delete_denied_message,
     log_scrim_ban,
     scrim_work_role,

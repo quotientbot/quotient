@@ -10,7 +10,7 @@ from models import (
     EasyTag,
     SlotManager,
 )
-from .utils import (
+from .helpers import (
     get_pretty_slotlist,
     delete_denied_message,
     scrim_work_role,

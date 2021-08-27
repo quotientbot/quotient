@@ -10,7 +10,7 @@ import discord
 
 from collections import Counter
 
-from cogs.esports.utils import get_slot_manager_message, free_slots
+from .helpers import get_slot_manager_message, free_slots
 
 __all__ = ("ScrimSelector", "SlotManagerView")
 

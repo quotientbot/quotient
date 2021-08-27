@@ -1,8 +1,5 @@
 # for tortoise-orm
 
-from config import KSOFT_TOKEN
-
-
 TORTOISE = {}
 
 
