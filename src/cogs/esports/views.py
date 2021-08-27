@@ -1,6 +1,6 @@
 from contextlib import suppress
 from models.esports import SlotManager
-from models.functions import ArrayAppend, ArrayRemove
+from models.helpers import ArrayAppend, ArrayRemove
 from utils import emote, BaseSelector, Prompt
 from datetime import datetime
 from constants import IST

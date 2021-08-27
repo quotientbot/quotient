@@ -2,7 +2,6 @@ from models import *
 from utils import QuoMember
 from discord.ext import commands
 from discord.ext.commands import Converter, BadArgument
-import tortoise.exceptions
 
 
 class MultiScrimConverter(Converter):
@@ -29,16 +28,16 @@ class EasyMemberConverter(Converter):
             return "Invalid Member!"
 
 
-class PointsConverter(Converter):
-    async def convert(self, ctx, argument: str):
-        try:
-            argument = int(argument)
-        except:
-            pass
-        else:
-            try:
-                return await PointsInfo.get(pk=argument, guild_id=ctx.guild.id)
-            except tortoise.exceptions.DoesNotExist:
-                pass
+# class PointsConverter(Converter):
+#     async def convert(self, ctx, argument: str):
+#         try:
+#             argument = int(argument)
+#         except:
+#             pass
+#         else:
+#             try:
+#                 return await PointsInfo.get(pk=argument, guild_id=ctx.guild.id)
+#             except tortoise.exceptions.DoesNotExist:
+#                 pass
 
-        raise BadArgument(f"This is not a valid Points ID.\n\nGet a valid ID with `{ctx.prefix}pt config`")
+#         raise BadArgument(f"This is not a valid Points ID.\n\nGet a valid ID with `{ctx.prefix}pt config`")

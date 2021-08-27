@@ -8,10 +8,10 @@ import config
 from discord.ext import menus
 from discord.ext.menus import Button
 import string, textwrap
-from models import Scrim, AssignedSlot, Tourney, PointsTable
-from models.esports import PointsInfo, ReservedSlot
+from models import Scrim, AssignedSlot, Tourney
+from models.esports import  ReservedSlot
 from utils import *
-from models.functions import *
+from models.helpers import *
 import constants
 from .errors import ScrimError, TourneyError
 from .helpers import (
@@ -23,251 +23,251 @@ from .helpers import (
 )
 
 
-class PointsConfigEditor(menus.Menu):
-    def __init__(self, points: PointsInfo):
-        super().__init__(
-            timeout=60,
-            delete_message_after=False,
-            clear_reactions_after=True,
-        )
+# class PointsConfigEditor(menus.Menu):
+#     def __init__(self, points: PointsInfo):
+#         super().__init__(
+#             timeout=60,
+#             delete_message_after=False,
+#             clear_reactions_after=True,
+#         )
 
-        self.points = points
-        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+#         self.points = points
+#         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
-    def inital_embed(self):
-        points = self.points
-        embed = discord.Embed(color=self.bot.color, title=f"Ptable Setup Editor: {points.id}")
+#     def inital_embed(self):
+#         points = self.points
+#         embed = discord.Embed(color=self.bot.color, title=f"Ptable Setup Editor: {points.id}")
 
-        fields = {
-            "Title": points.title,
-            "Secondary Title": points.secondary_title,
-            "Watermark": points.footer,
-            "Channel": getattr(points.channel, "mention", "`Not Found!`"),
-            "Per kill point": points.kill_points,
-            "Default Position Points": "Click me for preview",
-        }
+#         fields = {
+#             "Title": points.title,
+#             "Secondary Title": points.secondary_title,
+#             "Watermark": points.footer,
+#             "Channel": getattr(points.channel, "mention", "`Not Found!`"),
+#             "Per kill point": points.kill_points,
+#             "Default Position Points": "Click me for preview",
+#         }
 
-        for idx, (name, value) in enumerate(fields.items()):
-            embed.add_field(
-                name=f"{regional_indicator(string.ascii_uppercase[idx])} {name}:",
-                value=value,
-                inline=False,
-            )
+#         for idx, (name, value) in enumerate(fields.items()):
+#             embed.add_field(
+#                 name=f"{regional_indicator(string.ascii_uppercase[idx])} {name}:",
+#                 value=value,
+#                 inline=False,
+#             )
 
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
-        return embed
+#         embed.set_thumbnail(url=self.bot.user.avatar.url)
+#         return embed
 
-    async def send_initial_message(self, ctx, channel):
-        return await channel.send(embed=self.inital_embed())
+#     async def send_initial_message(self, ctx, channel):
+#         return await channel.send(embed=self.inital_embed())
 
-    async def refresh(self):
-        self.points = await PointsInfo.get(id=self.points.id)
-        await self.message.edit(embed=self.inital_embed())
+#     async def refresh(self):
+#         self.points = await PointsInfo.get(id=self.points.id)
+#         await self.message.edit(embed=self.inital_embed())
 
-    @menus.button(regional_indicator("A"))
-    async def on_a(self, payload):
-        msg = await self.ctx.simple(
-            f"What do you want the title of points table to be?\n\n`Please enter a title under 22 characters.`"
-        )
+#     @menus.button(regional_indicator("A"))
+#     async def on_a(self, payload):
+#         msg = await self.ctx.simple(
+#             f"What do you want the title of points table to be?\n\n`Please enter a title under 22 characters.`"
+#         )
 
-        title = await inputs.string_input(self.ctx, self.check, delete_after=True)
-        await inputs.safe_delete(msg)
+#         title = await inputs.string_input(self.ctx, self.check, delete_after=True)
+#         await inputs.safe_delete(msg)
 
-        if len(title) > 22:
-            return await self.ctx.error("Character length of title cannot exceed 22 characters.", delete_after=3)
+#         if len(title) > 22:
+#             return await self.ctx.error("Character length of title cannot exceed 22 characters.", delete_after=3)
 
-        await PointsInfo.filter(id=self.points.id).update(title=title)
-        await self.refresh()
+#         await PointsInfo.filter(id=self.points.id).update(title=title)
+#         await self.refresh()
 
-    @menus.button(regional_indicator("B"))
-    async def on_b(self, payload):
-        msg = await self.ctx.simple(
-            "What do you want to secondary title to be? This will be shown under the main title.\n\n`Please keep this under 22 characters.`"
-        )
+#     @menus.button(regional_indicator("B"))
+#     async def on_b(self, payload):
+#         msg = await self.ctx.simple(
+#             "What do you want to secondary title to be? This will be shown under the main title.\n\n`Please keep this under 22 characters.`"
+#         )
 
-        title = await inputs.string_input(self.ctx, self.check, delete_after=True)
-        await inputs.safe_delete(msg)
+#         title = await inputs.string_input(self.ctx, self.check, delete_after=True)
+#         await inputs.safe_delete(msg)
 
-        if len(title) > 22:
-            return await self.ctx.error(
-                "Character length of secondary title cannot exceed 22 characters.", delete_after=3
-            )
+#         if len(title) > 22:
+#             return await self.ctx.error(
+#                 "Character length of secondary title cannot exceed 22 characters.", delete_after=3
+#             )
 
-        await PointsInfo.filter(id=self.points.id).update(secondary_title=title)
-        await self.refresh()
+#         await PointsInfo.filter(id=self.points.id).update(secondary_title=title)
+#         await self.refresh()
 
-    @menus.button(regional_indicator("C"))
-    async def on_c(self, payload):
-        if not await self.ctx.is_premium_guild():
-            return await self.ctx.error(
-                "This feature is available to premium servers only.\n\nYou can upgrade your server with Quotient Premium to use this.\n\n`Kindly use qperks cmd to know more.`",
-                delete_after=4,
-            )
+#     @menus.button(regional_indicator("C"))
+#     async def on_c(self, payload):
+#         if not await self.ctx.is_premium_guild():
+#             return await self.ctx.error(
+#                 "This feature is available to premium servers only.\n\nYou can upgrade your server with Quotient Premium to use this.\n\n`Kindly use qperks cmd to know more.`",
+#                 delete_after=4,
+#             )
 
-        msg = await self.ctx.simple("What do you want the footer text to be?\n\n`Please keep it under 50 characters.`")
-        title = await inputs.string_input(self.ctx, self.check, delete_after=True)
-        await inputs.safe_delete(msg)
+#         msg = await self.ctx.simple("What do you want the footer text to be?\n\n`Please keep it under 50 characters.`")
+#         title = await inputs.string_input(self.ctx, self.check, delete_after=True)
+#         await inputs.safe_delete(msg)
 
-        if len(title) > 50:
-            return await self.ctx.error("Character length of footer cannot exceed 50 characters.", delete_after=3)
+#         if len(title) > 50:
+#             return await self.ctx.error("Character length of footer cannot exceed 50 characters.", delete_after=3)
 
-        await PointsInfo.filter(id=self.points.id).update(footer=title)
-        await self.refresh()
+#         await PointsInfo.filter(id=self.points.id).update(footer=title)
+#         await self.refresh()
 
-    @menus.button(regional_indicator("D"))
-    async def on_d(self, payload):
-        msg = await self.ctx.simple(
-            f"Which channel should I use to send points tables?\n\n`Either mention the channel or write its name`"
-        )
+#     @menus.button(regional_indicator("D"))
+#     async def on_d(self, payload):
+#         msg = await self.ctx.simple(
+#             f"Which channel should I use to send points tables?\n\n`Either mention the channel or write its name`"
+#         )
 
-        channel = await inputs.channel_input(self.ctx, self.check, delete_after=True)
-        await inputs.safe_delete(msg)
+#         channel = await inputs.channel_input(self.ctx, self.check, delete_after=True)
+#         await inputs.safe_delete(msg)
 
-        perms = channel.permissions_for(self.ctx.me)
-        if not all((perms.send_messages, perms.embed_links)):
-            return await self.ctx.error(
-                f"kindly make sure I have `send_messages` and `embed_links` permissions in {channel.mention}",
-                delete_after=3,
-            )
+#         perms = channel.permissions_for(self.ctx.me)
+#         if not all((perms.send_messages, perms.embed_links)):
+#             return await self.ctx.error(
+#                 f"kindly make sure I have `send_messages` and `embed_links` permissions in {channel.mention}",
+#                 delete_after=3,
+#             )
 
-        await PointsInfo.filter(id=self.points.id).update(channel_id=channel.id)
-        await self.refresh()
+#         await PointsInfo.filter(id=self.points.id).update(channel_id=channel.id)
+#         await self.refresh()
 
-    @menus.button(regional_indicator("E"))
-    async def on_e(self, payload):
-        msg = await self.ctx.simple(
-            f"How many points do you want me to give per kill?\n\n`Enter a number between 1 and 10.`"
-        )
-        kill_point = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(0, 10))
-        await inputs.safe_delete(msg)
-        await PointsInfo.filter(id=self.points.id).update(kill_points=kill_point)
-        await self.refresh()
+#     @menus.button(regional_indicator("E"))
+#     async def on_e(self, payload):
+#         msg = await self.ctx.simple(
+#             f"How many points do you want me to give per kill?\n\n`Enter a number between 1 and 10.`"
+#         )
+#         kill_point = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(0, 10))
+#         await inputs.safe_delete(msg)
+#         await PointsInfo.filter(id=self.points.id).update(kill_points=kill_point)
+#         await self.refresh()
 
-    @menus.button(regional_indicator("F"))
-    async def on_f(self, payload):
-        return await self.ctx.error(
-            f"This feature is currently under development, it will be available soon", delete_after=3
-        )
+#     @menus.button(regional_indicator("F"))
+#     async def on_f(self, payload):
+#         return await self.ctx.error(
+#             f"This feature is currently under development, it will be available soon", delete_after=3
+#         )
 
-    @menus.button("\N{BLACK SQUARE FOR STOP}")
-    async def on_stop(self, payload):
-        self.stop()
+#     @menus.button("\N{BLACK SQUARE FOR STOP}")
+#     async def on_stop(self, payload):
+#         self.stop()
 
 
-class PointsMenu(menus.Menu):
-    def __init__(self, points: PointsInfo, msg: discord.Message):
-        super().__init__(
-            timeout=60,
-            delete_message_after=False,
-            clear_reactions_after=True,
-        )
-        self.msg = msg
-        self.points = points
-        self._dict = {}
-        self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
+# class PointsMenu(menus.Menu):
+#     def __init__(self, points: PointsInfo, msg: discord.Message):
+#         super().__init__(
+#             timeout=60,
+#             delete_message_after=False,
+#             clear_reactions_after=True,
+#         )
+#         self.msg = msg
+#         self.points = points
+#         self._dict = {}
+#         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
-    def table_embed(self):
-        table = PrettyTable()
-        table.field_names = ["S.No", "Team Name", "Posi Pt", "Kills", "Total"]
-        for idx, teams in enumerate(self._dict.items(), start=1):
-            team = teams[0]
-            _list = teams[1]
-            win, posi, kill, total = _list
-            table.add_row([idx, textwrap.fill(team, width=12), posi, kill, total])
+#     def table_embed(self):
+#         table = PrettyTable()
+#         table.field_names = ["S.No", "Team Name", "Posi Pt", "Kills", "Total"]
+#         for idx, teams in enumerate(self._dict.items(), start=1):
+#             team = teams[0]
+#             _list = teams[1]
+#             win, posi, kill, total = _list
+#             table.add_row([idx, textwrap.fill(team, width=12), posi, kill, total])
 
-        embed = discord.Embed(color=self.bot.color, title=self.points.title)
-        embed.description = f"```ml\n{table.get_string()}```"
-        return embed
+#         embed = discord.Embed(color=self.bot.color, title=self.points.title)
+#         embed.description = f"```ml\n{table.get_string()}```"
+#         return embed
 
-    def initial_embed(self):
-        embed = discord.Embed(color=self.bot.color)
-        embed.description = "▶️ | Start or Edit points table\n" "❌ | Do not save & abort\n" "✅ | Save and Create Image"
-        return embed
+#     def initial_embed(self):
+#         embed = discord.Embed(color=self.bot.color)
+#         embed.description = "▶️ | Start or Edit points table\n" "❌ | Do not save & abort\n" "✅ | Save and Create Image"
+#         return embed
 
-    async def send_initial_message(self, ctx, channel):
-        await self.msg.edit(embed=self.table_embed())
-        return await channel.send(embed=self.initial_embed())
+#     async def send_initial_message(self, ctx, channel):
+#         await self.msg.edit(embed=self.table_embed())
+#         return await channel.send(embed=self.initial_embed())
 
-    async def pointsembed(self, description: str):
-        embed = discord.Embed(color=self.bot.color, title=f"📊 Points Table Menu")
-        embed.description = description
-        return await self.ctx.send(embed=embed, embed_perms=True)
+#     async def pointsembed(self, description: str):
+#         embed = discord.Embed(color=self.bot.color, title=f"📊 Points Table Menu")
+#         embed.description = description
+#         return await self.ctx.send(embed=embed, embed_perms=True)
 
-    async def refresh(self):
-        try:
-            await self.msg.edit(embed=self.table_embed())
-        except Exception as e:
-            await self.ctx.send(e)
+#     async def refresh(self):
+#         try:
+#             await self.msg.edit(embed=self.table_embed())
+#         except Exception as e:
+#             await self.ctx.send(e)
 
-    @menus.button("▶️")
-    async def on_start(self, payload):
-        msg = await self.pointsembed(
-            "Enter team names with their kill points.\n"
-            "Format:\n`<Team Name> = <Kills>`\nKindly don't use special characters in team names.\n"
-            "Separate them with comma (`,`)\n"
-            "Example:\n"
-            "```Team Quotient = 20,\nTeam Butterfly = 14,\nTeam Kite = 5,\nTeam 4Pandas = 8```\n"
-            "Write these according to their position in match.\n"
-            "You have 10 minutes to answer this."
-        )
-        teams = await inputs.string_input(self.ctx, self.check, delete_after=True, timeout=600)
-        await inputs.safe_delete(msg)
+#     @menus.button("▶️")
+#     async def on_start(self, payload):
+#         msg = await self.pointsembed(
+#             "Enter team names with their kill points.\n"
+#             "Format:\n`<Team Name> = <Kills>`\nKindly don't use special characters in team names.\n"
+#             "Separate them with comma (`,`)\n"
+#             "Example:\n"
+#             "```Team Quotient = 20,\nTeam Butterfly = 14,\nTeam Kite = 5,\nTeam 4Pandas = 8```\n"
+#             "Write these according to their position in match.\n"
+#             "You have 10 minutes to answer this."
+#         )
+#         teams = await inputs.string_input(self.ctx, self.check, delete_after=True, timeout=600)
+#         await inputs.safe_delete(msg)
 
-        result = {}
-        try:
+#         result = {}
+#         try:
 
-            for idx, line in enumerate(teams.replace("\n", "").split(","), start=1):
-                line_values = [value.strip() for value in line.split("=")]
+#             for idx, line in enumerate(teams.replace("\n", "").split(","), start=1):
+#                 line_values = [value.strip() for value in line.split("=")]
 
-                teamname = " ".join(
-                    normalize("NFKC", line_values[0]).lower().replace("team", "").replace("name", "").split()
-                )
-                # teamname = (
-                #     re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", normalize("NFKC", line_values[0].lower()))
-                # ).split()[0]
+#                 teamname = " ".join(
+#                     normalize("NFKC", line_values[0]).lower().replace("team", "").replace("name", "").split()
+#                 )
+#                 # teamname = (
+#                 #     re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", normalize("NFKC", line_values[0].lower()))
+#                 # ).split()[0]
 
-                posi = self.points.posi_points.get(str(idx), 0)
-                kills = int(line_values[1]) * self.points.kill_points
+#                 posi = self.points.posi_points.get(str(idx), 0)
+#                 kills = int(line_values[1]) * self.points.kill_points
 
-                if kills > 99:
-                    return await self.ctx.error(
-                        f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
-                    )
+#                 if kills > 99:
+#                     return await self.ctx.error(
+#                         f"Kills value (`{kills}`) too large at **{str(line_values[0])}**", delete_after=4
+#                     )
 
-                if not teamname:
-                    return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
+#                 if not teamname:
+#                     return await self.ctx.error(f"I couldn't determine team name.", delete_after=4)
 
-                if len(teamname) > 22:
-                    return await self.ctx.error(f"Team name too large at **{teamname}**", delete_after=4)
+#                 if len(teamname) > 22:
+#                     return await self.ctx.error(f"Team name too large at **{teamname}**", delete_after=4)
 
-                result[teamname] = [1 if idx == 1 else 0, posi, kills, posi + kills]
+#                 result[teamname] = [1 if idx == 1 else 0, posi, kills, posi + kills]
 
-        except Exception as e:
-            return await self.ctx.error(f"Oops , you entered wrong format", delete_after=3)
+#         except Exception as e:
+#             return await self.ctx.error(f"Oops , you entered wrong format", delete_after=3)
 
-        if len(result) > 25:
-            return await self.ctx.error(f"You cannot enter more than 25 teams :c", delete_after=4)
+#         if len(result) > 25:
+#             return await self.ctx.error(f"You cannot enter more than 25 teams :c", delete_after=4)
 
-        _dict = dict(sorted(result.items(), key=lambda x: x[1][3], reverse=True))
-        self._dict.update(_dict)
-        await self.refresh()
+#         _dict = dict(sorted(result.items(), key=lambda x: x[1][3], reverse=True))
+#         self._dict.update(_dict)
+#         await self.refresh()
 
-    @menus.button("❌")
-    async def on_cross(self, payload):
-        self.stop()
+#     @menus.button("❌")
+#     async def on_cross(self, payload):
+#         self.stop()
 
-    @menus.button("✅")
-    async def on_check(self, payload):
-        table = await PointsTable.create(
-            points_table=str(self._dict),
-            created_by=self.ctx.author.id,
-            created_at=(datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)),
-        )
-        await self.points.data.add(table)
-        await self.ctx.success(
-            f"Successfully created points table.\n\nYou can use `pt match show {self.points.id}` to get it in image format.\nOr you can send the image to a channel with `pt match send {self.points.id}`"
-        )
-        self.stop()
+#     @menus.button("✅")
+#     async def on_check(self, payload):
+#         table = await PointsTable.create(
+#             points_table=str(self._dict),
+#             created_by=self.ctx.author.id,
+#             created_at=(datetime.now(constants.IST).replace(hour=0, minute=0, second=0, microsecond=0)),
+#         )
+#         await self.points.data.add(table)
+#         await self.ctx.success(
+#             f"Successfully created points table.\n\nYou can use `pt match show {self.points.id}` to get it in image format.\nOr you can send the image to a channel with `pt match send {self.points.id}`"
+#         )
+#         self.stop()
 
 
 class IDPMenu(menus.Menu):
