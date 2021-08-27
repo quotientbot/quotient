@@ -38,9 +38,9 @@ from .helpers import (
     registration_open_embed,
     process_ss_attachment,
     log_scrim_ban,
+    EasyMemberConverter
 )
 from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError, ScrimBanType
-from .converters import EasyMemberConverter
 from unicodedata import normalize
 from contextlib import suppress
 import discord, asyncio

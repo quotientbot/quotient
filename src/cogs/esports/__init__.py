@@ -16,6 +16,7 @@ from .helpers import (
     registration_close_embed,
     registration_open_embed,
     setup_slotmanager,
+    MultiScrimConverter
 )
 
 from utils import (
@@ -33,7 +34,6 @@ from utils import (
     ChannelSelector,
 )
 
-from .converters import MultiScrimConverter
 from constants import IST, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
 from models import *
@@ -43,7 +43,6 @@ from discord.ext import commands
 from .events import ScrimEvents
 from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
-from .image import lb_files, ptable_files
 
 import discord
 import config

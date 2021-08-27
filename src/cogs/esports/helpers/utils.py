@@ -4,11 +4,11 @@ from typing import NoReturn, Optional, Union
 
 from prettytable.prettytable import PrettyTable
 from ast import literal_eval
-from models import Scrim, Tourney, SlotManager
+from models import Scrim, Tourney
 from datetime import datetime
 import constants, humanize
 from models.esports import SSVerify
-from utils import find_team, strtime, emote, QuoUser, plural, human_timedelta, aenumerate
+from utils import find_team, strtime, emote, QuoUser, plural, human_timedelta
 import discord
 import config
 import asyncio
@@ -54,8 +54,6 @@ async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **
     with suppress(AttributeError, discord.HTTPException, discord.Forbidden):
         embed.timestamp = datetime.now(tz=IST)
         await channel.send(content=getattr(user, "mention", "unknown-user"), embed=embed)
-
-
 
 
 async def process_ss_attachment(ctx, idx: int, verify: SSVerify, attachment: discord.Attachment):
