@@ -174,7 +174,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
     if scrim.autodelete_extras:
-        await asyncio.sleep(7)
+        await asyncio.sleep(15)
         with suppress(discord.Forbidden, discord.HTTPException):
             await ctx.channel.purge(
                 limit=100,

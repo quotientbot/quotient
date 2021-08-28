@@ -16,7 +16,7 @@ __all__ = ("ScrimSelector", "SlotManagerView")
 
 
 class ScrimSlot(NamedTuple):
-    num: int
+    slots: List[int]
     scrim: Scrim
 
 
@@ -53,9 +53,9 @@ class ClaimSlotSelector(discord.ui.Select):
         for slot in slots:
             _options.append(
                 discord.SelectOption(
-                    label=f"Slot {slot.num} ─ {getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
+                    label=f"Slot {slot.slots[0]} ─ {getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{slot.scrim.name} (ID: {slot.scrim.id})",
-                    value=f"{slot.scrim.id}:{slot.num}",
+                    value=f"{slot.scrim.id}:{slot.slots[0]}",
                     emoji="📇",
                 )
             )
@@ -202,7 +202,7 @@ class SlotManagerView(discord.ui.View):
 
             if team_names:
                 team_name, count = team_names[0]
-                team_name = f"{team_name} ({interaction.user})"
+                team_name = f"{team_name} (claimed)"
 
             slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
             await scrim.assigned_slots.add(slot)

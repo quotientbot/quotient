@@ -4,6 +4,29 @@ from datetime import datetime
 from constants import IST
 from utils import aenumerate
 from models import Scrim, SlotManager
+from .constants import SlotLogType
+
+from contextlib import suppress
+
+
+class DirectSlotMessage(discord.ui.View):
+    def __init__(self, record: SlotManager):
+        super().__init__()
+        link = f"https://discord.com/channels/{record.guild_id}/{record.main_channel_id}/{record.message_id}"
+        self.add_item(discord.ui.Button(label="Click Me to Jump", url=link))
+
+
+async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
+    embed = discord.Embed(color=config.COLOR, description=content)
+    if _type == SlotLogType.public:
+        channel = record.updates_channel
+
+    else:
+        embed.title = "Slot-Manage Logs"
+        channel = record.logschan
+
+    with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
+        await channel.send(embed=embed, view=DirectSlotMessage(record))
 
 
 async def get_slot_manager_message(guild_id: int, _free=None):
