@@ -20,7 +20,18 @@ from .helpers import (
     MultiScrimConverter,
 )
 
-from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, QuoUser, QuoPaginator, BetterFutureTime
+from utils import (
+    inputs,
+    checks,
+    FutureTime,
+    human_timedelta,
+    get_chunks,
+    QuoRole,
+    QuoTextChannel,
+    QuoUser,
+    QuoPaginator,
+    BetterFutureTime,
+)
 
 from constants import IST, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
@@ -1445,27 +1456,39 @@ class ScrimManager(Cog, name="Esports"):
     @commands.has_permissions(manage_guild=True)
     async def _slotmanager_delete(self, ctx: Context):
         """Delete slot manager"""
+        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
+        if not sm:
+            return await ctx.error(
+                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
+            )
+
+        prompt = await ctx.prompt("Are you sure you want to delete your SlotManager setup?")
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        await SlotManager.filter(guild_id=ctx.guild.id).delete()
+        await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
     async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = datetime.now(tz=IST)):
         """Lock slot management of any scrim"""
-        return await ctx.send(time)
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
         if not sm:
-            return await ctx.error("no setup")
+            return await ctx.error(
+                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
+            )
 
         lock = await sm.locks.filter(id=scrim.id).first()
         if lock and lock.locked:
-            return await ctx.error("already locked")
-
-        if isinstance(time, FutureTime):
-            time = time.dt
+            return await ctx.error(
+                f"This scrim is already locked.\n\nYou can use `{ctx.prefix}slotmanager unlock {scrim.id}` to unlock it."
+            )
 
         await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
 
         await ctx.success(
             f"{scrim.name}(ID: {scrim.id}) is now locked.\n"
-            f"I will lock slotmanager for this scrim daily at this time. "
+            f"I will remember to lock slotmanager for this scrim daily at this time. "
         )
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
         await update_main_message(ctx.guild.id)
@@ -1473,6 +1496,31 @@ class ScrimManager(Cog, name="Esports"):
     @slotmanager.command(name="unlock")
     async def _slotmanager_unlock(self, ctx: Context):
         """Unlock slot management for any scrim"""
+
+    @slotmanager.command(name="info")
+    async def _slotmanager_info(self, ctx: Context):
+        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
+        if not sm:
+            return await ctx.error(
+                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
+            )
+
+        embed = ctx.bot.embed(ctx, title="SlotManager Info", description="**Scrim Autolock:**\n")
+        embed.add_field(name="Main Channel", value=getattr(sm.main_channel, "mention", "deleted-channel"))
+        embed.add_field(name="Updates Channel", value=getattr(sm.updates_channel, "mention", "deleted-channel"))
+
+        async for lock in sm.locks.all():
+            scrim = await Scrim.get_or_none(pk=lock.id)
+            if scrim:
+                time = "Not Set!"
+                if lock.lock_at:
+                    time = strtime(lock.lock_at)
+
+                embed.description += (
+                    f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
+                )
+
+        await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
