@@ -2,6 +2,7 @@ import discord
 import config
 from datetime import datetime
 from constants import IST
+from models.esports.slots import SlotLocks
 from utils import aenumerate
 from models import Scrim, SlotManager
 from .constants import SlotLogType
@@ -17,7 +18,42 @@ class DirectSlotMessage(discord.ui.View):
 
 
 async def update_main_message(guild_id: int):
-    ...
+    record = await SlotManager.get_or_none(guild_id=guild_id)
+    if not record:
+        return
+
+    embed = await get_slot_manager_message(guild_id)
+
+    message = await record.message
+    if message:
+        view = discord.ui.View.from_message(message, timeout=None)
+        return await message.edit(embed=embed, view=view)
+
+    await SlotManager.filter(pk=record.id).delete()
+
+
+async def lock_for_registration(guild_id: int, scrim_id: int):
+    record = await SlotManager.get_or_none(guild_id=guild_id)
+    if not record:
+        return
+
+    lock = await record.locks.filter(pk=scrim_id).first()
+    if lock:
+        await SlotLocks.filter(pk=lock.id).update(locked=True)
+    else:
+        lock = await SlotLocks.create(id=scrim_id)
+        await record.locks.add(lock)
+
+    await update_main_message(guild_id)
+
+
+async def unlock_after_registration(guild_id: int, scrim_id: int):
+    record = await SlotManager.get_or_none(guild_id=guild_id)
+    if not record:
+        return
+
+    await SlotLocks.filter(pk=scrim_id).update(locked=False)
+    await update_main_message(guild_id)
 
 
 async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
@@ -26,7 +62,7 @@ async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
         channel = record.updates_channel
 
     else:
-        embed.title = "Slot-Manage Logs"
+        embed.title = "Slot-Manager Logs"
         channel = record.logschan
 
     with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
@@ -49,8 +85,15 @@ async def free_slots(guild_id: int):
     _list = []
     _time = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
 
+    slotmanager = await SlotManager.get_or_none(guild_id=guild_id)
+
     records = Scrim.filter(guild_id=guild_id, closed_at__gte=_time, available_slots__not=[])
     async for idx, scrim in aenumerate(records, start=1):
+        if slotmanager:
+            lock = await slotmanager.locks.filter(pk=scrim.id).first()
+            if lock and lock.locked:
+                continue
+
         _list.append(
             f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,scrim.available_slots))} (ID: {scrim.id})"
         )
