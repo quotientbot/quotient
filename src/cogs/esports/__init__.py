@@ -1487,15 +1487,30 @@ class ScrimManager(Cog, name="Esports"):
         await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
 
         await ctx.success(
-            f"{scrim.name}(ID: {scrim.id}) is now locked.\n"
-            f"I will remember to lock slotmanager for this scrim daily at this time. "
+            f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: {strtime(time)}"
         )
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
         await update_main_message(ctx.guild.id)
 
     @slotmanager.command(name="unlock")
-    async def _slotmanager_unlock(self, ctx: Context):
+    async def _slotmanager_unlock(self, ctx: Context, scrim: Scrim):
         """Unlock slot management for any scrim"""
+        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
+        if not sm:
+            return await ctx.error(
+                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
+            )
+
+        lock = await sm.locks.filter(id=scrim.id).first()
+        if not lock or not lock.locked:
+            return await ctx.error(f"This scrim is already unlocked.")
+
+        await SlotLocks.filter(pk=scrim.id).update(locked=False)
+        await ctx.success(
+            f"SlotManager for {scrim.name}(ID: {scrim.id}) is now unlocked.\n"
+            f"I will automatically lock it when the registration starts and will unlock it after it ends."
+        )
+        await update_main_message(ctx.guild.id)
 
     @slotmanager.command(name="info")
     async def _slotmanager_info(self, ctx: Context):
@@ -1516,9 +1531,7 @@ class ScrimManager(Cog, name="Esports"):
                 if lock.lock_at:
                     time = strtime(lock.lock_at)
 
-                embed.description += (
-                    f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
-                )
+                embed.description += f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
 
         await ctx.send(embed=embed, embed_perms=True)
 
