@@ -146,14 +146,14 @@ class Quotient(commands.AutoShardedBot):
     async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
         print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
-        print(Fore.BLUE + f"[Quotient] Currently in {len(self.guilds)} Guilds")
-        print(Fore.BLUE + f"[Quotient] Connected to {len(self.users)} Users")
         print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
 
-        if not self.persistent_views_added:
+        if not self.persistent_views_added:  # add persistent views
             from cogs.esports.views import SlotManagerView
+            from models import SlotManager
 
-            self.add_view(SlotManagerView(), message_id=879687198159544321)
+            async for record in SlotManager.filter(toggle=True):
+                self.add_view(SlotManagerView(), message_id=record.message_id)
 
             self.persistent_views_added = True
 
