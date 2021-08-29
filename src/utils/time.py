@@ -1,4 +1,6 @@
 import re
+import dateparser
+
 import parsedatetime as pdt
 from discord.ext import commands
 import datetime as dtm
@@ -98,6 +100,29 @@ class FutureTime(Time):
 
         if self._past:
             raise exceptions.PastTime()
+
+
+class BetterFutureTime:
+    @classmethod
+    async def convert(cls, ctx, argument: str):
+        parsed = dateparser.parse(
+            argument,
+            settings={
+                "RELATIVE_BASE": dtm.datetime.now(tz=IST),
+                "TIMEZONE": "Asia/Kolkata",
+                "RETURN_AS_TIMEZONE_AWARE": True,
+            },
+        )
+        if not parsed:
+            raise exceptions.InvalidTime()
+
+        if dtm.datetime.now(tz=IST) > parsed:
+            parsed = parsed + dtm.timedelta(hours=24)
+
+        if parsed < dtm.datetime.now(tz=IST):
+            raise exceptions.PastTime()
+
+        return parsed
 
 
 def time(target):

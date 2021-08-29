@@ -16,10 +16,11 @@ from .helpers import (
     registration_close_embed,
     registration_open_embed,
     setup_slotmanager,
+    update_main_message,
     MultiScrimConverter,
 )
 
-from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, QuoUser, QuoPaginator
+from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, QuoUser, QuoPaginator, BetterFutureTime
 
 from constants import IST, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
@@ -1438,7 +1439,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"Slot-Manager setup complete ({sm.main_channel.mention})"
                 f"\n\nKindly use `{ctx.prefix}slotmanager lock` command and set autolock time\n"
                 "for each of your scrims."
-                )
+            )
 
     @slotmanager.command(name="delete")
     @commands.has_permissions(manage_guild=True)
@@ -1446,8 +1447,9 @@ class ScrimManager(Cog, name="Esports"):
         """Delete slot manager"""
 
     @slotmanager.command(name="lock")
-    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: FutureTime = datetime.now(tz=IST)):
+    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = datetime.now(tz=IST)):
         """Lock slot management of any scrim"""
+        return await ctx.send(time)
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
         if not sm:
             return await ctx.error("no setup")
@@ -1465,8 +1467,8 @@ class ScrimManager(Cog, name="Esports"):
             f"{scrim.name}(ID: {scrim.id}) is now locked.\n"
             f"I will lock slotmanager for this scrim daily at this time. "
         )
-
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
+        await update_main_message(ctx.guild.id)
 
     @slotmanager.command(name="unlock")
     async def _slotmanager_unlock(self, ctx: Context):
