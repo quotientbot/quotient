@@ -16,23 +16,10 @@ from .helpers import (
     registration_close_embed,
     registration_open_embed,
     setup_slotmanager,
-    MultiScrimConverter
+    MultiScrimConverter,
 )
 
-from utils import (
-    inputs,
-    checks,
-    FutureTime,
-    human_timedelta,
-    get_chunks,
-    QuoRole,
-    QuoTextChannel,
-    PastDate,
-    QuoUser,
-    QuoPaginator,
-    BaseSelector,
-    ChannelSelector,
-)
+from utils import inputs, checks, FutureTime, human_timedelta, get_chunks, QuoRole, QuoTextChannel, QuoUser, QuoPaginator
 
 from constants import IST, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
@@ -1447,33 +1434,39 @@ class ScrimManager(Cog, name="Esports"):
 
         sm = await setup_slotmanager(ctx, channel)
         if isinstance(sm, SlotManager):
-            await ctx.success(f"Slot-Manager setup complete ({sm.main_channel.mention})")
+            await ctx.success(
+                f"Slot-Manager setup complete ({sm.main_channel.mention})"
+                f"\n\nKindly use `{ctx.prefix}slotmanager lock` command and set autolock time\n"
+                "for each of your scrims."
+                )
 
     @slotmanager.command(name="delete")
     @commands.has_permissions(manage_guild=True)
     async def _slotmanager_delete(self, ctx: Context):
         """Delete slot manager"""
 
-    @slotmanager.command(name="fix")
-    async def _slotmanager_fix(self, ctx: Context):
-        """Fix slot manager"""
-
     @slotmanager.command(name="lock")
-    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim):
+    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: FutureTime = datetime.now(tz=IST)):
         """Lock slot management of any scrim"""
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
         if not sm:
             return await ctx.error("no setup")
 
         lock = await sm.locks.filter(id=scrim.id).first()
-
-        if not lock:
-            prompt = await ctx.prompt(
-                f"Do you want me to lock slot-manager everyday at this time for {getattr(scrim.registration_channel,'mention')} (ID: {scrim.id})"
-            )
-
-        if lock.locked:
+        if lock and lock.locked:
             return await ctx.error("already locked")
+
+        if isinstance(time, FutureTime):
+            time = time.dt
+
+        await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
+
+        await ctx.success(
+            f"{scrim.name}(ID: {scrim.id}) is now locked.\n"
+            f"I will lock slotmanager for this scrim daily at this time. "
+        )
+
+        await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
 
     @slotmanager.command(name="unlock")
     async def _slotmanager_unlock(self, ctx: Context):

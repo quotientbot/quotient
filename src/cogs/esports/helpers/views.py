@@ -16,6 +16,10 @@ class DirectSlotMessage(discord.ui.View):
         self.add_item(discord.ui.Button(label="Click Me to Jump", url=link))
 
 
+async def update_main_message(guild_id: int):
+    ...
+
+
 async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
     embed = discord.Embed(color=config.COLOR, description=content)
     if _type == SlotLogType.public:

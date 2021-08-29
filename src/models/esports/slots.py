@@ -47,7 +47,6 @@ class SlotLocks(models.Model):
     class Meta:
         table = "slot_locks"
 
-    id = fields.BigIntField(pk=True)
-    autolock = fields.BooleanField(default=True)
-    lock_at = fields.DatetimeField(auto_now=True)
+    id = fields.IntField(pk=True)
+    lock_at = fields.DatetimeField(null=True)
     locked = fields.BooleanField(default=True)

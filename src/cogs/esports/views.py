@@ -10,7 +10,7 @@ import discord
 
 from collections import Counter
 
-from .helpers import get_slot_manager_message, free_slots
+from .helpers import get_slot_manager_message, free_slots, send_sm_logs, SlotLogType
 
 __all__ = ("ScrimSelector", "SlotManagerView")
 
@@ -88,7 +88,8 @@ class CancelSlotSelector(discord.ui.Select):
         self.view.custom_id = interaction.data["values"][0]
 
 
-# TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked
+# TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked, insert scrim to slotmanager on setup
+# TODO: create update method to edit the main msg
 
 
 class SlotManagerView(discord.ui.View):
@@ -153,7 +154,7 @@ class SlotManagerView(discord.ui.View):
             sm = await SlotManager.get(guild_id=interaction.guild_id)
             msg = await sm.message
             await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
-            return await interaction.followup.send("done bro", ephemeral=True)
+            await interaction.followup.send("done bro", ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.success, custom_id="claim-slot", label="Claim Slot")
     async def claim_slot(self, button: discord.ui.Button, interaction: discord.Interaction):

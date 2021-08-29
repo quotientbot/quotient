@@ -38,7 +38,7 @@ from .helpers import (
     registration_open_embed,
     process_ss_attachment,
     log_scrim_ban,
-    EasyMemberConverter
+    EasyMemberConverter,
 )
 from constants import AutocleanType, Day, EsportsLog, EsportsRole, SSStatus, IST, VerifyImageError, ScrimBanType
 from unicodedata import normalize
@@ -664,10 +664,6 @@ class ScrimEvents(Cog):
             ),
         )
 
-
     @Cog.listener()
-    async def on_scrim_lock_timer_complete(self, timer:Timer):
-        ...
-    @Cog.listener()
-    async def on_slotmanager_log(self):
+    async def on_scrim_lock_timer_complete(self, timer: Timer):
         ...
