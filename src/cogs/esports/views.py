@@ -90,6 +90,7 @@ class CancelSlotSelector(discord.ui.Select):
 
 # TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked, insert scrim to slotmanager on setup
 # TODO: create update method to edit the main msg
+# TODO: update children on edit
 
 
 class SlotManagerView(discord.ui.View):
@@ -165,8 +166,7 @@ class SlotManagerView(discord.ui.View):
 
         _slots = []
         async for record in records:
-            for slot in record.available_slots:
-                _slots.append(ScrimSlot(slot, record))
+            _slots.append(ScrimSlot(record.available_slots, record))
 
         if not _slots:
             return await interaction.followup.send(

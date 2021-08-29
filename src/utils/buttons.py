@@ -45,6 +45,7 @@ class Prompt(discord.ui.View):
 class BaseSelector(discord.ui.View):
     def __init__(self, author_id, selector: discord.ui.Select, **kwargs):
         self.author_id = author_id
+        self.custom_id = None
         super().__init__(timeout=30.0)
 
         self.add_item(selector(**kwargs))

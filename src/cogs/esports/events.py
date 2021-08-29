@@ -36,7 +36,7 @@ from .helpers import (
     cannot_take_registration,
     check_tourney_requirements,
     registration_open_embed,
-    process_ss_attachment,
+    lock_for_registration,
     log_scrim_ban,
     EasyMemberConverter,
 )
@@ -324,6 +324,7 @@ class ScrimEvents(Cog):
 
         await toggle_channel(registration_channel, open_role, True)
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
+        self.bot.loop.create_task(lock_for_registration(guild.id, scrim.id))
 
     # ==========================================================================================================
     # ==========================================================================================================

@@ -22,11 +22,18 @@ async def update_main_message(guild_id: int):
     if not record:
         return
 
-    embed = await get_slot_manager_message(guild_id)
-
     message = await record.message
     if message:
-        view = discord.ui.View.from_message(message, timeout=None)
+        from cogs.esports.views import SlotManagerView
+
+        view = SlotManagerView()
+
+        _free = await free_slots(guild_id)
+        view.children[1].disabled = False
+        if not _free:
+            view.children[1].disabled = True
+
+        embed = await get_slot_manager_message(guild_id, _free)
         return await message.edit(embed=embed, view=view)
 
     await SlotManager.filter(pk=record.id).delete()
@@ -133,7 +140,7 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
 
     _embed = await get_slot_manager_message(ctx.guild.id)
 
-    from .views import SlotManagerView
+    from cogs.esports.views import SlotManagerView
 
     msg: discord.Message = await main_channel.send(embed=_embed, view=SlotManagerView())
 

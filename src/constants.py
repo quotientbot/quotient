@@ -178,7 +178,7 @@ def random_thanks():
 
 
 tips = (
-    "You use use `automemes #channel` to setup automemes with Quotient for free.",
+    "You can use `automemes #channel` to setup automemes with Quotient for free.",
     "You can setup unlimited scrims & tourneys with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "We have an awesome support server:\ndiscord.gg/quotient",
@@ -187,7 +187,6 @@ tips = (
     "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "You can look into my source code, use `source` command.",
-    "You can get a zipfile of all your server emojis with `zipemojis` command.",
 )
 
 
