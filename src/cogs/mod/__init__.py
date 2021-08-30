@@ -27,7 +27,7 @@ class Mod(Cog):
         Note: If bot has `manage_messages` permissions then it will delete the command messages too.
         """
         strategy = _self_clean_system
-        if ctx.me.permissions_in(ctx.channel).manage_messages:
+        if ctx.channel.permissions_for(ctx.me).manage_messages:
             strategy = _complex_cleanup_strategy
 
         search = min(max(2, search), 1000)
