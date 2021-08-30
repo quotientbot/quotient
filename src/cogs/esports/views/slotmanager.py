@@ -162,9 +162,7 @@ class SlotManagerView(discord.ui.View):
             await interaction.followup.send("Alright, Cancelled your slot.", ephemeral=True)
 
             reg_channel = getattr(scrim.registration_channel, "mention", "channel-deleted")
-            await send_sm_logs(
-                main_record, SlotLogType.public, f"Slot {slot.num} ({reg_channel}) is ready to be claimed."
-            )
+            await send_sm_logs(main_record, SlotLogType.public, f"Slot {slot.num} ({reg_channel}) is free to be claimed.")
 
             await send_sm_logs(
                 main_record,

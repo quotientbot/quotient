@@ -10,7 +10,7 @@ from models import Scrim, Timer, SlotManager, SlotLocks
 
 from datetime import datetime, timedelta
 from constants import IST
-from ..helpers import update_main_message, delete_slotmanager
+from ..helpers import update_main_message, delete_slotmanager, send_sm_logs, SlotLogType
 
 
 class SlotManagerEvents(Cog):
@@ -36,10 +36,17 @@ class SlotManagerEvents(Cog):
             return
 
         new_time = datetime.now(tz=IST) + timedelta(hours=24)
+        await self.bot.reminders.create_timer(new_time, "scrim_lock", scrim_id=scrim.id)
+
         await SlotLocks.filter(pk=scrim.id).update(locked=True, lock_at=new_time)
         await update_main_message(guild.id)
 
-        await self.bot.reminders.create_timer(new_time, "scrim_lock", scrim_id=scrim.id)
+        await send_sm_logs(
+            sm,
+            SlotLogType.private,
+            f"SlotManager for Scrim {scrim.id} ({scrim.registration_channel.mention}) has been locked.\n\n"
+            "The slots of this scrim can neither be claimed nor cancelled now.\n",
+        )
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):

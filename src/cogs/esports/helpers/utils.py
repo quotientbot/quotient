@@ -13,7 +13,8 @@ import discord
 import config
 import asyncio
 import re, json
-from .views import unlock_after_registration
+from .views import unlock_after_registration, send_sm_logs
+from .constants import SlotLogType
 
 from constants import VerifyImageError, ScrimBanType, IST
 
@@ -182,7 +183,6 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
                 limit=100,
                 check=lambda x: all((not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user)),
             )
-
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
