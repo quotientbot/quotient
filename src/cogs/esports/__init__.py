@@ -1534,7 +1534,7 @@ class ScrimManager(Cog, name="Esports"):
             if scrim:
                 time = "Not Set!"
                 if lock.lock_at:
-                    time = strtime(lock.lock_at)
+                    time = lock.lock_at.strftime('%I:%M %p')
 
                 embed.description += f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
 

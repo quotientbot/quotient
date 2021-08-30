@@ -102,7 +102,7 @@ async def free_slots(guild_id: int):
                 continue
 
         _list.append(
-            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,scrim.available_slots))} (ID: {scrim.id})"
+            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,sorted(scrim.available_slots)))} (ID: {scrim.id})"
         )
 
     return _list
@@ -137,8 +137,6 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
         )
     except discord.Forbidden:
         return await ctx.error(f"I don't have permissions to create channel in scrims category. {category}")
-
-    
 
     from cogs.esports.views import SlotManagerView
 
