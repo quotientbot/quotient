@@ -1398,13 +1398,17 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.group(invoke_without_command=True, aliases=("slotm",))
     async def slotmanager(self, ctx: Context):
+        """
+        SlotManager helps people to setup scrims-slots cancel and claim manager.
+        Users can easily claim and cancel their slots anytime without bothering mods.
+        """
         await ctx.send_help(ctx.command)
 
     @slotmanager.command(name="setup")
-    @commands.has_permissions(manage_guild=True)
+    @checks.can_use_sm()
     @commands.bot_has_guild_permissions(manage_channels=True)
     async def _slotmanager_setup(self, ctx: Context):
-        """Setup slot manager"""
+        """Setup Slot-Manager in the server"""
 
         check = await SlotManager.filter(guild_id=ctx.guild.id)
         if check:
@@ -1454,7 +1458,7 @@ class ScrimManager(Cog, name="Esports"):
             )
 
     @slotmanager.command(name="delete")
-    @commands.has_permissions(manage_guild=True)
+    @checks.can_use_sm()
     async def _slotmanager_delete(self, ctx: Context):
         """Delete slot manager"""
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
@@ -1475,6 +1479,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
+    @checks.can_use_sm()
     async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time:BetterFutureTime=None):
         """Lock slot management of any scrim"""
 
@@ -1501,6 +1506,7 @@ class ScrimManager(Cog, name="Esports"):
         await update_main_message(ctx.guild.id)
 
     @slotmanager.command(name="unlock")
+    @checks.can_use_sm()
     async def _slotmanager_unlock(self, ctx: Context, scrim: Scrim):
         """Unlock slot management for any scrim"""
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
@@ -1521,7 +1527,9 @@ class ScrimManager(Cog, name="Esports"):
         await update_main_message(ctx.guild.id)
 
     @slotmanager.command(name="info")
+    @checks.can_use_sm()
     async def _slotmanager_info(self, ctx: Context):
+        """Slot-Manager info for all scrims."""
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
         if not sm:
             return await ctx.error(
