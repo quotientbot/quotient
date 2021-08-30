@@ -85,7 +85,7 @@ class QuoPaginator:
         self.pages = Pages(_pages)
 
         if not self.pages.total > 1:
-            await self.ctx.send(embed=self.embed)
+            return await self.ctx.send(embed=self.embed)
 
         view = PaginatorView(
             self.ctx, pages=self.pages, embed=self.embed, timeout=self.timeout, show_page_count=self.show_page_count
