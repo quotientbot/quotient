@@ -1497,8 +1497,10 @@ class ScrimManager(Cog, name="Esports"):
                 f"This scrim is already locked.\n\nYou can use `{ctx.prefix}slotmanager unlock {scrim.id}` to unlock it."
             )
 
-        slot = await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
+        await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
+        slot = await SlotLocks.get(pk=scrim.id)
         await sm.locks.add(slot)
+
         await ctx.success(
             f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`"
         )
