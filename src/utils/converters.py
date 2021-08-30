@@ -150,6 +150,7 @@ class QuoMember(commands.Converter):
 
         Raises commands.MemberNotFound
         """
+        argument = argument.strip()
         try:
             return await commands.MemberConverter().convert(ctx, argument)
         except commands.MemberNotFound:
@@ -173,6 +174,7 @@ class QuoUser(commands.Converter):
         This will return Member if member exists in the guild else will returns User.
         Raises commands.UserNotFound
         """
+        argument = argument.strip()
         if ctx.guild:
             try:
                 return await QuoMember().convert(ctx, argument)

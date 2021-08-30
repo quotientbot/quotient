@@ -11,7 +11,7 @@ import discord
 
 from collections import Counter
 
-from .helpers import get_slot_manager_message, free_slots, send_sm_logs, SlotLogType
+from ..helpers import get_slot_manager_message, free_slots, send_sm_logs, SlotLogType
 
 __all__ = ("ScrimSelector", "SlotManagerView")
 

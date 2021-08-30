@@ -480,8 +480,10 @@ class ScrimManager(Cog, name="Esports"):
         if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
 
-        menu = SlotEditor(scrim=scrim)
-        await menu.start(ctx)
+        embed, channel = await scrim.create_slotlist()
+
+        view = SlotlistEditor(ctx,scrim)
+        view.message = await ctx.send(embed=embed, view=view)
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
@@ -1472,13 +1474,13 @@ class ScrimManager(Cog, name="Esports"):
         prompt = await ctx.prompt("Are you sure you want to delete your SlotManager setup?")
         if not prompt:
             return await ctx.success("Alright, Aborting.")
-        
+
         await delete_slotmanager(sm)
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
     @checks.can_use_sm()
-    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time:BetterFutureTime=None):
+    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = None):
         """Lock slot management of any scrim"""
 
         time = time or datetime.now(tz=IST)

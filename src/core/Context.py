@@ -68,6 +68,13 @@ class Context(commands.Context):
             delete_after=delete_after,
         )
 
+    async def safe_delete(self, msg: discord.Message, sleep_for: int = 0):
+        if sleep_for:
+            await asyncio.sleep(sleep_for)
+
+        with suppress(discord.NotFound, discord.Forbidden):
+            await msg.delete()
+
     async def success(self, message, delete_after=None):
         return await self.send(
             embed=discord.Embed(
