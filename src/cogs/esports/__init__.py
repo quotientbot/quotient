@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+from cogs.esports.helpers.views import delete_slotmanager
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -17,6 +18,7 @@ from .helpers import (
     registration_open_embed,
     setup_slotmanager,
     update_main_message,
+    delete_slotmanager,
     MultiScrimConverter,
 )
 
@@ -1470,12 +1472,8 @@ class ScrimManager(Cog, name="Esports"):
         prompt = await ctx.prompt("Are you sure you want to delete your SlotManager setup?")
         if not prompt:
             return await ctx.success("Alright, Aborting.")
-
-        await SlotManager.filter(guild_id=ctx.guild.id).delete()
-
-        scrims = await Scrim.filter(guild_id=ctx.guild.id)
-
-        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
+        
+        await delete_slotmanager(sm)
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")

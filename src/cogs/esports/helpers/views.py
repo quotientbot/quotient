@@ -155,3 +155,21 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
         guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=msg.id
     )
     return sm
+
+
+async def delete_slotmanager(record: SlotManager):
+    message = await record.message
+    if message:
+        from cogs.esports.views import SlotManagerView
+
+        view = SlotManagerView()
+        for b in view.children:
+            b.disabled = True
+
+        await message.edit(embed=message.embeds[0], view=view)
+
+    await SlotManager.filter(guild_id=record.guild_id).delete()
+
+    scrims = await Scrim.filter(guild_id=record.guild_id)
+
+    await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()

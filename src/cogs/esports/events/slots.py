@@ -10,7 +10,7 @@ from models import Scrim, Timer, SlotManager, SlotLocks
 
 from datetime import datetime, timedelta
 from constants import IST
-from ..helpers import update_main_message
+from ..helpers import update_main_message, delete_slotmanager
 
 
 class SlotManagerEvents(Cog):
@@ -50,9 +50,7 @@ class SlotManagerEvents(Cog):
         if not record:
             return
 
-        scrims = await Scrim.filter(guild_id=record.guild_id)
-        await SlotManager.filter(pk=record.id).delete()
-        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
+        await delete_slotmanager(record)
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
@@ -63,6 +61,4 @@ class SlotManagerEvents(Cog):
         if not record:
             return
 
-        scrims = await Scrim.filter(guild_id=record.guild_id)
-        await SlotManager.filter(pk=record.id).delete()
-        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
+        await delete_slotmanager(record)
