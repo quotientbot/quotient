@@ -98,7 +98,12 @@ class Quomisc(Cog, name="quomisc"):
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
             guild.me: discord.PermissionOverwrite(
-                read_messages=True, send_messages=True, read_message_history=True, embed_links=True, attach_files=True,manage_channels=True
+                read_messages=True,
+                send_messages=True,
+                read_message_history=True,
+                embed_links=True,
+                attach_files=True,
+                manage_channels=True,
             ),
             ctx.author: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True),
         }
@@ -119,7 +124,7 @@ class Quomisc(Cog, name="quomisc"):
 
         links = [LinkType("Support Server", ctx.config.SERVER_LINK)]
         view = LinkButton(links)
-        m = await channel.send(embed=e,view=view)
+        m = await channel.send(embed=e, view=view)
         await m.pin()
 
         return channel
@@ -129,7 +134,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.bot_has_guild_permissions(manage_channels=True, manage_webhooks=True)
     async def setup_cmd(self, ctx: Context):
         """
-        Setup Quotient in the current sever.
+        Setup Quotient in the current server.
         This creates a private channel in the server. You can rename that if you like.
         Quotient requires manage channels and manage wehooks permissions for this to work.
         You must have manage server permission.
