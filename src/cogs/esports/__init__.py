@@ -1410,7 +1410,7 @@ class ScrimManager(Cog, name="Esports"):
         if check:
             return await ctx.error(
                 "It seems that you have an existing slotmanager setup in your server."
-                f"\nKindly use `{ctx.prefix}slotmanager fix` if you think there's something wrong."
+                f"\nKindly use `{ctx.prefix}slotmanager delete` if you think there's something wrong."
             )
 
         check = await Scrim.filter(guild_id=ctx.guild.id)
@@ -1428,18 +1428,19 @@ class ScrimManager(Cog, name="Esports"):
 
         await ctx.simple(
             "In which channel do you want me to post available slots?\n"
-            "As soon as any slot becomes vacant, I will post a message in the channel you select now."
+            "As soon as any slot becomes vacant, I will post a message in the channel you select now.\n\n"
+            "`Please mention a public channel to receive updates.`"
         )
         channel = await inputs.channel_input(ctx, check)
         perms = channel.permissions_for(ctx.me)
         if not all((perms.send_messages, perms.embed_links)):
             return await ctx.error(
-                f"I don't have permission to send messages in this **{channel}**.\n"
+                f"I don't have permission to send messages in **{channel}**.\n"
                 "Please give me permission to send messages and embed links in this channel."
             )
 
         prompt = await ctx.prompt(
-            "A new channel will be created for slot-manager in your scrims category." "Are you sure you want to continue?"
+            "A new channel will be created for slot-manager in your scrims category.\n\nAre you sure you want to continue?"
         )
         if not prompt:
             return await ctx.simple("Alright, aborting.")

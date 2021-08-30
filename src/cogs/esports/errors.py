@@ -1,14 +1,12 @@
 from models import (
     Scrim,
     Timer,
-    BannedTeam,
     ReservedSlot,
     Tourney,
     AssignedSlot,
     ArrayAppend,
     TagCheck,
     EasyTag,
-    SlotManager,
 )
 from .helpers import (
     get_pretty_slotlist,
