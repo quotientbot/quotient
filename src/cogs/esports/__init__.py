@@ -482,7 +482,7 @@ class ScrimManager(Cog, name="Esports"):
 
         embed, channel = await scrim.create_slotlist()
 
-        view = SlotlistEditor(ctx,scrim)
+        view = SlotlistEditor(ctx, scrim)
         view.message = await ctx.send(embed=embed, view=view)
 
     @s_slotlist.command(name="format")
@@ -1497,7 +1497,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"This scrim is already locked.\n\nYou can use `{ctx.prefix}slotmanager unlock {scrim.id}` to unlock it."
             )
 
-        await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
+        await SlotLocks.update_or_create(id=scrim.id, defaults={"lock_at": time})
         slot = await SlotLocks.get(pk=scrim.id)
         await sm.locks.add(slot)
 
