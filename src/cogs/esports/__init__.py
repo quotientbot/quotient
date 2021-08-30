@@ -39,7 +39,7 @@ from models import *
 from datetime import datetime, timedelta
 from discord.ext import commands
 
-from .events import ScrimEvents
+from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents
 from .errors import ScrimError, SMError, TourneyError, PointsError
 from prettytable import PrettyTable
 
@@ -1490,7 +1490,9 @@ class ScrimManager(Cog, name="Esports"):
 
         await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
 
-        await ctx.success(f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`")
+        await ctx.success(
+            f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`"
+        )
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
         await update_main_message(ctx.guild.id)
 
@@ -1564,3 +1566,6 @@ def setup(bot):
     bot.add_cog(ScrimManager(bot))
     bot.add_cog(SMError(bot))
     bot.add_cog(ScrimEvents(bot))
+    bot.add_cog(TourneyEvents(bot))
+    bot.add_cog(TagEvents(bot))
+    bot.add_cog(SlotManagerEvents(bot))

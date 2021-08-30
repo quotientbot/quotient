@@ -94,7 +94,8 @@ class CancelSlotSelector(discord.ui.Select):
 # TODO: update children on edit
 # TODO: delete slotm setup on msg delete
 # TODO: update slotm msg
-# TODO: disable child 1 on setup if no available slots
+
+
 class SlotManagerView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
