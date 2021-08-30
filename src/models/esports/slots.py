@@ -3,6 +3,7 @@ from models.helpers import *
 
 import discord
 from async_property import async_property
+from contextlib import suppress
 
 
 class SlotManager(models.Model):
@@ -35,7 +36,10 @@ class SlotManager(models.Model):
     async def message(self):
         channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, self.main_channel_id)
         if channel:
-            return await channel.fetch_message(self.message_id)
+            message = None
+            with suppress(discord.NotFound, discord.HTTPException):
+                message = await channel.fetch_message(self.message_id)
+            return message
 
     @property
     def logschan(self):
