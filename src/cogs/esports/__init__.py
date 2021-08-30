@@ -1475,8 +1475,11 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
-    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = datetime.now(tz=IST)):
+    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time:BetterFutureTime=None):
         """Lock slot management of any scrim"""
+
+        time = time or datetime.now(tz=IST)
+
         sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
         if not sm:
             return await ctx.error(
@@ -1512,7 +1515,7 @@ class ScrimManager(Cog, name="Esports"):
 
         await SlotLocks.filter(pk=scrim.id).update(locked=False)
         await ctx.success(
-            f"SlotManager for {scrim.name}(ID: {scrim.id}) is now unlocked.\n"
+            f"SlotManager for {scrim.name}(ID: {scrim.id}) is now unlocked.\n\n"
             f"I will automatically lock it when the registration starts and will unlock it after it ends."
         )
         await update_main_message(ctx.guild.id)
@@ -1534,7 +1537,7 @@ class ScrimManager(Cog, name="Esports"):
             if scrim:
                 time = "Not Set!"
                 if lock.lock_at:
-                    time = lock.lock_at.strftime('%I:%M %p')
+                    time = lock.lock_at.strftime("%I:%M %p")
 
                 embed.description += f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
 
