@@ -39,7 +39,7 @@ class SlotManager(models.Model):
 
     @property
     def logschan(self):
-        if g := self.guild is not None:
+        if (g := self.guild) is not None:
             return discord.utils.get(g.text_channels, name="quotient-scrims-logs")
 
 

@@ -97,6 +97,11 @@ class SlotManagerView(discord.ui.View):
     async def cancel_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        main_record = await SlotManager.get_or_none(message_id=interaction.message.id, guild_id=interaction.guild_id)
+
+        if not main_record:
+            return await interaction.followup.send("Slot-Manager setup was deleted. You need to setup again.")
+
         _slots = []
         async for scrim in Scrim.filter(guild_id=interaction.guild_id):
             if lock := await SlotLocks.get_or_none(pk=scrim.id):
@@ -153,11 +158,28 @@ class SlotManagerView(discord.ui.View):
             sm = await SlotManager.get(guild_id=interaction.guild_id)
             msg = await sm.message
             await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
+
             await interaction.followup.send("Alright, Cancelled your slot.", ephemeral=True)
+
+            reg_channel = getattr(scrim.registration_channel, "mention", "channel-deleted")
+            await send_sm_logs(
+                main_record, SlotLogType.public, f"Slot {slot.num} ({reg_channel}) is ready to be claimed."
+            )
+
+            await send_sm_logs(
+                main_record,
+                SlotLogType.private,
+                f"{interaction.user.mention} cancelled their Slot {slot.num} ({reg_channel})",
+            )
 
     @discord.ui.button(style=discord.ButtonStyle.success, custom_id="claim-slot", label="Claim Slot")
     async def claim_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+
+        main_record = await SlotManager.get_or_none(message_id=interaction.message.id, guild_id=interaction.guild_id)
+
+        if not main_record:
+            return await interaction.followup.send("Slot-Manager setup was deleted. You need to setup again.")
 
         _time = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
         records = Scrim.filter(guild_id=interaction.guild_id, closed_at__gte=_time, available_slots__not=[])
@@ -227,4 +249,10 @@ class SlotManagerView(discord.ui.View):
             sm = await SlotManager.get(guild_id=interaction.guild_id)
             msg = await sm.message
             await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
-            return await interaction.followup.send("Slot claimed successfully.", ephemeral=True)
+            await interaction.followup.send("Slot claimed successfully.", ephemeral=True)
+
+            reg_channel = getattr(scrim.registration_channel, "mention", "channel-deleted")
+
+            await send_sm_logs(
+                main_record, SlotLogType.private, f"{interaction.user.mention} claimed Slot {num} ({reg_channel})"
+            )
