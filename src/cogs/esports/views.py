@@ -90,8 +90,6 @@ class CancelSlotSelector(discord.ui.Select):
 
 
 # TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked, insert scrim to slotmanager on setup
-# TODO: create update method to edit the main msg
-# TODO: update children on edit
 # TODO: delete slotm setup on msg delete
 # TODO: update slotm msg
 

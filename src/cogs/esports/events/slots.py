@@ -4,6 +4,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
+import discord
 from core import Cog
 from models import Scrim, Timer, SlotManager, SlotLocks
 
@@ -39,3 +40,29 @@ class SlotManagerEvents(Cog):
         await update_main_message(guild.id)
 
         await self.bot.reminders.create_timer(new_time, "scrim_lock", scrim_id=scrim.id)
+
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        if not isinstance(channel, discord.TextChannel):
+            return
+
+        record = await SlotManager.get_or_none(main_channel_id=channel.id)
+        if not record:
+            return
+
+        scrims = await Scrim.filter(guild_id=record.guild_id)
+        await SlotManager.filter(pk=record.id).delete()
+        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
+
+    @Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        if not payload.guild_id:
+            return
+
+        record = await SlotManager.get_or_none(message_id=payload.message_id)
+        if not record:
+            return
+
+        scrims = await Scrim.filter(guild_id=record.guild_id)
+        await SlotManager.filter(pk=record.id).delete()
+        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()

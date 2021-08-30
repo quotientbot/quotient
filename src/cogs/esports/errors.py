@@ -341,7 +341,6 @@ class SMError(Cog):
         await Tourney.filter(registration_channel_id=channel.id).delete()
         await TagCheck.filter(channel_id=channel.id).delete()
         await EasyTag.filter(channel_id=channel.id).delete()
-        await SlotManager.filter(main_channel_id=channel.id).delete()
 
     @Cog.listener()
     async def on_scrim_registration_delete(self, scrim: Scrim, message: discord.Message, slot):
