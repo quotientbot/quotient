@@ -1,5 +1,6 @@
 from contextlib import suppress
 from models.esports import SlotManager
+from models.esports.slots import SlotLocks
 from models.helpers import ArrayAppend, ArrayRemove
 from utils import emote, BaseSelector, Prompt
 from datetime import datetime
@@ -91,8 +92,9 @@ class CancelSlotSelector(discord.ui.Select):
 # TODO: log every action , don't add team name after team name in slotlist, in claim - check if not locked, insert scrim to slotmanager on setup
 # TODO: create update method to edit the main msg
 # TODO: update children on edit
-
-
+# TODO: delete slotm setup on msg delete
+# TODO: update slotm msg
+# TODO: disable child 1 on setup if no available slots
 class SlotManagerView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -103,15 +105,17 @@ class SlotManagerView(discord.ui.View):
 
         _slots = []
         async for scrim in Scrim.filter(guild_id=interaction.guild_id):
+            if lock := await SlotLocks.get_or_none(pk=scrim.id):
+                if lock and lock.locked:
+                    continue
+
             async for slot in scrim.assigned_slots.filter(user_id=interaction.user.id):
                 _slots.append(CancelSlot(slot, scrim))
 
         if not _slots:
-            return await interaction.followup.send("You haven't registred in any scrim today.", ephemeral=True)
-
-        if len(_slots) > 25:
             return await interaction.followup.send(
-                "You have more than 25 slots. Kindly contact moderators.", ephemeral=True
+                "You haven't registred in any scrim today.\nOr maybe the slotmanager is locked for that scrim.",
+                ephemeral=True,
             )
 
         cancel_view = BaseSelector(interaction.user.id, CancelSlotSelector, placeholder="select a slot", slots=_slots)

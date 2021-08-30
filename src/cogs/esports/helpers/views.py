@@ -138,11 +138,20 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
     except discord.Forbidden:
         return await ctx.error(f"I don't have permissions to create channel in scrims category. {category}")
 
-    _embed = await get_slot_manager_message(ctx.guild.id)
+    
 
     from cogs.esports.views import SlotManagerView
 
-    msg: discord.Message = await main_channel.send(embed=_embed, view=SlotManagerView())
+    view = SlotManagerView()
+
+    _free = await free_slots(ctx.guild.id)
+    view.children[1].disabled = False
+    if not _free:
+        view.children[1].disabled = True
+
+    embed = await get_slot_manager_message(ctx.guild.id, _free)
+
+    msg: discord.Message = await main_channel.send(embed=embed, view=view)
 
     sm = await SlotManager.create(
         guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=msg.id

@@ -1396,7 +1396,7 @@ class ScrimManager(Cog, name="Esports"):
         embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
         await ctx.send(embed=embed, embed_perms=True)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, aliases=("slotm",))
     async def slotmanager(self, ctx: Context):
         await ctx.send_help(ctx.command)
 
@@ -1467,6 +1467,10 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.success("Alright, Aborting.")
 
         await SlotManager.filter(guild_id=ctx.guild.id).delete()
+
+        scrims = await Scrim.filter(guild_id=ctx.guild.id)
+
+        await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
@@ -1486,9 +1490,7 @@ class ScrimManager(Cog, name="Esports"):
 
         await SlotLocks.update_or_create(pk=scrim.id, defaults={"lock_at": time})
 
-        await ctx.success(
-            f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: {strtime(time)}"
-        )
+        await ctx.success(f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`")
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
         await update_main_message(ctx.guild.id)
 
