@@ -6,11 +6,9 @@
       "watch": false,
       "ignore_watch": ["logs"],
       "script": "./src/bot.py",
-      "interpreter": "python3",
+      "interpreter": ".venv/bin/python3.8",
       "error_file": "./logs/pm2error.log",
       "out_file": "./logs/pm2out.log"
     }
   ]
 }
-
-
