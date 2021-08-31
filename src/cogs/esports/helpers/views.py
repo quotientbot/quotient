@@ -17,7 +17,7 @@ class DirectSlotMessage(discord.ui.View):
         self.add_item(discord.ui.Button(label="Click Me to Jump", url=link))
 
 
-async def update_main_message(guild_id: int):
+async def update_main_message(guild_id: int,bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
@@ -26,7 +26,7 @@ async def update_main_message(guild_id: int):
     if message:
         from cogs.esports.views import SlotManagerView
 
-        view = SlotManagerView()
+        view = SlotManagerView(bot)
 
         _free = await free_slots(guild_id)
         view.children[1].disabled = False
@@ -39,7 +39,7 @@ async def update_main_message(guild_id: int):
     await SlotManager.filter(pk=record.id).delete()
 
 
-async def lock_for_registration(guild_id: int, scrim_id: int):
+async def lock_for_registration(guild_id: int, scrim_id: int,bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
@@ -51,16 +51,17 @@ async def lock_for_registration(guild_id: int, scrim_id: int):
         lock = await SlotLocks.create(id=scrim_id)
         await record.locks.add(lock)
 
-    await update_main_message(guild_id)
+    await update_main_message(guild_id,bot)
 
 
-async def unlock_after_registration(guild_id: int, scrim_id: int):
+
+async def unlock_after_registration(guild_id: int, scrim_id: int,bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
 
     await SlotLocks.filter(pk=scrim_id).update(locked=False)
-    await update_main_message(guild_id)
+    await update_main_message(guild_id,bot)
 
 
 async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
@@ -140,7 +141,7 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
 
     from cogs.esports.views import SlotManagerView
 
-    view = SlotManagerView()
+    view = SlotManagerView(ctx.bot)
 
     _free = await free_slots(ctx.guild.id)
     view.children[1].disabled = False
@@ -157,12 +158,12 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
     return sm
 
 
-async def delete_slotmanager(record: SlotManager):
+async def delete_slotmanager(record: SlotManager,bot):
     message = await record.message
     if message:
         from cogs.esports.views import SlotManagerView
 
-        view = SlotManagerView()
+        view = SlotManagerView(bot)
         for b in view.children:
             b.disabled = True
 

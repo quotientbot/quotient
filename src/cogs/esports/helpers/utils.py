@@ -167,7 +167,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     await registration_channel.send(embed=registration_close_embed(scrim))
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
-    ctx.bot.loop.create_task(unlock_after_registration(scrim.guild_id, scrim.id))
+    ctx.bot.loop.create_task(unlock_after_registration(scrim.guild_id, scrim.id,ctx.bot))
 
     if scrim.autoslotlist and await scrim.teams_registered:
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed

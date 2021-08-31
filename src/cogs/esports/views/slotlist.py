@@ -155,5 +155,5 @@ class SlotlistEditor(discord.ui.View):
         await Scrim.filter(pk=self.scrim.id).update(available_slots=ArrayAppend("available_slots", slot.num))
         await AssignedSlot.filter(pk=slot.id).delete()
 
-        await update_main_message(self.ctx.guild.id)
+        await update_main_message(self.ctx.guild.id, self.ctx.bot)
         await self.refresh()

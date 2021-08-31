@@ -1,6 +1,5 @@
 from __future__ import annotations
 import typing
-from cogs.esports.helpers.views import delete_slotmanager
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -1475,7 +1474,7 @@ class ScrimManager(Cog, name="Esports"):
         if not prompt:
             return await ctx.success("Alright, Aborting.")
 
-        await delete_slotmanager(sm)
+        await delete_slotmanager(sm,ctx.bot)
         await ctx.success(f"Slotmanager Setup deleted.")
 
     @slotmanager.command(name="lock")
@@ -1505,7 +1504,7 @@ class ScrimManager(Cog, name="Esports"):
             f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`"
         )
         await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
-        await update_main_message(ctx.guild.id)
+        await update_main_message(ctx.guild.id,self.bot)
 
     @slotmanager.command(name="unlock")
     @checks.can_use_sm()
@@ -1526,7 +1525,7 @@ class ScrimManager(Cog, name="Esports"):
             f"SlotManager for {scrim.name}(ID: {scrim.id}) is now unlocked.\n\n"
             f"I will automatically lock it when the registration starts and will unlock it after it ends."
         )
-        await update_main_message(ctx.guild.id)
+        await update_main_message(ctx.guild.id,self.bot)
 
     @slotmanager.command(name="info")
     @checks.can_use_sm()

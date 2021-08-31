@@ -153,7 +153,7 @@ class Quotient(commands.AutoShardedBot):
             from models import SlotManager
 
             async for record in SlotManager.filter(toggle=True):
-                self.add_view(SlotManagerView(), message_id=record.message_id)
+                self.add_view(SlotManagerView(self), message_id=record.message_id)
 
             self.persistent_views_added = True
 

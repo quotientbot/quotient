@@ -90,7 +90,8 @@ class CancelSlotSelector(discord.ui.Select):
 
 
 class SlotManagerView(discord.ui.View):
-    def __init__(self):
+    def __init__(self, bot):
+        self.bot = bot
         super().__init__(timeout=None)
 
     @discord.ui.button(style=discord.ButtonStyle.danger, custom_id="cancel-slot", label="Cancel Your Slot")

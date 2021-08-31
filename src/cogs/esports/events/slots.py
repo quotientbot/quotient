@@ -39,7 +39,7 @@ class SlotManagerEvents(Cog):
         await self.bot.reminders.create_timer(new_time, "scrim_lock", scrim_id=scrim.id)
 
         await SlotLocks.filter(pk=scrim.id).update(locked=True, lock_at=new_time)
-        await update_main_message(guild.id)
+        await update_main_message(guild.id, self.bot)
 
         await send_sm_logs(
             sm,
@@ -57,7 +57,7 @@ class SlotManagerEvents(Cog):
         if not record:
             return
 
-        await delete_slotmanager(record)
+        await delete_slotmanager(record, self.bot)
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
@@ -68,4 +68,4 @@ class SlotManagerEvents(Cog):
         if not record:
             return
 
-        await delete_slotmanager(record)
+        await delete_slotmanager(record, self.bot)
