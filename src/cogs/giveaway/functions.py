@@ -60,7 +60,7 @@ def get_giveaway_embed(giveaway: Giveaway):
         embed.description += f"📣 Must have **{giveaway.required_msg} messages** to enter!\n"
 
     if giveaway.required_role_id:
-        embed.description += f"📣 Must have {giveaway.req_role.mention} role to enter!"
+        embed.description += f"📣 Must have {getattr(giveaway.req_role,'mention','deleted-role')} role to enter!"
 
     embed.set_footer(text=f"{plural(giveaway.winners):winner|winners} | Ends at")
 
