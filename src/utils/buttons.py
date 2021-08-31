@@ -19,7 +19,7 @@ class LinkButton(discord.ui.View):
 
 class Prompt(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=10.0)
+        super().__init__(timeout=30.0)
         self.user_id = user_id
         self.value = None
 

@@ -17,7 +17,7 @@ class DirectSlotMessage(discord.ui.View):
         self.add_item(discord.ui.Button(label="Click Me to Jump", url=link))
 
 
-async def update_main_message(guild_id: int,bot):
+async def update_main_message(guild_id: int, bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
@@ -39,7 +39,7 @@ async def update_main_message(guild_id: int,bot):
     await SlotManager.filter(pk=record.id).delete()
 
 
-async def lock_for_registration(guild_id: int, scrim_id: int,bot):
+async def lock_for_registration(guild_id: int, scrim_id: int, bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
@@ -51,17 +51,16 @@ async def lock_for_registration(guild_id: int, scrim_id: int,bot):
         lock = await SlotLocks.create(id=scrim_id)
         await record.locks.add(lock)
 
-    await update_main_message(guild_id,bot)
+    await update_main_message(guild_id, bot)
 
 
-
-async def unlock_after_registration(guild_id: int, scrim_id: int,bot):
+async def unlock_after_registration(guild_id: int, scrim_id: int, bot):
     record = await SlotManager.get_or_none(guild_id=guild_id)
     if not record:
         return
 
     await SlotLocks.filter(pk=scrim_id).update(locked=False)
-    await update_main_message(guild_id,bot)
+    await update_main_message(guild_id, bot)
 
 
 async def send_sm_logs(record: SlotManager, _type: SlotLogType, content: str):
@@ -158,7 +157,7 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
     return sm
 
 
-async def delete_slotmanager(record: SlotManager,bot):
+async def delete_slotmanager(record: SlotManager, bot):
     message = await record.message
     if message:
         from cogs.esports.views import SlotManagerView
@@ -174,3 +173,17 @@ async def delete_slotmanager(record: SlotManager,bot):
     scrims = await Scrim.filter(guild_id=record.guild_id)
 
     await SlotLocks.filter(pk__in=(scrim.id for scrim in scrims)).delete()
+
+
+async def update_channel_for(channel, user, allow=True):
+
+    _c_overwrites = channel.overwrites
+
+    if allow:
+        _user = {user: discord.PermissionOverwrite(read_messages=True, send_messages=True, read_message_history=True)}
+        _c_overwrites = {**_c_overwrites, **_user}
+
+    else:
+        del _c_overwrites[user]
+
+    await channel.edit(overwrites=_c_overwrites)

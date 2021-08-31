@@ -1,4 +1,5 @@
 from contextlib import suppress
+from cogs.esports.helpers.views import update_channel_for
 from models.esports import SlotManager
 from models.esports.slots import SlotLocks
 from models.helpers import ArrayAppend, ArrayRemove
@@ -8,8 +9,11 @@ from constants import IST
 from typing import List, NamedTuple
 from models import Scrim, AssignedSlot
 import discord
+import asyncio
 
 from collections import Counter
+
+from utils.formats import truncate_string
 
 from ..helpers import get_slot_manager_message, free_slots, send_sm_logs, SlotLogType
 
@@ -180,6 +184,12 @@ class SlotManagerView(discord.ui.View):
         if not main_record:
             return await interaction.followup.send("Slot-Manager setup was deleted. You need to setup again.")
 
+        perms = interaction.channel.permissions_for(interaction.guild.me)
+        if not perms.manage_channels and perms.manage_messages:
+            return await interaction.followup.send(
+                "I need `manage_channels` & `manage_messages` permissions in this channel to work properly."
+            )
+
         _time = datetime.now(tz=IST).replace(hour=0, minute=0, second=0, microsecond=0)
         records = Scrim.filter(guild_id=interaction.guild_id, closed_at__gte=_time, available_slots__not=[])
 
@@ -211,24 +221,29 @@ class SlotManagerView(discord.ui.View):
             if not scrim:
                 return await interaction.followup.send("Scrim not found.", ephemeral=True)
 
+            await update_channel_for(interaction.channel, interaction.user)
+
+            await interaction.followup.send("What is your team's name?", ephemeral=True)
+            try:
+                team_name = await self.bot.wait_for(
+                    "message",
+                    check=lambda msg: msg.author.id == interaction.user.id and msg.channel.id == interaction.channel.id,
+                    timeout=30,
+                )
+            except asyncio.TimeoutError:
+                await update_channel_for(interaction.channel, interaction.user, False)
+                return await interaction.followup.send("Timed out. Please try again.", ephemeral=True)
+
+            await team_name.delete()
+            await update_channel_for(interaction.channel, interaction.user, False)
+
             await Scrim.filter(pk=scrim_id).update(available_slots=ArrayRemove("available_slots", num))
             with suppress(discord.Forbidden, discord.HTTPException, AttributeError):
                 await interaction.user.add_roles(discord.Object(id=scrim.role_id))
 
-            team_name = f"Claimed by {interaction.user}"
-
-            team_names = Counter()
-            records = AssignedSlot.filter(user_id=interaction.user.id)
-            async for record in records:
-                team_names[record.team_name] += 1
-
-            team_names = team_names.most_common(1)
-
-            if team_names:
-                team_name, count = team_names[0]
-                team_name = f"{team_name} (claimed)"
-
-            slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
+            slot = await AssignedSlot.create(
+                num=num, user_id=interaction.user.id, team_name=truncate_string(team_name.content, 22)
+            )
             await scrim.assigned_slots.add(slot)
 
             embed, channel = await scrim.create_slotlist()
