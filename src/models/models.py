@@ -10,7 +10,7 @@ __all__ = (
     "Logging",
     "Tag",
     "Timer",
-    "Snipes",
+    "Snipe",
     "Autorole",
     "Votes",
     "Premium",
@@ -155,13 +155,12 @@ class Timer(models.Model):
 
 
 # ************************************************************************************************
-class Snipes(models.Model):
+class Snipe(models.Model):
     class Meta:
         table = "snipes"
 
-    id = fields.BigIntField(pk=True)
+    channel_id = fields.BigIntField(pk=True)
     author_id = fields.BigIntField()
-    channel_id = fields.BigIntField()
     content = fields.TextField()
     delete_time = fields.DatetimeField(auto_now=True)
     nsfw = fields.BooleanField(default=False)

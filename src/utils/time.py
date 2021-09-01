@@ -137,6 +137,12 @@ def strtime(target):
     return target.strftime("%d-%b-%Y %I:%M %p")
 
 
+def discord_timestamp(time_to_convert, mode="R"):
+    formated_strftime = f"<t:{int(time_to_convert.timestamp())}:{mode}>"
+
+    return formated_strftime
+
+
 # def strtime(target):
 #     return f"<t:{int(target.timestamp())}:R>"
 

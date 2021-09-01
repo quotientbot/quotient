@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
 
 from core import Cog, Context
 from discord.ext import commands
-from models import Tag, AutoPurge
+from models import Tag, AutoPurge, Snipe
 from ast import literal_eval as leval
 from models import Autorole, ArrayAppend, ArrayRemove
 
@@ -25,6 +25,7 @@ from utils import (
     QuoCategory,
     QuoTextChannel,
     simple_convert,
+    discord_timestamp,
 )
 from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from contextlib import suppress
@@ -218,30 +219,28 @@ class Utility(Cog, name="utility"):
                 file=discord.File(fp=buf, filename="emojis.zip"),
             )
 
-    # @commands.command()
-    # @commands.bot_has_permissions(embed_links=True)
-    # async def snipe(self, ctx, *, channel: Optional[discord.TextChannel]):
-    #     """Snipe last deleted message of a channel."""
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def snipe(self, ctx: Context, *, channel: typing.Optional[QuoTextChannel]):
+        """Snipe last deleted message of a channel."""
 
-    #     channel = channel or ctx.channel
+        channel = channel or ctx.channel
 
-    #     snipe = await Snipes.filter(channel_id=channel.id).order_by("delete_time").first()
-    #     if not snipe:
-    #         return await ctx.send(f"There's nothing to snipe :c")
+        snipe = await Snipe.get_or_none(channel_id=channel.id)
+        if not snipe:
+            return await ctx.error(f"There's nothing to snipe :c")
 
-    #     elif snipe.nsfw and not channel.is_nsfw():
-    #         return await ctx.send(f"The snipe is marked NSFW but the current channel isn't.")
+        elif snipe.nsfw and not ctx.channel.is_nsfw():
+            return await ctx.error(f"The snipe is marked NSFW but the current channel isn't.")
 
-    #     content = (
-    #         snipe.content
-    #         if len(snipe.content) < 128
-    #         else f"[Click me to see]({str(await ctx.bot.binclient.post(snipe.content))})"
-    #     )
-    #     embed = self.bot.embed(ctx)
-    #     embed.description = f"Message sent by **{snipe.author}** was deleted in {channel.mention}"
-    #     embed.add_field(name="**__Message Content__**", value=content)
-    #     embed.set_footer(text=f"Deleted {human_timedelta(snipe.delete_time)}")
-    #     await ctx.send(embed=embed)
+        embed = self.bot.embed(ctx, timestamp=snipe.delete_time)
+        embed.description = (
+            f"Message sent by **{snipe.author}** was deleted in **{channel}** \n{discord_timestamp(snipe.delete_time)}\n"
+            f"\n**__Message Content__**\n{snipe.content}"
+        )
+
+        embed.set_footer(text=f"Deleted")
+        await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx: Context, *, name: TagConverter = None):

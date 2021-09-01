@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from core import Cog
-from models import AutoPurge, Timer
+from models import AutoPurge, Timer, Snipe
 from contextlib import suppress
 from datetime import datetime, timedelta
 from constants import IST
@@ -17,6 +17,21 @@ import discord
 class AutoPurgeEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    async def delete_older_snipes(self):  # we delete snipes that are older than 15 days
+        await Snipe.filter(delete_time__lte=(datetime.now(tz=IST) - timedelta(days=15))).delete()
+
+    @Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
+        if not message.guild:
+            return
+        channel = message.channel
+        content = message.content if message.content else "*[Content Unavailable]*"
+
+        await Snipe.update_or_create(
+            channel_id=channel.id,
+            defaults={"author_id": message.author.id, "content": content, "nsfw": channel.is_nsfw()},
+        )
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
