@@ -184,6 +184,7 @@ async def update_channel_for(channel, user, allow=True):
         _c_overwrites = {**_c_overwrites, **_user}
 
     else:
-        del _c_overwrites[user]
+        with suppress(KeyError):
+            del _c_overwrites[user]
 
     await channel.edit(overwrites=_c_overwrites)
