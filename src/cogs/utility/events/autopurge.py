@@ -14,7 +14,7 @@ from constants import IST
 import discord
 
 
-class UtilityEvents(Cog):
+class AutoPurgeEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 

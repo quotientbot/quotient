@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from discord.utils import escape_markdown
 import typing
-from cogs.utility.events import UtilityEvents
+from cogs.utility.events import AutoPurgeEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -644,4 +644,4 @@ class Utility(Cog, name="utility"):
 
 def setup(bot) -> None:
     bot.add_cog(Utility(bot))
-    bot.add_cog(UtilityEvents(bot))
+    bot.add_cog(AutoPurgeEvents(bot))
