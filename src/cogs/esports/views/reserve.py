@@ -8,7 +8,7 @@ import discord
 
 class SlotReserver(discord.ui.View):
     def __init__(self, ctx: Context, scrim: Scrim):
-        super().__init__(timeout=80.0)
+        super().__init__(timeout=60.0)
         self.ctx = ctx
         self.scrim = scrim
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
@@ -31,10 +31,25 @@ class SlotReserver(discord.ui.View):
 
     @async_property
     async def updated_embed(self):
-        ...
+        reserves = await self.scrim.reserved_slots.all()
+        embed = discord.Embed(color=self.ctx.bot.color, title="Reserved-Slots Editor")
 
-    async def refresh(self):
-        ...
+        to_show = []
+        for i in self.scrim.available_to_reserve:
+            check = [j.team_name for j in reserves if j.num == i]
+
+            if check:
+                info = check[0]
+            else:
+                info = "❌"
+
+            to_show.append(f"Slot {i:02}  -->  {info}\n")
+
+        embed.description = f"```{''.join(to_show)}```"
+        return embed
+
+    async def refresh_embed(self):
+        await self.message.edit(embed=await self.updated_embed, view=self)
 
     async def ask_embed(self, desc: str, *, image=None):
         embed = discord.Embed(color=self.ctx.bot.color, description=desc, title="Reserved-Slots Editor")
@@ -64,6 +79,8 @@ class SlotReserver(discord.ui.View):
         )
 
         slot = await string_input(self.ctx, self.check, delete_after=True)
+
+        await self.ctx.safe_delete(m)
         if slot.strip().lower() == "cancel":
             return await self.error_embed("Alright, Aborting.")
 
@@ -93,17 +110,39 @@ class SlotReserver(discord.ui.View):
                 f"\nThe slot-number must be a number between `{_range.start}` and `{_range.stop}`"
             )
 
-        return await self.ctx.send(f"{num} {owner_id} {team_name} {expire}")
-        # slot = await ReservedSlot.create(num=num, user_id=owner_id, team_name=team_name, expires=expire)
-        # await self.scrim.reserved_slots.add(slot)
+        slot = await ReservedSlot.create(num=num, user_id=owner_id, team_name=team_name, expires=expire)
+        await self.scrim.reserved_slots.add(slot)
+        if expire and owner_id:
+            await self.ctx.bot.reminders.create_timer(
+                expire, "scrim_reserve", scrim_id=self.scrim.id, user_id=owner_id, team_name=team_name, num=num
+            )
 
-        # if expire and owner_id:
-        #     await self.ctx.bot.reminders.create_timer(
-        #         expire, "scrim_reserve", scrim_id=self.scrim.id, user_id=owner_id, team_name=team_name, num=num
-        #     )
-
-        await self.refresh()
+        await self.refresh_embed()
 
     @discord.ui.button(style=discord.ButtonStyle.red, custom_id="remove", label="Remove Reserved")
     async def remove_reserved(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+
+        m = await self.ask_embed(
+            "Which reserved slots do you want to remove?\n"
+            "You can enter one or more than one slots, just separate them with a comma (`,`)."
+            "\nFor Example:\n`1, 2, 5, 10`"
+        )
+
+        slots = await string_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(m)
+        if slots.strip().lower() == "cancel":
+            return await self.error_embed("Alright, Aborting.")
+
+        slots = slots.split(",")
+        try:
+            slots = [int(i.strip()) for i in slots]
+        except:
+            return await self.error_embed("Invalid format provided.")
+
+        slots = await self.scrim.reserved_slots.filter(num__in=slots)
+        if not slots:
+            return await self.error_embed("Invalid slots provided.")
+
+        await ReservedSlot.filter(id__in=(slot.id for slot in slots)).delete()
+        await self.refresh_embed()

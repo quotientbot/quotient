@@ -192,8 +192,9 @@ class ScrimEvents(Cog):
 
             await scrim.assigned_slots.add(assinged_slot)
 
-            with suppress(AttributeError):
-                self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
+            if slot.user_id:
+                with suppress(AttributeError):
+                    self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
 
         await Scrim.filter(pk=scrim.id).update(
             opened_at=datetime.now(tz=IST),

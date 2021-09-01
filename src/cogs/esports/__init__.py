@@ -627,38 +627,57 @@ class ScrimManager(Cog, name="Esports"):
         if logs := await ctx.banlog_channel:
             return await log_scrim_ban(logs, scrims, ScrimBanType.unban, user, mod=ctx.author, reason=reason)
 
-    # @smanager.group(name="reserve", invoke_without_command=True)
-    # @commands.max_concurrency(1, BucketType.guild)
-    # @checks.can_use_sm()
-    # @checks.has_done_setup()
-    # @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    # async def s_reserve(self, ctx, scrim: Scrim):
-    #     """
-    #     Add / Remove a team from the reserved list
-    #     """
-    #     # menu = ReserveEditorMenu(scrim=scrim)
-    #     # await menu.start(ctx)
-    #     await ctx.send("hi", view=SlotReserver(ctx, scrim))
+    @smanager.group(name="reserve", invoke_without_command=True)
+    @commands.max_concurrency(1, BucketType.guild)
+    @checks.can_use_sm()
+    @checks.has_done_setup()
+    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
+    async def s_reserve(self, ctx, scrim: Scrim):
+        """
+        Add / Remove a team from the reserved list
+        """
+        reserves = await scrim.reserved_slots.all()
+        embed = discord.Embed(color=self.bot.color,title="Reserved-Slots Editor")
 
-    # @s_reserve.command(name="list", aliases=("all",))
-    # @checks.can_use_sm()
-    # @checks.has_done_setup()
-    # async def s_reverse_list(self, ctx, scrim: Scrim):
-    #     """
-    #     Get a list of all reserved teams and their leaders.
-    #     """
-    #     if not sum(await scrim.reserved_user_ids()):
-    #         return await ctx.error("None of the slots is reserved.")
+        to_show = []
+        for i in scrim.available_to_reserve:
+            check = [j.team_name for j in reserves if j.num == i]
 
-    #     users = ""
-    #     for idx, user in enumerate(await scrim.reserved_slots.all(), start=1):
-    #         owner = ctx.guild.get_member(user.user_id) or self.bot.get_user(user.user_id)
-    #         users += (
-    #             f"`{idx:02d}`| {user.team_name.title()} ({getattr(owner,'mention','Not Found')}) [Slot: {user.num}]\n"
-    #         )
+            if check:
+                info = check[0]
+            else:
+                info = "❌"
 
-    #     embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
-    #     await ctx.send(embed=embed)
+            to_show.append(f"Slot {i:02}  -->  {info}\n")
+
+        embed.description = f"```{''.join(to_show)}```"
+
+        view = SlotReserver(ctx, scrim)
+        view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
+
+    @s_reserve.command(name="list", aliases=("all",))
+    @checks.can_use_sm()
+    @checks.has_done_setup()
+    async def s_reverse_list(self, ctx, scrim: Scrim):
+        """
+        Get a list of all reserved teams and their leaders.
+        """
+        if not sum(1 for i in await scrim.reserved_user_ids()):
+            return await ctx.error("None of the slots is reserved.")
+
+        users = ""
+        for idx, record in enumerate(await scrim.reserved_slots.all(), start=1):
+            
+            owner = "M"
+            if record.user_id:
+                owner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.user_id)
+    
+            users += (
+                f"`{idx:02d}`| {record.team_name.title()} ({owner}) [Slot: {record.num}]\n"
+            )
+
+        embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
+        await ctx.send(embed=embed)
 
     @smanager.command(name="autoclean")
     @checks.can_use_sm()

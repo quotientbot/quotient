@@ -105,6 +105,9 @@ class FutureTime(Time):
 class BetterFutureTime:
     @classmethod
     async def convert(cls, ctx, argument: str):
+        if not "in" in argument:
+            argument = "in " + argument
+
         parsed = dateparser.parse(
             argument,
             settings={
