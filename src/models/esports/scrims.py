@@ -122,7 +122,7 @@ class Scrim(models.Model):
         gives a range obj of available slots to reserve.
         this isn't true because some slots might be already reserved , we will sort them later
         """
-        return range(self.start_from, self.total_slots + self.start_from - 1)
+        return range(self.start_from, self.total_slots + self.start_from)
 
     @property
     def opened(self):
