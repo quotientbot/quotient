@@ -122,7 +122,7 @@ class Scrim(models.Model):
         gives a range obj of available slots to reserve.
         this isn't true because some slots might be already reserved , we will sort them later
         """
-        return range(self.start_from, self.total_slots + self.start_from)
+        return range(self.start_from, self.total_slots + self.start_from - 1)
 
     @property
     def opened(self):
@@ -243,7 +243,7 @@ class BaseSlot(models.Model):
 
     id = fields.IntField(pk=True)
     num = fields.IntField(null=True)  # this will never be null but there are already records in the table so
-    user_id = fields.BigIntField()
+    user_id = fields.BigIntField(null=True)
     team_name = fields.TextField(null=True)
     members = ArrayField(fields.BigIntField(), default=list)
 

@@ -46,7 +46,7 @@ class SlotlistEditor(discord.ui.View):
 
             await self.message.edit(embed=await self.updated_embed, view=self)
 
-    async def refresh(self):
+    async def refresh_embed(self):
         _embed = await self.updated_embed
         await self.message.edit(embed=_embed, view=self)
 
@@ -73,7 +73,7 @@ class SlotlistEditor(discord.ui.View):
         slot = await self.scrim.assigned_slots.filter(num=input).first()
         if not slot:
             await self.error_embed("The slot number you entered was invalid. Please try again.")
-            return await self.refresh()
+            return await self.refresh_embed()
 
         m = await self.ask_embed(
             "Please mention the user to give slot and enter their team name.\n\n"
@@ -101,7 +101,7 @@ class SlotlistEditor(discord.ui.View):
 
             await user.add_roles(discord.Object(id=self.scrim.role_id))
 
-        await self.refresh()
+        await self.refresh_embed()
 
     @discord.ui.button(style=discord.ButtonStyle.success, custom_id="add", label="Add Slot")
     async def add_a_slot(self, button: discord.Button, interaction: discord.Interaction):
@@ -133,7 +133,7 @@ class SlotlistEditor(discord.ui.View):
         )
 
         await self.scrim.assigned_slots.add(slot)
-        await self.refresh()
+        await self.refresh_embed()
 
     @discord.ui.button(style=discord.ButtonStyle.red, custom_id="remove", label="Remove Slot")
     async def remove_a_slot(self, button: discord.Button, interaction: discord.Interaction):
@@ -145,7 +145,7 @@ class SlotlistEditor(discord.ui.View):
         slot = await self.scrim.assigned_slots.filter(num=input).first()
         if not slot:
             await self.error_embed("The slot number you entered was invalid. Please try again.")
-            return await self.refresh()
+            return await self.refresh_embed()
 
         with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
             user = self.ctx.guild.get_member(slot.user_id)
@@ -156,4 +156,4 @@ class SlotlistEditor(discord.ui.View):
         await AssignedSlot.filter(pk=slot.id).delete()
 
         await update_main_message(self.ctx.guild.id, self.ctx.bot)
-        await self.refresh()
+        await self.refresh_embed()

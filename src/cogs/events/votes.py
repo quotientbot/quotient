@@ -83,7 +83,7 @@ class Votes(Cog):
 
         with suppress(discord.HTTPException, AttributeError):
             embed = discord.Embed(
-                color=discord.Color.green(), description=f"Thanks **{member}** for purchasing Quotient Premium."
+                color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
             )
             embed.set_image(url=constants.random_thanks())
             await self.hook.send(
