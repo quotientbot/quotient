@@ -53,7 +53,7 @@ class MainEvents(Cog, name="Main Events"):
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
         await self.bot.reminders.create_timer(
-            "erase_guild", datetime.now(tz=IST) + timedelta(minutes=5), guild_id=guild.id
+            datetime.now(tz=IST) + timedelta(minutes=5), "erase_guild", guild_id=guild.id
         )
         with suppress(AttributeError):
             try:
