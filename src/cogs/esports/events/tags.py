@@ -40,7 +40,7 @@ class TagEvents(Cog):
         if ignore_role is not None and ignore_role in message.author.roles:
             return
 
-        with suppress(discord.Forbidden, discord.NotFound):
+        with suppress(discord.Forbidden, discord.NotFound, AttributeError):
             ctx = await self.bot.get_context(message)
 
             _react = True
@@ -88,7 +88,7 @@ class TagEvents(Cog):
         if ignore_role is not None and ignore_role in message.author.roles:
             return
 
-        with suppress(discord.Forbidden, discord.NotFound):
+        with suppress(discord.Forbidden, discord.NotFound, AttributeError):
             ctx = await self.bot.get_context(message)
 
             tags = set(re.findall(r"\b\d{18}\b|\b@\w+", message.content, re.IGNORECASE))
