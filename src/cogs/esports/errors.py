@@ -52,7 +52,7 @@ class SMError(Cog):
 
         logschan = tourney.logschan
         if not logschan:
-            return await Tourney.filter(id=tourney.id).delete()
+            return
 
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
@@ -111,7 +111,7 @@ class SMError(Cog):
         """
         logschan = tourney.logschan
         if not logschan:
-            return await Tourney.filter(id=tourney.id).delete()
+            return
 
         registration_channel = tourney.registration_channel
         modrole = tourney.modrole
@@ -169,7 +169,7 @@ class SMError(Cog):
         """
         logschan = scrim.logschan
         if not logschan:
-            return await Scrim.filter(id=scrim.id).delete()
+            return
 
         registration_channel = scrim.registration_channel
         modrole = scrim.modrole
@@ -218,7 +218,7 @@ class SMError(Cog):
     async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim):
         logschan = scrim.logschan
         if logschan is None:
-            return await Scrim.filter(id=scrim.id).delete()
+            return
 
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
