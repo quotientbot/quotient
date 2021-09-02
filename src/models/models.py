@@ -20,7 +20,6 @@ __all__ = (
     "Commands",
     "Messages",
     "Giveaway",
-    "Web",
     "WebLogs",
     "Article",
     "Partner",
@@ -300,17 +299,6 @@ class Autoevent(models.Model):
 # ************************************************************************************************
 
 
-# class AFK(models.Model):
-#     class Meta:
-#         table = "afk"
-
-#     user_id = fields.BigIntField(pk=True)
-#     message = fields.CharField(max_length=200)
-#     is_afk = fields.BooleanField(default=True)
-#     afk_time = fields.DatetimeField(auto_now=True)
-#     ignored = BigIntArrayField(default=list)
-
-
 class Commands(models.Model):
     class Meta:
         table = "commands"
@@ -351,26 +339,6 @@ class TimedMessage(models.Model):
     days = ArrayField(fields.CharEnumField(constants.Day), default=lambda: list(constants.Day))
     stats = fields.IntField(default=0)
     author_id = fields.BigIntField()
-
-
-# class FAQ(models.Model):
-#     class Meta:
-#         table = "faq"
-
-#     id = fields.BigIntField(pk=True, index=True)
-#     name = fields.CharField(max_length=400)
-#     aliases = ArrayField(fields.CharField(max_length=400, default=list, index=True))
-#     content = fields.TextField()
-#     verified = fields.BooleanField(default=False)
-#     created_at = fields.DatetimeField(auto_now=True)
-#     edited_at = fields.DatetimeField(null=True)
-#     author_id = fields.BigIntField()
-#     url = fields.CharField(max_length=400, null=True)
-#     usage = fields.IntField(default=0)
-
-#     @property
-#     def author(self):
-#         return self.bot.get_user(self.author_id)
 
 
 class Article(models.Model):
@@ -439,33 +407,6 @@ class Giveaway(models.Model):
     @property
     def real_participants(self):
         return map(self._guild.get_member, self.participants)
-
-
-class Rrole(models.Model):
-    class Meta:
-        table = "reactionroles"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    channel_id = fields.BigIntField()
-    message_id = fields.BigIntField()
-    roles = fields.JSONField(default=dict)
-    required_role_ids = ArrayField(fields.BigIntField(), default=list)
-    max_roles = fields.IntField(default=1)
-    locked = fields.BooleanField(default=False)
-    log_channel_id = fields.BigIntField(null=True)
-
-
-class Web(models.Model):
-    class Meta:
-        table = "web_events"
-
-    id = fields.BigIntField(pk=True)
-    event = fields.CharField(max_length=100)
-    data = fields.JSONField(default=dict)
-    estatus = fields.IntField(default=0)
-    created_at = fields.DatetimeField(auto_now=True)
-    response = fields.TextField(null=True)
 
 
 class WebLogs(models.Model):
