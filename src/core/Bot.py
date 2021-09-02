@@ -24,6 +24,8 @@ import mystbin
 import dbl
 import time
 
+from .HttpHandler import QuoHttpHandler
+
 init(autoreset=True)
 intents = Intents.default()
 intents.members = True
@@ -58,6 +60,8 @@ class Quotient(commands.AutoShardedBot):
         self.binclient = mystbin.Client()
         self.lockdown = False
         self.persistent_views_added = False
+        self.http_client = QuoHttpHandler(self)
+        self.loop.create_task(self.http_client.handle())
 
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
