@@ -6,8 +6,8 @@ if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
 
 from discord import AllowedMentions, Intents
-from colorama import Fore, Style, init
-from discord.ext import commands, ipc
+from colorama import Fore, init
+from discord.ext import commands
 from tortoise import Tortoise
 from .Context import Context
 from .Help import HelpCommand
@@ -64,8 +64,6 @@ class Quotient(commands.AutoShardedBot):
         self.loop.create_task(self.http_client.handle())
 
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
-
-        self.ipc = ipc.Server(self, secret_key=config.IPC_KEY, host="0.0.0.0")
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 

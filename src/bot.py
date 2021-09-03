@@ -11,5 +11,4 @@ async def bot_before_invoke(ctx):
 
 
 if __name__ == "__main__":
-    bot.ipc.start()
     bot.run(bot.config.DISCORD_TOKEN)
