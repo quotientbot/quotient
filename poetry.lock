@@ -276,20 +276,6 @@ numpy = ["numpy (>=1.13.0)", "numpy (>=1.15.0)", "numpy (>=1.18.0)", "numpy (>=1
 tests = ["check-manifest (>=0.42)", "mock (>=1.3.0)", "pytest-cov (>=2.10.1)", "pytest-isort (>=1.2.0)", "sphinx (>=3)", "tox (>=3.7.0)", "pytest (==5.4.3)", "pytest-pycodestyle (>=2)", "pytest-pydocstyle (>=2)", "pytest (>=6)", "pytest-pycodestyle (>=2.2.0)", "pytest-pydocstyle (>=2.2.0)"]
 
 [[package]]
-name = "discord-ext-ipc"
-version = "2.1.1"
-description = "A discord.py extension for inter-process communication."
-category = "main"
-optional = false
-python-versions = ">=3.5.3"
-
-[package.dependencies]
-"discord.py" = "*"
-
-[package.extras]
-docs = ["sphinx", "sphinxcontrib-trio", "sphinx-rtd-theme"]
-
-[[package]]
 name = "discord-ext-menus"
 version = "1.1"
 description = "An extension module to make reaction based menus with discord.py"
@@ -759,7 +745,7 @@ accel = ["ciso8601 (>=2.1.2,<3.0.0)", "python-rapidjson", "uvloop (>=0.14.0,<0.1
 
 [[package]]
 name = "typing-extensions"
-version = "3.7.4.3"
+version = "3.10.0.1"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 category = "main"
 optional = false
@@ -767,7 +753,7 @@ python-versions = "*"
 
 [[package]]
 name = "typing-extensions"
-version = "3.10.0.1"
+version = "3.10.0.2"
 description = "Backported and Experimental Type Hints for Python 3.5+"
 category = "main"
 optional = false
@@ -854,7 +840,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d8dcbcf442b5973f92c8006a60c1a440dfa039cca2395a684a1885aac042ddbd"
+content-hash = "078816c36ad22bafb1427fcd5402b3c2daaa44aa4b7818e54102619e1e1bc279"
 
 [metadata.files]
 aerich = [
@@ -1052,10 +1038,6 @@ ddlparse = [
 dictdiffer = [
     {file = "dictdiffer-0.9.0-py2.py3-none-any.whl", hash = "sha256:442bfc693cfcadaf46674575d2eba1c53b42f5e404218ca2c2ff549f2df56595"},
     {file = "dictdiffer-0.9.0.tar.gz", hash = "sha256:17bacf5fbfe613ccf1b6d512bd766e6b21fb798822a133aa86098b8ac9997578"},
-]
-discord-ext-ipc = [
-    {file = "discord-ext-ipc-2.1.1.tar.gz", hash = "sha256:cb3056398016d70bc22928241d8c891959c70bf8c03ac0c5dcbffc5c22e86474"},
-    {file = "discord_ext_ipc-2.1.1-py3-none-any.whl", hash = "sha256:71729cfabfe6eafdc1ca97b7618ea3988e1ff58031af19b073bab69bec6feae4"},
 ]
 discord-ext-menus = [
     {file = "discord-ext-menus-1.1.tar.gz", hash = "sha256:96104fb63aae63846b7f722ca29da31f143e273d1c5745ef7427540814a31da8"},
@@ -1445,12 +1427,12 @@ tortoise-orm = [
     {file = "tortoise_orm-0.17.6-py3-none-any.whl", hash = "sha256:294b94d04d18cf85cca2a93f708be720005625b5dae3af8e8190f050ddb718d2"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},
-    {file = "typing_extensions-3.7.4.3-py3-none-any.whl", hash = "sha256:7cb407020f00f7bfc3cb3e7881628838e69d8f3fcab2f64742a5e76b2f841918"},
-    {file = "typing_extensions-3.7.4.3.tar.gz", hash = "sha256:99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c"},
     {file = "typing_extensions-3.10.0.1-py2-none-any.whl", hash = "sha256:8bbffbd37fbeb9747a0241fdfde5ae99d4531ad1d1a41ccaea62100e15a5814c"},
     {file = "typing_extensions-3.10.0.1-py3-none-any.whl", hash = "sha256:045dd532231acfa03628df5e0c66dba64e2cc8fc8b844538d4ad6d5dd6cb82dc"},
     {file = "typing_extensions-3.10.0.1.tar.gz", hash = "sha256:83af6730a045fda60f46510f7f1f094776d90321caa4d97d20ef38871bef4bd3"},
+    {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},
+    {file = "typing_extensions-3.10.0.2-py3-none-any.whl", hash = "sha256:f1d25edafde516b146ecd0613dabcc61409817af4766fbbcfb8d1ad4ec441a34"},
+    {file = "typing_extensions-3.10.0.2.tar.gz", hash = "sha256:49f75d16ff11f1cd258e1b988ccff82a3ca5570217d7ad8c5f48205dd99a677e"},
 ]
 tzdata = [
     {file = "tzdata-2021.1-py2.py3-none-any.whl", hash = "sha256:9ad21eada54c97001e3e9858a674b3ee6bebe4a4fb2b58465930f2af0ba6c85d"},
