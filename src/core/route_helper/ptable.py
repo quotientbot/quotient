@@ -37,7 +37,7 @@ async def send_ptable(bot: Quotient, payload: dict) -> dict:
         if not background:
             return deny_request("Provided URL wasn't a valid image.")
 
-    background = background.convert("RGBA")
+        background = background.convert("RGBA")
 
     foreground = await get_image(payload.get("foreground"))
     foreground = foreground.convert("RGBA")
