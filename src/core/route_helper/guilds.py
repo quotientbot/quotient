@@ -1,7 +1,14 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+
 from models import Guild
 
 
-async def update_guild_cache(bot, guild_id: int):
+async def update_guild_cache(bot: Quotient, guild_id: int) -> dict:
     guild = await Guild.get(guild_id=int(guild_id))
 
     bot.guild_data[guild.guild_id] = {

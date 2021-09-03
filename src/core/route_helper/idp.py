@@ -1,3 +1,10 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+
 from contextlib import suppress
 from models import Scrim
 import discord
@@ -6,14 +13,13 @@ import asyncio
 from .utils import deny_request, positive
 
 
-async def delete_idp_message(self, message: discord.Message, seconds):
+async def delete_idp_message(message: discord.Message, seconds):
     with suppress(AttributeError, discord.HTTPException, discord.NotFound, discord.Forbidden):
         await asyncio.sleep(seconds)
         await message.delete()
 
 
-async def send_idp(bot, data):
-    
+async def send_idp(bot: Quotient, data):
     guild = bot.get_guild(int(data.get("guild_id")))
     if not guild:
         return deny_request("Quotient was removed from your server.")

@@ -1,3 +1,10 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+
 from models import Scrim, Timer, Guild
 
 import discord
@@ -7,7 +14,7 @@ from .utils import positive, deny_request, not_guild
 from datetime import datetime, timedelta
 
 
-async def create_new_scrim(bot, data):
+async def create_new_scrim(bot: Quotient, data: dict) -> dict:
     guild = bot.get_guild(int(data.get("guild_id")))
     if not guild:
         return deny_request("Quotient have been removed from the server.")
@@ -113,7 +120,7 @@ async def create_new_scrim(bot, data):
     return positive
 
 
-async def edit_a_scrim(bot, data):
+async def edit_a_scrim(bot: Quotient, data: dict) -> dict:
     guild = bot.get_guild(int(data.get("guild_id")))
 
     if not guild:
@@ -238,7 +245,7 @@ async def edit_a_scrim(bot, data):
     return positive
 
 
-async def delete_a_scrim(scrim_id):
+async def delete_a_scrim(scrim_id) -> dict:
     await Scrim.filter(pk=int(scrim_id)).delete()
 
     return positive

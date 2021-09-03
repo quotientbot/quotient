@@ -19,6 +19,7 @@ __all__ = (
     "QuoUser",
     "QuoCategory",
     "QuoTextChannel",
+    "to_async",
 )
 
 

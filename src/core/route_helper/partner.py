@@ -1,8 +1,15 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+
 from models import Scrim, Partner
 from constants import PartnerRequest
 
 
-async def get_quo_partners(bot, n: int = 0):
+async def get_quo_partners(bot: Quotient, n: int = 0) -> dict:
     _list = []
 
     async for partner in Partner.filter(status=PartnerRequest.approved):

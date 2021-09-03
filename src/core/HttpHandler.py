@@ -1,6 +1,14 @@
 import config
 from aiohttp import web
-from .route_helper import get_quo_partners, update_guild_cache, send_idp, create_new_scrim, edit_a_scrim, delete_a_scrim
+from .route_helper import (
+    get_quo_partners,
+    update_guild_cache,
+    send_idp,
+    create_new_scrim,
+    edit_a_scrim,
+    delete_a_scrim,
+    send_ptable,
+)
 
 
 routes = web.RouteTableDef()
@@ -49,7 +57,7 @@ class QuoHttpHandler:
                 return web.json_response({"message": "Invalid token."}, status=401)
 
             res = await request.json()
-            status = await send_idp(self.bot, res.get("data"))
+            status = await send_idp(self.bot, res)
             return web.json_response(status)
 
         @routes.post("/scrim")
@@ -60,7 +68,7 @@ class QuoHttpHandler:
 
             res = await request.json()
 
-            res = await create_new_scrim(self.bot, res.get("data"))
+            res = await create_new_scrim(self.bot, res)
             return web.json_response(res)
 
         @routes.patch("/scrim")
@@ -71,7 +79,7 @@ class QuoHttpHandler:
 
             res = await request.json()
 
-            res = await edit_a_scrim(self.bot, res.get("data"))
+            res = await edit_a_scrim(self.bot, res)
             return web.json_response(res)
 
         @routes.delete("/scrim")
@@ -83,6 +91,16 @@ class QuoHttpHandler:
             res = await request.json()
 
             res = await delete_a_scrim(res.get("id"))
+            return web.json_response(res)
+
+        @routes.post("/image/paste")
+        async def paste_image(request: web.Request):
+            _bool = validator(request)
+            if not _bool:
+                return web.json_response({"message": "Invalid token."}, status=401)
+
+            res = await request.json()
+            res = await send_ptable(self.bot, res)
             return web.json_response(res)
 
         @routes.get("/partners")
