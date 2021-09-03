@@ -18,4 +18,4 @@ async def get_status(bot: Quotient) -> dict:
             }
         )
 
-    return _list
+    return {"ok": True, "shards": _list}

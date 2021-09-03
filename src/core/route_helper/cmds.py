@@ -35,4 +35,4 @@ async def get_commands(bot: Quotient) -> list:
 
             _list.append(asdict(Module(cog.title(), _cmds)))
 
-    return _list
+    return {"ok": True, "data": _list}
