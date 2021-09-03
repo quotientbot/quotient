@@ -8,6 +8,8 @@ from .route_helper import (
     edit_a_scrim,
     delete_a_scrim,
     send_ptable,
+    get_commands,
+    get_status,
 )
 
 
@@ -119,6 +121,14 @@ class QuoHttpHandler:
             partners = await get_quo_partners(self.bot, n)
 
             return web.json_response(partners)
+
+        @routes.get("/status")
+        async def get_bot_status(reques: web.Request):
+            return web.json_response(await get_status(self.bot))
+
+        @routes.get("/commands")
+        async def get_bot_commands(request: web.Request):
+            return web.json_response(await get_commands(self.bot))
 
         app = web.Application()
         app.add_routes(routes)
