@@ -7,7 +7,6 @@ from typing import Optional
 __all__ = (
     "Guild",
     "User",
-    "Logging",
     "Tag",
     "Timer",
     "Snipe",
@@ -16,7 +15,6 @@ __all__ = (
     "Premium",
     "Redeem",
     "Lockdown",
-    "Autoevent",
     "Commands",
     "Messages",
     "Giveaway",
@@ -93,26 +91,6 @@ class User(models.Model):
 
 
 # ************************************************************************************************
-
-
-class Logging(models.Model):
-    class Meta:
-        table = "logging"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField(index=True)
-    channel_id = fields.BigIntField()
-    color = fields.IntField(default=0x2F3136)  # modlogs m noi
-    toggle = fields.BooleanField(default=True)
-    ignore_bots = fields.BooleanField(default=False)
-    type = fields.CharEnumField(constants.LogType, max_length=12, index=True)
-
-    @property
-    def channel(self):
-        return self.bot.get_channel(self.channel_id)
-
-
-# # ************************************************************************************************
 
 
 class Tag(models.Model):
@@ -273,27 +251,6 @@ class Lockdown(models.Model):
     @property
     def channels(self):
         return map(self.bot.get_channel, self.channel_ids)
-
-
-# ************************************************************************************************
-
-
-class Autoevent(models.Model):
-    class Meta:
-        table = "autoevents"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    type = fields.CharEnumField(constants.EventType, max_length=30)
-    channel_id = fields.BigIntField()
-    webhook = fields.CharField(max_length=200, index=True)
-    toggle = fields.BooleanField(default=True)
-    interval = fields.IntField(default=30)
-    send_time = fields.DatetimeField(index=True)
-
-    @property
-    def channel(self):
-        return self.bot.get_channel(self.channel_id)
 
 
 # ************************************************************************************************

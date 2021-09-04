@@ -88,23 +88,6 @@ class RegMsg(Enum):
     tclose = "Tourney Registration Close"
 
 
-class LogType(Enum):
-    msg = "msg"  # msg delete / bulk delete / msg edit
-    join = "join"  # member join
-    leave = "leave"  # mem leave
-    action = "action"  # ban , unban
-    server = "server"  # server update
-    channel = "channel"  # channel create / update
-    role = "role"  # role create / update
-    member = "member"  # member update
-    voice = "voice"  # voice chan logs
-    reaction = "reaction"  # reaction stuff
-    mod = "mod"  # modlogs case id stuff
-    cmd = "cmd"  # bot's cmds
-    invite = "invite"  # inv created /deleted (invite tracking alag se ki jayegi)
-    ping = "ping"  # someone pinged someone (ye sbse jruri h )
-
-
 class LockType(Enum):
     channel = "channel"
     guild = "guild"
@@ -117,16 +100,6 @@ class ScrimBanType(Enum):
     unban = "unbanned"
 
 
-class EventType(Enum):
-    meme = "meme"
-    fact = "fact"
-    quote = "quote"
-    joke = "joke"
-    nsfw = "nsfw"
-    advice = "advice"
-    poem = "poem"
-
-
 perks = {
     "Premium Role": ["❌", "✅"],
     "Scrims": ["3", "Unlimited"],
@@ -137,7 +110,6 @@ perks = {
     "Custom Footer": ["❌", "✅"],
     "Custom Color": ["❌", "✅"],
     "Giveaway": ["5", "Unlimited"],
-    "Auto-Event Interval": ["❌", "✅"],
     "Ptable Setup": ["2", "Unlimited"],
     "Edit Ptable Watermark": ["❌", "✅"],
     "Autopurge": ["1", "Unlimited"],
@@ -181,7 +153,6 @@ def random_thanks():
 
 
 tips = (
-    "You can use `automemes #channel` to setup automemes with Quotient for free.",
     "You can setup unlimited scrims & tourneys with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "We have an awesome support server:\ndiscord.gg/quotient",
