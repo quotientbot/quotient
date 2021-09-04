@@ -1,4 +1,4 @@
-from utils.time import human_timedelta
+from utils.time import discord_timestamp, human_timedelta
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
 from core import Cog, Quotient, Context
 from models import Lockdown
@@ -648,4 +648,5 @@ class Mod(Cog):
 
 def setup(bot) -> None:
     bot.add_cog(Mod(bot))
-    bot.add_cog(ModEvents(bot))
+    bot.add_cog(LockEvents(bot))
+    bot.add_cog(RoleEvents(bot))

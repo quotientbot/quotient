@@ -3,10 +3,8 @@ from models import Timer, Lockdown
 from constants import LockType
 import discord
 
-__all__ = ("ModEvents",)
 
-
-class ModEvents(Cog):
+class LockEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
