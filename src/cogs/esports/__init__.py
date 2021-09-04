@@ -637,7 +637,7 @@ class ScrimManager(Cog, name="Esports"):
         Add / Remove a team from the reserved list
         """
         reserves = await scrim.reserved_slots.all()
-        embed = discord.Embed(color=self.bot.color,title="Reserved-Slots Editor")
+        embed = discord.Embed(color=self.bot.color, title="Reserved-Slots Editor")
 
         to_show = []
         for i in scrim.available_to_reserve:
@@ -667,14 +667,12 @@ class ScrimManager(Cog, name="Esports"):
 
         users = ""
         for idx, record in enumerate(await scrim.reserved_slots.all(), start=1):
-            
+
             owner = "M"
             if record.user_id:
                 owner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.user_id)
-    
-            users += (
-                f"`{idx:02d}`| {record.team_name.title()} ({owner}) [Slot: {record.num}]\n"
-            )
+
+            users += f"`{idx:02d}`| {record.team_name.title()} ({owner}) [Slot: {record.num}]\n"
 
         embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
         await ctx.send(embed=embed)
@@ -957,10 +955,10 @@ class ScrimManager(Cog, name="Esports"):
 
         for record in get_chunks(records, group_size):
             x = PrettyTable()
-            x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader"]
+            x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader", "Leader ID"]
             for idx, i in enumerate(record, start=1):
                 member = ctx.guild.get_member(i.leader_id)
-                x.add_row([idx, i.num, i.team_name, str(member)])
+                x.add_row([idx, i.num, i.team_name, str(member), i.leader_id])
 
             tables.append(str(x))
 
