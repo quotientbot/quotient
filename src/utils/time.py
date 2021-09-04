@@ -333,7 +333,7 @@ class UserFriendlyTime(commands.Converter):
             if status.accuracy == pdt.pdtContext.ACU_HALFDAY:
                 dt = dt.replace(day=now.day + 1)
 
-            result.dt = dt
+            result.dt = dt.replace(tzinfo=dtm.timezone.utc)
 
             if begin in (0, 1):
                 if begin == 1:

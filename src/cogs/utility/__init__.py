@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from discord.utils import escape_markdown
 import typing
-from cogs.utility.events import AutoPurgeEvents
+from cogs.utility.events import AutoPurgeEvents, ReminderEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -26,6 +26,8 @@ from utils import (
     QuoTextChannel,
     simple_convert,
     discord_timestamp,
+    UserFriendlyTime,
+    truncate_string,
 )
 from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from contextlib import suppress
@@ -35,7 +37,9 @@ import zipfile
 
 from humanize import precisedelta
 from datetime import timedelta
+from constants import IST
 
+import textwrap
 import asyncio
 import config
 import re
@@ -44,6 +48,54 @@ import re
 class Utility(Cog, name="utility"):
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    @commands.group(aliases=("timer", "remind"), invoke_without_command=True)
+    async def reminder(self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")):
+        """Reminds you of something after a certain amount of time.
+
+        The input can be any direct date (e.g. YYYY-MM-DD) or a human
+        readable offset. Examples:
+
+        - "next thursday at 3pm do something funny"
+        - "do the dishes tomorrow"
+        - "in 3 days do the thing"
+        - "2d unmute someone"
+
+        """
+        expire = when.dt
+
+        timer = await self.bot.reminders.create_timer(
+            expire,
+            "reminder",
+            ctx.author.id,
+            ctx.channel.id,
+            when.arg,
+            message_id=ctx.message.id,
+        )
+
+        await ctx.send(f"Alright **{ctx.author}**, I'll remind you {discord_timestamp(expire)}: {when.arg}")
+
+    @reminder.command(name="all", ignore_extra=False)
+    async def reminder_list(self, ctx):
+        """Shows the 10 latest currently running reminders."""
+        query = """SELECT id, expires, extra #>> '{args,2}'
+                   FROM timer
+                   WHERE event = 'reminder'
+                   AND extra #>> '{args,0}' = $1
+                   ORDER BY expires;
+                """
+
+        records = await ctx.db.fetch(query, str(ctx.author.id))
+
+        if not records:
+            return await ctx.error("No currently running reminders.")
+
+        paginator = QuoPaginator(ctx, title=f"Total Reminders: {len(records)}", per_page=10)
+
+        for _id, expires, message in records:
+            paginator.add_line(f"`{_id}`: {truncate_string(message,40)}({discord_timestamp(expires)})")
+
+        await paginator.start()
 
     @commands.group(invoke_without_command=True)
     @checks.is_mod()
@@ -644,3 +696,4 @@ class Utility(Cog, name="utility"):
 def setup(bot) -> None:
     bot.add_cog(Utility(bot))
     bot.add_cog(AutoPurgeEvents(bot))
+    bot.add_cog(ReminderEvents(bot))
