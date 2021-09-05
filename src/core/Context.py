@@ -1,7 +1,7 @@
 from contextlib import suppress
 from discord.ext import commands
 import discord, asyncio
-from models.models import Guild
+from models import Guild
 import utils, io
 
 from async_property import async_property

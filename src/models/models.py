@@ -1,11 +1,10 @@
 from .helpers import *
 import constants
 from tortoise import fields, models
-import config, discord
+import discord
 from typing import Optional
 
 __all__ = (
-    "Guild",
     "User",
     "Tag",
     "Timer",
@@ -24,54 +23,7 @@ __all__ = (
     "AutoPurge",
 )
 
-
-class Guild(models.Model):
-    class Meta:
-        table = "guild_data"
-
-    guild_id = fields.BigIntField(pk=True, index=True)
-    prefix = fields.CharField(default="q", max_length=5)
-    embed_color = fields.IntField(default=65459, null=True)
-    embed_footer = fields.TextField(default=config.FOOTER)  # i am not sure if its a good idea to insert it by default :c
-    bot_master = ArrayField(fields.BigIntField(), default=list, index=True)
-    mute_role = fields.BigIntField(null=True)
-    muted_members = ArrayField(fields.BigIntField(), default=list)
-    tag_enabled_for_everyone = fields.BooleanField(default=True)  # ye naam maine ni rkha sachi
-    emoji_stealer_channel = fields.BigIntField(null=True, index=True)
-    emoji_stealer_message = fields.BigIntField(null=True, index=True)
-    is_premium = fields.BooleanField(default=False)
-    made_premium_by = fields.BigIntField(null=True)
-    premium_end_time = fields.DatetimeField(null=True)
-    premium_notified = fields.BooleanField(default=False)  # this is useful, I just don't remember where :c
-    public_profile = fields.BooleanField(default=True)  # whether to list the server on global leaderboards
-    private_channel = fields.BigIntField(null=True, index=True)
-    private_webhook = fields.TextField(null=True)
-    disabled_channels = ArrayField(
-        fields.BigIntField(), default=list, index=True
-    )  # channels where bot won't reply to cmds
-    disabled_commands = ArrayField(fields.TextField(), default=list)
-    disabled_users = ArrayField(fields.BigIntField(), index=True, default=list)
-    censored = ArrayField(fields.TextField(), default=list, index=True)  # will shift this to automod
-
-    @property
-    def _guild(self):
-        return self.bot.get_guild(self.guild_id)
-
-    @property
-    def mute_role(self):
-        if self._guild is not None:
-            return self._guild.get_role(self.mute_role)
-
-    @property
-    def private_ch(self):
-        if self._guild is not None:
-            return self._guild.get_channel(self.private_channel)
-
-    @property
-    def muted(self):
-        return tuple(map(self.bot.get_user, self.muted_members))
-
-    # ************************************************************************************************
+# ************************************************************************************************
 
 
 # TODO: make manytomany field in user_data for redeem codes.
