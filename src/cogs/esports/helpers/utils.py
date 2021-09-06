@@ -167,7 +167,7 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
     await registration_channel.send(embed=registration_close_embed(scrim))
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
-    ctx.bot.loop.create_task(unlock_after_registration(scrim.guild_id, scrim.id,ctx.bot))
+    ctx.bot.loop.create_task(unlock_after_registration(scrim.guild_id, scrim.id, ctx.bot))
 
     if scrim.autoslotlist and await scrim.teams_registered:
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
@@ -177,12 +177,16 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
     if scrim.autodelete_extras:
-        await asyncio.sleep(15)
-        with suppress(discord.Forbidden, discord.HTTPException):
+        msg_ids = (i.message_id for i in await scrim.assigned_slots.all())
+
+        with suppress(discord.HTTPException):
             await ctx.channel.purge(
                 limit=100,
-                check=lambda x: all((not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user)),
+                check=lambda x: all(
+                    (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
+                ),
             )
+
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)

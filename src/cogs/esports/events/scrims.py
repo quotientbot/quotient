@@ -7,7 +7,6 @@ if typing.TYPE_CHECKING:
 
 from core import Cog
 from models import Scrim, AssignedSlot, ArrayRemove, Timer, BannedTeam, BanLog
-from discord.ext import tasks
 
 from ..helpers import (
     add_role_and_reaction,
@@ -35,51 +34,11 @@ import asyncio
 import utils
 
 
-QueueMessage = typing.NamedTuple("QueueMessage", [("scrim", Scrim), ("message", discord.Message)])
-
-
 class ScrimEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-        self.scrim_queue = asyncio.Queue()
-        self.scrim_registration_worker.start()
-
-    def cog_unload(self):
-        self.scrim_registration_worker.stop()
-
-    @tasks.loop(seconds=1.5, reconnect=True)
-    async def scrim_registration_worker(self):
-        while not self.scrim_queue.empty():
-            queue_message: QueueMessage = await self.scrim_queue.get()
-            scrim, message = queue_message.scrim, queue_message.message
-            ctx = await self.bot.get_context(message)
-
-            teamname = utils.find_team(message)
-
-            scrim = await Scrim.get_or_none(pk=scrim.id)
-
-            if not scrim or scrim.closed:  # Scrim is deleted or not opened yet.
-                continue
-
-            try:
-                slot_num = scrim.available_slots[0]
-            except IndexError:
-                continue
-
-            slot = await AssignedSlot.create(
-                user_id=ctx.author.id, team_name=teamname, num=slot_num, jump_url=message.jump_url, message_id=message.id
-            )
-
-            await scrim.assigned_slots.add(slot)
-
-            await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
-            self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
-
-            self.bot.dispatch("scrim_log", EsportsLog.success, scrim, message=ctx.message)
-
-            if len(scrim.available_slots) == 1:
-                await scrim_end_process(ctx, scrim)
+        self.__scrim_lock = asyncio.Lock()
 
     @Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
@@ -115,11 +74,34 @@ class ScrimEvents(Cog):
         if not await check_scrim_requirements(self.bot, message, scrim):
             return
 
-        if not self.scrim_registration_worker.next_iteration or self.scrim_registration_worker.failed():
-            # if for any fking reason its stopped , we want it to start again
-            self.scrim_registration_worker.start()
+        async with self.__scrim_lock:
+            ctx = await self.bot.get_context(message)
 
-        self.scrim_queue.put_nowait(QueueMessage(scrim, message))
+            teamname = utils.find_team(message)
+
+            scrim = await Scrim.get_or_none(pk=scrim.id)
+
+            if not scrim or scrim.closed:  # Scrim is deleted or closed.
+                return
+
+            try:
+                slot_num = scrim.available_slots[0]
+            except IndexError:
+                return
+
+            slot = await AssignedSlot.create(
+                user_id=ctx.author.id, team_name=teamname, num=slot_num, jump_url=message.jump_url, message_id=message.id
+            )
+
+            await scrim.assigned_slots.add(slot)
+
+            await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
+            self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
+
+            self.bot.dispatch("scrim_log", EsportsLog.success, scrim, message=ctx.message)
+
+            if len(scrim.available_slots) == 1:
+                await scrim_end_process(ctx, scrim)
 
     # ==========================================================================================================
     # ==========================================================================================================
