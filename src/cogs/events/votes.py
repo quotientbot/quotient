@@ -190,7 +190,6 @@ class Votes(Cog):
         await models.Guild.filter(guild_id=guild_id).update(
             embed_color=self.bot.color, embed_footer=self.bot.config.FOOTER
         )
-        await models.Autoevent.filter(guild_id=guild_id).update(interval=30)
 
     @Cog.listener()
     async def on_user_premium_expire(self, user: models.User):

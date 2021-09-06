@@ -14,7 +14,6 @@ async def erase_guild(guild_id: int):
     await Autorole.filter(guild_id=guild_id).delete()
     await Tag.filter(guild_id=guild_id).delete()
     await Lockdown.filter(guild_id=guild_id).delete()
-    await Autoevent.filter(guild_id=guild_id).delete()
     await Giveaway.filter(guild_id=guild_id).delete()
     await Partner.filter(guild_id=guild_id).delete()
     await AutoPurge.filter(guild_id=guild_id).delete()
