@@ -10,6 +10,7 @@ from .route_helper import (
     send_ptable,
     get_commands,
     get_status,
+    check_member_role
 )
 
 
@@ -121,6 +122,17 @@ class QuoHttpHandler:
             partners = await get_quo_partners(self.bot, n)
 
             return web.json_response(partners)
+        
+        @routes.post("/member_role")
+        async def verify_member_role(request: web.Request):
+            _bool = validator(request)
+            if not _bool:
+                return web.json_response({"message": "Invalid token."}, status=401)
+
+            res = await request.json()
+            res = await check_member_role(self.bot, res)
+            return web.json_response(res)
+            
 
         @routes.get("/status")
         async def get_bot_status(reques: web.Request):
