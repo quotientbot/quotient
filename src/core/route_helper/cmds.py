@@ -27,7 +27,7 @@ async def get_commands(bot: Quotient) -> list:
     _list = []
 
     for cog, cmds in bot.cogs.items():
-        if cog not in ("HelpCog", "Dev", "jishaku") and (cmds := cmds.get_commands()):
+        if cog not in ("HelpCog", "Dev", "jishaku") and next((cmds := cmds.walk_commands()), None) is not None:
             _cmds = []
             for cmd in cmds:
                 usage = f"{cmd.qualified_name} {cmd.signature}".strip()
