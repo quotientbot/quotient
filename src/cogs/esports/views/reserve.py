@@ -110,6 +110,10 @@ class SlotReserver(discord.ui.View):
                 f"\nThe slot-number must be a number between `{_range.start}` and `{_range.stop}`"
             )
 
+        to_del = await self.scrim.reserved_slots.filter(num=num).first()
+        if to_del:
+            await ReservedSlot.filter(pk=to_del.id).delete()
+
         slot = await ReservedSlot.create(num=num, user_id=owner_id, team_name=team_name, expires=expire)
         await self.scrim.reserved_slots.add(slot)
         if expire and owner_id:
