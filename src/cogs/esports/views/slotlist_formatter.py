@@ -1,3 +1,4 @@
+from utils.inputs import image_input
 from ..views.base import EsportsBaseView
 
 from ast import literal_eval as leval
@@ -119,12 +120,39 @@ class SlotlistFormatter(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="thumbnail", label="Thumbnail", emoji="📸", row=2)
     @__create_current_embed
     async def set_thumbnail(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        msg = await self.ask_embed(
+            "Which image do you want to use as thumbnail of slotlists?\n\n"
+            "`You can send an attachment or a valid Image URL`.\n"
+            "Enter `none` to remove previous thumbnail."
+        )
+
+        image = await image_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(msg)
+
+        self.__current_embed.set_thumbnail(url=image) if image else self.__current_embed.set_thumbnail(
+            url=discord.Embed.Empty
+        )
+
+        await self._refresh_embed()
 
     @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="image", label="Image", emoji="🖼️", row=2)
     @__create_current_embed
     async def set_image(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        msg = await self.ask_embed(
+            "Which image do you want to add in slotlists?\n\n"
+            "`You can send an attachment or a valid Image URL`.\n"
+            "Enter `none` to remove previous image."
+        )
+
+        image = await image_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(msg)
+
+        self.__current_embed.set_image(url=image) if image else self.__current_embed.set_image(
+            url=discord.Embed.Empty
+        )
+
+        await self._refresh_embed()
+
 
     @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="color", label="Color", emoji="🌈", row=2)
     @__create_current_embed

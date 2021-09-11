@@ -1,3 +1,5 @@
+from contextlib import suppress
+import aiohttp
 import asyncio
 import dateparser
 from datetime import datetime, timedelta
@@ -154,6 +156,36 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
 
         return message.content
 
+
+async def image_input(ctx, check, timeout=120,delete_after=False):
+    try:
+        message:discord.Message = await ctx.bot.wait_for("message",check=check, timeout=timeout)
+    except asyncio.TimeoutError:
+        raise InputError("Took too long. Good Bye.") 
+    
+    else:
+        if delete_after:
+            await safe_delete(message)
+        
+        if message.content.strip().lower() == "none":
+            return None
+        
+        _image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
+
+        if message.attachments and message.attachments[0].content_type in _image_formats:
+            return message.attachments[0].proxy_url
+
+        result = None        
+        with suppress(aiohttp.InvalidURL):
+            async with ctx.bot.session as session:
+                async with session.get(message.content) as res:
+                    if res.headers["content-type"] in _image_formats:
+                        result = message.content
+        
+        return result 
+
+
+        
 
 async def text_or_embed(ctx, check, timeout=120, delete_after=False):
     reactions = (keycap_digit(1), keycap_digit(2))
