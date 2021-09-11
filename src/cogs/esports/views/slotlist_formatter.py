@@ -53,7 +53,7 @@ class SlotlistFormatter(EsportsBaseView):
         return wrapper
 
     async def _refresh_embed(self):
-        await self.message.edit(embed=self.__current_embed, view=self)
+        self.message = await self.message.edit(embed=self.__current_embed, view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="title", label="Title", emoji="🇹")
     @__create_current_embed
