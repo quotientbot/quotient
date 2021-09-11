@@ -237,6 +237,11 @@ class SlotManagerView(discord.ui.View):
             await team_name.delete()
             await update_channel_for(interaction.channel, interaction.user, False)
 
+
+            await scrim.refresh_from_db(("available_slots",))
+            if not num in scrim.available_slots:
+                return await interaction.followup.send("Somebody just claimed the slot before you.",ephemeral=True)
+                
             await Scrim.filter(pk=scrim_id).update(available_slots=ArrayRemove("available_slots", num))
             with suppress(discord.Forbidden, discord.HTTPException, AttributeError):
                 await interaction.user.add_roles(discord.Object(id=scrim.role_id))
