@@ -125,12 +125,13 @@ class Quotient(commands.AutoShardedBot):
         return self._connection._get_message(message_id)
 
     async def process_commands(self, message: discord.Message):
-        ctx = await self.get_context(message, cls=Context)
+        if message.content:
+            ctx = await self.get_context(message, cls=Context)
 
-        if ctx.command is None:
-            return
+            if ctx.command is None:
+                return
 
-        await self.invoke(ctx)
+            await self.invoke(ctx)
 
     async def on_message(self, message: discord.Message):
         self.seen_messages += 1
