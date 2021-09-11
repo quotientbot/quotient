@@ -9,7 +9,7 @@ from discord.ext import menus
 from discord.ext.menus import Button
 import string, textwrap
 from models import Scrim, AssignedSlot, Tourney
-from models.esports import  ReservedSlot
+from models.esports import ReservedSlot
 from utils import *
 from models.helpers import *
 import constants
@@ -585,7 +585,7 @@ class SlotlistFormatMenu(menus.Menu):
         color = await inputs.string_input(self.ctx, self.check, delete_after=True)
         await inputs.safe_delete(msg)
 
-        color = await ColorConverter().convert(self.ctx, color)
+        color = await QuoColor().convert(self.ctx, color)
         self.cur_embed.color = color
         await self.refresh()
 

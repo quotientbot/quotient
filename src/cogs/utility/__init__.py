@@ -15,7 +15,7 @@ from models import Autorole, ArrayAppend, ArrayRemove
 
 from utils import (
     checks,
-    ColorConverter,
+    QuoColor,
     QuoPaginator,
     emote,
     strtime,
@@ -200,7 +200,7 @@ class Utility(Cog, name="utility"):
 
     @commands.command(name="embed")
     @commands.has_permissions(manage_messages=True)
-    async def embed_send(self, ctx: Context, channel: discord.TextChannel, color: ColorConverter, *, text: str):
+    async def embed_send(self, ctx: Context, channel: discord.TextChannel, color: QuoColor, *, text: str):
         """
         Generated and sends embed to specified channel. Use qqe <message> for quick embeds
         Tip: You can send hyperlinks too. Example: `[anytext](any link)`

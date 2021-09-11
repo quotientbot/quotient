@@ -4,7 +4,7 @@ from utils import get_ipm, strtime, human_timedelta, split_list, checks, LinkBut
 from core import Cog, Quotient, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
-from utils import ColorConverter, string_input, LinkType, LinkButton, truncate_string
+from utils import QuoColor, string_input, LinkType, LinkButton, truncate_string
 from collections import Counter
 from constants import PartnerRequest
 from glob import glob
@@ -266,7 +266,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     @checks.is_premium_guild()
-    async def color(self, ctx, *, new_color: ColorConverter):
+    async def color(self, ctx, *, new_color: QuoColor):
         """Change color of Quotient's embeds"""
         color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
 

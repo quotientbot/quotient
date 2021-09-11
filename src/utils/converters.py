@@ -5,18 +5,20 @@ import contextlib
 
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps, partial
+from discord.ext.commands import converter
+
 from .exceptions import InvalidColor
 from typing import Optional
 import asyncio
 
 __all__ = (
-    "ColorConverter",
     "BannedMember",
     "ActionReason",
     "MemberID",
     "QuoRole",
     "QuoMember",
     "QuoUser",
+    "QuoColor",
     "QuoCategory",
     "QuoTextChannel",
     "to_async",
@@ -43,8 +45,9 @@ class to_async:
         return wrapper
 
 
-class ColorConverter(commands.Converter):
-    async def convert(self, ctx, arg: str):
+class QuoColor:
+    @classmethod
+    async def convert(cls, ctx, arg):
         with contextlib.suppress(AttributeError):
             match = re.match(r"\(?(\d+),?\s*(\d+),?\s*(\d+)\)?", arg)
             check = all(0 <= int(x) <= 255 for x in match.groups())
@@ -52,15 +55,15 @@ class ColorConverter(commands.Converter):
         if match and check:
             return discord.Color.from_rgb([int(i) for i in match.groups()])
 
-        converter = commands.ColorConverter()
+        _converter = commands.ColorConverter()
+        result = None
+
         try:
-            result = await converter.convert(ctx, arg)
-        except commands.BadColourArgument:
-            try:
+            result = await _converter.convert(ctx, arg)
+        except commands.BadColorArgument:
+            with contextlib.suppress(ValueError):
                 color = ImageColor.getrgb(arg)
                 result = discord.Color.from_rgb(*color)
-            except ValueError:
-                result = None
 
         if result:
             return result
