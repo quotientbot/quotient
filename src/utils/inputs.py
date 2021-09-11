@@ -177,10 +177,9 @@ async def image_input(ctx, check, timeout=120,delete_after=False):
 
         result = None        
         with suppress(aiohttp.InvalidURL):
-            async with ctx.bot.session as session:
-                async with session.get(message.content) as res:
-                    if res.headers["content-type"] in _image_formats:
-                        result = message.content
+            res = await ctx.bot.session.get(message.content)
+            if res.headers["content-type"] in _image_formats:
+                result = message.content
         
         return result 
 
