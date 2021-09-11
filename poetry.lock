@@ -397,6 +397,17 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "imgkit"
+version = "1.2.2"
+description = "Wkhtmltopdf python wrapper to convert html to image using the webkit rendering engine and qt"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "import-expression"
 version = "1.1.4"
 description = "Parses a superset of Python allowing for inline module import expressions"
@@ -843,7 +854,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "faf5ce93f5916dd72408e6e70ce4e9256bf865e37cb34ecbfbf4785c61e1412a"
+content-hash = "31bba4525833ea2ccabfcd04fbd972ec5d584ccd534712ba8a6df2e95e4e4736"
 
 [metadata.files]
 aerich = [
@@ -1078,6 +1089,10 @@ hyperframe = [
 idna = [
     {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
     {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
+]
+imgkit = [
+    {file = "imgkit-1.2.2-py3-none-any.whl", hash = "sha256:304de76b83fe2dbb1f70194f5f88e27e46bdc352bdc9c9ec5cf961e986300fc8"},
+    {file = "imgkit-1.2.2.tar.gz", hash = "sha256:382e7b3c280de4a472d0d786d9cea7bb9d6d8df2c2310ad07d4fe440ad1cb218"},
 ]
 import-expression = [
     {file = "import_expression-1.1.4-py3-none-any.whl", hash = "sha256:292099910a4dcc65ba562377cd2265487ba573dd63d73bdee5deec36ca49555b"},

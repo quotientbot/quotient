@@ -27,6 +27,7 @@ humanize = "^3.11.0"
 pygit2 = "^1.6.1"
 async-property = "^0.2.1"
 colour = "^0.1.5"
+imgkit = "^1.2.2"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}
