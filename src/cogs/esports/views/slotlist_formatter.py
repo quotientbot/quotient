@@ -17,6 +17,7 @@ class SlotlistFormatter(EsportsBaseView):
         self.ctx = ctx
         self.scrim = scrim
 
+        self.__slotstr = "Slot No.  -->  Team Name\n"
         self.__current_embed: discord.Embed = None
 
     @staticmethod
@@ -89,8 +90,7 @@ class SlotlistFormatter(EsportsBaseView):
         await self.ctx.safe_delete(msg)
 
         if (_desc := description.strip().lower()) == "none":
-            slotstr = "Slot No.  -->  Team Name\n"
-            self.__current_embed.description = f"```{slotstr * 6}```{description}"
+            self.__current_embed.description = f"```{self.__slotstr * 6}```{description}"
 
         else:
             self.__current_embed.description += truncate_string("\n" + _desc, 1000)
@@ -147,12 +147,9 @@ class SlotlistFormatter(EsportsBaseView):
         image = await image_input(self.ctx, self.check, delete_after=True)
         await self.ctx.safe_delete(msg)
 
-        self.__current_embed.set_image(url=image) if image else self.__current_embed.set_image(
-            url=discord.Embed.Empty
-        )
+        self.__current_embed.set_image(url=image) if image else self.__current_embed.set_image(url=discord.Embed.Empty)
 
         await self._refresh_embed()
-
 
     @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="color", label="Color", emoji="🌈", row=2)
     @__create_current_embed
@@ -183,4 +180,11 @@ class SlotlistFormatter(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="check", label="Save", row=3)
     @__create_current_embed
     async def save(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+
+        self.__current_embed.description = self.__current_embed.description.replace(f"```{self.__slotstr * 6}```", "")
+        _dict = self.__current_embed.to_dict()
+
+        await Scrim.filter(pk=self.scrim.id).update(slotlist_format=str(_dict))
+        await self.ctx.success("Your new slotlist definitely looks sexier.", delete_after=3)
+
+        await self.on_timeout()

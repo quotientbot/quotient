@@ -65,11 +65,11 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     # ************************************************************************************************
-    @commands.command()
-    async def viewtest(self, ctx):
-        scrim = await Scrim.filter(guild_id=779229001986080779).first()
-        view = SlotlistFormatter(ctx, scrim=scrim)
-        view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
+    # @commands.command()
+    # async def viewtest(self, ctx):
+    #     scrim = await Scrim.filter(guild_id=779229001986080779).first()
+    #     view = SlotlistFormatter(ctx, scrim=scrim)
+    #     view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
 
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):
@@ -492,8 +492,8 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_format(self, ctx, scrim: Scrim):
         """Set a default format for scrim slotlist."""
-        menu = SlotlistFormatMenu(scrim=scrim)
-        await menu.start(ctx)
+        view = SlotlistFormatter(ctx, scrim=scrim)
+        view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
 
     @s_slotlist.command(name="image")
     @checks.can_use_sm()
