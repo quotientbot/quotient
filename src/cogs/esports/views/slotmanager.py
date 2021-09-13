@@ -274,5 +274,7 @@ class SlotManagerView(discord.ui.View):
             reg_channel = getattr(scrim.registration_channel, "mention", "channel-deleted")
 
             await send_sm_logs(
-                main_record, SlotLogType.private, f"{interaction.user.mention} claimed Slot {num} ({reg_channel})"
+                main_record,
+                SlotLogType.private,
+                f"{interaction.user} ({interaction.user.mention}) claimed Slot {num} ({reg_channel})",
             )
