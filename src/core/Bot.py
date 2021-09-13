@@ -164,9 +164,12 @@ class Quotient(commands.AutoShardedBot):
         """This is how we deliver features like custom footer and custom color :)"""
         embed_color = self.guild_data[ctx.guild.id]["color"]
         embed_footer = self.guild_data[ctx.guild.id]["footer"]
-        kwargs.update(color=kwargs.pop("color", embed_color))
+
+        if embed_footer.strip().lower() == "none":
+            embed_footer = discord.Embed.Empty
 
         embed = discord.Embed(**kwargs)
+        embed.color = embed_color
         embed.set_footer(text=embed_footer)
         return embed
 
