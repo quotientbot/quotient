@@ -511,6 +511,32 @@ class ScrimManager(Cog, name="Esports"):
         for file in files:
             await ctx.send(file=file)
 
+    @smanager.command(name="start")
+    @checks.can_use_sm()
+    @checks.has_done_setup()
+    @commands.cooldown(10, 1, type=commands.BucketType.user)
+    async def s_start(self, ctx: Context, scrim: Scrim):
+        """
+        Start a registration instantly.
+        """
+        ...
+        prompt = await ctx.prompt(
+            f"This will start the registrations for {str(scrim)} will start immediately."
+            "\nAlso the registraton open time will change to current time, \n\n"
+            "Are you sure you want to continue?"
+        )
+
+        if not prompt:
+            return await ctx.simple("Alright, Aborting")
+
+        _t = datetime.now(tz=IST)
+        await Scrim.filter(pk=scrim.id).update(open_time=_t)
+        await self.reminders.create_timer(_t, "scrim_open", scrim_id=scrim.id)
+        await ctx.success(
+            f"Registration opened!\n\nRegistration open time has been changed to `{_t.strftime('%I:%M %p')}`"
+            f"\nYou can change open time again with `{ctx.prefix}s edit {scrim.id}`"
+        )
+
     # ************************************************************************************************
     @smanager.command(name="delete")
     @checks.can_use_sm()

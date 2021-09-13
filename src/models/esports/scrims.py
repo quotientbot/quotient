@@ -64,6 +64,9 @@ class Scrim(models.Model):
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
 
+    def __str__(self):
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Scrim: {self.id})"
+
     @classmethod
     async def convert(cls, ctx, argument: str):
         try:
