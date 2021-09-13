@@ -2,8 +2,7 @@ from datetime import datetime
 from constants import IST
 from core import Cog, Quotient
 from discord.ext import tasks
-import models, discord
-import asyncio
+import models
 import config
 
 
@@ -13,38 +12,6 @@ class QuoTasks(Cog):
         self.insert_guilds.start()
         self.find_new_voters_and_premiums.start()
         self.find_people_who_have_to_pay.start()
-
-        self._batch_lock = asyncio.Lock(loop=bot.loop)
-        self._data_batch = []
-        self.bulk_insert_loop.start()
-
-    async def register_message(self, message: discord.Message):
-        async with self._batch_lock:
-            self._data_batch.append(
-                msg := models.Messages(
-                    guild_id=message.guild.id,
-                    channel_id=message.channel.id,
-                    author_id=message.author.id,
-                    bot=message.author.bot,
-                    sent_at=datetime.now(tz=IST),
-                )
-            )
-
-    async def bulk_insert(self):
-        if self._data_batch:
-            await models.Messages.bulk_create(self._data_batch)
-            self._data_batch.clear()
-
-    @Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if not message.guild:
-            return
-        await self.register_message(message)
-
-    @tasks.loop(seconds=10)
-    async def bulk_insert_loop(self):
-        async with self._batch_lock:
-            await self.bulk_insert()
 
     @tasks.loop(count=1)
     async def insert_guilds(self):
@@ -85,7 +52,6 @@ class QuoTasks(Cog):
     def cog_unload(self):
         self.find_new_voters_and_premiums.stop()
         self.find_people_who_have_to_pay.stop()
-        self.bulk_insert_loop.stop()
 
     @insert_guilds.before_loop
     @find_new_voters_and_premiums.before_loop
