@@ -144,7 +144,9 @@ class SlotManagerView(discord.ui.View):
             slot = await AssignedSlot.get(pk=slot_id)
             embed, channel = await scrim.create_slotlist()
 
-            msg = await channel.fetch_message(scrim.slotlist_message_id)
+            msg = None
+            with suppress(discord.HTTPException, discord.NotFound):
+                msg = await channel.fetch_message(scrim.slotlist_message_id)
             if msg:
                 await msg.edit(embed=embed)
 
@@ -247,17 +249,19 @@ class SlotManagerView(discord.ui.View):
             with suppress(discord.Forbidden, discord.HTTPException, AttributeError):
                 await interaction.user.add_roles(discord.Object(id=scrim.role_id))
 
-            slot = await AssignedSlot.create(
-                num=num, user_id=interaction.user.id, team_name=truncate_string(team_name.content, 22)
-            )
+            team_name = truncate_string(team_name.content, 22)
+
+            slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
             await scrim.assigned_slots.add(slot)
 
             embed, channel = await scrim.create_slotlist()
 
-            msg = await channel.fetch_message(scrim.slotlist_message_id)
+            msg = None
+            with suppress(discord.NotFound, discord.HTTPException):
+                msg = await channel.fetch_message(scrim.slotlist_message_id)
+
             if msg:
                 await msg.edit(embed=embed)
-
             else:
                 await channel.send(embed=embed)
 
@@ -271,6 +275,8 @@ class SlotManagerView(discord.ui.View):
             await msg.edit(embed=await get_slot_manager_message(interaction.guild_id, _free), view=self)
             await interaction.followup.send("Slot claimed successfully.", ephemeral=True)
 
+            with suppress(AttributeError, discord.HTTPException):
+                await scrim.slotlist_channel.send(f"{team_name} ({interaction.user.mention}) -> Claimed Slot {num}")
             reg_channel = getattr(scrim.registration_channel, "mention", "channel-deleted")
 
             await send_sm_logs(
