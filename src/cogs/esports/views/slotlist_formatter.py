@@ -72,7 +72,7 @@ class SlotlistFormatter(EsportsBaseView):
             self.__current_embed.title = discord.Embed.Empty
 
         else:
-            self.__current_embed.title = truncate_string(_title, 100)
+            self.__current_embed.title = truncate_string(title.strip(), 100)
 
         await self._refresh_embed()
 
@@ -93,7 +93,7 @@ class SlotlistFormatter(EsportsBaseView):
             self.__current_embed.description = f"```{self.__slotstr * 6}```{description}"
 
         else:
-            self.__current_embed.description += truncate_string("\n" + _desc, 1000)
+            self.__current_embed.description += truncate_string("\n" + description.strip(), 1000)
 
         await self._refresh_embed()
 
@@ -113,7 +113,7 @@ class SlotlistFormatter(EsportsBaseView):
             self.__current_embed.set_footer(text=discord.Embed.Empty)
 
         else:
-            self.__current_embed.set_footer(text=truncate_string(_title, 1000))
+            self.__current_embed.set_footer(text=truncate_string(footer.strip(), 1000))
 
         await self._refresh_embed()
 
