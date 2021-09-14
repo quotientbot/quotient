@@ -61,78 +61,165 @@ class TourneyEditor(EsportsBaseView):
         await self.__refresh_view()
 
     async def __refresh_view(self):
-        embed = self.initial_message(await self.tourney.refresh_from_db())
+        await self.tourney.refresh_from_db()
+        embed = self.initial_message(self.tourney)
         try:
             self.message = await self.message.edit(embed=embed, view=self)
         except discord.HTTPException:
             await self.on_timeout()
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name", emoji=ri("a"))
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name", emoji=ri("a"), row=1)
     async def set_name(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
         msg = await self.ask_embed(
-            "What should be the new name of this tourney?\n\n"
-            "`Please Keep this under 30 characters.`"
+            "What should be the new name of this tourney?\n\n" "`Please Keep this under 30 characters.`"
         )
 
-        new_name = await inputs.string_input(self.ctx, self.check,delete_after=True)
+        new_name = await inputs.string_input(self.ctx, self.check, delete_after=True)
 
-        new_name = truncate_string(new_name.strip(),30)
+        new_name = truncate_string(new_name.strip(), 30)
 
         await self.ctx.safe_delete(msg)
 
         await self.update_tourney(name=new_name)
 
-        
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_reg_channel", emoji=ri("b"))
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_reg_channel", emoji=ri("b"), row=1)
     async def set_reg_channel(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
         msg = await self.ask_embed(
-            "Which channel do you want to use as registration channel.\n\n"
-            "`Mention the channel or enter its ID.`"
+            "Which channel do you want to use as registration channel.\n\n`Mention the channel or enter its ID.`"
         )
 
         channel = await inputs.channel_input(self.ctx, self.check, delete_after=True)
-        
+        await self.ctx.safe_delete(msg)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_confirm_channel", emoji=ri("c"))
+        perms = channel.permissions_for(self.ctx.me)
+
+        if not all((perms.manage_messages, perms.add_reactions)):
+            return await self.error_embed(
+                f"Please make sure I have `add_reactions` and `manage_messages` permission in {channel.mention}."
+            )
+
+        await self.update_tourney(registration_channel_id=channel.id)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_confirm_channel", emoji=ri("c"), row=1)
     async def set_confirm_channel(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_role", emoji=ri("d"))
+        msg = await self.ask_embed(
+            "Which channel do you want to use as confirmation channel.\n\n`Mention the channel or enter its ID.`"
+        )
+
+        channel = await inputs.channel_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(msg)
+
+        perms = channel.permissions_for(self.ctx.me)
+
+        if not all((perms.manage_messages, perms.add_reactions)):
+            return await self.error_embed(
+                f"Please make sure I have `add_reactions` and `manage_messages` permission in {channel.mention}."
+            )
+
+        await self.update_tourney(confirm_channel_id=channel.id)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_role", emoji=ri("d"), row=1)
     async def set_role(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_mentions", emoji=ri("e"))
+        msg = await self.ask_embed(
+            "Which role do you want me to give for successful registration?\n\n" "`Mention the role or Enter its ID.`"
+        )
+        role = await inputs.role_input(self.ctx, self.check, delete_after=True)
+
+        await self.ctx.safe_delete(msg)
+
+        if not self.ctx.me.guild_permissions.manage_roles:
+            return await self.error_embed("Unfortunately I don't have `manage_roles` permission.")
+
+        await self.update_tourney(role_id=role.id)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_mentions", emoji=ri("e"), row=1)
     async def set_mentions(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_ping", emoji=ri("f"))
+        msg = await self.ask_embed(
+            "How many mentions are required for successful registration?\n\n" "`Enter a number between 0 or 10.`"
+        )
+        mentions = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(0, 10))
+        await self.ctx.safe_delete(msg)
+
+        await self.update_tourney(mentions=mentions)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_ping", emoji=ri("f"), row=2)
     async def set_ping_role(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_slots", emoji=ri("g"))
+        msg = await self.ask_embed(
+            "Which role do you want me to ping when registration opens?\n\n" "`Mention the role or Enter its ID.`"
+        )
+        role = await inputs.role_input(self.ctx, self.check, delete_after=True)
+
+        await self.ctx.safe_delete(msg)
+
+        await self.update_tourney(ping_role_id=role.id)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_slots", emoji=ri("g"), row=2)
     async def set_slots(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_open_role", emoji=ri("h"))
+        msg = await self.ask_embed(
+            "How many total slots do you want to set?\n\n" "`Total slots cannot be more than 10,000.`"
+        )
+        slots = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(1, 10000))
+        await self.ctx.safe_delete(msg)
+
+        await self.update_tourney(total_slots=slots)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_open_role", emoji=ri("h"), row=2)
     async def set_open_role(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_multireg", emoji=ri("i"))
+        msg = await self.ask_embed(
+            "For which role do you want me to open registrations?\n\n" "`Mention the role or Enter its ID.`"
+        )
+        role = await inputs.role_input(self.ctx, self.check, delete_after=True)
+
+        await self.ctx.safe_delete(msg)
+
+        await self.update_tourney(open_role_id=role.id)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_multireg", emoji=ri("i"), row=2)
     async def set_multireg(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name_compulsion", emoji=ri("j"))
-    async def set_slots(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await self.update_tourney(multiregister=not self.tourney.multiregister)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name_duplicacy", emoji=ri("k"))
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name_compulsion", emoji=ri("j"), row=2)
+    async def set_name_compulsion(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        await self.update_tourney(teamname_compulsion=not self.tourney.teamname_compulsion)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_name_duplicacy", emoji=ri("k"), row=3)
     async def set_duplicacy(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_delete_rejected", emoji=ri("l"))
+        await self.update_tourney(no_duplicate_name=not self.tourney.no_duplicate_name)
+
+    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_delete_rejected", emoji=ri("l"), row=3)
     async def set_autodelete(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer(ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.red, custom_id="tourney_stop_view", label="Stop Editing")
+        await self.update_tourney(autodelete_rejected=not self.tourney.autodelete_rejected)
+
+    @discord.ui.button(
+        style=discord.ButtonStyle.green, custom_id="tourney_success_message", label="Success Message", row=3
+    )
+    async def success_message(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+    @discord.ui.button(style=discord.ButtonStyle.red, custom_id="tourney_stop_view", label="Stop Editing", row=4)
     async def stop_view(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await self.on_timeout()

@@ -5,7 +5,7 @@ import dateparser
 from datetime import datetime, timedelta
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 
-from utils.default import keycap_digit
+from utils import keycap_digit
 from .exceptions import InputError
 from constants import IST
 import discord
@@ -22,14 +22,20 @@ async def safe_delete(message) -> bool:
 
 async def channel_input(ctx, check, timeout=120, delete_after=False):
     try:
-        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
-        channel = await TextChannelConverter().convert(ctx, message.content)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
         raise InputError("You failed to select a channel in time. Try again!")
 
     else:
-        if not channel.permissions_for(ctx.me).read_messages:
-            raise InputError(f"Unfortunately, I don't have send messages permissions in {channel.mention}.")
+        channel = await TextChannelConverter().convert(ctx, message.content)
+
+        perms = channel.permissions_for(ctx.me)
+
+        if not all((perms.read_messages, perms.send_messages, perms.embed_links)):
+            raise InputError(
+                f"Please make sure I have the following perms in {channel.mention}:\n"
+                "`read_messages`,`send_messages`,`embed_links`."
+            )
 
         if delete_after:
             await safe_delete(message)
@@ -157,34 +163,32 @@ async def string_input(ctx, check, timeout=120, delete_after=False):
         return message.content
 
 
-async def image_input(ctx, check, timeout=120,delete_after=False):
+async def image_input(ctx, check, timeout=120, delete_after=False):
     try:
-        message:discord.Message = await ctx.bot.wait_for("message",check=check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
-        raise InputError("Took too long. Good Bye.") 
-    
+        raise InputError("Took too long. Good Bye.")
+
     else:
         if delete_after:
             await safe_delete(message)
-        
+
         if message.content.strip().lower() == "none":
             return None
-        
+
         _image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")
 
         if message.attachments and message.attachments[0].content_type in _image_formats:
             return message.attachments[0].proxy_url
 
-        result = None        
+        result = None
         with suppress(aiohttp.InvalidURL):
             res = await ctx.bot.session.get(message.content)
             if res.headers["content-type"] in _image_formats:
                 result = message.content
-        
-        return result 
 
+        return result
 
-        
 
 async def text_or_embed(ctx, check, timeout=120, delete_after=False):
     reactions = (keycap_digit(1), keycap_digit(2))

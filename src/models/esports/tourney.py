@@ -1,4 +1,4 @@
-from tortoise import models, fields, exceptions
+from tortoise import models, fields, exceptions, validators
 from discord.ext.commands import BadArgument
 
 from typing import Optional
@@ -17,8 +17,8 @@ class Tourney(models.Model):
     registration_channel_id = fields.BigIntField(index=True)
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
-    required_mentions = fields.IntField()
-    total_slots = fields.IntField()
+    required_mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
+    total_slots = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 10001))])
     banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
     multiregister = fields.BooleanField(default=False)
@@ -31,7 +31,7 @@ class Tourney(models.Model):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
-    success_message = fields.CharField(max_length=250, null=True)
+    success_message = fields.CharField(max_length=350, null=True)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 
@@ -55,18 +55,18 @@ class Tourney(models.Model):
 
     @property
     def logschan(self) -> Optional[discord.TextChannel]:
-        if self.guild is not None:
-            return discord.utils.get(self.guild.text_channels, name="quotient-tourney-logs")
+        if (g := self.guild) is not None:
+            return discord.utils.get(g.text_channels, name="quotient-tourney-logs")
 
     @property
     def registration_channel(self) -> Optional[discord.TextChannel]:
-        if self.guild is not None:
-            return self.guild.get_channel(self.registration_channel_id)
+        if (g := self.guild) is not None:
+            return g.get_channel(self.registration_channel_id)
 
     @property
     def confirm_channel(self) -> Optional[discord.TextChannel]:
-        if self.guild is not None:
-            return self.guild.get_channel(self.confirm_channel_id)
+        if (g := self.guild) is not None:
+            return g.get_channel(self.confirm_channel_id)
 
     @property
     def closed(self):
@@ -74,27 +74,27 @@ class Tourney(models.Model):
 
     @property
     def role(self) -> Optional[discord.Role]:
-        if self.guild is not None:
-            return self.guild.get_role(self.role_id)
+        if (g := self.guild) is not None:
+            return g.get_role(self.role_id)
 
     @property
     def open_role(self):
-        if g := self.guild is not None:
+        if (g := self.guild) is not None:
             if self.open_role_id is not None:
                 return g.get_role(self.open_role_id)
             return self.guild.default_role
 
     @property
     def ping_role(self):
-        if g := self.guild is not None:
+        if (g := self.guild) is not None:
             if self.ping_role_id is not None:
                 return g.get_role(self.ping_role_id)
             return None
 
     @property
     def modrole(self):
-        if self.guild is not None:
-            return discord.utils.get(self.guild.roles, name="tourney-mod")
+        if (g := self.guild) is not None:
+            return discord.utils.get(g.roles, name="tourney-mod")
 
 
 class TMSlot(models.Model):
