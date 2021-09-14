@@ -220,6 +220,20 @@ class TourneyEditor(EsportsBaseView):
     async def success_message(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        m = await self.ask_embed(
+            "What message do you want me to show for successful registration?\n\n`Kindly keep it under 350 characters.`"
+        )
+
+        msg = await inputs.string_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        msg = truncate_string(msg, 350)
+        if msg.lower().strip() == "none":
+            msg = None
+
+        await self.ctx.send("Success Message Updated.", delete_after=2)
+        await self.update_tourney(success_message=msg)
+
     @discord.ui.button(style=discord.ButtonStyle.red, custom_id="tourney_stop_view", label="Stop Editing", row=4)
     async def stop_view(self, button: discord.Button, interaction: discord.Interaction):
         await self.on_timeout()
