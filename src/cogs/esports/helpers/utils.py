@@ -366,13 +366,6 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
     return getattr(role, "mention", "Role deleted!")
 
 
-def tourney_work_role(tourney: Tourney):
-    role = tourney.open_role
-    if role == tourney.guild.default_role:
-        return "@everyone"
-    return getattr(role, "mention", "Role deleted!")
-
-
 async def get_pretty_slotlist(scrim: Scrim):
     guild = scrim.guild
 
