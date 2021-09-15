@@ -1,5 +1,3 @@
-from contextlib import suppress
-
 from ..views.base import EsportsBaseView
 from core import Context
 from models import Tourney
@@ -234,6 +232,6 @@ class TourneyEditor(EsportsBaseView):
         await self.ctx.send("Success Message Updated.", delete_after=2)
         await self.update_tourney(success_message=msg)
 
-    @discord.ui.button(style=discord.ButtonStyle.red, custom_id="tourney_stop_view", label="Stop Editing", row=4)
+    @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="tourney_stop_view", emoji="❌", row=3)
     async def stop_view(self, button: discord.Button, interaction: discord.Interaction):
         await self.on_timeout()
