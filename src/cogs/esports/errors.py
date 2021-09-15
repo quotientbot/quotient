@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from models import (
     Scrim,
     Timer,
@@ -39,7 +46,7 @@ class VerifyError(commands.CommandError):
 
 
 class SMError(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: Quotient):
         self.bot = bot
 
     @staticmethod
@@ -99,6 +106,16 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `tourney edit {tourney.id}`"
+
+            elif _type == RegDeny.duplicate:
+                await message.reply(
+                    embed=self.red_embed(f"{str(message.author)}, Someone already registered with the same team name."),
+                    delete_after=5,
+                )
+                text += f"Duplicate teamname. Someone already registered with the same team name."
+
+            if tourney.autodelete_rejected:
+                self.bot.loop.create_task(delete_denied_message(message))
 
             embed = discord.Embed(color=discord.Color.red(), description=text)
             with suppress(discord.Forbidden):

@@ -23,12 +23,6 @@ def get_slots(slots):
     for slot in slots:
         yield slot.user_id
 
-
-def get_tourney_slots(slots):
-    for slot in slots:
-        yield slot.leader_id
-
-
 async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **kwargs):
     mod = kwargs.get("mod")
     reason = kwargs.get("reason") or "No Reason Provided..."
@@ -221,47 +215,6 @@ async def delete_denied_message(message: discord.Message, seconds=10):
     with suppress(AttributeError, discord.HTTPException, discord.NotFound, discord.Forbidden):
         await asyncio.sleep(seconds)
         await message.delete()
-
-
-def before_registrations(message: discord.Message, role: discord.Role) -> bool:
-    me = message.guild.me
-    channel = message.channel
-
-    if (
-        not me.guild_permissions.manage_roles
-        or role > message.guild.me.top_role
-        or not channel.permissions_for(me).add_reactions
-    ):
-        return False
-    return True
-
-
-async def check_tourney_requirements(bot, message: discord.Message, tourney: Tourney) -> bool:
-    _bool = True
-
-    if tourney.teamname_compulsion:
-        teamname = re.search(r"team.*", message.content)
-        if not teamname or not teamname.group().strip():
-            _bool = False
-            bot.dispatch("tourney_registration_deny", message, constants.RegDeny.noteamname, tourney)
-
-    if tourney.required_mentions and not all(map(lambda m: not m.bot, message.mentions)):
-        _bool = False
-        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.botmention, tourney)
-
-    elif not len(message.mentions) >= tourney.required_mentions:
-        _bool = False
-        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.nomention, tourney)
-
-    elif message.author.id in tourney.banned_users:
-        _bool = False
-        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.banned, tourney)
-
-    elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
-        _bool = False
-        bot.dispatch("tourney_registration_deny", message, constants.RegDeny.multiregister, tourney)
-
-    return _bool
 
 
 async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) -> bool:

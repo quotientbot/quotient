@@ -95,7 +95,7 @@ class TourneyEditor(EsportsBaseView):
 
         perms = channel.permissions_for(self.ctx.me)
 
-        if not all((perms.manage_messages, perms.add_reactions)):
+        if not all((perms.manage_messages, perms.add_reactions, perms.manage_channels)):
             return await self.error_embed(
                 f"Please make sure I have `add_reactions` and `manage_messages` permission in {channel.mention}."
             )

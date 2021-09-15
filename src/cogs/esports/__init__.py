@@ -18,6 +18,7 @@ from .helpers import (
     setup_slotmanager,
     update_main_message,
     delete_slotmanager,
+    t_ask_embed,
     MultiScrimConverter,
 )
 
@@ -353,7 +354,7 @@ class ScrimManager(Cog, name="Esports"):
         """
         Get config of all the scrims you have setup.
         """
-        allscrims = await Scrim.filter(guild_id=ctx.guild.id).all()
+        allscrims = await Scrim.filter(guild_id=ctx.guild.id).all().order_by("id")
 
         if not allscrims:
             return await ctx.send(
@@ -765,18 +766,8 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    @staticmethod
-    def tcembed(value, description: str):
-        embed = discord.Embed(
-            color=discord.Color(config.COLOR),
-            title=f"🛠️ Tournament Manager ({value}/5)",
-            description=description,
-        )
-        embed.set_footer(text=f'Reply with "cancel" to stop the process.')
-        return embed
-
     @commands.group(invoke_without_command=True, aliases=("tm", "t"))
-    async def tourney(self, ctx):
+    async def tourney(self, ctx: Context):
         """Quotient's Awesome tournament commands"""
         await ctx.send_help(ctx.command)
 
@@ -784,12 +775,13 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_tm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
-    async def t_create(self, ctx):
+    async def t_create(self, ctx: Context):
         """
         Create or setup tournaments
         """
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
         guild = await Guild.get(guild_id=ctx.guild.id)
+
         if count >= 2 and not guild.is_premium:
             raise TourneyError("You can't have more than 2 tournaments concurrently.")
 
@@ -803,27 +795,34 @@ class ScrimManager(Cog, name="Esports"):
             guild_id=ctx.guild.id,
             host_id=ctx.author.id,
         )
-        await ctx.send(embed=self.tcembed(1, "Which is the default registeration channel?"))
+
+        await t_ask_embed(
+            ctx, 1, ("What is the default registration channel?\n\n" "`Please mention the channel or enter its ID.`")
+        )
+
         channel = await inputs.channel_input(ctx, check)
 
-        if await Tourney.filter(registration_channel_id=channel.id).count():
+        if await Tourney.filter(registration_channel_id=channel.id):
             raise TourneyError(f"**{channel}** is already a registration channel.")
 
-        if not channel.permissions_for(ctx.me).manage_channels:
-            raise TourneyError(f"I require `manage channels` permission in **{channel}**.")
+        perms = channel.permissions_for(ctx.me)
+
+        if not all((perms.manage_messages, perms.add_reactions, perms.manage_channels)):
+            raise TourneyError(
+                f"Please make sure I have `add_reactions`, `manage_messages` & `manage_channel` permission in {channel.mention}."
+            )
 
         tourney.registration_channel_id = channel.id
 
-        await ctx.send(embed=self.tcembed(2, "Which is the confirmed teams channel?"))
+        await t_ask_embed(
+            ctx, 2, ("What should be the default confirmation chanel?\n\n" "`Mention the channel or enter its ID.`")
+        )
         channel = await inputs.channel_input(ctx, check)
 
         tourney.confirm_channel_id = channel.id
 
-        await ctx.send(
-            embed=self.tcembed(
-                3,
-                f"What role should I give for correct registration?",
-            )
+        await t_ask_embed(
+            ctx, 3, ("Which role should I give for correct registration?\n\n" "`Mention the role or enter its ID.`")
         )
 
         role = await inputs.role_input(ctx, check)
@@ -832,33 +831,17 @@ class ScrimManager(Cog, name="Esports"):
 
         # Mentions Limit
 
-        await ctx.send(
-            embed=self.tcembed(
-                4,
-                "How many mentions are required for successful registration?" " (Can't be more than 10 or less than 0.)",
-            )
+        await t_ask_embed(
+            ctx, 4, ("How many mentions are required for successful registration?\n\n" "`This cannot be more than 10.`")
         )
 
-        tourney.required_mentions = await inputs.integer_input(
-            ctx,
-            check,
-            limits=(0, 10),
-        )
+        tourney.required_mentions = await inputs.integer_input(ctx, check, limits=(0, 10))
 
         # Total Slots
 
-        await ctx.send(
-            embed=self.tcembed(
-                5,
-                "How many total slots are there? (Can't be more than 5000 or less than 1.)",
-            )
-        )
+        await t_ask_embed(ctx, 5, ("How many total slots are there?\n\n" "`Total slots cannot be more than 10,000.`"))
 
-        tourney.total_slots = await inputs.integer_input(
-            ctx,
-            check,
-            limits=(1, 5000),
-        )
+        tourney.total_slots = await inputs.integer_input(ctx, check, limits=(1, 10000))
 
         fields = [
             f"Registration Channel: {tourney.registration_channel}",
@@ -875,13 +858,12 @@ class ScrimManager(Cog, name="Esports"):
         if not confirm:
             await ctx.send("Ok, Aborting!")
         else:
-            message = await ctx.send("Setting up everything!")
+            message = await ctx.send("Setting up everything...")
             reason = "Created for tournament management."
 
             # Tourney MODS
-            tourney_mod = discord.utils.get(ctx.guild.roles, name="tourney-mod")
 
-            if tourney_mod is None:
+            if not (tourney_mod := tourney.modrole):
                 tourney_mod = await ctx.guild.create_role(name="tourney-mod", color=0x00FFB3, reason=reason)
 
             overwrite = tourney.registration_channel.overwrites_for(ctx.guild.default_role)
@@ -889,23 +871,22 @@ class ScrimManager(Cog, name="Esports"):
             await tourney.registration_channel.set_permissions(tourney_mod, overwrite=overwrite)
 
             # Tourney LOGS
-            tourney_log_channel = discord.utils.get(ctx.guild.text_channels, name="quotient-tourney-logs")
 
-            if tourney_log_channel is None:
+            if (tourney_log_channel := tourney.logschan) is None:
                 guild = ctx.guild
                 overwrites = {
                     guild.default_role: discord.PermissionOverwrite(read_messages=False),
                     guild.me: discord.PermissionOverwrite(read_messages=True),
                     tourney_mod: discord.PermissionOverwrite(read_messages=True),
                 }
-                scrims_log_channel = await ctx.guild.create_text_channel(
+                tourney_log_channel = await ctx.guild.create_text_channel(
                     name="quotient-tourney-logs",
                     overwrites=overwrites,
                     reason=reason,
                 )
 
                 # Sending Message to tourney-log-channel
-                note = await scrims_log_channel.send(
+                note = await tourney_log_channel.send(
                     embed=discord.Embed(
                         description=f"If events related to tournament i.e opening registrations or adding roles, "
                         f"etc are triggered, then they will be logged in this channel. "
@@ -931,7 +912,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_config(self, ctx):
         """Get config of all running tourneys"""
-        records = await Tourney.filter(guild_id=ctx.guild.id).all()
+        records = await Tourney.filter(guild_id=ctx.guild.id).all().order_by("id")
         if not records:
             raise TourneyError(
                 f"You do not have any tourney setup on this server.\n\nKindly use `{ctx.prefix}tourney create` to create one."
@@ -943,7 +924,7 @@ class ScrimManager(Cog, name="Esports"):
             slot_channel = getattr(tourney.confirm_channel, "mention", "`Channel Deleted!`")
 
             role = getattr(tourney.role, "mention", "`Role Deleted!`")
-            open_role = tourney_work_role(tourney)
+            open_role = tourney_work_role(tourney,constants.EsportsRole.open)
             mystring = f"> Tourney ID: `{tourney.id}`\n> Name: `{tourney.name}`\n> Registration Channel: {reg_channel}\n> Confirm Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{tourney.required_mentions}`\n> Total Slots: `{tourney.total_slots}`\n> Open Role: {open_role}\n> Status: {'Open' if tourney.started_at else 'Closed'}"
 
             paginator.add_line(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}")
@@ -1091,14 +1072,18 @@ class ScrimManager(Cog, name="Esports"):
             raise TourneyError(f"I can not find open role for Tourney (`{tourney.id}`)")
 
         prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney.id}`)?")
-        if prompt:
-            channel_update = await toggle_channel(channel, open_role, True)
-            self.bot.tourney_channels.add(channel.id)
-            await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
-            await channel.send("**Registration is now Open!**")
-            await ctx.message.add_reaction(emote.check)
-        else:
-            await ctx.success("OK!")
+        if not prompt:
+            return await ctx.success("Ok, Aborting.")
+
+        
+        
+        await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
+        
+        e = self.bot.embed(ctx, title="Registration is now Open")
+        
+        self.bot.tourney_channels.add(channel.id)
+        await toggle_channel(channel, open_role, True)
+
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()

@@ -7,7 +7,6 @@ if typing.TYPE_CHECKING:
 
 from core import Cog
 from models import Tourney, TMSlot
-from discord.ext import tasks
 
 from ..helpers import (
     add_role_and_reaction,
@@ -15,67 +14,20 @@ from ..helpers import (
     before_registrations,
     cannot_take_registration,
     check_tourney_requirements,
+    send_success_message,
 )
 from unicodedata import normalize
-from constants import EsportsLog
+from constants import EsportsLog, RegDeny
 
 import discord
 import asyncio
 import utils
 
-TourneyQueueMessage = typing.NamedTuple("TourneyQueueMessage", [("tourney", Tourney), ("message", discord.Message)])
-
 
 class TourneyEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.tourney_queue = asyncio.Queue()
-        self.tourney_registration_worker.start()
-
-    def cog_unload(self):
-        self.tourney_registration_worker.stop()
-
-    @tasks.loop(seconds=2, reconnect=True)
-    async def tourney_registration_worker(self):
-        while not self.tourney_queue.empty():
-            queue_message: TourneyQueueMessage = await self.tourney_queue.get()
-            tourney, message = queue_message.tourney, queue_message.message
-
-            ctx = await self.bot.get_context(message)
-
-            teamname = utils.find_team(message)
-
-            tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
-
-            if not tourney or tourney.closed:  # Tourney is deleted or not opened.
-                continue
-
-            assigned_slots = await tourney.assigned_slots.order_by("-id").first()
-
-            numb = 0 if assigned_slots is None else assigned_slots.num
-            slot = await TMSlot.create(
-                leader_id=ctx.author.id,
-                team_name=teamname,
-                num=numb + 1,
-                members=[m.id for m in message.mentions],
-                jump_url=message.jump_url,
-            )
-
-            await tourney.assigned_slots.add(slot)
-
-            self.bot.loop.create_task(add_role_and_reaction(ctx, tourney.role))
-
-            self.bot.dispatch(
-                "tourney_log",
-                EsportsLog.success,
-                tourney,
-                message=ctx.message,
-                assigned_slot=slot,
-                num=numb + 1,
-            )
-
-            if tourney.total_slots == numb + 1:
-                await tourney_end_process(ctx, tourney)
+        self.__tourney_lock = asyncio.Lock()
 
     @Cog.listener("on_message")
     async def on_tourney_registration(self, message: discord.Message):
@@ -108,8 +60,48 @@ class TourneyEvents(Cog):
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
 
-        if not self.tourney_registration_worker.next_iteration or self.tourney_registration_worker.failed():
-            # if for any fking reason its stopped , we want it to start again
-            self.tourney_registration_worker.start()
+        async with self.__tourney_lock:
 
-        self.tourney_queue.put_nowait(TourneyQueueMessage(tourney, message))
+            teamname = utils.find_team(message)
+
+            tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
+
+            if not tourney or tourney.closed:  # Tourney is deleted or not opened.
+                return
+
+            if tourney.no_duplicate_name:
+                async for slot in tourney.assigned_slots.all():
+                    if slot.team_name == teamname:
+                        return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
+
+            ctx = await self.bot.get_context(message)
+
+            assigned_slots = await tourney.assigned_slots.order_by("-id").first()
+
+            numb = 0 if assigned_slots is None else assigned_slots.num
+            slot = await TMSlot.create(
+                leader_id=ctx.author.id,
+                team_name=teamname,
+                num=numb + 1,
+                members=[m.id for m in message.mentions],
+                jump_url=message.jump_url,
+            )
+
+            await tourney.assigned_slots.add(slot)
+
+            self.bot.loop.create_task(add_role_and_reaction(ctx, tourney.role))
+
+            if tourney.success_message:
+                self.bot.loop.create_task(send_success_message(ctx, tourney.success_message))
+
+            self.bot.dispatch(
+                "tourney_log",
+                EsportsLog.success,
+                tourney,
+                message=ctx.message,
+                assigned_slot=slot,
+                num=numb + 1,
+            )
+
+            if tourney.total_slots == numb + 1:
+                await tourney_end_process(ctx, tourney)
