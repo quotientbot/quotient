@@ -6,6 +6,10 @@ from models.helpers import *
 
 import discord
 
+_dict = {
+    "tick":"✅",
+    "cross":"❌",
+}
 
 class Tourney(models.Model):
     class Meta:
@@ -32,6 +36,8 @@ class Tourney(models.Model):
     autodelete_rejected = fields.BooleanField(default=False)
 
     success_message = fields.CharField(max_length=350, null=True)
+
+    emojis = fields.JSONField(default=dict)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
 

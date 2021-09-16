@@ -105,3 +105,19 @@ class TourneyEvents(Cog):
 
             if tourney.total_slots == numb + 1:
                 await tourney_end_process(ctx, tourney)
+
+
+    @Cog.listener()
+    async def on_raw_reaction_add(self, payload:discord.RawReactionActionEvent):
+        if not all((payload.guild_id, payload.member, not payload.member.bot)):
+            return
+        
+        if not payload.channel_id in self.bot.tourney_channels:
+            return
+
+        if not str(payload.emoji) == "✅":
+            return
+            
+        
+
+        

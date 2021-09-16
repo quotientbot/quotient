@@ -1020,8 +1020,8 @@ class ScrimManager(Cog, name="Esports"):
         e = self.bot.embed(ctx)
         e.description = ""
         for count, i in enumerate(records, 1):
-            channel = getattr(i.registration_channel, "mention", "`Deleted Channel!`")
-            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i.id}`"
+            channel = getattr(i.registration_channel, "mention", "`deleted-channel`")
+            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i.id}`\n"
 
         await ctx.send(embed=e)
 
