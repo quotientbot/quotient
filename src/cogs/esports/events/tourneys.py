@@ -106,18 +106,32 @@ class TourneyEvents(Cog):
             if tourney.total_slots == numb + 1:
                 await tourney_end_process(ctx, tourney)
 
-
     @Cog.listener()
-    async def on_raw_reaction_add(self, payload:discord.RawReactionActionEvent):
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if not all((payload.guild_id, payload.member, not payload.member.bot)):
             return
-        
+
         if not payload.channel_id in self.bot.tourney_channels:
             return
 
-        if not str(payload.emoji) == "✅":
+        tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
+
+        if not tourney:
+            return self.bot.tourney_channels.discard(payload.channel_id)
+
+        if not str(payload.emoji) in tourney.emojis.values():
             return
-            
-        
 
         
+    # @Cog.listener(name="on_message")
+    # async def on_media_partner_message(self, message: discord.Message):
+    #     if not all((message.guild, not message.author.bot, message in self.bot.media_partner_channels)):
+    #         return
+
+    #     tourney = await Tourney.get_or_none(media_partner_ids__contains=message.channel.id)
+
+    #     if not tourney:
+    #         return self.bot.media_partner_channels.discard(message.channel.id)
+
+    #     if (modrole := tourney.modrole) and modrole in message.author.roles:
+    #         return

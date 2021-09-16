@@ -1175,7 +1175,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="emojis", aliases=("reactions",))
     @checks.can_use_tm()
     @checks.has_done_setup()
-    @commands.bot_has_permissions(manage_messages=True, embed_links=True)
+    @commands.bot_has_permissions(manage_messages=True, embed_links=True, use_external_emojis=True)
     async def tourney_emojis(self, ctx: Context, tourney: Tourney):
         """Edit tourney's reaction emojis"""
         view = EditTourneyEmoji(ctx, tourney=tourney)
@@ -1183,6 +1183,30 @@ class ScrimManager(Cog, name="Esports"):
         embed = EditTourneyEmoji.initial_message(ctx, tourney)
 
         view.message = await ctx.send(embed=embed, view=view)
+
+    @tourney.group(name="media", aliases=("partner",))
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
+        ...
+
+    @tourney.group(name="add")
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    async def tourney_media_add(self, ctx: Context, tourney: Tourney):
+        ...
+
+    @tourney.group(name="remove")
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    async def tourney_media_remove(self, ctx: Context, tourney: Tourney):
+        ...
+
+    @tourney.group(name="all")
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    async def tourney_media_all(self, ctx: Context, tourney: Tourney):
+        ...
 
     @commands.command()
     async def format(self, ctx, *, registration_form):
