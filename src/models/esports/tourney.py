@@ -7,9 +7,10 @@ from models.helpers import *
 import discord
 
 _dict = {
-    "tick":"✅",
-    "cross":"❌",
+    "tick": "✅",
+    "cross": "❌",
 }
+
 
 class Tourney(models.Model):
     class Meta:
@@ -40,6 +41,9 @@ class Tourney(models.Model):
     emojis = fields.JSONField(default=dict)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
+
+    def __str__(self):
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Tourney: {self.id})"
 
     @classmethod
     async def convert(cls, ctx, argument: str):
@@ -101,6 +105,14 @@ class Tourney(models.Model):
     def modrole(self):
         if (g := self.guild) is not None:
             return discord.utils.get(g.roles, name="tourney-mod")
+
+    @property
+    def check_emoji(self):
+        return self.emojis["tick"]
+
+    @property
+    def cross_emoji(self):
+        return self.emojis["cross"]
 
 
 class TMSlot(models.Model):

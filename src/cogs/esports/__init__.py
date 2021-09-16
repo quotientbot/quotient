@@ -1172,6 +1172,18 @@ class ScrimManager(Cog, name="Esports"):
         embed.description = text
         await ctx.send(embed=embed, embed_perms=True)
 
+    @tourney.command(name="emojis", aliases=("reactions",))
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    @commands.bot_has_permissions(manage_messages=True, embed_links=True)
+    async def tourney_emojis(self, ctx: Context, tourney: Tourney):
+        """Edit tourney's reaction emojis"""
+        view = EditTourneyEmoji(ctx, tourney=tourney)
+
+        embed = EditTourneyEmoji.initial_message(ctx, tourney)
+
+        view.message = await ctx.send(embed=embed, view=view)
+
     @commands.command()
     async def format(self, ctx, *, registration_form):
         """Get your reg-format in a reusable form."""

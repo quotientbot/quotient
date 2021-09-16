@@ -178,7 +178,7 @@ class Premium(Cog):
             btext = "\n> Activated: No!"
 
         else:
-            booster = ctx.guild.get_member(guild.made_premium_by) or await self.bot.fetch_member(guild.made_premium_by)
+            booster = ctx.guild.get_member(guild.made_premium_by) or await self.bot.fetch_user(guild.made_premium_by)
             btext = (
                 f"\n> Activated: Yes!\n> Expiry Time: `{strtime(guild.premium_end_time)}`\n> Boosted by: **{booster}**"
             )

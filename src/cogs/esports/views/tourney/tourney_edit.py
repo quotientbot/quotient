@@ -1,8 +1,8 @@
-from ..views.base import EsportsBaseView
+from ...views.base import EsportsBaseView
 from core import Context
 from models import Tourney
 
-from ..helpers import tourney_work_role
+from ...helpers import tourney_work_role
 
 from utils import regional_indicator as ri, inputs, truncate_string
 

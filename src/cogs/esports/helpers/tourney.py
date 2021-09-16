@@ -83,4 +83,3 @@ async def t_ask_embed(ctx, value, description: str):
     )
     embed.set_footer(text=f'Reply with "cancel" to stop the process.')
     await ctx.send(embed=embed, embed_perms=True)
-
