@@ -12,7 +12,7 @@ from tortoise import Tortoise
 from .Context import Context
 from .Help import HelpCommand
 from datetime import datetime
-from utils import cache, IST
+from constants import IST
 from typing import NoReturn, Optional
 from async_property import async_property
 import aiohttp, asyncio, os
@@ -51,6 +51,16 @@ class Quotient(commands.AutoShardedBot):
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
+
+        #cache stuff
+        self.guild_data = {}
+        self.eztagchannels = set()
+        self.tagcheck = set()
+        self.scrim_channels = set()
+        self.tourney_channels = set()
+        self.autopurge_channels = set()
+        self.media_partner_channels = set()
+
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
         self.color = config.COLOR
@@ -62,6 +72,7 @@ class Quotient(commands.AutoShardedBot):
         self.persistent_views_added = False
         self.http_client = QuoHttpHandler(self)
         self.loop.create_task(self.http_client.handle())
+
 
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
@@ -92,6 +103,9 @@ class Quotient(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
+
+        from utils import cache
+
         await cache(self)
 
         # Initializing Models (Assigning Bot attribute to all models)

@@ -36,6 +36,8 @@ class Tourney(models.Model):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
+    media_partner_ids = ArrayField(fields.BigIntField(), default=list)
+
     success_message = fields.CharField(max_length=350, null=True)
 
     emojis = fields.JSONField(default=dict)
