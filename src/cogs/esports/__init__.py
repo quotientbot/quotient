@@ -35,7 +35,7 @@ from utils import (
     BetterFutureTime,
 )
 
-from constants import IST, ScrimBanType
+from constants import IST, EsportsRole, ScrimBanType
 from discord.ext.commands.cooldowns import BucketType
 from models import *
 from datetime import datetime, timedelta
@@ -924,7 +924,7 @@ class ScrimManager(Cog, name="Esports"):
             slot_channel = getattr(tourney.confirm_channel, "mention", "`Channel Deleted!`")
 
             role = getattr(tourney.role, "mention", "`Role Deleted!`")
-            open_role = tourney_work_role(tourney,constants.EsportsRole.open)
+            open_role = tourney_work_role(tourney, constants.EsportsRole.open)
             mystring = f"> Tourney ID: `{tourney.id}`\n> Name: `{tourney.name}`\n> Registration Channel: {reg_channel}\n> Confirm Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{tourney.required_mentions}`\n> Total Slots: `{tourney.total_slots}`\n> Open Role: {open_role}\n> Status: {'Open' if tourney.started_at else 'Closed'}"
 
             paginator.add_line(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}")
@@ -1048,8 +1048,10 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney: Tourney):
         """Edit a tournament's config."""
-        menu = TourneyEditor(tourney=tourney)
-        await menu.start(ctx)
+
+        view = TourneyEditor(ctx, tourney=tourney)
+        embed = TourneyEditor.initial_message(tourney)
+        view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
 
     @tourney.command(name="start")
     @checks.can_use_tm()
@@ -1075,15 +1077,22 @@ class ScrimManager(Cog, name="Esports"):
         if not prompt:
             return await ctx.success("Ok, Aborting.")
 
-        
-        
         await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
-        
+
         e = self.bot.embed(ctx, title="Registration is now Open")
-        
+        e.description = (
+            f"📣 **`{tourney.required_mentions}`** mentions required.\n"
+            f"📣 Total slots: **`{tourney.total_slots}`** [`{tourney.total_slots - await tourney.assigned_slots.all().count()}` slots left]"
+        )
+
+        await channel.send(
+            content=tourney_work_role(tourney, EsportsRole.ping),
+            embed=e,
+            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
+        )
+
         self.bot.tourney_channels.add(channel.id)
         await toggle_channel(channel, open_role, True)
-
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()

@@ -133,7 +133,7 @@ class SMError(Cog):
         registration_channel = tourney.registration_channel
         modrole = tourney.modrole
 
-        open_role = tourney_work_role(tourney)
+        open_role = tourney_work_role(tourney, EsportsRole.open)
         important = False
 
         embed = discord.Embed(color=0x00B1FF)

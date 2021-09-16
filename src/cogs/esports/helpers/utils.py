@@ -359,7 +359,7 @@ async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
         return option
 
 
-async def registration_open_embed(scrim: Scrim):
+async def registration_open_embed(scrim: Scrim) -> discord.Embed:
     _dict = scrim.open_message
     reserved_count = await scrim.reserved_slots.all().count()
 
