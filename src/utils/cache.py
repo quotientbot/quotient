@@ -43,4 +43,4 @@ async def cache(bot: Quotient):
 
     async for record in models.Tourney.all():
         async for partner in record.media_partners.all():
-            bot.media_partner_channels.all(partner.channel_id)
+            bot.media_partner_channels.add(partner.channel_id)

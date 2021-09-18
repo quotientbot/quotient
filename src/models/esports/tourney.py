@@ -135,6 +135,7 @@ class MediaPartner(models.Model):
     id = fields.IntField(pk=True)
     channel_id = fields.BigIntField()
     role_id = fields.BigIntField(null=True)
+    mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
     player_ids = ArrayField(fields.BigIntField(), default=list)
 
     @property

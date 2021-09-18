@@ -1187,14 +1187,12 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.group(name="partner", aliases=("media",), invoke_without_command=True)
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_media_partner(self, ctx: Context):
-        embed = self.bot.embed(ctx, title="Tourney Media Partner")
-        embed.description = (
-            
-        )
+    async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
 
-        await ctx.send(embed=embed, embed_perms=True)
-        
+        view = MediaPartnerView(ctx, tourney=tourney)
+        embed = MediaPartnerView.initial_embed(ctx, tourney)
+        view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
+
     @tourney_media_partner.command(name="add")
     @checks.can_use_tm()
     @checks.has_done_setup()
