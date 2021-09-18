@@ -1184,29 +1184,61 @@ class ScrimManager(Cog, name="Esports"):
 
         view.message = await ctx.send(embed=embed, view=view)
 
-    @tourney.group(name="media", aliases=("partner",))
+    @tourney.group(name="partner", aliases=("media",), invoke_without_command=True)
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
-        ...
+    async def tourney_media_partner(self, ctx: Context):
+        embed = self.bot.embed(ctx, title="Tourney Media Partner")
+        embed.description = (
+            
+        )
 
-    @tourney.group(name="add")
+        await ctx.send(embed=embed, embed_perms=True)
+        
+    @tourney_media_partner.command(name="add")
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_media_add(self, ctx: Context, tourney: Tourney):
-        ...
+    async def tourney_media_add(self, ctx: Context, tourney: Tourney, channel: QuoTextChannel, *, role: QuoRole = None):
+        partners = await tourney.media_partners.filter(channel_id=channel.id)
+        if partners:
+            raise TourneyError(f"{channel.mention} is already a media partner channel for {str(tourney)}")
 
-    @tourney.group(name="remove")
+        media_partner = await MediaPartner.create(channel_id=channel.id, role_id=getattr(role, "id", None))
+        await tourney.media_partners.add(media_partner)
+
+        self.bot.media_partner_channels.add(channel.id)
+        await ctx.success(
+            f"{channel.mention} is now a media partner channel for {str(tourney)}\n\n"
+            f"Kindly use `{ctx.prefix}tourney partner` command once to learn more about media-partners."
+        )
+
+    @tourney_media_partner.command(name="remove")
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_media_remove(self, ctx: Context, tourney: Tourney):
-        ...
+    async def tourney_media_remove(self, ctx: Context, tourney: Tourney, *, channel: QuoTextChannel):
+        partner = await tourney.media_partners.filter(channel_id=channel.id).first()
+        if not partner:
+            raise TourneyError(f"{channel.mention} is not a media partner channel for {str(tourney)}")
 
-    @tourney.group(name="all")
+        await MediaPartner.filter(pk=partner.id).delete()
+
+        self.bot.media_partner_channels.discard(channel.id)
+        await ctx.success(f"{channel.mention} is no longer a media partner channel for {str(tourney)}")
+
+    @tourney_media_partner.command(name="all")
     @checks.can_use_tm()
     @checks.has_done_setup()
     async def tourney_media_all(self, ctx: Context, tourney: Tourney):
-        ...
+        partners = await tourney.media_partners.all()
+        if not partners:
+            raise TourneyError(f"{str(tourney)} has no media partner channels")
+
+        text = "Media Partners: {0}\n\n".format(str(tourney))
+        for idx, partner in enumerate(partners, start=1):
+            text += f"`{idx:02}` {getattr(partner.channel,'mention','deletd-channel')} - **{len(partner.player_ids)} players**\n"
+
+        embed = self.bot.embed(ctx, description=text)
+        await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command()
     async def format(self, ctx, *, registration_form):

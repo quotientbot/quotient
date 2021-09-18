@@ -36,13 +36,12 @@ class Tourney(models.Model):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
-    media_partner_ids = ArrayField(fields.BigIntField(), default=list)
-
     success_message = fields.CharField(max_length=350, null=True)
 
-    emojis = fields.JSONField(default=dict)
+    emojis = fields.JSONField(default=_dict)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
+    media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 
     def __str__(self):
         return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Tourney: {self.id})"
@@ -127,3 +126,17 @@ class TMSlot(models.Model):
     leader_id = fields.BigIntField()
     members = ArrayField(fields.BigIntField(), default=list)
     jump_url = fields.TextField(null=True)
+
+
+class MediaPartner(models.Model):
+    class Meta:
+        table = "tm.media_partners"
+
+    id = fields.IntField(pk=True)
+    channel_id = fields.BigIntField()
+    role_id = fields.BigIntField(null=True)
+    player_ids = ArrayField(fields.BigIntField(), default=list)
+
+    @property
+    def channel(self) -> Optional[discord.TextChannel]:
+        return self.bot.get_channel(self.channel_id)

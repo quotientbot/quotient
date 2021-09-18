@@ -41,5 +41,6 @@ async def cache(bot: Quotient):
     async for record in models.AutoPurge.all():
         bot.autopurge_channels.add(record.channel_id)
 
-    async for record in models.Tourney.filter(media_partner_ids__isnull=False):
-        bot.media_partner_channels.update(record.media_partner_ids)
+    async for record in models.Tourney.all():
+        async for partner in record.media_partners.all():
+            bot.media_partner_channels.all(partner.channel_id)
