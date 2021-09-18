@@ -1,3 +1,4 @@
+from enum import unique
 from tortoise import models, fields, exceptions, validators
 from discord.ext.commands import BadArgument
 
@@ -133,6 +134,7 @@ class MediaPartner(models.Model):
         table = "tm.media_partners"
 
     id = fields.IntField(pk=True)
+    tourney_id = fields.IntField()
     channel_id = fields.BigIntField()
     role_id = fields.BigIntField(null=True)
     mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])

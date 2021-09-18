@@ -1190,7 +1190,7 @@ class ScrimManager(Cog, name="Esports"):
     async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
 
         view = MediaPartnerView(ctx, tourney=tourney)
-        embed = MediaPartnerView.initial_embed(ctx, tourney)
+        embed = await MediaPartnerView.initial_embed(ctx, tourney)
         view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
 
     @tourney_media_partner.command(name="add")
