@@ -116,6 +116,12 @@ class Tourney(models.Model):
     def cross_emoji(self):
         return self.emojis.get("cross", "❌")
 
+    @classmethod
+    def is_mod(cls, member: discord.Member, role: discord.Role = None):
+        role = role or cls.modrole
+
+        return any((member.guild_permissions.manage_guild, role in member.roles))
+
 
 class TMSlot(models.Model):
     class Meta:

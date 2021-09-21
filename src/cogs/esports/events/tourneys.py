@@ -122,7 +122,6 @@ class TourneyEvents(Cog):
         if not str(payload.emoji) in tourney.emojis.values():
             return
 
-        
     @Cog.listener(name="on_message")
     async def on_media_partner_message(self, message: discord.Message):
         if not all((message.guild, not message.author.bot, message in self.bot.media_partner_channels)):
