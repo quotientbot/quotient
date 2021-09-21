@@ -110,11 +110,11 @@ class Tourney(models.Model):
 
     @property
     def check_emoji(self):
-        return self.emojis["tick"]
+        return self.emojis.get("tick", "✅")
 
     @property
     def cross_emoji(self):
-        return self.emojis["cross"]
+        return self.emojis.get("cross", "❌")
 
 
 class TMSlot(models.Model):

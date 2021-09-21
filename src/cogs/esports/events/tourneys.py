@@ -123,15 +123,15 @@ class TourneyEvents(Cog):
             return
 
         
-    # @Cog.listener(name="on_message")
-    # async def on_media_partner_message(self, message: discord.Message):
-    #     if not all((message.guild, not message.author.bot, message in self.bot.media_partner_channels)):
-    #         return
+    @Cog.listener(name="on_message")
+    async def on_media_partner_message(self, message: discord.Message):
+        if not all((message.guild, not message.author.bot, message in self.bot.media_partner_channels)):
+            return
 
-    #     tourney = await Tourney.get_or_none(media_partner_ids__contains=message.channel.id)
+        tourney = await Tourney.get_or_none(media_partner_ids__contains=message.channel.id)
 
-    #     if not tourney:
-    #         return self.bot.media_partner_channels.discard(message.channel.id)
+        if not tourney:
+            return self.bot.media_partner_channels.discard(message.channel.id)
 
-    #     if (modrole := tourney.modrole) and modrole in message.author.roles:
-    #         return
+        if (modrole := tourney.modrole) and modrole in message.author.roles:
+            return
