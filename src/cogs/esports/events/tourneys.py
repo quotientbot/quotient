@@ -47,9 +47,7 @@ class TourneyEvents(Cog):
         if tourney.started_at is None:
             return
 
-        modrole = tourney.modrole
-
-        if modrole is not None and modrole in message.author.roles:
+        if tourney.is_ignorable(message.author):
             return
 
         if not before_registrations(message, tourney.role):
@@ -132,5 +130,6 @@ class TourneyEvents(Cog):
         if not tourney:
             return self.bot.media_partner_channels.discard(message.channel.id)
 
-        if (modrole := tourney.modrole) and modrole in message.author.roles:
+        if tourney.is_ignorable(message.author):
             return
+ 
