@@ -1,3 +1,11 @@
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+from contextlib import suppress
 from core import Context
 import discord
 
@@ -8,7 +16,7 @@ class EsportsBaseView(discord.ui.View):
 
         self.ctx = ctx
         self.title = kwargs.get("title", "")
-
+        self.bot: Quotient = ctx.bot
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -25,13 +33,14 @@ class EsportsBaseView(discord.ui.View):
 
                 b.style, b.disabled = discord.ButtonStyle.grey, True
 
-            await self.message.edit(embed=self.message.embeds[0], view=self)
+            with suppress(discord.HTTPException):
+                await self.message.edit(embed=self.message.embeds[0], view=self)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         self.ctx.bot.dispatch("command_error", self.ctx, error)
 
     async def ask_embed(self, desc: str, *, image=None):
-        embed = discord.Embed(color=self.ctx.bot.color, description=desc, title=self.title)
+        embed = discord.Embed(color=self.bot.color, description=desc, title=self.title)
         if image:
             embed.set_image(url=image)
         embed.set_footer(text=f"Reply with 'cancel' to stop this process.")
