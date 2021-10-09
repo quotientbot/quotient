@@ -5,6 +5,8 @@ from discord.ext.commands import BadArgument
 from typing import Optional
 from models.helpers import *
 
+from models import BaseDbModel
+
 import discord
 
 _dict = {
@@ -13,7 +15,7 @@ _dict = {
 }
 
 
-class Tourney(models.Model):
+class Tourney(BaseDbModel):
     class Meta:
         table = "tm.tourney"
 
@@ -121,7 +123,7 @@ class Tourney(models.Model):
         return "tourney-mod" in (role.name for role in member.roles)
 
 
-class TMSlot(models.Model):
+class TMSlot(BaseDbModel):
     class Meta:
         table = "tm.register"
 
@@ -133,7 +135,7 @@ class TMSlot(models.Model):
     jump_url = fields.TextField(null=True)
 
 
-class MediaPartner(models.Model):
+class MediaPartner(BaseDbModel):
     class Meta:
         table = "tm.media_partners"
 
@@ -142,8 +144,18 @@ class MediaPartner(models.Model):
     channel_id = fields.BigIntField()
     role_id = fields.BigIntField(null=True)
     mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
-    player_ids = ArrayField(fields.BigIntField(), default=list)
+    slots: fields.ManyToManyRelation["PartnerSlot"] = fields.ManyToManyField("models.PartnerSlot")
 
     @property
     def channel(self) -> Optional[discord.TextChannel]:
         return self.bot.get_channel(self.channel_id)
+
+
+class PartnerSlot(BaseDbModel):
+    class Meta:
+        table = "tm.media_partner_users"
+
+    id = fields.IntField(pk=True)
+    user_id = fields.BigIntField()
+    jump_url = fields.CharField(max_length=300, null=True)
+    members = ArrayField(fields.BigIntField(), default=list)

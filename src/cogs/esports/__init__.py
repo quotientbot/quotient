@@ -1184,7 +1184,7 @@ class ScrimManager(Cog, name="Esports"):
 
         view.message = await ctx.send(embed=embed, view=view)
 
-    @tourney.group(name="partner", aliases=("media",), invoke_without_command=True)
+    @tourney.group(name="mediapartner", aliases=("mp",), invoke_without_command=True)
     @checks.can_use_tm()
     @checks.has_done_setup()
     async def tourney_media_partner(self, ctx: Context, tourney: Tourney):

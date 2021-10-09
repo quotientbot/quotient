@@ -25,9 +25,10 @@ class ScrimEditor(EsportsBaseView):
 
     @staticmethod
     def initial_message(scrim: Scrim) -> discord.Embed:
-        
+
         embed = discord.Embed(color=0x00FFB3, title=f"Scrim Editor (ID: {scrim.id})")
-    
+
+        return embed
 
     async def __update_scrim(self, **kwargs):
         await Scrim.filter(pk=self.scrim.id).update(**kwargs)
