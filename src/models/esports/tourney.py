@@ -1,4 +1,3 @@
-from enum import unique
 from tortoise import models, fields, exceptions, validators
 from discord.ext.commands import BadArgument
 
@@ -132,6 +131,8 @@ class TMSlot(BaseDbModel):
     team_name = fields.TextField()
     leader_id = fields.BigIntField()
     members = ArrayField(fields.BigIntField(), default=list)
+    message_id = fields.BigIntField(null=True)
+    confirm_jump_url = fields.CharField(max_length=300, null=True)
     jump_url = fields.TextField(null=True)
 
 
@@ -139,9 +140,8 @@ class MediaPartner(BaseDbModel):
     class Meta:
         table = "tm.media_partners"
 
-    id = fields.IntField(pk=True)
+    channel_id = fields.BigIntField(pk=True, generated=False)
     tourney_id = fields.IntField()
-    channel_id = fields.BigIntField()
     role_id = fields.BigIntField(null=True)
     mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
     slots: fields.ManyToManyRelation["PartnerSlot"] = fields.ManyToManyField("models.PartnerSlot")

@@ -92,12 +92,11 @@ class MediaPartnerView(EsportsBaseView):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ask_embed(
-            "Which channel do you want to remove from media partner?\n\n"
-            "`Note that this is irreversible and;m;mlnb ,`"
+            "Which channel do you want to remove from media partner?\n\n" "`Note that this is irreversible and;m;mlnb ,`"
         )
 
     @discord.ui.button(
-        style=discord.ButtonStyle.secondary, custom_id="stop_partner_view", emoji="<:trashcan:896382424529907742>", row=2
+        style=discord.ButtonStyle.grey, custom_id="stop_partner_view", emoji="<:trashcan:896382424529907742>", row=2
     )
     async def remove_partner_view(self, button: discord.Button, interaction: discord.Interaction):
         await self.on_timeout()
