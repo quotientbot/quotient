@@ -13,15 +13,16 @@ import discord
 import config
 import asyncio
 import re, json
-from .views import unlock_after_registration, send_sm_logs
-from .constants import SlotLogType
+from .views import unlock_after_registration
 
+from core import Context
 from constants import VerifyImageError, ScrimBanType, IST
 
 
 def get_slots(slots):
     for slot in slots:
         yield slot.user_id
+
 
 async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **kwargs):
     mod = kwargs.get("mod")
@@ -147,7 +148,7 @@ async def toggle_channel(channel, role, _bool=True) -> bool:
         return False
 
 
-async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
+async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
 
     registration_channel = scrim.registration_channel
@@ -172,14 +173,10 @@ async def scrim_end_process(ctx, scrim: Scrim) -> NoReturn:
 
     if scrim.autodelete_extras:
         msg_ids = (i.message_id for i in await scrim.assigned_slots.all())
-
-        with suppress(discord.HTTPException):
-            await ctx.channel.purge(
-                limit=100,
-                check=lambda x: all(
-                    (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
-                ),
-            )
+        check = lambda x: all(
+            (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
+        )
+        ctx.bot.loop.create_task(ctx.wait_and_purge(ctx.channel, check=check))
 
 
 async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:

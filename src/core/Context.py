@@ -137,3 +137,9 @@ class Context(commands.Context):
             content = None
 
         return await super().send(content, **kwargs)
+
+    async def wait_and_purge(self, channel, *, limit=100, wait_for=10, check=lambda m: True):
+        await asyncio.sleep(wait_for)
+
+        with suppress(discord.HTTPException):
+            await channel.purge(limit=limit, check=check)
