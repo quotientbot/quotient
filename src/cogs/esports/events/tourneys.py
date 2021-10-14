@@ -18,6 +18,7 @@ from ..helpers import (
     cannot_take_registration,
     check_tourney_requirements,
     send_success_message,
+    get_tourney_slots
 )
 from unicodedata import normalize
 from constants import EsportsLog, RegDeny
@@ -149,7 +150,7 @@ class TourneyEvents(Cog):
 
         if not slot and e == tourney.check_emoji:
             if tourney.total_slots <= await tourney.assigned_slots.all().count():
-                await channel.send(f"{getattr(member, 'mention','')}, Slots are already full.", delete_after=6)
+                return await channel.send(f"{getattr(member, 'mention','')}, Slots are already full.", delete_after=6)
 
             # TODO:send log here
             return await self.__process_tourney_message(message, tourney, check_duplicate=False)
@@ -176,3 +177,15 @@ class TourneyEvents(Cog):
 
         if tourney.is_ignorable(message.author):
             return
+
+
+        if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
+            self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
+            return await message.add_reaction(tourney.cross_emoji)
+
+
+
+
+        
+
+

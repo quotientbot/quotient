@@ -1,13 +1,14 @@
 from core.Context import Context
-from models import Tourney
+from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
 
+from typing import List
 import discord
 import re
 
 
-def get_tourney_slots(slots):
+def get_tourney_slots(slots: List[TMSlot]) -> int:
     for slot in slots:
         yield slot.leader_id
 
