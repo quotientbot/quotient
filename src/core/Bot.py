@@ -52,7 +52,7 @@ class Quotient(commands.AutoShardedBot):
             **kwargs,
         )
 
-        #cache stuff
+        # cache stuff
         self.guild_data = {}
         self.eztagchannels = set()
         self.tagcheck = set()
@@ -72,7 +72,6 @@ class Quotient(commands.AutoShardedBot):
         self.persistent_views_added = False
         self.http_client = QuoHttpHandler(self)
         self.loop.create_task(self.http_client.handle())
-
 
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
@@ -166,11 +165,14 @@ class Quotient(commands.AutoShardedBot):
         print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
 
         if not self.persistent_views_added:  # add persistent views
-            from cogs.esports.views import SlotManagerView
-            from models import SlotManager
+            from cogs.esports.views import SlotManagerView, TourneySlotManager
+            from models import SlotManager, Tourney
 
             async for record in SlotManager.filter(toggle=True):
                 self.add_view(SlotManagerView(self), message_id=record.message_id)
+
+            async for tourney in Tourney.filter(slotm_message_id__isnull=False):
+                self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
 
             self.persistent_views_added = True
 
