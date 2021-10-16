@@ -131,7 +131,6 @@ class TMSlot(BaseDbModel):
     team_name = fields.TextField()
     leader_id = fields.BigIntField()
     members = ArrayField(fields.BigIntField(), default=list)
-    message_id = fields.BigIntField(null=True)
     confirm_jump_url = fields.CharField(max_length=300, null=True)
     jump_url = fields.TextField(null=True)
 

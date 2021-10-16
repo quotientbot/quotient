@@ -1,4 +1,3 @@
-from discord.invite import I
 from ...views.base import EsportsBaseView
 from models import Tourney
 

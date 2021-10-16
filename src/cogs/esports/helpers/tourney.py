@@ -1,4 +1,5 @@
-from core.Context import Context
+from contextlib import suppress
+from core import Context
 from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
@@ -6,6 +7,8 @@ from constants import EsportsRole, RegDeny
 from typing import List
 import discord
 import re
+
+from utils import exceptions
 
 
 def get_tourney_slots(slots: List[TMSlot]) -> int:
@@ -84,3 +87,25 @@ async def t_ask_embed(ctx, value, description: str):
     )
     embed.set_footer(text=f'Reply with "cancel" to stop the process.')
     await ctx.send(embed=embed, embed_perms=True)
+
+
+async def update_confirmed_message(ctx: Context, tourney:Tourney,slot:TMSlot ,link:str):
+    _ids = [int(i) for i in link.split("/")[5:]]
+
+    message = None
+
+    with suppress(discord.HTTPException,discord.NotFound):
+        message = await ctx.guild.get_channel(_ids[0]).fetch_message(_ids[1])
+    
+    if message:
+        try:
+            e = message.embeds[0]   
+        except IndexError:
+            return
+        
+        e.description = "~~" + e.description.split() + "~~"
+        e.title = "Cancelled Slot"
+        e.color = discord.Color.red()
+
+
+        await message.edit(embed=e)
