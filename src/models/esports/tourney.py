@@ -42,6 +42,9 @@ class Tourney(BaseDbModel):
 
     emojis = fields.JSONField(default=_dict)
 
+    slotm_channel_id = fields.BigIntField(null=True)
+    slotm_message_id = fields.BigIntField(null=True)
+    
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 

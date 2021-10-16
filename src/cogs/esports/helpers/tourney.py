@@ -1,14 +1,18 @@
+from __future__ import annotations
+
 from contextlib import suppress
 from core import Context
 from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
 
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core import Quotient
+
 import discord
 import re
-
-from utils import exceptions
 
 
 def get_tourney_slots(slots: List[TMSlot]) -> int:
@@ -89,23 +93,22 @@ async def t_ask_embed(ctx, value, description: str):
     await ctx.send(embed=embed, embed_perms=True)
 
 
-async def update_confirmed_message(ctx: Context, tourney:Tourney,slot:TMSlot ,link:str):
+async def update_confirmed_message(tourney: Tourney, link: str):
     _ids = [int(i) for i in link.split("/")[5:]]
 
     message = None
 
-    with suppress(discord.HTTPException,discord.NotFound):
-        message = await ctx.guild.get_channel(_ids[0]).fetch_message(_ids[1])
-    
+    with suppress(discord.HTTPException, discord.NotFound):
+        message = await tourney.guild.get_channel(_ids[0]).fetch_message(_ids[1])
+
     if message:
         try:
-            e = message.embeds[0]   
+            e = message.embeds[0]
         except IndexError:
             return
-        
+
         e.description = "~~" + e.description.split() + "~~"
         e.title = "Cancelled Slot"
         e.color = discord.Color.red()
-
 
         await message.edit(embed=e)
