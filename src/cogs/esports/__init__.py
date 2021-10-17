@@ -20,6 +20,7 @@ from .helpers import (
     delete_slotmanager,
     t_ask_embed,
     MultiScrimConverter,
+    csv_tourney_data,
 )
 
 from utils import (
@@ -33,6 +34,8 @@ from utils import (
     QuoUser,
     QuoPaginator,
     BetterFutureTime,
+    LinkType,
+    LinkButton,
 )
 
 from constants import IST, EsportsRole, ScrimBanType
@@ -979,31 +982,29 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     async def tourney_data(self, ctx, tourney: Tourney):
         """Get all the data that Quotient collected for a tourney."""
-        records = await tourney.assigned_slots.all().order_by("id")
+        records = await tourney.assigned_slots.all().order_by("num")
         if not records:
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
-        m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
+        e = self.bot.embed(
+            ctx,
+            description=(
+                "Click on the download button below to download `.csv` file\n"
+                f"containing all the registration records of {tourney}\n\n"
+                "*`To Open`: Use Microsoft Excel, Libre Office or any other softwares that is compatible with .csv files.*"
+            ),
+        )
 
-        y = PrettyTable()
-        y.field_names = ["S No.", "Team Name", "Team Owner", "Teammates", " All Teammates in Server", "Jump URL"]
+        _log_chan = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 899185364500099083)
+        m = await _log_chan.send(file=await csv_tourney_data(tourney))
 
-        for idx, record in enumerate(records, start=1):
-            leader = str(ctx.guild.get_member(record.leader_id))
+        _list = [
+            LinkType(name=".csv", url=m.attachments[0].url, emoji="<:cloud_download:899031247404290108>"),
+            LinkType(url=self.bot.config.SERVER_LINK, emoji="<:info2:899020593188462693>"),
+        ]
+        _view = LinkButton(_list)
 
-            if not record.members:
-                teammates = "No Teammates!"
-                all_here = "No team :("
-
-            else:
-                teamlist = tuple(map(ctx.guild.get_member, record.members))
-                teammates = ", ".join(tuple(map(str, teamlist)))
-                all_here = ("No!", "Yes!")[all(teamlist)]
-
-            y.add_row([idx, record.team_name, leader, teammates, all_here, record.jump_url])
-
-        await inputs.safe_delete(m)
-        await ctx.send_file(str(y), name="tourney_data.txt")
+        await ctx.send(embed=e, view=_view)
 
     @tourney.command(name="list", aliases=("all",))
     @checks.can_use_tm()

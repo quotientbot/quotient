@@ -5,16 +5,17 @@ from .emote import TextChannel, VoiceChannel
 
 
 class LinkType(NamedTuple):
-    name: str
-    url: str
+    name: str = None
+    url: str = None
+    emoji: str = None
 
 
 class LinkButton(discord.ui.View):
-    def __init__(self, links: list):
+    def __init__(self, links: List[LinkType]):
         super().__init__()
 
         for link in links:
-            self.add_item(discord.ui.Button(label=link.name, url=link.url))
+            self.add_item(discord.ui.Button(label=link.name, url=link.url, emoji=link.emoji))
 
 
 class Prompt(discord.ui.View):

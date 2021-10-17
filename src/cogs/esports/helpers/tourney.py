@@ -8,8 +8,9 @@ from constants import EsportsRole, RegDeny
 
 from typing import List, TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from core import Quotient
+from datetime import datetime
+
+import io
 
 import discord
 import re
@@ -112,3 +113,26 @@ async def update_confirmed_message(tourney: Tourney, link: str):
         e.color = discord.Color.red()
 
         await message.edit(embed=e)
+
+
+async def csv_tourney_data(tourney: Tourney):
+    guild = tourney.guild
+
+    def _slot_info(slot: TMSlot):
+        _team = " | ".join((f"{str(guild.get_member(m))} ({m})" for m in slot.members))
+
+        in_server = sum(1 for i in slot.members if i in (m.id for m in guild.members))
+
+        return (
+            f"{slot.num};{slot.team_name};{str(guild.get_member(slot.leader_id))};"
+            f"'{slot.leader_id}';{_team};{in_server};{slot.jump_url}"
+        )
+
+    _x = "Reg Posi;Team Name;Leader;Leader ID;Teammates;Teammates in Server;Jump URL\n"
+
+    async for _slot in tourney.assigned_slots.all():
+        _x += f"{_slot_info(_slot)}\n"
+
+    fp = io.BytesIO(_x.encode())
+
+    return discord.File(fp, filename=f"tourney_data_{tourney.id}_{datetime.now().timestamp()}.csv")
