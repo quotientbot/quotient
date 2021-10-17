@@ -7,6 +7,8 @@ invisible = "<:invisible:775586907680931860>"
 scrimscheck = "<:scrimscheck:839554647861755946>"
 scrimsxmark = "<:scrimscross:839554689778712576>"
 
+info = "<:info2:899020593188462693>"
+trash = "<:trashcan:896382424529907742>"
 
 add = "<:add:844825523003850772>"
 remove = "<:remove:844825861295046661>"

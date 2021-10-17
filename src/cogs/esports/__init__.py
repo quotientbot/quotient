@@ -954,27 +954,34 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_tm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    async def tourney_group(self, ctx, tourney: Tourney, group_size: int = 20):
+    async def tourney_group(self, ctx, tourney: Tourney, group_size: int):
         """Get groups of the tournament."""
         records = await tourney.assigned_slots.all().order_by("id")
         if not records:
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
-        m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
+        _view = TourneyGroupManager(ctx, tourney=tourney, size=group_size)
+        e = TourneyGroupManager.initial_embed(tourney, group_size)
 
-        tables = []
+        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
-        for record in get_chunks(records, group_size):
-            x = PrettyTable()
-            x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader", "Leader ID"]
-            for idx, i in enumerate(record, start=1):
-                member = ctx.guild.get_member(i.leader_id)
-                x.add_row([idx, i.num, i.team_name, str(member), i.leader_id])
+        _view.message = await ctx.send(embed=e,view=_view, embed_perms=True)
 
-            tables.append(str(x))
+        # m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
 
-        await inputs.safe_delete(m)
-        await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
+        # tables = []
+
+        # for record in get_chunks(records, group_size):
+        #     x = PrettyTable()
+        #     x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader", "Leader ID"]
+        #     for idx, i in enumerate(record, start=1):
+        #         member = ctx.guild.get_member(i.leader_id)
+        #         x.add_row([idx, i.num, i.team_name, str(member), i.leader_id])
+
+        #     tables.append(str(x))
+
+        # await inputs.safe_delete(m)
+        # await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
 
     @tourney.command(name="data")
     @checks.can_use_tm()
@@ -1000,7 +1007,7 @@ class ScrimManager(Cog, name="Esports"):
 
         _list = [
             LinkType(name=".csv", url=m.attachments[0].url, emoji="<:cloud_download:899031247404290108>"),
-            LinkType(url=self.bot.config.SERVER_LINK, emoji="<:info2:899020593188462693>"),
+            LinkType(url=config.SERVER_LINK, emoji="<:info2:899020593188462693>"),
         ]
         _view = LinkButton(_list)
 
@@ -1022,7 +1029,7 @@ class ScrimManager(Cog, name="Esports"):
         e.description = ""
         for count, i in enumerate(records, 1):
             channel = getattr(i.registration_channel, "mention", "`deleted-channel`")
-            e.description += f"`{count}. ` | {channel} | Tourney ID: `{i.id}`\n"
+            e.description += f"`{count}. ` | **{i}**\n"
 
         await ctx.send(embed=e)
 

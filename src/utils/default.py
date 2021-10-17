@@ -6,7 +6,7 @@ from constants import IST
 from itertools import islice
 
 
-def get_chunks(iterable, size):
+def get_chunks(iterable, size: int):
     it = iter(iterable)
     return iter(lambda: tuple(islice(it, size)), ())
 
