@@ -9,8 +9,9 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from core import Quotient
 
-from utils import inputs, get_chunks, emote
+from utils import inputs, get_chunks, emote, QuoRole
 
+from discord.ext import commands
 from core import Context
 import discord
 import config
@@ -72,6 +73,17 @@ class TourneyGroupManager(EsportsBaseView):
     async def give_group_roles(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        if not len(self.ctx.guild.roles) < 245:
+            return await self.error_embed(
+                "Your server is about to hit the max roles limit (250 roles), please delete some first."
+            )
+
+        if not self.ctx.guild.me.guild_permissions.manage_roles:
+            return await self.error_embed(
+                "Kindly give me `manage_roles` permission and move my role above your group roles."
+            )
+
+        # TODO: check manager roles , total roles less than 195
         m = await self.ask_embed(
             f"Write the group number and the name of group role.\n"
             "**Format:** `Group Number, Name of Group Role`\n\n"
@@ -95,11 +107,34 @@ class TourneyGroupManager(EsportsBaseView):
 
         for _group in _split:
             try:
-                group, role = _group.strip().split(",")
-            except ValueError:
-                return await self.error_embed(f"Invalid format given in `line {_split.index(_group) + 1}`.")
+                group, role = _group.strip().strip(",").split(",")
+                group = int(group)
 
-        await self.ctx.send(_split)
+            except ValueError:
+                return await self.error_embed(
+                    f"Invalid format given in `line {_split.index(_group) + 1}`.```{_roleinfo}```",
+                    footer="Auto-deleting this message in 10s.",
+                    delete_after=10,
+                )
+
+        _e = discord.Embed(
+            color=0x00FFB3,
+            title="Giving Group Roles:",
+            description=f"{emote.check} Starting the role distribution!",
+        )
+
+        m: discord.Message = await self.ctx.send(embed=_e)
+
+        for _group in _split:
+            group, role = _group.strip().strip(",").split(",")
+            group = int(group)
+
+            try:
+                role = await QuoRole().convert(self.ctx, role)
+                await m.edit(embed=...)
+
+            except commands.RoleNotFound:
+                role = await self.ctx.guild.create_role(name=group, reason=f"Created by {self.ctx.author} for grouping")
 
 
 class GroupListView(EsportsBaseView):

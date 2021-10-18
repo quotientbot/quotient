@@ -47,9 +47,11 @@ class EsportsBaseView(discord.ui.View):
 
         return await self.ctx.send(embed=embed, embed_perms=True)
 
-    async def error_embed(self, desc: str):
+    async def error_embed(self, desc: str, *, footer: str = None, delete_after=3):
         embed = discord.Embed(color=discord.Color.red(), title="Whoopsi-Doopsi", description=desc)
-        await self.ctx.send(embed=embed, delete_after=2, embed_perms=True)
+        if footer:
+            embed.set_footer(text=footer)
+        await self.ctx.send(embed=embed, delete_after=delete_after, embed_perms=True)
 
     def red_embed(self, description: str) -> discord.Embed:
         return discord.Embed(color=discord.Color.red(), title=self.title, description=description)
