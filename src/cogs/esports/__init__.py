@@ -783,9 +783,9 @@ class ScrimManager(Cog, name="Esports"):
         Create or setup tournaments
         """
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
-        guild = await Guild.get(guild_id=ctx.guild.id)
+        db_guild = await Guild.get(guild_id=ctx.guild.id)
 
-        if count >= 2 and not guild.is_premium:
+        if count >= 2 and not db_guild.is_premium:
             raise TourneyError("You can't have more than 2 tournaments concurrently.")
 
         def check(message: discord.Message):
@@ -818,7 +818,9 @@ class ScrimManager(Cog, name="Esports"):
         tourney.registration_channel_id = channel.id
 
         await t_ask_embed(
-            ctx, 2, ("What should be the default confirmation chanel?\n\n" "`Mention the channel or enter its ID.`")
+            ctx,
+            2,
+            ("What should be the default confirmation message channel?\n\n" "`Mention the channel or enter its ID.`"),
         )
         channel = await inputs.channel_input(ctx, check)
 
@@ -875,8 +877,8 @@ class ScrimManager(Cog, name="Esports"):
 
             # Tourney LOGS
 
+            guild = ctx.guild
             if (tourney_log_channel := tourney.logschan) is None:
-                guild = ctx.guild
                 overwrites = {
                     guild.default_role: discord.PermissionOverwrite(read_messages=False),
                     guild.me: discord.PermissionOverwrite(read_messages=True),
@@ -886,6 +888,7 @@ class ScrimManager(Cog, name="Esports"):
                     name="quotient-tourney-logs",
                     overwrites=overwrites,
                     reason=reason,
+                    topic="**DO NOT RENAME THIS CHANNEL**",
                 )
 
                 # Sending Message to tourney-log-channel
@@ -901,6 +904,24 @@ class ScrimManager(Cog, name="Esports"):
                     )
                 )
                 await note.pin()
+
+            _view = TourneySlotManager(self.bot, tourney=tourney)
+            if not db_guild.is_premium:
+                _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
+
+            _category = tourney.registration_channel.category
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(
+                    read_messages=True, send_messages=False, read_message_history=True
+                ),
+                guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
+            }
+            slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
+
+            _e = TourneySlotManager.initial_embed(tourney)
+            tourney.slotm_message_id = (await slotm_channel.send(embed=_e, view=_view)).id
+
+            tourney.slotm_channel_id = slotm_channel.id
 
             await tourney.save()
             text = f"Tourney Management Setup Complete. (`Tourney ID: {tourney.id}`)\nUse `{ctx.prefix}tourney start {tourney.id}` to start the tourney."
@@ -965,7 +986,7 @@ class ScrimManager(Cog, name="Esports"):
 
         _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
-        _view.message = await ctx.send(embed=e,view=_view, embed_perms=True)
+        _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
         # m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
 

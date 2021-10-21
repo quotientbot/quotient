@@ -60,14 +60,12 @@ class TourneyGroupManager(EsportsBaseView):
 
         _list = []
 
-        for idx, _chunk in enumerate(get_chunks(await self.tourney.assigned_slots.all(), self.size), start=1):
+        for idx, _chunk in enumerate(await self.tourney.get_groups(self.size), start=1):
             e = discord.Embed(color=0x00FFB3, title=f"{self.tourney.name} Group {idx}")
             e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
-                e.description += (
-                    f"`{count:02}` • **[{_slot.team_name}]({_slot.confirm_jump_url})** (<@{_slot.leader_id}>)\n"
-                )
+                e.description += f"`{count:02}` • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
 
             _list.append(e)
 
@@ -153,7 +151,7 @@ class TourneyGroupManager(EsportsBaseView):
             _e.description += f"{emote.check} {role.mention} Assigning to team leaders of Group {group}\n"
             await m.edit(embed=_e)
 
-            actual_group: List[TMSlot] | None = await self.tourney.get_group(group, self.size)
+            actual_group = await self.tourney.get_group(group, self.size)
 
             try:
                 counter = 0

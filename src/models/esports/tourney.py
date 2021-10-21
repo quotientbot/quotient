@@ -1,7 +1,7 @@
 from tortoise import fields, exceptions
 from discord.ext.commands import BadArgument
 
-from typing import Optional
+from typing import Optional, List, Union
 from models.helpers import *
 
 from models import BaseDbModel
@@ -26,7 +26,7 @@ class Tourney(BaseDbModel):
     registration_channel_id = fields.BigIntField(index=True)
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
-    required_mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
+    required_mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(0, 11))])
     total_slots = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 10001))])
     banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
@@ -123,13 +123,13 @@ class Tourney(BaseDbModel):
         return self.emojis.get("cross", "❌")
 
     @staticmethod
-    def is_ignorable(member: discord.Member):
+    def is_ignorable(member: discord.Member) -> bool:
         return "tourney-mod" in (role.name for role in member.roles)
 
-    async def get_groups(self, size: int):
+    async def get_groups(self, size: int) -> List[List["TMSlot"]]:
         return split_list(await self.assigned_slots.all().order_by("num"), size)
 
-    async def get_group(self, num: int, size: int):
+    async def get_group(self, num: int, size: int) -> Union[List["TMSlot"], None]:
         _list = await self.get_groups(size)
         for _chunk in _list:
             if _list.index(_chunk) == num - 1:
