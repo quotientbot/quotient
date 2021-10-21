@@ -190,3 +190,32 @@ class TourneyEvents(Cog):
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
         await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)
+
+    @Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        if before.roles != after.roles:
+            tourney = await Tourney.filter(guild_id=before.guild.id).first()
+            if not tourney:
+                return
+
+            msg = None
+            if role := tourney.modrole:
+                if role in after.roles and not role in before.roles:
+                    msg = (
+                        f"Congratulations {before.mention} on becoming a {role.mention},\n\n"
+                        "Here's a list of perks you get with the new responsibilities:\n"
+                        "• You can now use all `qtourney` commands.\n"
+                        "• You can now edit, manage or even delete any tourney.\n"
+                        "• **Your messages are now ignored in all the registration channels.**\n\n"
+                        "Good luck!"
+                    )
+
+                elif role in before.roles and not role in after.roles:
+                    msg = (
+                        f"{before.mention} is no longer a {role.mention},\n"
+                        "All the special perks they enjoyed, are now revoked."
+                    )
+
+                if msg:
+                    with suppress(discord.HTTPException, AttributeError):
+                        await tourney.logschan.send(msg)
