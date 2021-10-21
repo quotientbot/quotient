@@ -16,6 +16,8 @@ from core import Context
 import discord
 import config
 
+import asyncio
+
 
 class TourneyGroupManager(EsportsBaseView):
     def __init__(self, ctx: Context, *, tourney: Tourney, size: int = 20):
@@ -120,7 +122,7 @@ class TourneyGroupManager(EsportsBaseView):
         _e = discord.Embed(
             color=0x00FFB3,
             title="Giving Group Roles:",
-            description=f"{emote.check} Starting the role distribution!",
+            description=f"{emote.check} Starting the role distribution!\n",
         )
 
         m: discord.Message = await self.ctx.send(embed=_e)
@@ -131,10 +133,20 @@ class TourneyGroupManager(EsportsBaseView):
 
             try:
                 role = await QuoRole().convert(self.ctx, role)
-                await m.edit(embed=...)
+                _e.description += f"{emote.check} {role.mention} Found...\n"
+                await m.edit(embed=_e)
 
             except commands.RoleNotFound:
+                _e.description += f"{emote.xmark} {role} Not Found, Creating new role..\n"
                 role = await self.ctx.guild.create_role(name=group, reason=f"Created by {self.ctx.author} for grouping")
+
+            _e.description += f"{emote.check} {role.mention} Assigning to team leaders of Group {group}\n"
+
+            await asyncio.sleep(0.5)
+
+        _e.description += f"{emote.check} Done!\n"
+        await m.edit(embed=_e)
+        await self.ctx.safe_delete(m, 5)
 
 
 class GroupListView(EsportsBaseView):
