@@ -93,7 +93,7 @@ class TourneyGroupManager(EsportsBaseView):
             f"Write the group number and the name of group role.\n"
             "**Format:** `Group Number, Name of Group Role`\n\n"
             "Note that you can also mention the role instead of name to give it to users, "
-            "or just write its name, if there is no role of that name, Quotient"
+            "or just write its name, if there is no role of that name, Quotient "
             "will create the role and give it to group leaders.\n\n"
             "**Example:**```1, @group_role\n2, Group role\n3, @3rd_group```\n"
             "*Enter upto 5 roles at a time.*"
@@ -175,9 +175,9 @@ class TourneyGroupManager(EsportsBaseView):
                 await m.edit(embed=_e)
                 continue
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.6)
 
-        _e.description += f"{emote.check} Done! (Time taken: {precisedelta(datetime.now()-_t)})\n"
+        _e.description += f"{emote.check} Done! (Time taken: `{precisedelta(datetime.now()-_t)}`)\n"
         await m.edit(embed=_e)
         await self.ctx.safe_delete(m, 10)
 
