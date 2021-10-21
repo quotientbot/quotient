@@ -18,7 +18,7 @@ from ..helpers import (
     cannot_take_registration,
     check_tourney_requirements,
     send_success_message,
-    get_tourney_slots
+    get_tourney_slots,
 )
 from unicodedata import normalize
 from constants import EsportsLog, RegDeny
@@ -178,14 +178,15 @@ class TourneyEvents(Cog):
         if tourney.is_ignorable(message.author):
             return
 
-
         if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
             self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
             return await message.add_reaction(tourney.cross_emoji)
 
+    @Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        message_id = payload.message_id
+        await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
 
-
-
-        
-
-
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)

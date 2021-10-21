@@ -84,12 +84,13 @@ class Context(commands.Context):
             delete_after=delete_after,
         )
 
-    async def simple(self, message):
+    async def simple(self, message, delete_after=None):
         return await self.send(
             embed=discord.Embed(
                 description=message,
                 color=self.config.COLOR,
-            )
+            ),
+            delete_after=delete_after,
         )
 
     async def is_premium_guild(self):

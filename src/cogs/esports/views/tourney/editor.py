@@ -4,7 +4,7 @@ from models import Tourney
 
 from ...helpers import tourney_work_role
 
-from utils import regional_indicator as ri, inputs, truncate_string
+from utils import regional_indicator as ri, inputs, truncate_string, emote
 
 from constants import EsportsRole
 from string import ascii_uppercase
@@ -219,7 +219,10 @@ class TourneyEditor(EsportsBaseView):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ask_embed(
-            "What message do you want me to show for successful registration?\n\n`Kindly keep it under 350 characters.`"
+            "What message do you want me to show for successful registration? This message will be sent to "
+            "DM of players who register successfully.\n\n**Current Success Message:**"
+            f"```{self.tourney.success_message if self.tourney.success_message else 'Not Set Yet.'}```"
+            "\n`Kindly keep it under 350 characters. Enter none to remove it.`"
         )
 
         msg = await inputs.string_input(self.ctx, self.check, delete_after=True)
@@ -228,10 +231,15 @@ class TourneyEditor(EsportsBaseView):
         msg = truncate_string(msg, 350)
         if msg.lower().strip() == "none":
             msg = None
+            await self.ctx.success("Removed Success Message.", 3)
 
-        await self.ctx.send("Success Message Updated.", delete_after=2)
+        elif msg.lower().strip() == "cancel":
+            return
+
+        if msg != None:
+            await self.ctx.success("Success Message Updated.", 3)
         await self.update_tourney(success_message=msg)
 
-    @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="tourney_stop_view", emoji="❌", row=3)
+    @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="tourney_stop_view", emoji=emote.trash, row=3)
     async def stop_view(self, button: discord.Button, interaction: discord.Interaction):
         await self.on_timeout()

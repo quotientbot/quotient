@@ -75,7 +75,6 @@ class TourneyGroupManager(EsportsBaseView):
     @discord.ui.button(custom_id="give_group_roles", label="Give Roles")
     async def give_group_roles(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-
         if not len(self.ctx.guild.roles) < 245:
             return await self.error_embed(
                 "Your server is about to hit the max roles limit (250 roles), please delete some first."
