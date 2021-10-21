@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from ...views.base import EsportsBaseView
 
 from models import Tourney, TMSlot
@@ -10,6 +12,7 @@ if TYPE_CHECKING:
     from core import Quotient
 
 from utils import inputs, get_chunks, emote, QuoRole
+from humanize import precisedelta
 
 from discord.ext import commands
 from core import Context
@@ -127,26 +130,56 @@ class TourneyGroupManager(EsportsBaseView):
 
         m: discord.Message = await self.ctx.send(embed=_e)
 
+        _t = datetime.now()
+
         for _group in _split:
             group, role = _group.strip().strip(",").split(",")
             group = int(group)
 
             try:
-                role = await QuoRole().convert(self.ctx, role)
+                role = await QuoRole().convert(self.ctx, role := role.strip())
                 _e.description += f"{emote.check} {role.mention} Found...\n"
                 await m.edit(embed=_e)
 
+                if not role < self.ctx.guild.me.top_role:
+                    _e.description += f"{emote.error} Skipping {role.mention}, because it is above my highest role ({self.ctx.guild.me.top_role.mention}).\n"
+                    await m.edit(embed=_e)
+                    continue
+
             except commands.RoleNotFound:
                 _e.description += f"{emote.xmark} {role} Not Found, Creating new role..\n"
-                role = await self.ctx.guild.create_role(name=group, reason=f"Created by {self.ctx.author} for grouping")
+                role = await self.ctx.guild.create_role(name=role, reason=f"Created by {self.ctx.author} for grouping")
 
             _e.description += f"{emote.check} {role.mention} Assigning to team leaders of Group {group}\n"
+            await m.edit(embed=_e)
 
-            await asyncio.sleep(0.5)
+            actual_group: List[TMSlot] | None = await self.tourney.get_group(group, self.size)
 
-        _e.description += f"{emote.check} Done!\n"
+            try:
+                counter = 0
+                for _slot in actual_group:
+                    member = self.ctx.guild.get_member(_slot.leader_id)
+                    if member:
+                        counter += 1
+                        if not role in member.roles:
+                            self.bot.loop.create_task(
+                                member.add_roles(role, reason=f"Given by {self.ctx.author} for tourney grouping")
+                            )
+
+                _e.description += f"{emote.check} {counter} people are given {role.mention}\n"
+                await m.edit(embed=_e)
+                counter = 0
+
+            except TypeError:
+                _e.description += f"{emote.xmark} Group {group} is empty.\n"
+                await m.edit(embed=_e)
+                continue
+
+            await asyncio.sleep(1)
+
+        _e.description += f"{emote.check} Done! (Time taken: {precisedelta(datetime.now()-_t)})\n"
         await m.edit(embed=_e)
-        await self.ctx.safe_delete(m, 5)
+        await self.ctx.safe_delete(m, 10)
 
 
 class GroupListView(EsportsBaseView):

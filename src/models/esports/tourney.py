@@ -1,10 +1,12 @@
-from tortoise import models, fields, exceptions, validators
+from tortoise import fields, exceptions
 from discord.ext.commands import BadArgument
 
 from typing import Optional
 from models.helpers import *
 
 from models import BaseDbModel
+
+from utils import split_list
 
 import discord
 
@@ -44,7 +46,7 @@ class Tourney(BaseDbModel):
 
     slotm_channel_id = fields.BigIntField(null=True)
     slotm_message_id = fields.BigIntField(null=True)
-    
+
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 
@@ -123,6 +125,15 @@ class Tourney(BaseDbModel):
     @staticmethod
     def is_ignorable(member: discord.Member):
         return "tourney-mod" in (role.name for role in member.roles)
+
+    async def get_groups(self, size: int):
+        return split_list(await self.assigned_slots.all().order_by("num"), size)
+
+    async def get_group(self, num: int, size: int):
+        _list = await self.get_groups(size)
+        for _chunk in _list:
+            if _list.index(_chunk) == num - 1:
+                return _chunk
 
 
 class TMSlot(BaseDbModel):
