@@ -96,7 +96,7 @@ class TourneySlotManager(discord.ui.View):
                 self.bot.loop.create_task(interaction.user.remove_roles(self.tourney.role))
 
             await slot.delete()
-            return await interaction.followup.send(f"{emote.check} | Your slot was removed.",ephemeral=True)
+            return await interaction.followup.send(f"{emote.check} | Your slot was removed.", ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Slots")
     async def _slots_info(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -113,8 +113,6 @@ class TourneySlotManager(discord.ui.View):
         embed.description = f"Your have the following slots in {self.tourney}:\n\n"
 
         for idx, slot in enumerate(_slots, start=1):
-            embed.description += (
-                f"**[`{idx}.`]({config.SERVER_LINK}) {slot.team_name.title()} ([Slot {slot.num}]({slot.jump_url}))**\n"
-            )
+            embed.description += f"`{idx}.` **{slot.team_name.title()}** (**[Slot {slot.num}]({slot.jump_url})**)\n"
 
         return await interaction.followup.send(embed=embed, ephemeral=True)
