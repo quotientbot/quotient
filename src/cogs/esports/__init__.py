@@ -1061,6 +1061,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="slotmanager")
     @checks.can_use_tm()
     @checks.has_done_setup()
+    @commands.bot_has_permissions(embed_links=True)
     @commands.bot_has_guild_permissions(manage_channels=True)
     async def tourney_slotmanager(self, ctx: Context, tourney: Tourney):
         """Get info about current slotmanager or create new one"""

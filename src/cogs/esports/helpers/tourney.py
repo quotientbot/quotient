@@ -126,7 +126,7 @@ async def csv_tourney_data(tourney: Tourney):
 
     _x = "Reg Posi;Team Name;Leader;Leader ID;Teammates;Teammates in Server;Jump URL\n"
 
-    async for _slot in tourney.assigned_slots.all():
+    async for _slot in tourney.assigned_slots.all().order_by("num"):
         _x += f"{_slot_info(_slot)}\n"
 
     fp = io.BytesIO(_x.encode())
