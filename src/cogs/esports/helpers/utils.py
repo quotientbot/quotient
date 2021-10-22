@@ -186,21 +186,6 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
         ctx.bot.loop.create_task(ctx.wait_and_purge(ctx.channel, check=check))
 
 
-async def tourney_end_process(ctx, tourney: Tourney) -> NoReturn:
-    closed_at = datetime.now(tz=constants.IST)
-
-    registration_channel = tourney.registration_channel
-    open_role = tourney.open_role
-
-    await Tourney.filter(pk=tourney.id).update(started_at=None, closed_at=closed_at)
-    channel_update = await toggle_channel(registration_channel, open_role, False)
-    await registration_channel.send(
-        embed=discord.Embed(color=ctx.bot.color, description="**Registration is now closed!**")
-    )
-
-    ctx.bot.dispatch("tourney_log", constants.EsportsLog.closed, tourney, permission_updated=channel_update)
-
-
 async def purge_channel(channel):
     with suppress(AttributeError, discord.Forbidden, discord.NotFound, discord.HTTPException):
         await channel.purge(limit=100, check=lambda x: not x.pinned)

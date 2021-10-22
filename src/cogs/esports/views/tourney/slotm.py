@@ -113,6 +113,8 @@ class TourneySlotManager(discord.ui.View):
         embed.description = f"Your have the following slots in {self.tourney}:\n\n"
 
         for idx, slot in enumerate(_slots, start=1):
-            embed.description += f"`{idx}.` **{slot.team_name.title()}** (**[Slot {slot.num}]({slot.jump_url})**)\n"
+            embed.description += (
+                f"`{idx}.` **{slot.team_name.title()}** (**[Slot {slot.num}]({slot.confirm_jump_url})**)\n"
+            )
 
         return await interaction.followup.send(embed=embed, ephemeral=True)

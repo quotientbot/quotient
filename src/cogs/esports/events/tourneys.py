@@ -13,7 +13,6 @@ from models import Tourney, TMSlot
 
 from ..helpers import (
     add_role_and_reaction,
-    tourney_end_process,
     before_registrations,
     cannot_take_registration,
     check_tourney_requirements,
@@ -71,7 +70,7 @@ class TourneyEvents(Cog):
             message_id=message.id,
         )
 
-        await tourney.add_assigned_slot(slot,ctx.message)
+        await tourney.add_assigned_slot(slot, ctx.message)
 
         self.bot.loop.create_task(tourney.finalize_slot(ctx))
 
@@ -83,7 +82,7 @@ class TourneyEvents(Cog):
         )
 
         if tourney.total_slots <= await tourney.assigned_slots.all().count():
-            await tourney_end_process(ctx, tourney)
+            await tourney.end_process()
 
     @Cog.listener("on_message")
     async def on_tourney_registration(self, message: discord.Message):

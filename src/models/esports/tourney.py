@@ -17,6 +17,8 @@ _dict = {
 }
 
 from core import Context
+from datetime import datetime
+from constants import IST, EsportsLog
 
 
 class Tourney(BaseDbModel):
@@ -174,6 +176,23 @@ class Tourney(BaseDbModel):
             if self.success_message:
                 embed = ctx.bot.embed(ctx, title="Tournament Registration Successful", description=self.success_message)
                 await ctx.author.send(embed=embed)
+
+    async def end_process(self):
+
+        from cogs.esports.helpers.utils import toggle_channel
+
+        closed_at = datetime.now(tz=IST)
+
+        registration_channel = self.registration_channel
+        open_role = self.open_role
+
+        await Tourney.filter(pk=self.id).update(started_at=None, closed_at=closed_at)
+        channel_update = await toggle_channel(registration_channel, open_role, False)
+        await registration_channel.send(
+            embed=discord.Embed(color=self.bot.color, description="**Registration is now closed!**")
+        )
+
+        self.bot.dispatch("tourney_log", EsportsLog.closed, self, permission_updated=channel_update)
 
 
 class TMSlot(BaseDbModel):
