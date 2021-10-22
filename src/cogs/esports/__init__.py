@@ -1165,7 +1165,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_tm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
-    async def tourney_stop(self, ctx, tourney: Tourney):
+    async def tourney_stop(self, ctx: Context, tourney: Tourney):
         """Stop / Pause a tournament."""
         if tourney.closed_at is not None:
             raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already closed.")
@@ -1195,7 +1195,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="ban")
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_ban(self, ctx, tourney: Tourney, user: discord.User):
+    async def tourney_ban(self, ctx: Context, tourney: Tourney, user: discord.User):
         """Ban someone from the tournament"""
         if user.id in tourney.banned_users:
             return await ctx.send(
@@ -1208,7 +1208,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="unban")
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_unban(self, ctx, tourney: Tourney, user: discord.User):
+    async def tourney_unban(self, ctx: Context, tourney: Tourney, user: discord.User):
         """Unban a banned user from tournament."""
         if user.id not in tourney.banned_users:
             return await ctx.send(
@@ -1266,7 +1266,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    async def quickidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
+    async def quickidp(self, ctx: Context, room_id, password, map, role_to_ping: QuoRole = None):
         """
         Share Id/pass with embed quickly.
         Message is automatically deleted after 30 minutes.
@@ -1289,7 +1289,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(7, 1, type=commands.BucketType.guild)
-    async def customidp(self, ctx, channel: QuoTextChannel, role_to_ping: QuoRole = None):
+    async def customidp(self, ctx: Context, channel: QuoTextChannel, role_to_ping: QuoRole = None):
         """Share customized Id/pass message."""
         if not (
             channel.permissions_for(ctx.me).send_messages

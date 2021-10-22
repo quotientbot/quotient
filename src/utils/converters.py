@@ -218,13 +218,13 @@ class QuoCategory(commands.Converter):
             raise commands.ChannelNotFound(argument)
 
 
-class QuoTextChannel(commands.Converter):
-    async def convert(self, ctx, argument):
+class QuoTextChannel(commands.Converter, discord.TextChannel):
+    async def convert(self, ctx:commands.Context, argument):
         try:
             return await commands.TextChannelConverter().convert(ctx, argument)
         except commands.ChannelNotFound:
 
-            def check(channel):
+            def check(channel: discord.TextChannel):
                 return channel.name.lower() == argument.lower()
 
             if found := discord.utils.find(check, ctx.guild.text_channels):
