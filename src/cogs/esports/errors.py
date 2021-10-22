@@ -149,28 +149,11 @@ class SMError(Cog):
                 embed.description += f"\nI couldn't close {registration_channel.mention}."
 
         elif _type == EsportsLog.success:
-            message = kwargs.get("message")
-
-            confirmation = tourney.confirm_channel
-
-            if confirmation is not None:
-                slot = kwargs.get("assigned_slot")
-                num = kwargs.get("num")
-                e = discord.Embed(
-                    color=self.bot.color,
-                    description=f"**{num}) NAME: [{slot.team_name.upper()}]({message.jump_url})**\n",
-                )
-                if len(message.mentions) > 0:
-                    e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
-
-                await confirmation.send(
-                    content=message.author.mention,
-                    embed=e,
-                    allowed_mentions=discord.AllowedMentions(users=True),
-                )
-
-                embed.color = discord.Color.green()
-                embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
+            message: discord.Message = kwargs.get("message")
+            embed.color = discord.Color.green()
+            embed.description = (
+                f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
+            )
 
         with suppress(discord.Forbidden, AttributeError):
             await logschan.send(

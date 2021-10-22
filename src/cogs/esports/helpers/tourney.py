@@ -46,6 +46,7 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
         not me.guild_permissions.manage_roles
         or role > message.guild.me.top_role
         or not channel.permissions_for(me).add_reactions
+        or not channel.permissions_for(me).use_external_emojis
     ):
         return False
     return True
@@ -77,11 +78,6 @@ async def check_tourney_requirements(bot, message: discord.Message, tourney: Tou
         bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
 
     return _bool
-
-
-async def send_success_message(ctx: Context, text: str):
-    embed = ctx.bot.embed(ctx, title="Registration Successful", description=text)
-    await ctx.message.reply(embed=embed, delete_after=10)
 
 
 async def t_ask_embed(ctx, value, description: str):

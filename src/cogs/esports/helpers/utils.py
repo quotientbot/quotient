@@ -124,7 +124,14 @@ async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, T
         embed = discord.Embed(
             color=discord.Color.red(), description=f"**Registration couldn't be accepted in {message.channel.mention}**"
         )
-        embed.description += f"\nPossible reasons are:\n> I don't have add reaction permission in the channel\n> I don't have manage_roles permission in the server\n> My top role({message.guild.me.top_role.mention}) is below {obj.role.mention}"
+        embed.description += (
+            "\nPossible reasons are:\n"
+            "> I don't have add reaction permission in the channel\n"
+            "> I don't have manage_roles permission in the server\n"
+            f"> My top role({message.guild.me.top_role.mention}) is below {obj.role.mention}\n"
+            "> I don't have use external emojis permission in the channel."
+        )
+
         await logschan.send(
             content=getattr(obj.modrole, "mention", None),
             embed=embed,

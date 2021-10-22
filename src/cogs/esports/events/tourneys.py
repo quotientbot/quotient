@@ -23,6 +23,8 @@ from ..helpers import (
 from unicodedata import normalize
 from constants import EsportsLog, RegDeny
 
+from tortoise.exceptions import DoesNotExist
+
 import discord
 import asyncio
 import utils
@@ -36,10 +38,16 @@ class TourneyEvents(Cog):
     async def __process_tourney_message(self, message: discord.Message, tourney: Tourney, *, check_duplicate=True):
         """
         Processes a message that is a tourney message.
+
+        :param check_duplicate: In case we want a message to be processed without these checks.
         """
+
         teamname = utils.find_team(message)
 
-        tourney = await Tourney.get_or_none(pk=tourney.id)  # Refetch Tourney to check get its updated instance
+        try:
+            await tourney.refresh_from_db()  # Refetch Tourney to check get its updated instance
+        except DoesNotExist:
+            return
 
         if not tourney or tourney.closed:  # Tourney is deleted or not opened.
             return
@@ -51,36 +59,31 @@ class TourneyEvents(Cog):
 
         ctx = await self.bot.get_context(message)
 
-        assigned_slots = await tourney.assigned_slots.order_by("-id").first()
+        assigned_slots = await tourney.assigned_slots.order_by("-num").first()
 
         numb = 0 if assigned_slots is None else assigned_slots.num
 
-        slot = await TMSlot.create(
+        slot = TMSlot(
             leader_id=ctx.author.id,
             team_name=teamname,
             num=numb + 1,
             members=[m.id for m in message.mentions],
             jump_url=message.jump_url,
-            message_id=message.id,  # TODO: add confirm_jump_url too
+            message_id=message.id,
         )
 
-        await tourney.assigned_slots.add(slot)
+        await tourney.add_assigned_slot(slot)
 
-        self.bot.loop.create_task(add_role_and_reaction(ctx, tourney.role))
-
-        if tourney.success_message:
-            self.bot.loop.create_task(send_success_message(ctx, tourney.success_message))
+        self.bot.loop.create_task(tourney.finalize_slot(ctx))
 
         self.bot.dispatch(
             "tourney_log",
             EsportsLog.success,
             tourney,
             message=ctx.message,
-            assigned_slot=slot,
-            num=numb + 1,
         )
 
-        if tourney.total_slots == numb + 1:  # TODO: check if actually slots are full.
+        if tourney.total_slots <= await tourney.assigned_slots.all().count():
             await tourney_end_process(ctx, tourney)
 
     @Cog.listener("on_message")

@@ -1,3 +1,4 @@
+from contextlib import suppress
 from tortoise import fields, exceptions
 from discord.ext.commands import BadArgument
 
@@ -14,6 +15,8 @@ _dict = {
     "tick": "✅",
     "cross": "❌",
 }
+
+from core import Context
 
 
 class Tourney(BaseDbModel):
@@ -40,7 +43,7 @@ class Tourney(BaseDbModel):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
-    success_message = fields.CharField(max_length=350, null=True)
+    success_message = fields.CharField(max_length=500, null=True)
 
     emojis = fields.JSONField(default=_dict)
 
@@ -134,6 +137,35 @@ class Tourney(BaseDbModel):
         for _chunk in _list:
             if _list.index(_chunk) == num - 1:
                 return _chunk
+
+    async def add_assigned_slot(self, slot: "TMSlot", message: discord.Message):
+        _e = discord.Embed(color=0x00FFB3)
+        _e.description = f"**{slot.num}) NAME: [{slot.team_name.upper()}]({slot.jump_url})**\n"
+
+        if len(message.mentions) > 0:
+            _e.description += f"Team: {', '.join([str(m) for m in message.mentions])}"
+
+        if _chan := self.confirm_channel:
+            m = await _chan.send(
+                content=message.author.mention, embed=_e, allowed_mentions=discord.AllowedMentions(users=True)
+            )
+
+            slot.confirm_jump_url = m.jump_url
+
+            await slot.save()
+            await self.assigned_slots.add(slot)
+
+    async def finalize_slot(self, ctx: Context):
+        """
+        Add role to user and reaction to the message
+        """
+        with suppress(discord.HTTPException):
+            await ctx.author.add_roles(self.role)
+            await ctx.message.add_reaction(self.check_emoji)
+
+            if self.success_message:
+                embed = ctx.bot.embed(ctx, title="Tournament Registration Successful", description=self.success_message)
+                await ctx.author.send(embed=embed)
 
 
 class TMSlot(BaseDbModel):
