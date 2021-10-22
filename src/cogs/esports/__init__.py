@@ -46,7 +46,6 @@ from discord.ext import commands
 
 from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents
 from .errors import ScrimError, SMError, TourneyError, PointsError
-from prettytable import PrettyTable
 
 import discord
 import config
@@ -966,7 +965,7 @@ class ScrimManager(Cog, name="Esports"):
         )
         if not prompt:
             return await ctx.success(f"Alright! Aborting")
-        
+
         self.bot.tourney_channels.discard(tourney.registration_channel_id)
         await tourney.delete()
 
@@ -975,8 +974,6 @@ class ScrimManager(Cog, name="Esports"):
                 await tourney.slotm_channel.delete()
 
         await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
-
-
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
@@ -1045,7 +1042,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_tm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def tourney_list(self, ctx):
+    async def tourney_list(self, ctx: Context):
         """A list of all running tournaments."""
         records = await Tourney.filter(guild_id=ctx.guild.id).all()
         if not records:
@@ -1060,6 +1057,39 @@ class ScrimManager(Cog, name="Esports"):
             e.description += f"`{count}. ` | **{i}**\n"
 
         await ctx.send(embed=e)
+
+    @tourney.command(name="slotmanager")
+    @checks.can_use_tm()
+    @checks.has_done_setup()
+    @commands.bot_has_guild_permissions(manage_channels=True)
+    async def tourney_slotmanager(self, ctx: Context, tourney: Tourney):
+        """Get info about current slotmanager or create new one"""
+
+        if _channel := tourney.slotm_channel:
+            try:
+                await _channel.fetch_message(tourney.slotm_message_id)
+                return await ctx.simple(f"Current slotmanager channel for {tourney} is {_channel.mention}.")
+            except discord.NotFound:
+                pass
+
+        _view = TourneySlotManager(self.bot, tourney=tourney)
+
+        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
+
+        _category = tourney.registration_channel.category
+        overwrites = {
+            ctx.guild.default_role: discord.PermissionOverwrite(
+                read_messages=True, send_messages=False, read_message_history=True
+            ),
+            ctx.guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
+        }
+        slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
+
+        _e = TourneySlotManager.initial_embed(tourney)
+        slotm_message = await slotm_channel.send(embed=_e, view=_view)
+
+        await tourney.get(pk=tourney.id).update(slotm_channel_id=slotm_channel.id, slotm_message_id=slotm_message.id)
+        await ctx.success(f"Slotmanager channel for {tourney} created successfully. ({slotm_channel.mention})")
 
     @tourney.command(name="rmslot", aliases=("deleteslot",))
     @checks.can_use_tm()
