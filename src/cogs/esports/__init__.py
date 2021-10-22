@@ -1306,11 +1306,6 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command()
-    async def format(self, ctx, *, registration_form):
-        """Get your reg-format in a reusable form."""
-        await ctx.send(f"```{registration_form}```")
-
-    @commands.command()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
     async def quickidp(self, ctx, room_id, password, map, role_to_ping: QuoRole = None):
