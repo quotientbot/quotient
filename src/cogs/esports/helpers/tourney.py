@@ -104,7 +104,7 @@ async def update_confirmed_message(tourney: Tourney, link: str):
         except IndexError:
             return
 
-        e.description = "~~" + e.description.split() + "~~"
+        e.description = "~~" + e.description.strip() + "~~"
         e.title = "Cancelled Slot"
         e.color = discord.Color.red()
 

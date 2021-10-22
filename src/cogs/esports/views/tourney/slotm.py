@@ -96,7 +96,7 @@ class TourneySlotManager(discord.ui.View):
                 self.bot.loop.create_task(interaction.user.remove_roles(self.tourney.role))
 
             await slot.delete()
-            return await interaction.followup.send(f"{emote.check} | Your slot was removed.")
+            return await interaction.followup.send(f"{emote.check} | Your slot was removed.",ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Slots")
     async def _slots_info(self, button: discord.ui.Button, interaction: discord.Interaction):

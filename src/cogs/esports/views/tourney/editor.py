@@ -222,7 +222,8 @@ class TourneyEditor(EsportsBaseView):
             "What message do you want me to show for successful registration? This message will be sent to "
             "DM of players who register successfully.\n\n**Current Success Message:**"
             f"```{self.tourney.success_message if self.tourney.success_message else 'Not Set Yet.'}```"
-            "\n`Kindly keep it under 350 characters. Enter none to remove it.`"
+            "\n`Kindly keep it under 350 characters. Enter none to remove it.`",
+            image="https://cdn.discordapp.com/attachments/851846932593770496/900977642382163988/unknown.png"
         )
 
         msg = await inputs.string_input(self.ctx, self.check, delete_after=True)

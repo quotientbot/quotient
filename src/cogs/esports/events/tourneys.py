@@ -17,7 +17,6 @@ from ..helpers import (
     before_registrations,
     cannot_take_registration,
     check_tourney_requirements,
-    send_success_message,
     get_tourney_slots,
 )
 from unicodedata import normalize
@@ -72,7 +71,7 @@ class TourneyEvents(Cog):
             message_id=message.id,
         )
 
-        await tourney.add_assigned_slot(slot)
+        await tourney.add_assigned_slot(slot,ctx.message)
 
         self.bot.loop.create_task(tourney.finalize_slot(ctx))
 

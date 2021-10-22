@@ -90,6 +90,11 @@ class Tourney(BaseDbModel):
             return g.get_channel(self.confirm_channel_id)
 
     @property
+    def slotm_channel(self) -> Optional[discord.TextChannel]:
+        if (g := self.guild) is not None:
+            return g.get_channel(self.slotm_channel_id)
+
+    @property
     def closed(self):
         return bool(self.closed_at)
 
@@ -160,7 +165,10 @@ class Tourney(BaseDbModel):
         Add role to user and reaction to the message
         """
         with suppress(discord.HTTPException):
-            await ctx.author.add_roles(self.role)
+
+            if not (_role := self.role) in ctx.author.roles:
+                await ctx.author.add_roles(_role)
+
             await ctx.message.add_reaction(self.check_emoji)
 
             if self.success_message:

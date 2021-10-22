@@ -958,18 +958,25 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="delete")
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_delete(self, ctx, tourney_id: Tourney):
+    async def tourney_delete(self, ctx, tourney: Tourney):
         """Delete a tournament"""
-        tourney = tourney_id
+
         prompt = await ctx.prompt(
-            f"Are you sure you want to delete tournament `{tourney.id}`?",
+            f"Are you sure you want to delete tournament `{tourney.id}`?\n\n*This action is irreversible.*"
         )
-        if prompt:
-            self.bot.tourney_channels.discard(tourney.registration_channel_id)
-            await tourney.delete()
-            await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
-        else:
-            await ctx.success(f"Alright! Aborting")
+        if not prompt:
+            return await ctx.success(f"Alright! Aborting")
+        
+        self.bot.tourney_channels.discard(tourney.registration_channel_id)
+        await tourney.delete()
+
+        if tourney.slotm_channel_id:
+            with suppress(discord.HTTPException):
+                await tourney.slotm_channel.delete()
+
+        await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
+
+
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
