@@ -1,23 +1,23 @@
 from ...views.base import EsportsBaseView
 from models import Tourney, MediaPartner
 
-from utils import integer_input, channel_input, aenumerate
+from utils import integer_input, channel_input, aenumerate, channel_input
 from core import Context
 import discord
 
 
 class MediaPartnerView(EsportsBaseView):
     def __init__(self, ctx: Context, *, tourney: Tourney):
-        super().__init__(ctx, timeout=60, title="Tourney Media Partner")
+        super().__init__(ctx, timeout=30, title="Tourney Media Partner")
         self.tourney = tourney
         self.ctx = ctx
 
     @staticmethod
     async def initial_embed(ctx: Context, tourney: Tourney) -> discord.Embed:
         embed: discord.Embed = ctx.bot.embed(ctx, title="Tournament Media Partnership")
-        embed.description = "Media Partner is a way to add partnership channel.\n\n"
+        embed.description = "Media Partner ...\n\n"
         async for idx, partner in aenumerate(tourney.media_partners.all(), start=1):
-            embed.description += f"`{idx:02}` {getattr(partner.channel,'mention','deletd-channel')} - **{len(partner.player_ids)} players**\n"
+            embed.description += f"`{idx:02}` {getattr(partner.channel,'mention','deletd-channel')} - **{await partner.slots.all().count()} players**\n"
 
         return embed
 
@@ -30,7 +30,7 @@ class MediaPartnerView(EsportsBaseView):
         except discord.HTTPException:
             await self.on_timeout()
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="add_media_partner", label="Add Media Partner")
+    @discord.ui.button(custom_id="add_media_partner", label="Add New")
     async def add_partner(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -77,24 +77,26 @@ class MediaPartnerView(EsportsBaseView):
         if tourney_check:
             return await self.error_embed(f"{str(tourney)} is already media-partnered in other channel.")
 
-        partner = await MediaPartner.create(
-            tourney_id=tourney.id, channel_id=channel.id, mentions=self.tourney.required_mentions
-        )
+        partner = await MediaPartner.create(tourney_id=tourney.id, channel_id=channel.id)
         await self.tourney.media_partners.add(partner)
         await self.__refresh_embed()
 
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="edit_tourney_partner", label="Edit Partner")
-    async def edit_partner(self, button: discord.Button, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
-    @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="remove_mp", label="Remove Media Partner", row=2)
+    @discord.ui.button(custom_id="remove_mp", label="Remove")
     async def remove_partner(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ask_embed(
-            "Which channel do you want to remove from media partner?\n\n" "`Note that this is irreversible and;m;mlnb ,`"
+            "Which channel do you want to remove from media partner?\n\n"
+            "`Note that this will not impact slots in anyway.`"
         )
 
-    @discord.ui.button(custom_id="stop_partner_view", emoji="<:trashcan:896382424529907742>", row=2)
-    async def remove_partner_view(self, button: discord.Button, interaction: discord.Interaction):
-        await self.on_timeout()
+        _channel = await channel_input(self.ctx, self.check, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        if not await self.tourney.media_partners.filter(pk=_channel.id).exists():
+            return await self.error_embed("This is not a media-partner channel of {0}".format(self.tourney))
+
+        self.bot.media_partner_channels.discard(_channel.id)
+        await MediaPartner.filter(pk=_channel.id).delete()
+        await self.ctx.success(f"Removed {_channel.mention} from Media-Partner Channels.", 3)
+        await self.__refresh_embed()

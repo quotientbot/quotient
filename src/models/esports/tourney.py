@@ -214,8 +214,6 @@ class MediaPartner(BaseDbModel):
 
     channel_id = fields.BigIntField(pk=True, generated=False)
     tourney_id = fields.IntField()
-    role_id = fields.BigIntField(null=True)
-    mentions = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 11))])
     slots: fields.ManyToManyRelation["PartnerSlot"] = fields.ManyToManyField("models.PartnerSlot")
 
     @property
