@@ -46,7 +46,8 @@ class EditTourneyEmoji(EsportsBaseView):
         e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/888097255607906354/unknown.png")
         e.set_footer(text="The first emoji must be the emoji for tick mark.")
 
-        await interaction.followup.send(embed=e, ephemeral=True)
+        m = await interaction.followup.send(embed=e)
+        await self.ctx.safe_delete(m)
 
         emojis = await string_input(self.ctx, self.check, delete_after=True)
 

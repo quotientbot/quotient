@@ -64,7 +64,7 @@ class SMError(Cog):
         text = f"Registration of [{str(message.author)}]({message.jump_url}) has been denied in {message.channel.mention}\n**Reason:** "
 
         with suppress(discord.NotFound, discord.NotFound, AttributeError, discord.HTTPException):
-            await message.add_reaction("\N{CROSS MARK}")
+            await message.add_reaction(tourney.cross_emoji)
 
             if _type == RegDeny.botmention:
                 await message.reply(
