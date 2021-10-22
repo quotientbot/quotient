@@ -51,9 +51,8 @@ class TourneyEvents(Cog):
             return
 
         if tourney.no_duplicate_name and check_duplicate:
-            async for slot in tourney.assigned_slots.all():
-                if slot.team_name == teamname:
-                    return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
+            if await tourney.assigned_slots.filter(team_name=teamname).exists():
+                return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
 
         ctx = await self.bot.get_context(message)
 
