@@ -65,7 +65,9 @@ class TourneyGroupManager(EsportsBaseView):
             e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
-                e.description += f"`{count:02}` • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
+                e.description += (
+                    f"[`{count:02}`]({_slot.confirm_jump_url}) • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
+                )
 
             _list.append(e)
 
