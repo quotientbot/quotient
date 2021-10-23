@@ -1,10 +1,16 @@
-import discord
-import traceback
-from core import Cog, Quotient
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+from core import Cog, Context
 from utils import exceptions
 from constants import random_greeting
 from discord.ext import commands
-from discord.ext.commands import errors
+
+import discord
 
 
 class Errors(Cog):
@@ -12,9 +18,9 @@ class Errors(Cog):
         self.bot = bot
 
     @Cog.listener()
-    async def on_command_error(self, ctx, err):
+    async def on_command_error(self, ctx: Context, err):
 
-        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.errors.NotFound)
+        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.NotFound)
 
         if isinstance(err, ignored):
             return
@@ -25,7 +31,7 @@ class Errors(Cog):
         if isinstance(err, exceptions.QuotientError):
             return await ctx.error(err.__str__().format(ctx=ctx))
 
-        if isinstance(err, errors.MissingRequiredArgument):
+        if isinstance(err, commands.MissingRequiredArgument):
             return await ctx.send(
                 f"{random_greeting()}, You missed the `{err.param.name}` argument.\n\nDo it like: `{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}`"
             )
@@ -63,7 +69,7 @@ class Errors(Cog):
         elif isinstance(err, commands.MaxConcurrencyReached):
             return await ctx.error(f"This command is already running in this server. You have wait for it to finish.")
 
-        elif isinstance(err, errors.CommandOnCooldown):
+        elif isinstance(err, commands.CommandOnCooldown):
             if await ctx.bot.is_owner(ctx.author):
                 return await ctx.reinvoke()
             return await ctx.send(f"You are in cooldown.\n\nTry again in `{err.retry_after:.2f}` seconds.")
