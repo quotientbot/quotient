@@ -6,23 +6,24 @@ import utils, io
 
 from async_property import async_property
 from models import BanLog
-
+import config as cfg
 
 class Context(commands.Context):
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.pool = self.bot.db
+
 
     @property
     def db(self):
-        return self.pool
+        return self.bot.db
 
     @property
     def session(self):
         return self.bot.session
 
     @property
-    def config(self):
+    def config(self) -> cfg:
         return self.bot.config
 
     @async_property
