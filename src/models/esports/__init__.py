@@ -2,5 +2,6 @@
 from .scrims import *
 from .tourney import *
 from .slots import *
-from .ssverify import *
+
+# from .ssverify import *
 from .tagcheck import *
