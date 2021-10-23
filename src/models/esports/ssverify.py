@@ -11,8 +11,7 @@ class SSVerify(BaseDbModel):
 
     id = fields.IntField(pk=True, index=True)
     guild_id = fields.BigIntField()
-    msg_channel_id = fields.BigIntField(index=True)
-    log_channel_id = fields.BigIntField()
+    channel_id = fields.BigIntField(index=True)
     role_id = fields.BigIntField()
     required_ss = fields.IntField()
     channel_name = fields.CharField(max_length=50)
