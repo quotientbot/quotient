@@ -2,6 +2,7 @@ from __future__ import annotations
 from contextlib import suppress
 
 import typing
+from cogs.esports.helpers.tourney import get_tourney_from_channel
 
 from models.esports.tourney import MediaPartner
 
@@ -46,13 +47,16 @@ class TourneyEvents(Cog):
             await tourney.refresh_from_db()  # Refetch Tourney to check get its updated instance
         except DoesNotExist:
             return
-
+        print("tourney")
         if not tourney or tourney.closed:  # Tourney is deleted or not opened.
             return
 
         if tourney.no_duplicate_name and check_duplicate:
             if await tourney.assigned_slots.filter(team_name=teamname).exists():
                 return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
+
+        if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
+            return self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
 
         ctx = await self.bot.get_context(message)
 
@@ -163,24 +167,29 @@ class TourneyEvents(Cog):
 
     @Cog.listener(name="on_message")
     async def on_media_partner_message(self, message: discord.Message):
-        if not all((message.guild, not message.author.bot, message in self.bot.media_partner_channels)):
+        if not all((message.guild, not message.author.bot, message.channel.id in self.bot.media_partner_channels)):
             return
 
         media_partner = await MediaPartner.get_or_none(pk=message.channel.id)
         if not media_partner:
             return self.bot.media_partner_channels.discard(message.channel.id)
 
-        tourney = await Tourney.get_or_none()
+        tourney = await get_tourney_from_channel(message.guild.id, message.channel.id)
 
         if not tourney:
             return self.bot.media_partner_channels.discard(message.channel.id)
 
+        if tourney.started_at is None:
+            return
+
         if tourney.is_ignorable(message.author):
             return
 
-        if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
-            self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
-            return await message.add_reaction(tourney.cross_emoji)
+        if not await check_tourney_requirements(self.bot, message, tourney):
+            return
+
+        async with self.__tourney_lock:
+            await self.__process_tourney_message(message, tourney)
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):

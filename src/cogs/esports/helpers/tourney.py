@@ -6,7 +6,7 @@ from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
 
-from typing import List, TYPE_CHECKING
+from typing import List, TYPE_CHECKING, Optional
 
 from datetime import datetime
 
@@ -73,10 +73,6 @@ async def check_tourney_requirements(bot, message: discord.Message, tourney: Tou
         _bool = False
         bot.dispatch("tourney_registration_deny", message, RegDeny.banned, tourney)
 
-    elif message.author.id in get_tourney_slots(await tourney.assigned_slots.all()) and not tourney.multiregister:
-        _bool = False
-        bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
-
     return _bool
 
 
@@ -120,11 +116,11 @@ async def csv_tourney_data(tourney: Tourney):
         in_server = sum(1 for i in slot.members if i in (m.id for m in guild.members))
 
         return (
-            f"{slot.num};{slot.team_name};{str(guild.get_member(slot.leader_id))};"
-            f"'{slot.leader_id}';{_team};{in_server};{slot.jump_url}"
+            f"{slot.num},{slot.team_name},{str(guild.get_member(slot.leader_id))},"
+            f"'{slot.leader_id}',{_team},{in_server},{slot.jump_url}"
         )
 
-    _x = "Reg Posi;Team Name;Leader;Leader ID;Teammates;Teammates in Server;Jump URL\n"
+    _x = "Reg Posi,Team Name,Leader,Leader ID,Teammates,Teammates in Server,Jump URL\n"
 
     async for _slot in tourney.assigned_slots.all().order_by("num"):
         _x += f"{_slot_info(_slot)}\n"
@@ -132,3 +128,11 @@ async def csv_tourney_data(tourney: Tourney):
     fp = io.BytesIO(_x.encode())
 
     return discord.File(fp, filename=f"tourney_data_{tourney.id}_{datetime.now().timestamp()}.csv")
+
+
+async def get_tourney_from_channel(guild_id: int, channel_id: int) -> Optional[Tourney]:
+    tourneys = await Tourney.filter(guild_id=guild_id)
+
+    for tourney in tourneys:
+        if await tourney.media_partners.filter(pk=channel_id).exists():
+            return tourney
