@@ -95,7 +95,7 @@ class Context(commands.Context):
 
     async def is_premium_guild(self):
         with suppress(AttributeError):
-            return (await Guild.get(guild_id=self.guild.id).only("guild_id", "is_premium")).is_premium
+            return (await Guild.get(guild_id=self.guild.id)).is_premium
 
     async def send_file(self, content, *, name: str = "Message.txt", escape_mentions=True, **kwargs):
         """

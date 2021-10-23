@@ -3,21 +3,20 @@ import discord
 
 
 class PremiumView(discord.ui.View):
-    def __init__(self):
+    def __init__(self, text="*This feature requires you to have Quotient Premium.*"):
         super().__init__(timeout=None)
-
+        self.text = text
         self.add_item(
             discord.ui.Button(url="https://quotientbot.xyz/premium/buy", emoji=emote.diamond, label="Try Premium")
         )
 
-    @staticmethod
-    def premium_embed() -> discord.Embed:
+    def premium_embed(self) -> discord.Embed:
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
         )
 
         _e.description += (
-            "\n*This feature requires you to be a premium user.*\n\n**Quotient Premium includes:**\n"
+            f"\n{self.text}\n\n**Quotient Premium includes:**\n"
             "- Host Unlimited Scrims and Tournaments.\n"
             "- Unlimited tagcheck and easytag channels.\n"
             "- Custom footer and color of all embeds bot sends.\n"

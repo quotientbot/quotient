@@ -4,7 +4,7 @@ from datetime import datetime
 
 from ...views.base import EsportsBaseView
 
-from models import Tourney, TMSlot
+from models import Tourney, Guild
 
 from typing import TYPE_CHECKING, List
 
@@ -72,7 +72,7 @@ class TourneyGroupManager(EsportsBaseView):
             _list.append(e)
 
         _view = GroupListView(self.ctx, tourney=self.tourney, size=self.size, channel=_channel, embeds=_list)
-        await interaction.followup.send(embed=GroupListView.initial_embed(self.tourney), view=_view)
+        _view.message = await interaction.followup.send(embed=GroupListView.initial_embed(self.tourney), view=_view)
 
     @discord.ui.button(custom_id="give_group_roles", label="Give Roles")
     async def give_group_roles(self, button: discord.Button, interaction: discord.Interaction):
@@ -217,6 +217,13 @@ class GroupListView(EsportsBaseView):
     @discord.ui.button(custom_id="publish_g_hook", emoji="<a:diamond:899295009289949235>", label="Webhook (Recommended)")
     async def publish_groups_webhook(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+
+        if not await self.ctx.is_premium_guild():
+            from cogs.premium.views import PremiumView
+
+            _view = PremiumView()
+            return await interaction.followup.send(embed=_view.premium_embed(), view=_view)
+
         try:
             _webhook = await self.channel.create_webhook(
                 name="Quotient Group List", reason=f"Created by {self.ctx.author} to send group list"
