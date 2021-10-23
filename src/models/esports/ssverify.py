@@ -18,7 +18,7 @@ class SSVerify(BaseDbModel):
     channel_link = fields.CharField(max_length=150)
     logo_link = fields.CharField(max_length=150)
     ss_type = fields.CharEnumField(SSType)
-    success_message = fields.CharField(null=True, max_lenght=400)
+    success_message = fields.CharField(null=True, max_length=400)
     delete_after = fields.IntField(default=0)
     sstoggle = fields.BooleanField(default=True)
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
