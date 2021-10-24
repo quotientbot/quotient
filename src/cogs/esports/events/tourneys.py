@@ -256,7 +256,7 @@ class TourneyEvents(Cog):
                     if m:
                         self.bot.loop.create_task(m.remove_roles(tourney.role))
 
-            await slot.delete()
+                await slot.delete()
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):
