@@ -1099,7 +1099,9 @@ class ScrimManager(Cog, name="Esports"):
                 self.bot.loop.create_task(update_confirmed_message(self.tourney, slot.confirm_jump_url))
 
             if len(_slots) == 1:
-                self.bot.loop.create_task(user.remove_roles(tourney.role))
+                m = ctx.guild.get_member(user.id)
+                if m:
+                    self.bot.loop.create_task(m.remove_roles(tourney.role))
 
             await slot.delete()
 
