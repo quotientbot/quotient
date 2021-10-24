@@ -34,6 +34,9 @@ class MediaPartnerView(EsportsBaseView):
     async def add_partner(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        if await self.tourney.media_partners.all().count() >= 1 and not await self.ctx.is_premium_guild():
+            return await self.ctx.premium_mango("*You cannot have more than `1 Media-Partner` on free tier.*")
+
         m = await self.ask_embed("Enter the tourney ID of the tournament you want to partner with.")
 
         tourney_id = await integer_input(self.ctx, self.check, delete_after=True)

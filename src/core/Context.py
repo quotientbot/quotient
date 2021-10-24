@@ -8,11 +8,10 @@ from async_property import async_property
 from models import BanLog
 import config as cfg
 
+
 class Context(commands.Context):
-    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
 
     @property
     def db(self):
@@ -145,3 +144,9 @@ class Context(commands.Context):
 
         with suppress(discord.HTTPException):
             await channel.purge(limit=limit, check=check)
+
+    async def premium_mango(self, msg="*This feature requires you to have Quotient Premium.*"):
+        from cogs.premium.views import PremiumView
+
+        _view = PremiumView(msg)
+        await self.send(embed=_view.premium_embed, view=_view, embed_perms=True)

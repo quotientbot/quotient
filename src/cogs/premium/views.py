@@ -9,7 +9,8 @@ class PremiumView(discord.ui.View):
         self.add_item(
             discord.ui.Button(url="https://quotientbot.xyz/premium/buy", emoji=emote.diamond, label="Try Premium")
         )
-
+    
+    @property
     def premium_embed(self) -> discord.Embed:
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
