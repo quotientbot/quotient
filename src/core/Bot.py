@@ -23,6 +23,7 @@ import discord
 import mystbin
 import dbl
 import time
+import config as cfg
 
 from .HttpHandler import QuoHttpHandler
 
@@ -88,7 +89,7 @@ class Quotient(commands.AutoShardedBot):
         print(Fore.RED + "-----------------------------------------------------")
 
     @property
-    def config(self):
+    def config(self) -> cfg:
         """import and return config.py"""
         return __import__("config")
 

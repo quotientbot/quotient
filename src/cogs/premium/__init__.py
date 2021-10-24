@@ -1,13 +1,16 @@
-from core import Cog, Quotient, Context
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+from core import Cog, Context
 from discord.ext import commands
 from models import User, Redeem, Guild, ArrayAppend
-from prettytable import PrettyTable
 from utils import checks, strtime, IST
 from datetime import datetime, timedelta
-import constants
 import secrets
-import discord
-import textwrap
 
 
 class Premium(Cog):
@@ -18,15 +21,15 @@ class Premium(Cog):
     def reminders(self):  # yes I do this a lot.
         return self.bot.get_cog("Reminders")
 
-    async def create_valid_redeem(self) -> str:
-        while True:
-            code = "QR_" + str(secrets.token_urlsafe(5).replace("_", "").replace("-", ""))
+    # async def create_valid_redeem(self) -> str:
+    #     while True:
+    #         code = "QR_" + str(secrets.token_urlsafe(5).replace("_", "").replace("-", ""))
 
-            check = await Redeem.filter(code=code)
-            if not check:
-                break
+    #         check = await Redeem.filter(code=code)
+    #         if not check:
+    #             break
 
-        return code
+    #     return code
 
     # @commands.command()
     # @checks.is_premium_user()
@@ -119,9 +122,7 @@ class Premium(Cog):
         """Upgrade your server with Quotient Premium."""
         user = await User.get(user_id=ctx.author.id)
         if not user.premiums:
-            return await ctx.error(
-                f"You have redeemed all your boosts, use `{ctx.prefix}mycodes` to check if you have any unused codes."
-            )
+            return await ctx.error("You have no boosts left.")
 
         guild = await Guild.get(guild_id=ctx.guild.id)
 
@@ -132,7 +133,8 @@ class Premium(Cog):
             end_time = datetime.now(tz=IST) + timedelta(days=30)
 
         prompt = await ctx.prompt(
-            f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
+            f"This server will be upgraded with Quotient Premium till {strtime(end_time)}."
+            "\n\n*This action is irreversible.*",
             title="Are you sure you want to continue?",
         )
         if prompt:
