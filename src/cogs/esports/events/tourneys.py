@@ -47,7 +47,6 @@ class TourneyEvents(Cog):
             await tourney.refresh_from_db()  # Refetch Tourney to check get its updated instance
         except DoesNotExist:
             return
-        print("tourney")
         if not tourney or tourney.closed:  # Tourney is deleted or not opened.
             return
 
@@ -171,7 +170,7 @@ class TourneyEvents(Cog):
             return
 
         media_partner = await MediaPartner.get_or_none(pk=message.channel.id)
-        
+
         if not media_partner:
             return self.bot.media_partner_channels.discard(message.channel.id)
 
@@ -186,6 +185,31 @@ class TourneyEvents(Cog):
         if tourney.is_ignorable(message.author):
             return
 
+        partner_tourney = await Tourney.get_or_none(pk=media_partner.tourney_id)
+        if not partner_tourney:
+            _e = discord.Embed(
+                color=discord.Color.red(),
+                description=(
+                    f"{message.author.mention}, you can't register because partner tournament was deleted,\n"
+                    f"Kindly register directly through {tourney.registration_channel.mention}."
+                ),
+            )
+            await message.add_reaction(tourney.cross_emoji)
+            return await message.reply(embed=_e, delete_after=7)
+
+        if not message.author.id in get_tourney_slots(await partner_tourney.assigned_slots.all()):
+            await message.add_reaction(tourney.cross_emoji)
+
+            _e = discord.Embed(
+                color=discord.Color.red(),
+                description=(
+                    f"{message.author.mention}, you can't register through here because you didn't register in our "
+                    f"Media-Partner tourney running in {partner_tourney.guild}\n\n"
+                    f"Kindly register through {tourney.registration_channel.mention}."
+                ),
+            )
+            return await message.reply(embed=_e, delete_after=7)
+
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
 
@@ -196,7 +220,7 @@ class TourneyEvents(Cog):
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         message_id = payload.message_id
         _del = await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
-        
+
         tourney = None
         if not _del:
             if payload.channel_id in self.bot.media_partner_channels:
@@ -204,7 +228,7 @@ class TourneyEvents(Cog):
                 if media_partner:
                     tourney = await get_tourney_from_channel(payload.guild_id, payload.channel_id)
             elif payload.channel_id in self.bot.tourney_channels:
-                tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)        
+                tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
 
         if tourney:
             ...
