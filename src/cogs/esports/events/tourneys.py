@@ -71,7 +71,7 @@ class TourneyEvents(Cog):
                 members=[m.id for m in message.mentions],
             )
             await partner.slots.add(media_slot)
-        
+
         assigned_slots = await tourney.assigned_slots.order_by("-num").first()
 
         numb = 0 if assigned_slots is None else assigned_slots.num
@@ -289,3 +289,40 @@ class TourneyEvents(Cog):
                 if msg:
                     with suppress(discord.HTTPException, AttributeError):
                         await tourney.logschan.send(msg)
+
+    @Cog.listener()
+    async def on_guild_channel_update(self, before: discord.TextChannel, after: discord.TextChannel):
+        if before.name == after.name or not before.name == "quotient-tourney-logs":
+            return
+
+        if after.permissions_for(after.guild.me).manage_channels:
+            return await after.edit(name="quotient-tourney-logs", reason="tourney logging won't work if you rename this.")
+
+        _e = discord.Embed(
+            color=discord.Color.red(),
+            description=(
+                "Someone renamed this channel kindly rename it back to `quotient-tourney-logs`, "
+                "**Quotient Tourneys won't work without it.**"
+            ),
+        )
+        await after.send(embed=_e, content=after.guild.owner.mention)
+
+    @Cog.listener()
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+        if before.name == after.name or not before.name == "tourney-mod":
+            return
+
+        if after.guild.me.guild_permissions.manage_roles:
+            return await after.edit(name="tourney-mod", reason="tourney mod role won't work if you rename this.")
+
+        _e = discord.Embed(
+            color=discord.Color.red(),
+            description=(
+                f"Someone renamed Quotient's tourney-mod role to {after.mention}, kindly rename it back to `tourney-mod`."
+                "**Quotient Tourneys need the name of this role to be `tourney-mod`**"
+            ),
+        )
+
+        c = discord.utils.get(after.guild.text_channels, name="quotient-tourney-logs")
+        if c:
+            await c.send(embed=_e, content=after.guild.owner.mention)
