@@ -22,6 +22,7 @@ from ..helpers import (
 from unicodedata import normalize
 from constants import EsportsLog, RegDeny
 
+from utils import truncate_string
 from tortoise.exceptions import DoesNotExist
 
 import discord
@@ -78,7 +79,7 @@ class TourneyEvents(Cog):
 
         slot = TMSlot(
             leader_id=ctx.author.id,
-            team_name=teamname,
+            team_name=truncate_string(teamname, 30),
             num=numb + 1,
             members=[m.id for m in message.mentions],
             jump_url=message.jump_url,

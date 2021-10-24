@@ -90,7 +90,7 @@ class ScrimEvents(Cog):
                 return
 
             slot = await AssignedSlot.create(
-                user_id=ctx.author.id, team_name=teamname, num=slot_num, jump_url=message.jump_url, message_id=message.id
+                user_id=ctx.author.id, team_name=utils.truncate_string(teamname,30), num=slot_num, jump_url=message.jump_url, message_id=message.id
             )
 
             await scrim.assigned_slots.add(slot)

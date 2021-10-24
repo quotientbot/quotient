@@ -114,7 +114,7 @@ async def already_reserved(scrim: Scrim):
 
 async def available_to_reserve(scrim: Scrim):
     reserved = await already_reserved(scrim)
-    return [i for i in scrim.available_to_reserve if i not in reserved]
+    return sorted([i for i in scrim.available_to_reserve if i not in reserved])
 
 
 async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, Tourney]):
