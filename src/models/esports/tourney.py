@@ -203,6 +203,7 @@ class TMSlot(BaseDbModel):
     num = fields.IntField()
     team_name = fields.TextField()
     leader_id = fields.BigIntField()
+    message_id = fields.BigIntField(null=True)
     members = ArrayField(fields.BigIntField(), default=list)
     confirm_jump_url = fields.CharField(max_length=300, null=True)
     jump_url = fields.TextField(null=True)
@@ -227,5 +228,6 @@ class PartnerSlot(BaseDbModel):
 
     id = fields.IntField(pk=True)
     user_id = fields.BigIntField()
+    message_id = fields.BigIntField()
     jump_url = fields.CharField(max_length=300, null=True)
     members = ArrayField(fields.BigIntField(), default=list)

@@ -13,11 +13,11 @@ from core import Cog
 from models import Tourney, TMSlot
 
 from ..helpers import (
-    add_role_and_reaction,
     before_registrations,
     cannot_take_registration,
     check_tourney_requirements,
     get_tourney_slots,
+    update_confirmed_message,
 )
 from unicodedata import normalize
 from constants import EsportsLog, RegDeny
@@ -221,8 +221,9 @@ class TourneyEvents(Cog):
         message_id = payload.message_id
         _del = await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
 
-        tourney = None
         if not _del:
+            tourney = None
+
             if payload.channel_id in self.bot.media_partner_channels:
                 media_partner = await MediaPartner.get_or_none(pk=payload.channel_id)
                 if media_partner:
@@ -231,7 +232,17 @@ class TourneyEvents(Cog):
                 tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
 
         if tourney:
-            ...
+            slot = await tourney.assigned_slots.filter(message_id=payload.message_id).first()
+            if slot:
+                if slot.confirm_jump_url:
+                    self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
+
+            if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
+                m = tourney.guild.get_member(slot.leader_id)
+                if m:
+                    self.bot.loop.create_task(m.remove_roles(tourney.role))
+
+            await slot.delete()
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
