@@ -155,20 +155,23 @@ def random_thanks():
 tips = (
     "You can setup unlimited scrims & tourneys with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
-    "We have an awesome support server:\ndiscord.gg/quotient",
+    "We have an awesome support server:\ndiscord.gg/aBM5xz6",
+    "You can set custom reactions for tourneys with `t emojis` cmd",
     "I like your face : )",  # I really do
     "You can get a list of Quotient premium perks with `perks` command.",
     "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "You can look into my source code, use `source` command.",
+    "Quotient now gives tourney data in excel sheets, use `t data` cmd.",
+    "Quotient can create groups and give roles too, use `t groups` cmd.",
 )
 
 
 async def show_tip(ctx):
-    if ctx.author.id in config.DEVS or ctx.guild.id == config.SERVER_ID:
+    if ctx.author.id in config.DEVS:
         return
 
-    if random.randint(10, 69) == 69:
+    if random.randint(20, 69) == 69:
         with suppress(discord.HTTPException, discord.Forbidden):
             await ctx.send(f"**Did You Know?:** {random.choice(tips)}", delete_after=10)
 
