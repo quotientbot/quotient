@@ -95,7 +95,8 @@ class TourneyGroupManager(EsportsBaseView):
             "or just write its name, if there is no role of that name, Quotient "
             "will create the role and give it to group leaders.\n\n"
             "**Example:**```1, @group_role\n2, Group role\n3, @3rd_group```\n"
-            "*Enter upto 5 roles at a time.*"
+            "*Enter upto 5 roles at a time.*",
+            image="https://cdn.discordapp.com/attachments/851846932593770496/901862381473374299/unknown.png",
         )
 
         _roleinfo = await inputs.string_input(self.ctx, self.check, delete_after=True)

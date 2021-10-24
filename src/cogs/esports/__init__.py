@@ -1059,8 +1059,8 @@ class ScrimManager(Cog, name="Esports"):
                 pass
 
         _view = TourneySlotManager(self.bot, tourney=tourney)
-
-        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
+        if not await ctx.is_premium_guild():
+            _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
         _category = tourney.registration_channel.category
         overwrites = {
