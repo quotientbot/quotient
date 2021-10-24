@@ -28,90 +28,90 @@ class Premium(Cog):
 
         return code
 
-    @commands.command()
-    @checks.is_premium_user()
-    async def getredeem(self, ctx: Context):
-        """Generate a new redeem code. You can use "boost" command if you want to directly upgrade a server."""
-        record = await User.get_or_none(user_id=ctx.author.id)
-        if not record.premiums:
-            return await ctx.error(
-                f"You have redeemed all your boosts, use `{ctx.prefix}mycodes` to check if you have any unused codes."
-            )
+    # @commands.command()
+    # @checks.is_premium_user()
+    # async def getredeem(self, ctx: Context):
+    #     """Generate a new redeem code. You can use "boost" command if you want to directly upgrade a server."""
+    #     record = await User.get_or_none(user_id=ctx.author.id)
+    #     if not record.premiums:
+    #         return await ctx.error(
+    #             f"You have redeemed all your boosts, use `{ctx.prefix}mycodes` to check if you have any unused codes."
+    #         )
 
-        code = await self.create_valid_redeem()
+    #     code = await self.create_valid_redeem()
 
-        await Redeem.create(user_id=ctx.author.id, code=code, expire_time=record.premium_expire_time)
-        await User.filter(user_id=ctx.author.id).update(premiums=record.premiums - 1)
+    #     await Redeem.create(user_id=ctx.author.id, code=code, expire_time=record.premium_expire_time)
+    #     await User.filter(user_id=ctx.author.id).update(premiums=record.premiums - 1)
 
-        try:
-            embed = discord.Embed(
-                color=ctx.bot.color,
-                description=f"Here's your Secret redeem code: \n||{code}||\nThis is powerful enough to upgrade a server to Quotient Premium.\n\nUse `{ctx.prefix}redeem <Your Code>` in the server which you want to upgrade.",
-            )
-            await ctx.author.send(embed=embed)
-            await ctx.success("You 've a got a mail containing Quotient premium redeem code.")
-        except:
-            await ctx.success(
-                f"I have generated a Quotient premium redeem code for you but unfortunately I couldn't send that to your DMs.\n\nKindly enable your DMs and use `{ctx.prefix}mycodes` to get them all."
-            )
+    #     try:
+    #         embed = discord.Embed(
+    #             color=ctx.bot.color,
+    #             description=f"Here's your Secret redeem code: \n||{code}||\nThis is powerful enough to upgrade a server to Quotient Premium.\n\nUse `{ctx.prefix}redeem <Your Code>` in the server which you want to upgrade.",
+    #         )
+    #         await ctx.author.send(embed=embed)
+    #         await ctx.success("You 've a got a mail containing Quotient premium redeem code.")
+    #     except:
+    #         await ctx.success(
+    #             f"I have generated a Quotient premium redeem code for you but unfortunately I couldn't send that to your DMs.\n\nKindly enable your DMs and use `{ctx.prefix}mycodes` to get them all."
+    #         )
 
-    @commands.command()
-    @checks.is_premium_user()
-    async def mycodes(self, ctx: Context):
-        """Get all the redeem codes you have."""
-        records = await Redeem.filter(user_id=ctx.author.id).order_by("-is_used")
+    # @commands.command()
+    # @checks.is_premium_user()
+    # async def mycodes(self, ctx: Context):
+    #     """Get all the redeem codes you have."""
+    #     records = await Redeem.filter(user_id=ctx.author.id).order_by("-is_used")
 
-        x = PrettyTable()
-        x.field_names = ["Number", "Code", "Expiry", "Used"]
-        for idx, i in enumerate(records, start=1):
-            x.add_row([idx, i.code, strtime(i.expire_time), "Yes" if i.is_used is True else "No"])
+    #     x = PrettyTable()
+    #     x.field_names = ["Number", "Code", "Expiry", "Used"]
+    #     for idx, i in enumerate(records, start=1):
+    #         x.add_row([idx, i.code, strtime(i.expire_time), "Yes" if i.is_used is True else "No"])
 
-        embed = discord.Embed(color=ctx.bot.color, description=f"```ml\n{x}```")
-        embed.set_footer(text=f"To upgrade use: `{ctx.prefix}redeem <code>`")
-        try:
-            await ctx.author.send(embed=embed)
-            await ctx.success("You 've a got a mail containing Quotient premium redeem codes.")
-        except:
-            await ctx.error("Kindly enable your DMs, I am unable to send you codes.")
+    #     embed = discord.Embed(color=ctx.bot.color, description=f"```ml\n{x}```")
+    #     embed.set_footer(text=f"To upgrade use: `{ctx.prefix}redeem <code>`")
+    #     try:
+    #         await ctx.author.send(embed=embed)
+    #         await ctx.success("You 've a got a mail containing Quotient premium redeem codes.")
+    #     except:
+    #         await ctx.error("Kindly enable your DMs, I am unable to send you codes.")
 
-    @commands.command()
-    async def redeem(self, ctx: Context, redeemcode: str):
-        code = await Redeem.get_or_none(code=redeemcode)
-        if not code:
-            return await ctx.send("That's an invalid code :c")
+    # @commands.command()
+    # async def redeem(self, ctx: Context, redeemcode: str):
+    #     code = await Redeem.get_or_none(code=redeemcode)
+    #     if not code:
+    #         return await ctx.send("That's an invalid code :c")
 
-        if code.is_used:
-            return await ctx.send(f"You are late bud! Someone already redeemed it.")
+    #     if code.is_used:
+    #         return await ctx.send(f"You are late bud! Someone already redeemed it.")
 
-        guild = await Guild.get(guild_id=ctx.guild.id)
+    #     guild = await Guild.get(guild_id=ctx.guild.id)
 
-        if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
-            end_time = guild.premium_end_time + timedelta(days=30)
+    #     if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
+    #         end_time = guild.premium_end_time + timedelta(days=30)
 
-        else:
-            end_time = datetime.now(tz=IST) + timedelta(days=30)
+    #     else:
+    #         end_time = datetime.now(tz=IST) + timedelta(days=30)
 
-        user = await User.get(user_id=code.user_id)
-        prompt = await ctx.prompt(
-            f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
-            title="Are you sure you want to continue?",
-        )
-        if prompt:
-            await Guild.filter(guild_id=ctx.guild.id).update(
-                is_premium=True, made_premium_by=code.user_id, premium_end_time=end_time
-            )
-            await self.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
-            await self.reminders.create_timer(end_time, "guild_premium", guild_id=ctx.guild.id)
-            await User.filter(user_id=code.user_id).update(
-                premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
-            )
-            await Redeem.filter(code=redeemcode).update(is_used=True, used_at=datetime.now(tz=IST), used_by=ctx.author.id)
+    #     user = await User.get(user_id=code.user_id)
+    #     prompt = await ctx.prompt(
+    #         f"This server will be upgraded with Quotient Premium till {strtime(end_time)}.",
+    #         title="Are you sure you want to continue?",
+    #     )
+    #     if prompt:
+    #         await Guild.filter(guild_id=ctx.guild.id).update(
+    #             is_premium=True, made_premium_by=code.user_id, premium_end_time=end_time
+    #         )
+    #         await self.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
+    #         await self.reminders.create_timer(end_time, "guild_premium", guild_id=ctx.guild.id)
+    #         await User.filter(user_id=code.user_id).update(
+    #             premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
+    #         )
+    #         await Redeem.filter(code=redeemcode).update(is_used=True, used_at=datetime.now(tz=IST), used_by=ctx.author.id)
 
-            await ctx.success(
-                f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}."
-            )
-        else:
-            await ctx.success(f"Alright")
+    #         await ctx.success(
+    #             f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}."
+    #         )
+    #     else:
+    #         await ctx.success(f"Alright")
 
     @commands.command()
     @checks.is_premium_user()
@@ -200,10 +200,12 @@ class Premium(Cog):
         #     table.add_row([key, a, b])
 
         # table = table.get_string()
-        embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
-        # embed.description = f"```{table}```"
-        embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/872541228762300516/unknown.png")
-        await ctx.send(embed=embed)
+        # embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
+        # # embed.description = f"```{table}```"
+        # embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/872541228762300516/unknown.png")
+        # await ctx.send(embed=embed)
+
+        await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
 
 
 def setup(bot) -> None:

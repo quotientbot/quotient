@@ -110,7 +110,6 @@ perks = {
     "Custom Footer": ["❌", "✅"],
     "Custom Color": ["❌", "✅"],
     "Giveaway": ["5", "Unlimited"],
-    "Ptable Setup": ["2", "Unlimited"],
     "Edit Ptable Watermark": ["❌", "✅"],
     "Autopurge": ["1", "Unlimited"],
 }
@@ -128,7 +127,7 @@ def random_greeting():
         "Yo!",
         "I like your face.",
         "Bonjour!",
-        "Yo! You know who this is."
+        "Yo! You know who this is.",
     ]
     return random.choice(greetings)
 
