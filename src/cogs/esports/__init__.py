@@ -1097,6 +1097,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="edit")
     @checks.can_use_tm()
     @checks.has_done_setup()
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def tourney_edit(self, ctx, tourney: Tourney):
         """Edit a tournament's config."""
@@ -1212,6 +1213,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"**{str(user)}** has been successfully unbanned from Tourney (`{tourney.id}`)")
 
     @tourney.command(name="info")
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     async def tourney_info(self, ctx: Context, tourney: Tourney):
         """Get all the necessary info about a tourney."""
         text = (
@@ -1235,6 +1237,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="emojis", aliases=("reactions",))
     @checks.can_use_tm()
     @checks.has_done_setup()
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     @commands.bot_has_permissions(manage_messages=True, embed_links=True, use_external_emojis=True)
     async def tourney_emojis(self, ctx: Context, tourney: Tourney):
         """Edit tourney's reaction emojis"""
@@ -1247,7 +1250,9 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.group(name="mediapartner", aliases=("mp",), invoke_without_command=True)
     @checks.can_use_tm()
     @checks.has_done_setup()
+    @commands.cooldown(6, 1, type=commands.BucketType.guild)
     async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
+        """Add or Remove Media Partner for tourneys"""
 
         view = MediaPartnerView(ctx, tourney=tourney)
         embed = await MediaPartnerView.initial_embed(ctx, tourney)
@@ -1259,6 +1264,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command()
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     async def quickidp(self, ctx: Context, room_id, password, map, role_to_ping: QuoRole = None):
         """
         Share Id/pass with embed quickly.
