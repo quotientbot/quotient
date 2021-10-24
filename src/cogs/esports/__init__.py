@@ -36,6 +36,7 @@ from utils import (
     BetterFutureTime,
     LinkType,
     LinkButton,
+    discord_timestamp,
 )
 
 from constants import IST, EsportsRole, ScrimBanType
@@ -973,7 +974,7 @@ class ScrimManager(Cog, name="Esports"):
             with suppress(discord.HTTPException):
                 await tourney.slotm_channel.delete()
 
-        await ctx.success(f"Tourney (`{tourney.id}`) deleted successfully.")
+        await ctx.success(f"{tourney} deleted successfully.")
 
     @tourney.command(name="groups")
     @checks.can_use_tm()
@@ -991,22 +992,6 @@ class ScrimManager(Cog, name="Esports"):
         _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
-
-        # m = await ctx.send(f"{emote.loading} | This may take some time. Please wait.")
-
-        # tables = []
-
-        # for record in get_chunks(records, group_size):
-        #     x = PrettyTable()
-        #     x.field_names = ["Slot", "Registered Posi.", "Team Name", "Leader", "Leader ID"]
-        #     for idx, i in enumerate(record, start=1):
-        #         member = ctx.guild.get_member(i.leader_id)
-        #         x.add_row([idx, i.num, i.team_name, str(member), i.leader_id])
-
-        #     tables.append(str(x))
-
-        # await inputs.safe_delete(m)
-        # await ctx.send_file("\n\n\n\n\n".join(tables), name="slotlist.text")
 
     @tourney.command(name="data")
     @checks.can_use_tm()
@@ -1124,27 +1109,35 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_tm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
-    async def tourney_start(self, ctx, tourney: Tourney):
+    async def tourney_start(self, ctx: Context, tourney: Tourney):
         """Start a tournament."""
         if tourney.started_at is not None:
-            raise TourneyError(f"Tourney (`{tourney.id}`)'s registration is already open.")
+            raise TourneyError(
+                f"{tourney} registration is already open. (Started: {discord_timestamp(tourney.started_at)})"
+            )
 
         channel = tourney.registration_channel
         open_role = tourney.open_role
         if channel is None:
             raise TourneyError(f"I cannot find tourney registration channel ({tourney.registration_channel_id})")
 
-        elif not channel.permissions_for(ctx.me).manage_channels:
+        if not channel.permissions_for(ctx.me).manage_channels:
             raise TourneyError(f"I need `manage channels` permission in **{channel}**")
 
-        elif open_role is None:
-            raise TourneyError(f"I can not find open role for Tourney (`{tourney.id}`)")
+        if open_role is None:
+            raise TourneyError(f"I can not find open role for {tourney}")
 
-        prompt = await ctx.prompt(f"Are you sure you want to start registrations for Tourney (`{tourney.id}`)?")
+        if tourney.total_slots <= await tourney.assigned_slots.all().count():
+            return await ctx.error(
+                f"Slots of {tourney} are already full, increase with `{ctx.prefix}t edit {tourney.id}`"
+            )
+
+        prompt = await ctx.prompt(f"Are you sure you want to start registrations for {tourney}?")
         if not prompt:
             return await ctx.success("Ok, Aborting.")
 
         await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
+        self.bot.tourney_channels.add(channel.id)
 
         e = self.bot.embed(ctx, title="Registration is now Open")
         e.description = (
@@ -1158,8 +1151,8 @@ class ScrimManager(Cog, name="Esports"):
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
-        self.bot.tourney_channels.add(channel.id)
         await toggle_channel(channel, open_role, True)
+        await ctx.message.add_reaction(emote.check)
 
     @tourney.command(name="stop", aliases=("pause",))
     @checks.can_use_tm()
@@ -1186,7 +1179,7 @@ class ScrimManager(Cog, name="Esports"):
         )
         if prompt:
             await toggle_channel(channel, open_role, False)
-            await channel.send(f"Registration is now closed.")
+            await channel.send(f"**Registration is now closed.**")
             await Tourney.filter(pk=tourney.id).update(started_at=None, closed_at=datetime.now(tz=IST))
             await ctx.message.add_reaction(emote.check)
         else:

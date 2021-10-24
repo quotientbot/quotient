@@ -204,7 +204,7 @@ class QuoUser(commands.Converter):
 
 
 class QuoCategory(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: commands.Context, argument):
         try:
             return await commands.CategoryChannelConverter().convert(ctx, argument)
         except commands.ChannelNotFound:
@@ -218,8 +218,8 @@ class QuoCategory(commands.Converter):
             raise commands.ChannelNotFound(argument)
 
 
-class QuoTextChannel(commands.Converter, discord.TextChannel):
-    async def convert(self, ctx:commands.Context, argument):
+class QuoTextChannel(commands.Converter):
+    async def convert(self, ctx: commands.Context, argument):
         try:
             return await commands.TextChannelConverter().convert(ctx, argument)
         except commands.ChannelNotFound:
