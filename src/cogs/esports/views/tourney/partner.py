@@ -17,7 +17,7 @@ class MediaPartnerView(EsportsBaseView):
         embed: discord.Embed = ctx.bot.embed(ctx, title="Tournament Media Partnership")
         embed.description = "Media Partner ...\n\n"
         async for idx, partner in aenumerate(tourney.media_partners.all(), start=1):
-            embed.description += f"`{idx:02}` {getattr(partner.channel,'mention','deletd-channel')} - **{await partner.slots.all().count()} players**\n"
+            embed.description += f"`{idx:02}` {getattr(partner.channel,'mention','deleted-channel')} - **{await partner.slots.all().count()} players**\n"
 
         return embed
 

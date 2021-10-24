@@ -4,7 +4,7 @@ from contextlib import suppress
 import typing
 from cogs.esports.helpers.tourney import get_tourney_from_channel
 
-from models.esports.tourney import MediaPartner
+from models.esports.tourney import MediaPartner, PartnerSlot
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -34,7 +34,9 @@ class TourneyEvents(Cog):
         self.bot = bot
         self.__tourney_lock = asyncio.Lock()
 
-    async def __process_tourney_message(self, message: discord.Message, tourney: Tourney, *, check_duplicate=True):
+    async def __process_tourney_message(
+        self, message: discord.Message, tourney: Tourney, *, check_duplicate=True, mp=False
+    ):
         """
         Processes a message that is a tourney message.
 
@@ -59,6 +61,17 @@ class TourneyEvents(Cog):
 
         ctx = await self.bot.get_context(message)
 
+        if mp:
+            partner = await MediaPartner.get(pk=ctx.channel.id)
+
+            media_slot = await PartnerSlot.create(
+                user_id=ctx.author.id,
+                message_id=ctx.message.id,
+                jump_url=ctx.message.jump_url,
+                members=[m.id for m in message.mentions],
+            )
+            await partner.slots.add(media_slot)
+        
         assigned_slots = await tourney.assigned_slots.order_by("-num").first()
 
         numb = 0 if assigned_slots is None else assigned_slots.num
@@ -214,7 +227,7 @@ class TourneyEvents(Cog):
             return
 
         async with self.__tourney_lock:
-            await self.__process_tourney_message(message, tourney)
+            await self.__process_tourney_message(message, tourney, mp=True)
 
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
