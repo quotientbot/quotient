@@ -1430,7 +1430,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="set")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions=0):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions:int):
         """
         Set a channel for tagcheck.
         mentions means required mentions, It's zero by default.
