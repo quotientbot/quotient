@@ -15,9 +15,14 @@ class MediaPartnerView(EsportsBaseView):
     @staticmethod
     async def initial_embed(ctx: Context, tourney: Tourney) -> discord.Embed:
         embed: discord.Embed = ctx.bot.embed(ctx, title="Tournament Media Partnership")
-        embed.description = "Media Partner ...\n\n"
+        embed.description = (
+            "With media-partnership you can make Quotient handle media partner registrations "
+            "that means in Quotient will check if the user have registered in the partner server "
+            "and if they have, their registration will be accepted and slot will be given to them.\n\n"
+        )
+
         async for idx, partner in aenumerate(tourney.media_partners.all(), start=1):
-            embed.description += f"`{idx:02}` {getattr(partner.channel,'mention','deleted-channel')} - **{await partner.slots.all().count()} players**\n"
+            embed.description += f"`{idx:02}.` {getattr(partner.channel,'mention','deleted-channel')} - **{await partner.slots.all().count()} players**\n"
 
         return embed
 

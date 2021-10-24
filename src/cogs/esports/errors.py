@@ -328,7 +328,7 @@ class SMError(Cog):
         ...
 
     @Cog.listener()
-    async def on_guild_channel_delete(self, channel):
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
         # will delete scrim/tournament if its registration channel.
         self.bot.eztagchannels.discard(channel.id)
         self.bot.tagcheck.discard(channel.id)

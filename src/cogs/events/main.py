@@ -35,41 +35,21 @@ class MainEvents(Cog, name="Main Events"):
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         with suppress(AttributeError):
-            await Guild.create(guild_id=guild.id)
-            self.bot.guild_data[guild.id] = {"prefix": "q", "color": self.bot.color, "footer": config.FOOTER}
+            g, b = await Guild.get_or_create(guild_id=guild.id)
+            self.bot.guild_data[guild.id] = {
+                "prefix": g.prefix,
+                "color": g.embed_color or self.bot.color,
+                "footer": g.embed_footer or config.FOOTER,
+            }
             await guild.chunk()
-
-            embed = discord.Embed(color=discord.Color.green(), title=f"I've joined a guild ({guild.member_count})")
-            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
-            embed.add_field(
-                name="__**General Info**__",
-                value=f"**Guild Name:** {guild.name} [{guild.id}]\n**Guild Owner:** {guild.owner} [{guild.owner.id}]\n",
-            )
-
-            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = discord.Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
-                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
         await self.bot.reminders.create_timer(
-            datetime.now(tz=IST) + timedelta(minutes=5), "erase_guild", guild_id=guild.id
+            datetime.now(tz=IST) + timedelta(minutes=20), "erase_guild", guild_id=guild.id
         )
-        with suppress(AttributeError):
-            try:
-                self.bot.guild_data.pop(guild.id)
-            except KeyError:
-                pass
-
-            embed = discord.Embed(color=discord.Color.red(), title=f"I have left a guild ({guild.member_count})")
-            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
-            embed.add_field(
-                name="__**General Info**__",
-                value=f"**Guild name:** {guild.name} [{guild.id}]\n**Guild owner:** {guild.owner} [{guild.owner.id if guild.owner is not None else 'Not Found!'}]\n",
-            )
-            with suppress(discord.HTTPException, discord.NotFound, discord.Forbidden):
-                webhook = discord.Webhook.from_url(config.JOIN_LOG, session=self.bot.session)
-                await webhook.send(embed=embed, avatar_url=self.bot.user.avatar.url)
+        with suppress(AttributeError, KeyError):
+            self.bot.guild_data.pop(guild.id)
 
     @Cog.listener()
     async def on_erase_guild_timer_complete(self, timer: Timer):
