@@ -155,6 +155,13 @@ async def toggle_channel(channel, role, _bool=True) -> bool:
         return False
 
 
+async def wait_and_purge(channel, *, limit=100, wait_for=10, check=lambda m: True):
+    await asyncio.sleep(wait_for)
+
+    with suppress(discord.HTTPException):
+        await channel.purge(limit=limit, check=check)
+
+
 async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     closed_at = datetime.now(tz=constants.IST)
 
@@ -183,7 +190,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
         check = lambda x: all(
             (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
         )
-        ctx.bot.loop.create_task(ctx.wait_and_purge(ctx.channel, check=check))
+        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check))
 
 
 async def purge_channel(channel):
