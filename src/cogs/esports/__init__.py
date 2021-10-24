@@ -1080,19 +1080,30 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="rmslot", aliases=("deleteslot",))
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_deleteslot(self, ctx, tourney: Tourney, *, user: discord.User):
+    async def tourney_deleteslot(self, ctx:Context, tourney: Tourney, *, user: discord.User):
         """Remove someone's slot"""
-        slot = await tourney.assigned_slots.filter(leader_id=user.id).first()
-        if not slot:
-            raise TourneyError(f"**{user}** has no slot in Tourney (`{tourney.id}`)")
+        _slots = await tourney.assigned_slots.filter(members__contains=user.id).order_by("num")
+        if not _slots:
+            raise TourneyError(f"**{user}** has no slot in {tourney}.")
 
-        prompt = await ctx.prompt(f"**{slot.team_name}** ({user.mention}) slot will be deleted.")
-        if prompt:
-            await TMSlot.filter(id=slot.id).delete()
-            await ctx.success(f"Slot deleted!")
+        cancel_view = BaseSelector(ctx.author.id, TCancelSlotSelector, bot=self.bot, slots=_slots)
+        _m = await ctx.send("Kindly choose one of the following slots",view=cancel_view)
+        await cancel_view.wait()
+        await _m.delete()
+        if _id := cancel_view.custom_id:
+            slot = await TMSlot.get_or_none(pk=_id)
+            if not slot:
+                return await ctx.error("Slot is already deleted.")
+            
+            if slot.confirm_jump_url:
+                self.bot.loop.create_task(update_confirmed_message(self.tourney, slot.confirm_jump_url))
 
-        else:
-            await ctx.success(f"Ok!")
+            if len(_slots) == 1:
+                self.bot.loop.create_task(user.remove_roles(tourney.role))
+
+            await slot.delete()
+
+            return await ctx.success(f"Successfully deleted slot.")
 
     @tourney.command(name="edit")
     @checks.can_use_tm()

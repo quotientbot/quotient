@@ -250,10 +250,10 @@ class TourneyEvents(Cog):
                 if slot.confirm_jump_url:
                     self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
 
-            if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
-                m = tourney.guild.get_member(slot.leader_id)
-                if m:
-                    self.bot.loop.create_task(m.remove_roles(tourney.role))
+                if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
+                    m = tourney.guild.get_member(slot.leader_id)
+                    if m:
+                        self.bot.loop.create_task(m.remove_roles(tourney.role))
 
             await slot.delete()
 
