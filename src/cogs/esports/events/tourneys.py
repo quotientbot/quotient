@@ -258,7 +258,7 @@ class TourneyEvents(Cog):
             await slot.delete()
 
     @Cog.listener()
-    async def on_guild_channel_delete(self, channel):
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
         await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)
 
     @Cog.listener()

@@ -1,3 +1,10 @@
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from ...views.base import EsportsBaseView
 from models import Tourney
 
@@ -10,9 +17,10 @@ import discord
 
 class EditTourneyEmoji(EsportsBaseView):
     def __init__(self, ctx: Context, *, tourney: Tourney):
-        super().__init__(ctx, timeout=30)
+        super().__init__(ctx, timeout=20)
 
         self.ctx = ctx
+        self.bot: Quotient = ctx.bot
         self.tourney = tourney
 
     @staticmethod
@@ -38,7 +46,10 @@ class EditTourneyEmoji(EsportsBaseView):
     async def set_emojis(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        e = discord.Embed(color=self.ctx.bot.color, title="Edit tourney emojis")
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.premium_mango("*Changing Tourney Reaction Emojis require Quotient Premium.*")
+
+        e = discord.Embed(color=self.bot.color, title="Edit tourney emojis")
         e.description = (
             "Which emojis do you want to use for tick and cross in tournament registrations?\n\n"
             "`Please enter two emojis and separate them with a comma`"
