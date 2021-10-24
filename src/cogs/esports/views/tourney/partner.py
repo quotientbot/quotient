@@ -39,12 +39,19 @@ class MediaPartnerView(EsportsBaseView):
         tourney_id = await integer_input(self.ctx, self.check, delete_after=True)
 
         await self.ctx.safe_delete(m)
+
         tourney = await Tourney.get_or_none(pk=tourney_id)
         if tourney is None or not (guild := tourney.guild):
             return await self.error_embed(
                 "The tourney ID you entered is invalid. \n\nKindly use `qt config` in the partner server"
                 "to get the correct ID."
             )
+
+        if guild == self.ctx.guild:
+            return await self.error_embed("You can't partner with a tournament running in your server.")
+
+        if tourney_id in (p.tourney_id for p in await self.tourney.media_partners.all()):
+            return await self.error_embed(f"The tourney you entered is already partnered with {tourney}.")
 
         if not guild.chunked:
             await guild.chunk()
