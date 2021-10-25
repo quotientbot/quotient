@@ -249,7 +249,7 @@ class GroupListView(EsportsBaseView):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ctx.simple(f"Publishing, please wait {emote.loading}")
-        for _chunk in get_chunks(self.embeds, 10):
+        for _chunk in get_chunks(self.embeds, 2):
             await self.channel.send(embeds=_chunk)
 
         await self.ctx.safe_delete(m)
