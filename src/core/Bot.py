@@ -105,6 +105,7 @@ class Quotient(commands.AutoShardedBot):
         for arg in args:
             # check for both guild and guild_id
             if hasattr(arg, "guild"):
+                print("arg guild",arg.guild)
                 _obj = arg.guild.id
                 break
             elif hasattr(arg, "guild_id"):
