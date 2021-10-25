@@ -90,7 +90,7 @@ class SlotlistFormatter(EsportsBaseView):
         await self.ctx.safe_delete(msg)
 
         if (_desc := description.strip().lower()) == "none":
-            self.__current_embed.description = f"```{self.__slotstr * 6}```{description}"
+            self.__current_embed.description = f"```{self.__slotstr * 6}```"
 
         else:
             self.__current_embed.description += truncate_string("\n" + description.strip(), 1000)
