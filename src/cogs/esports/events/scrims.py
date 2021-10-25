@@ -47,7 +47,7 @@ class ScrimEvents(Cog):
 
         channel_id = message.channel.id
 
-        if channel_id not in self.bot.scrim_channels:
+        if channel_id not in self.bot.cache.scrim_channels:
             return
 
         scrim = await Scrim.get_or_none(
@@ -55,7 +55,7 @@ class ScrimEvents(Cog):
         )
 
         if scrim is None:  # Scrim is possibly deleted
-            return self.bot.scrim_channels.discard(channel_id)
+            return self.bot.cache.scrim_channels.discard(channel_id)
 
         scrim_role = scrim.role
         modrole = scrim.modrole
@@ -90,7 +90,11 @@ class ScrimEvents(Cog):
                 return
 
             slot = await AssignedSlot.create(
-                user_id=ctx.author.id, team_name=utils.truncate_string(teamname,30), num=slot_num, jump_url=message.jump_url, message_id=message.id
+                user_id=ctx.author.id,
+                team_name=utils.truncate_string(teamname, 30),
+                num=slot_num,
+                jump_url=message.jump_url,
+                message_id=message.id,
             )
 
             await scrim.assigned_slots.add(slot)
@@ -196,7 +200,7 @@ class ScrimEvents(Cog):
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
-        self.bot.scrim_channels.add(registration_channel.id)
+        self.bot.cache.scrim_channels.add(registration_channel.id)
 
         await toggle_channel(registration_channel, open_role, True)
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)

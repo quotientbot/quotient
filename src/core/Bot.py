@@ -4,13 +4,13 @@ import typing
 
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
+    import config as cfg
 
 from discord import AllowedMentions, Intents
 from colorama import Fore, init
 from discord.ext import commands
 from tortoise import Tortoise
-from .Context import Context
-from .Help import HelpCommand
+
 from datetime import datetime
 from constants import IST
 from typing import NoReturn, Optional
@@ -23,9 +23,12 @@ import discord
 import mystbin
 import dbl
 import time
-import config as cfg
 
+from .Context import Context
+from .Help import HelpCommand
 from .HttpHandler import QuoHttpHandler
+from .cache import CacheManager
+
 
 init(autoreset=True)
 intents = Intents.default()
@@ -52,15 +55,6 @@ class Quotient(commands.AutoShardedBot):
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
-
-        # cache stuff
-        self.guild_data = {}
-        self.eztagchannels = set()
-        self.tagcheck = set()
-        self.scrim_channels = set()
-        self.tourney_channels = set()
-        self.autopurge_channels = set()
-        self.media_partner_channels = set()
 
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
@@ -99,14 +93,13 @@ class Quotient(commands.AutoShardedBot):
         return Tortoise.get_connection("default")._pool
 
     async def init_quo(self):
-        """Instantiating aiohttps ClientSession and asking ORM to create relations"""
+        """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
         await Tortoise.init(config.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
 
-        from utils import cache
-
-        await cache(self)
+        self.cache = CacheManager(self)
+        await self.cache.fill_temp_cache()
 
         # Initializing Models (Assigning Bot attribute to all models)
         for mname, model in Tortoise.apps.get("models").items():

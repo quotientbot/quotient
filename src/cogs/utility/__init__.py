@@ -618,11 +618,11 @@ class Utility(Cog, name="utility"):
                 f"\nHowever [Quotient Premium]({ctx.config.WEBSITE}/premium) allows you to set autopurge in unlimited channels."
             )
 
-        if channel.id in self.bot.autopurge_channels:
+        if channel.id in self.bot.cache.autopurge_channels:
             return await ctx.error(f"**{channel}** is already an autopurge channel.")
 
         await AutoPurge.create(guild_id=ctx.guild.id, channel_id=channel.id, delete_after=seconds)
-        self.bot.autopurge_channels.add(channel.id)
+        self.bot.cache.autopurge_channels.add(channel.id)
         await ctx.success(f"**{channel}** added to autopurge channels.")
 
     @autopurge.command(name="list")
@@ -643,10 +643,10 @@ class Utility(Cog, name="utility"):
     @commands.has_permissions(manage_messages=True)
     async def autopurge_remove(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a channel from autopurge"""
-        if not channel.id in self.bot.autopurge_channels:
+        if not channel.id in self.bot.cache.autopurge_channels:
             return await ctx.error(f"{channel} is not an autopurge channel.")
 
-        self.bot.autopurge_channels.discard(channel.id)
+        self.bot.cache.autopurge_channels.discard(channel.id)
         await AutoPurge.filter(channel_id=channel.id, guild_id=ctx.guild.id).delete()
         await ctx.success(f"**{channel}** removed from autopurge channels.")
 

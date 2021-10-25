@@ -27,13 +27,13 @@ class TagEvents(Cog):
 
         channel_id = message.channel.id
 
-        if not channel_id in self.bot.tagcheck:
+        if not channel_id in self.bot.cache.tagcheck:
             return
 
         tagcheck = await TagCheck.get_or_none(channel_id=channel_id)
 
         if not tagcheck:
-            return self.bot.tagcheck.discard(channel_id)
+            return self.bot.cache.tagcheck.discard(channel_id)
 
         ignore_role = tagcheck.ignorerole
 
@@ -74,14 +74,14 @@ class TagEvents(Cog):
         if not message.guild or message.author.bot:
             return
 
-        if not message.channel.id in self.bot.eztagchannels:
+        if not message.channel.id in self.bot.cache.eztagchannels:
             return
 
         channel_id = message.channel.id
         eztag = await EasyTag.get_or_none(channel_id=channel_id)
 
         if not eztag:
-            return self.bot.eztagchannels.discard(channel_id)
+            return self.bot.cache.eztagchannels.discard(channel_id)
 
         ignore_role = eztag.ignorerole
 

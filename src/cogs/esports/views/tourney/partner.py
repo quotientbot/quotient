@@ -94,6 +94,7 @@ class MediaPartnerView(EsportsBaseView):
 
         partner = await MediaPartner.create(tourney_id=tourney.id, channel_id=channel.id)
         await self.tourney.media_partners.add(partner)
+        self.bot.cache.media_partner_channels.add(channel.id)
         await self.__refresh_embed()
 
     @discord.ui.button(custom_id="remove_mp", label="Remove")
@@ -111,7 +112,7 @@ class MediaPartnerView(EsportsBaseView):
         if not await self.tourney.media_partners.filter(pk=_channel.id).exists():
             return await self.error_embed("This is not a media-partner channel of {0}".format(self.tourney))
 
-        self.bot.media_partner_channels.discard(_channel.id)
+        self.bot.cache.media_partner_channels.discard(_channel.id)
         await MediaPartner.filter(pk=_channel.id).delete()
         await self.ctx.success(f"Removed {_channel.mention} from Media-Partner Channels.", 3)
         await self.__refresh_embed()

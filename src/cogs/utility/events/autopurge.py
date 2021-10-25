@@ -35,12 +35,12 @@ class AutoPurgeEvents(Cog):
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
-        if not message.guild or not message.channel.id in self.bot.autopurge_channels:
+        if not message.guild or not message.channel.id in self.bot.cache.autopurge_channels:
             return
 
         record = await AutoPurge.get_or_none(channel_id=message.channel.id)
         if not record:
-            return self.bot.autopurge_channels.discard(message.channel.id)
+            return self.bot.cache.autopurge_channels.discard(message.channel.id)
 
         await self.bot.reminders.create_timer(
             datetime.now(tz=IST) + timedelta(seconds=record.delete_after),
@@ -70,6 +70,6 @@ class AutoPurgeEvents(Cog):
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel):
-        if channel.id in self.bot.autopurge_channels:
+        if channel.id in self.bot.cache.autopurge_channels:
             await AutoPurge.filter(channel_id=channel.id).delete()
-            self.bot.autopurge_channels.discard(channel.id)
+            self.bot.cache.autopurge_channels.discard(channel.id)

@@ -107,13 +107,13 @@ class TourneyEvents(Cog):
 
         channel_id = message.channel.id
 
-        if channel_id not in self.bot.tourney_channels:
+        if channel_id not in self.bot.cache.tourney_channels:
             return
 
         tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
 
         if tourney is None:
-            return self.bot.tourney_channels.discard(channel_id)
+            return self.bot.cache.tourney_channels.discard(channel_id)
 
         if tourney.started_at is None:
             return
@@ -137,13 +137,13 @@ class TourneyEvents(Cog):
     #     if not all((payload.guild_id, payload.member, not payload.member.bot)):
     #         return
 
-    #     if not payload.channel_id in self.bot.tourney_channels:
+    #     if not payload.channel_id in self.bot.cache.tourney_channels:
     #         return
 
     #     tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
 
     #     if not tourney:
-    #         return self.bot.tourney_channels.discard(payload.channel_id)
+    #         return self.bot.cache.tourney_channels.discard(payload.channel_id)
 
     #     if not str(payload.emoji) in tourney.emojis.values():
     #         return
@@ -180,18 +180,18 @@ class TourneyEvents(Cog):
 
     @Cog.listener(name="on_message")
     async def on_media_partner_message(self, message: discord.Message):
-        if not all((message.guild, not message.author.bot, message.channel.id in self.bot.media_partner_channels)):
+        if not all((message.guild, not message.author.bot, message.channel.id in self.bot.cache.media_partner_channels)):
             return
 
         media_partner = await MediaPartner.get_or_none(pk=message.channel.id)
 
         if not media_partner:
-            return self.bot.media_partner_channels.discard(message.channel.id)
+            return self.bot.cache.media_partner_channels.discard(message.channel.id)
 
         tourney = await get_tourney_from_channel(message.guild.id, message.channel.id)
 
         if not tourney:
-            return self.bot.media_partner_channels.discard(message.channel.id)
+            return self.bot.cache.media_partner_channels.discard(message.channel.id)
 
         if tourney.started_at is None:
             return
@@ -238,11 +238,11 @@ class TourneyEvents(Cog):
         if not _del:
             tourney = None
 
-            if payload.channel_id in self.bot.media_partner_channels:
+            if payload.channel_id in self.bot.cache.media_partner_channels:
                 media_partner = await MediaPartner.get_or_none(pk=payload.channel_id)
                 if media_partner:
                     tourney = await get_tourney_from_channel(payload.guild_id, payload.channel_id)
-            elif payload.channel_id in self.bot.tourney_channels:
+            elif payload.channel_id in self.bot.cache.tourney_channels:
                 tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
 
         if tourney:

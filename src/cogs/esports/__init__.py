@@ -80,7 +80,7 @@ class ScrimManager(Cog, name="Esports"):
         if not message.guild or message.author.bot:
             return
 
-        if message.channel.id in self.bot.scrim_channels:
+        if message.channel.id in self.bot.cache.scrim_channels:
             scrim = await Scrim.get_or_none(registration_channel_id=message.channel.id)
             if not scrim or not scrim.opened_at:  # either scrim doesn't exist or it is closed.
                 return
@@ -553,7 +553,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Are you sure you want to delete scrim `{scrim.id}`?",
         )
         if prompt:
-            self.bot.scrim_channels.discard(scrim.registration_channel_id)
+            self.bot.cache.scrim_channels.discard(scrim.registration_channel_id)
             await scrim.delete()
             await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
         else:
@@ -965,7 +965,7 @@ class ScrimManager(Cog, name="Esports"):
         if not prompt:
             return await ctx.success(f"Alright! Aborting")
 
-        self.bot.tourney_channels.discard(tourney.registration_channel_id)
+        self.bot.cache.tourney_channels.discard(tourney.registration_channel_id)
         await tourney.delete()
 
         if tourney.slotm_channel_id:
@@ -1076,21 +1076,21 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="rmslot", aliases=("deleteslot",))
     @checks.can_use_tm()
     @checks.has_done_setup()
-    async def tourney_deleteslot(self, ctx:Context, tourney: Tourney, *, user: discord.User):
+    async def tourney_deleteslot(self, ctx: Context, tourney: Tourney, *, user: discord.User):
         """Remove someone's slot"""
         _slots = await tourney.assigned_slots.filter(members__contains=user.id).order_by("num")
         if not _slots:
             raise TourneyError(f"**{user}** has no slot in {tourney}.")
 
         cancel_view = BaseSelector(ctx.author.id, TCancelSlotSelector, bot=self.bot, slots=_slots)
-        _m = await ctx.send("Kindly choose one of the following slots",view=cancel_view)
+        _m = await ctx.send("Kindly choose one of the following slots", view=cancel_view)
         await cancel_view.wait()
         await _m.delete()
         if _id := cancel_view.custom_id:
             slot = await TMSlot.get_or_none(pk=_id)
             if not slot:
                 return await ctx.error("Slot is already deleted.")
-            
+
             if slot.confirm_jump_url:
                 self.bot.loop.create_task(update_confirmed_message(self.tourney, slot.confirm_jump_url))
 
@@ -1147,7 +1147,7 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.success("Ok, Aborting.")
 
         await Tourney.filter(pk=tourney.id).update(started_at=datetime.now(tz=IST), closed_at=None)
-        self.bot.tourney_channels.add(channel.id)
+        self.bot.cache.tourney_channels.add(channel.id)
 
         e = self.bot.embed(ctx, title="Registration is now Open")
         e.description = (
@@ -1329,7 +1329,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"Upgrade your server to Quotient Premium to setup more than 1 EasyTag channel.\n{self.bot.config.WEBSITE}/premium"
             )
 
-        if channel.id in self.bot.eztagchannels:
+        if channel.id in self.bot.cache.eztagchannels:
             return await ctx.error(f"This channel is already a easy tag channel.")
 
         if (
@@ -1348,7 +1348,7 @@ class ScrimManager(Cog, name="Esports"):
             )
 
         await EasyTag.create(guild_id=ctx.guild.id, channel_id=channel.id)
-        self.bot.eztagchannels.add(channel.id)
+        self.bot.cache.eztagchannels.add(channel.id)
 
         embed = self.bot.embed(ctx, title="Easy Tagging")
         embed.description = """
@@ -1369,11 +1369,11 @@ class ScrimManager(Cog, name="Esports"):
     @commands.has_permissions(manage_guild=True)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a eztag channel"""
-        if not channel.id in self.bot.eztagchannels:
+        if not channel.id in self.bot.cache.eztagchannels:
             return await ctx.error(f"This is not a EasyTag channel.")
 
         await EasyTag.filter(channel_id=channel.id).delete()
-        self.bot.eztagchannels.discard(channel.id)
+        self.bot.cache.eztagchannels.discard(channel.id)
         await ctx.success(f"Removed {channel} from EasyTag channels.")
 
     @easytag.command(name="config")
@@ -1428,7 +1428,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="set")
     @commands.has_permissions(manage_guild=True)
-    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions:int):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int):
         """
         Set a channel for tagcheck.
         mentions means required mentions, It's zero by default.
@@ -1441,7 +1441,7 @@ class ScrimManager(Cog, name="Esports"):
                 f"Upgrade your server to Quotient Premium to setup more than 1 Tagcheck channel.\n{self.bot.config.WEBSITE}/premium"
             )
 
-        if channel.id in self.bot.tagcheck:
+        if channel.id in self.bot.cache.tagcheck:
             return await ctx.error(f"This channel is already a tagcheck channel.")
 
         if (
@@ -1460,7 +1460,7 @@ class ScrimManager(Cog, name="Esports"):
             )
 
         await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, required_mentions=mentions)
-        self.bot.tagcheck.add(channel.id)
+        self.bot.cache.tagcheck.add(channel.id)
 
         await ctx.success(
             f"Successfully added **{channel}** to tagcheck channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
@@ -1492,11 +1492,11 @@ class ScrimManager(Cog, name="Esports"):
     @commands.has_permissions(manage_guild=True)
     async def tagcheck_remove(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a channel from tagcheck"""
-        if not channel.id in self.bot.tagcheck:
+        if not channel.id in self.bot.cache.tagcheck:
             return await ctx.error(f"This is not a TagCheck channel.")
 
         await TagCheck.filter(channel_id=channel.id).delete()
-        self.bot.tagcheck.discard(channel.id)
+        self.bot.cache.tagcheck.discard(channel.id)
         await ctx.success(f"Removed {channel} from TagCheck channels.")
 
     @tagcheck.command(name="autodelete")
