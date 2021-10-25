@@ -43,7 +43,7 @@ class Tourney(BaseDbModel):
 
     ping_role_id = fields.BigIntField(null=True)
     no_duplicate_name = fields.BooleanField(default=True)
-    autodelete_rejected = fields.BooleanField(default=False)
+    autodelete_rejected = fields.BooleanField(default=True)
 
     success_message = fields.CharField(max_length=500, null=True)
 
