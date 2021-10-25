@@ -906,8 +906,6 @@ class ScrimManager(Cog, name="Esports"):
                 await note.pin()
 
             _view = TourneySlotManager(self.bot, tourney=tourney)
-            if not db_guild.is_premium:
-                _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
             _category = tourney.registration_channel.category
             overwrites = {
@@ -989,7 +987,7 @@ class ScrimManager(Cog, name="Esports"):
         _view = TourneyGroupManager(ctx, tourney=tourney, size=group_size)
         e = TourneyGroupManager.initial_embed(tourney, group_size)
 
-        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
+        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK,row=1))
 
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
@@ -1059,8 +1057,6 @@ class ScrimManager(Cog, name="Esports"):
                 pass
 
         _view = TourneySlotManager(self.bot, tourney=tourney)
-        if not await ctx.is_premium_guild():
-            _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
         _category = tourney.registration_channel.category
         overwrites = {
