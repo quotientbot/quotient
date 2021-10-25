@@ -58,9 +58,9 @@ class EditTourneyEmoji(EsportsBaseView):
         e.set_footer(text="The first emoji must be the emoji for tick mark.")
 
         m = await interaction.followup.send(embed=e)
-        await self.ctx.safe_delete(m)
-
         emojis = await string_input(self.ctx, self.check, delete_after=True)
+        
+        await self.ctx.safe_delete(m)
 
         emojis = emojis.strip().split(",")
         if not len(emojis) == 2:
