@@ -987,7 +987,7 @@ class ScrimManager(Cog, name="Esports"):
         _view = TourneyGroupManager(ctx, tourney=tourney, size=group_size)
         e = TourneyGroupManager.initial_embed(tourney, group_size)
 
-        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK,row=1))
+        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
 
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
