@@ -49,7 +49,11 @@ class Quomisc(Cog, name="quomisc"):
     async def invite(self, ctx: Context):
         """Invite ME : )"""
         embed = self.bot.embed(ctx)
-        embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
+        embed.description = (
+            f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n"
+            f"[Click Here to Invite Quotient Prime]({self.bot.config.PREMIUM_INVITE})\n"
+            f"[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
+        )
         await ctx.send(embed=embed)
 
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
