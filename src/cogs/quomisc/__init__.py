@@ -216,7 +216,7 @@ class Quomisc(Cog, name="quomisc"):
         if len(new_prefix) > 5:
             return await ctx.error(f"Prefix cannot contain more than 5 characters.")
 
-        self.self.bot.cache.guild_data[ctx.guild.id]["prefix"] = new_prefix
+        self.bot.cache.guild_data[ctx.guild.id]["prefix"] = new_prefix
         await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
         await ctx.success(f"Updated server prefix to: `{new_prefix}`")
 
@@ -227,7 +227,7 @@ class Quomisc(Cog, name="quomisc"):
         """Change color of Quotient's embeds"""
         color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
 
-        self.self.bot.cache.guild_data[ctx.guild.id]["color"] = color
+        self.bot.cache.guild_data[ctx.guild.id]["color"] = color
         await Guild.filter(guild_id=ctx.guild.id).update(embed_color=color)
         await ctx.success(f"Updated server color.")
 
@@ -239,7 +239,7 @@ class Quomisc(Cog, name="quomisc"):
         if len(new_footer) > 50:
             return await ctx.success(f"Footer cannot contain more than 50 characters.")
 
-        self.self.bot.cache.guild_data[ctx.guild.id]["footer"] = new_footer
+        self.bot.cache.guild_data[ctx.guild.id]["footer"] = new_footer
         await Guild.filter(guild_id=ctx.guild.id).update(embed_footer=new_footer)
         await ctx.send(f"Updated server footer.")
 

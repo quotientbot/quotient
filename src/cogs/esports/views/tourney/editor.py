@@ -148,7 +148,7 @@ class TourneyEditor(EsportsBaseView):
         mentions = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(0, 10))
         await self.ctx.safe_delete(msg)
 
-        await self.update_tourney(mentions=mentions)
+        await self.update_tourney(required_mentions=mentions)
 
     @discord.ui.button(style=discord.ButtonStyle.secondary, custom_id="tourney_ping", emoji=ri("f"), row=2)
     async def set_ping_role(self, button: discord.Button, interaction: discord.Interaction):
@@ -223,7 +223,7 @@ class TourneyEditor(EsportsBaseView):
             "DM of players who register successfully.\n\n**Current Success Message:**"
             f"```{self.tourney.success_message if self.tourney.success_message else 'Not Set Yet.'}```"
             "\n`Kindly keep it under 350 characters. Enter none to remove it.`",
-            image="https://cdn.discordapp.com/attachments/851846932593770496/900977642382163988/unknown.png"
+            image="https://cdn.discordapp.com/attachments/851846932593770496/900977642382163988/unknown.png",
         )
 
         msg = await inputs.string_input(self.ctx, self.check, delete_after=True)

@@ -56,7 +56,7 @@ class CacheManager:
             async for partner in record.media_partners.all():
                 self.media_partner_channels.add(partner.channel_id)
 
-    @cached(ttl=60, serializer=PickleSerializer())
+    @cached(ttl=30, serializer=PickleSerializer())
     async def match_bot_guild(self, guild: Union[discord.Guild, int], bot_id: int) -> bool:
         if isinstance(guild, int):
             guild = self.bot.get_guild(guild)
@@ -69,8 +69,8 @@ class CacheManager:
 
         _g = await Guild.get(pk=guild.id)
 
-        _m_quo = 746348747918934096
-        _p_quo = 846339012607082506
+        _m_quo = 765159200204128266
+        _p_quo = self.bot.config.PREMIUM_BOT
 
         if _g.is_premium:
             if _p_quo in (m.id for m in guild.members):

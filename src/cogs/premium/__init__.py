@@ -144,7 +144,10 @@ class Premium(Cog):
                 return await ctx.send("don't be a dedh shana bruh")
 
             await Guild.filter(guild_id=ctx.guild.id).update(
-                is_premium=True, made_premium_by=ctx.author.id, premium_end_time=end_time
+                is_premium=True,
+                made_premium_by=ctx.author.id,
+                premium_end_time=end_time,
+                embed_color=self.bot.config.PREMIUM_COLOR,
             )
             await User.filter(user_id=ctx.author.id).update(
                 premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)

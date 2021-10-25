@@ -65,10 +65,6 @@ class Quotient(commands.AutoShardedBot):
         self.binclient = mystbin.Client()
         self.lockdown = False
         self.persistent_views_added = False
-        self.http_client = QuoHttpHandler(self)
-        self.loop.create_task(self.http_client.handle())
-
-        self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
@@ -105,6 +101,25 @@ class Quotient(commands.AutoShardedBot):
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
 
+    async def _run_event(self, coro, event_name, *args, **kwargs):
+        for arg in args:
+            # check for both guild and guild_id
+            if hasattr(arg, "guild"):
+                _obj = arg.guild.id
+                break
+            elif hasattr(arg, "guild_id"):
+                _obj = arg.guild_id
+                break
+        else:
+            _obj = kwargs.get("guild") or kwargs.get("guild_id")
+            # guild id can be none here
+            # guild_id = ob.id if isinstance(ob, discord.Guild) else ob
+
+        if _obj is not None and not await self.cache.match_bot_guild(_obj, self.user.id):
+            return
+
+        await super()._run_event(coro, event_name, *args, **kwargs)
+
     async def get_prefix(self, message: discord.Message) -> str:
         """Get a guild's prefix"""
         if not message.guild:
@@ -113,13 +128,16 @@ class Quotient(commands.AutoShardedBot):
         if self.user.id == 765159200204128266:  # its the beta bot
             prefix = ""
         else:
-            guild = self.guild_data.get(message.guild.id)
+            guild = self.cache.guild_data.get(message.guild.id)
             if guild:
                 prefix = guild["prefix"]
 
             else:
-                self.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": config.FOOTER}
+                self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": config.FOOTER}
                 prefix = "q"
+
+        if prefix is None:
+            prefix = "q"
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
@@ -168,12 +186,18 @@ class Quotient(commands.AutoShardedBot):
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
                 self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
 
+            if not self.user.id == self.config.PREMIUM_BOT:
+                self.http_client = QuoHttpHandler(self)
+                self.loop.create_task(self.http_client.handle())
+
+                self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
+
             self.persistent_views_added = True
 
     def embed(self, ctx: Context, **kwargs) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
-        embed_color = self.guild_data[ctx.guild.id]["color"]
-        embed_footer = self.guild_data[ctx.guild.id]["footer"]
+        embed_color = self.cache.guild_data[ctx.guild.id]["color"]
+        embed_footer = self.cache.guild_data[ctx.guild.id]["footer"]
 
         if embed_footer.strip().lower() == "none":
             embed_footer = discord.Embed.Empty
@@ -236,6 +260,3 @@ class Quotient(commands.AutoShardedBot):
 
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
-
-    async def on_ipc_error(self, endpoint, error):
-        print(endpoint, "raised", error)
