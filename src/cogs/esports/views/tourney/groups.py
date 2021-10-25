@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from core import Quotient
 
-from utils import inputs, get_chunks, emote, QuoRole
+from utils import inputs, get_chunks, emote, QuoRole, truncate_string
 from humanize import precisedelta
 
 from discord.ext import commands
@@ -65,9 +65,7 @@ class TourneyGroupManager(EsportsBaseView):
             e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
-                e.description += (
-                    f"`{count:02}` • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
-                )
+                e.description += f"`{count:02}` • **{truncate_string(_slot.team_name,30)}** (<@{_slot.leader_id}>)\n"
 
             _list.append(e)
 
