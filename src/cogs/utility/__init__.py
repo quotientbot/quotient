@@ -190,14 +190,6 @@ class Utility(Cog, name="utility"):
         embed.add_field(name="Bots", value=bots, inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    @commands.cooldown(1, 5, type=commands.BucketType.user)
-    async def firstmsg(self, ctx: Context, *, channel: discord.TextChannel = None):
-        """Get the link to first message of current or any other channel."""
-        channel = channel or ctx.channel
-        messages = await channel.history(limit=1, oldest_first=True).flatten()
-        return await ctx.send(f"Here's the link to first message of {channel.mention}:\n{messages[0].jump_url}")
-
     @commands.command(name="embed")
     @commands.has_permissions(manage_messages=True)
     async def embed_send(self, ctx: Context, channel: discord.TextChannel, color: QuoColor, *, text: str):
@@ -236,40 +228,6 @@ class Utility(Cog, name="utility"):
             embed.set_image(url=ctx.message.attachments[0].proxy_url)
         await ctx.send(embed=embed)
         await ctx.message.delete()
-
-    @commands.command(name="zipemojis")
-    @commands.has_guild_permissions(manage_emojis=True)
-    @commands.max_concurrency(1, per=commands.BucketType.guild)
-    async def zip_emojis(self, ctx: Context):
-        """
-        Get a zip file containing all the emojis in the current server.
-        `Note:` This can take some time and you need to be patient.
-        """
-        if len(ctx.guild.emojis) == 0:
-            return await ctx.error("Breh, Your server doesn't have any custom emojis.")
-
-        m = await ctx.simple(
-            f"Alright! Zipping all emojis owned by this server for you, This can take some time {emote.loading}"
-        )
-        buf = BytesIO()
-
-        async with ctx.typing():
-            with zipfile.ZipFile(buf, "w") as f:
-                for emoji in ctx.guild.emojis:
-                    _bytes = await emoji.url.read()
-                    f.writestr(f'{emoji.name}.{"gif" if emoji.animated else "png"}', _bytes)
-
-            buf.seek(0)
-
-        try:
-            await m.delete()
-        except:
-            pass
-        finally:
-            await ctx.send(
-                f"{ctx.author.mention} Sorry to keep you waiting, here you go:",
-                file=discord.File(fp=buf, filename="emojis.zip"),
-            )
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)

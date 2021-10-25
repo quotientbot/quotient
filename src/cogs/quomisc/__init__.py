@@ -45,36 +45,6 @@ class Quomisc(Cog, name="quomisc"):
         final_url = f"<{source_url}/blob/main/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>"
         await ctx.send(final_url)
 
-    @commands.command(aliases=["cs"])
-    async def codestats(self, ctx: Context):
-        """See the code statictics of the bot."""
-        ctr = Counter()
-
-        for ctr["files"], f in enumerate(glob("./**/*.py", recursive=True)):
-            with open(f, encoding="UTF-8") as fp:
-                for ctr["lines"], line in enumerate(fp, ctr["lines"]):
-                    line = line.lstrip()
-                    ctr["imports"] += line.startswith("import") + line.startswith("from")
-                    ctr["classes"] += line.startswith("class")
-                    ctr["comments"] += "#" in line
-                    ctr["functions"] += line.startswith("def")
-                    ctr["coroutines"] += line.startswith("async def")
-                    ctr["docstrings"] += line.startswith('"""') + line.startswith("'''")
-
-        await ctx.send(
-            embed=ctx.bot.embed(
-                ctx,
-                title="Code Stats",
-                description="\n".join([f"**{k.capitalize()}:** {v}" for k, v in ctr.items()]),
-            )
-        )
-
-    @commands.command()
-    async def support(self, ctx):
-        """
-        Get the invite link of our support server.
-        """
-        await ctx.send(self.bot.config.SERVER)
 
     @commands.command()
     async def invite(self, ctx: Context):
@@ -82,11 +52,6 @@ class Quomisc(Cog, name="quomisc"):
         embed = self.bot.embed(ctx)
         embed.description = f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         await ctx.send(embed=embed)
-
-    @commands.command()
-    async def donate(self, ctx: Context):
-        """Donate to Quotient"""
-        await ctx.send(self.bot.config.DONATE_LINK, embed_perms=True)
 
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
@@ -218,13 +183,6 @@ class Quomisc(Cog, name="quomisc"):
         await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))
 
     @commands.command()
-    async def uptime(self, ctx):
-        """Do you wonder when did we last restart Quotient?"""
-        await ctx.send(
-            f"**Uptime:** {self.get_bot_uptime(brief=False)}\n**Last Restart:** {strtime(self.bot.start_time)}"
-        )
-
-    @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
         ping_at = time.monotonic()
@@ -319,10 +277,6 @@ class Quomisc(Cog, name="quomisc"):
         await ctx.send(
             f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
         )
-
-    @commands.command()
-    async def website(self, ctx: Context):
-        return await ctx.send(f"<{self.bot.config.WEBSITE}>")
 
     @commands.command()
     async def vote(self, ctx: Context):
