@@ -50,7 +50,7 @@ class Quotient(commands.AutoShardedBot):
             strip_after_prefix=True,
             case_insensitive=True,
             help_command=HelpCommand(),
-            chunk_guilds_at_startup=True,
+            chunk_guilds_at_startup=False,
             allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
