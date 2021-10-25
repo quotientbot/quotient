@@ -40,7 +40,7 @@ class TagEvents(Cog):
         if ignore_role is not None and ignore_role in message.author.roles:
             return
 
-        with suppress(discord.Forbidden, discord.NotFound, AttributeError):
+        with suppress(discord.HTTPException, AttributeError):
             ctx = await self.bot.get_context(message)
 
             _react = True
