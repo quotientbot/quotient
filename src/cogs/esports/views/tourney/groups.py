@@ -66,7 +66,7 @@ class TourneyGroupManager(EsportsBaseView):
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
                 e.description += (
-                    f"[`{count:02}`]({_slot.confirm_jump_url}) • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
+                    f"`{count:02}` • **{_slot.team_name}** (<@{_slot.leader_id}>)\n"
                 )
 
             _list.append(e)
@@ -77,7 +77,7 @@ class TourneyGroupManager(EsportsBaseView):
     @discord.ui.button(custom_id="give_group_roles", label="Give Roles")
     async def give_group_roles(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        if not len(self.ctx.guild.roles) < 245:
+        if not len(self.ctx.guild.roles) < 235:
             return await self.error_embed(
                 "Your server is about to hit the max roles limit (250 roles), please delete some first."
             )
@@ -95,7 +95,7 @@ class TourneyGroupManager(EsportsBaseView):
             "or just write its name, if there is no role of that name, Quotient "
             "will create the role and give it to group leaders.\n\n"
             "**Example:**```1, @group_role\n2, Group role\n3, @3rd_group```\n"
-            "*Enter upto 5 roles at a time.*",
+            "*Enter upto 15 roles at a time.*",
             image="https://cdn.discordapp.com/attachments/851846932593770496/901862381473374299/unknown.png",
         )
 
@@ -107,8 +107,8 @@ class TourneyGroupManager(EsportsBaseView):
 
         _split = _roleinfo.split("\n")
 
-        if len(_split) > 5:
-            return await self.error_embed(f"Group Roles can be given to upto 5 groups at a time.")
+        if len(_split) > 15:
+            return await self.error_embed(f"Group Roles can be given to upto 15 groups at a time.")
 
         for _group in _split:
             try:
@@ -233,7 +233,7 @@ class GroupListView(EsportsBaseView):
             return await self.error_embed(e)
 
         m = await self.ctx.simple(f"Publishing, please wait {emote.loading}")
-        for _chunk in get_chunks(self.embeds, 3):
+        for _chunk in get_chunks(self.embeds, 2):
             await _webhook.send(
                 embeds=_chunk,
                 username=self.ctx.guild.name,
@@ -242,7 +242,7 @@ class GroupListView(EsportsBaseView):
 
         await _webhook.delete()
         await self.ctx.safe_delete(m)
-        await self.ctx.success("Group list published.", 3)
+        await self.ctx.success("Group list published.", 4)
 
     @discord.ui.button(custom_id="publish_g_bot", emoji="<:pain:837567768106238002>", label="With Bot")
     async def publish_groups_bot(self, button: discord.Button, interaction: discord.Interaction):
@@ -253,7 +253,7 @@ class GroupListView(EsportsBaseView):
             await self.channel.send(embeds=_chunk)
 
         await self.ctx.safe_delete(m)
-        await self.ctx.success("Group list published.", 3)
+        await self.ctx.success("Group list published.", 4)
 
     @discord.ui.button(custom_id="publish_g_delete", emoji=emote.trash)
     async def publish_groups_delete(self, button: discord.Button, interaction: discord.Interaction):
