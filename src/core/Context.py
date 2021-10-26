@@ -1,11 +1,11 @@
 from contextlib import suppress
 from discord.ext import commands
 import discord, asyncio
-from models import Guild
+
 import utils, io
 
 from async_property import async_property
-from models import BanLog
+
 import config as cfg
 
 
@@ -27,6 +27,8 @@ class Context(commands.Context):
 
     @async_property
     async def banlog_channel(self):
+        from models import BanLog
+
         record = await BanLog.get_or_none(guild_id=self.guild.id)
         if record:
             return record.channel
@@ -94,6 +96,8 @@ class Context(commands.Context):
         )
 
     async def is_premium_guild(self):
+        from models import Guild
+
         with suppress(AttributeError):
             return (await Guild.get(guild_id=self.guild.id)).is_premium
 

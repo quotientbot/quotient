@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from aiocache import cached
-from aiocache.serializers import PickleSerializer
 
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 
 from models import Guild, EasyTag, TagCheck, Scrim, Tourney, AutoPurge
 import config
 from constants import IST
 from datetime import datetime
-import discord
+
+from aiocache import cached
+from aiocache.serializers import JsonSerializer
 
 
 class CacheManager:
@@ -56,27 +56,7 @@ class CacheManager:
             async for partner in record.media_partners.all():
                 self.media_partner_channels.add(partner.channel_id)
 
-    @cached(ttl=30, serializer=PickleSerializer())
-    async def match_bot_guild(self, guild: Union[discord.Guild, int], bot_id: int) -> bool:
-        if isinstance(guild, int):
-            guild = self.bot.get_guild(guild)
-
-        if not guild:
-            return False
-
-        if not guild.chunked:
-            self.bot.loop.create_task(guild.chunk())
-
-        _g = await Guild.get(pk=guild.id)
-
-        _m_quo = 765159200204128266
-        _p_quo = self.bot.config.PREMIUM_BOT
-
-        if _g.is_premium:
-            if _p_quo in (m.id for m in guild.members):
-                return bot_id == _p_quo
-            else:
-                return _m_quo == bot_id
-
-        else:
-            return _m_quo == bot_id
+    @staticmethod
+    @cached(ttl=10, serializer=JsonSerializer())
+    async def match_bot_guild(guild_id: int, bot_id: int) -> bool:
+        return await Guild.filter(pk=guild_id, bot_id=bot_id).exists()

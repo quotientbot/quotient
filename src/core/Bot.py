@@ -24,6 +24,7 @@ import mystbin
 import dbl
 import time
 
+from .decorators import right_bot_check
 from .Context import Context
 from .Help import HelpCommand
 from .HttpHandler import QuoHttpHandler
@@ -101,33 +102,13 @@ class Quotient(commands.AutoShardedBot):
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
 
-    # async def _run_event(self, coro, event_name, *args, **kwargs):
-    #     for arg in args:
-    #         # check for both guild and guild_id
-    #         if hasattr(arg, "guild"):
-    #             print("arg guild",arg.guild)
-    #             _obj = arg.guild.id
-    #             break
-    #         elif hasattr(arg, "guild_id"):
-    #             _obj = arg.guild_id
-    #             break
-    #     else:
-    #         _obj = kwargs.get("guild") or kwargs.get("guild_id")
-    #         # guild id can be none here
-    #         # guild_id = ob.id if isinstance(ob, discord.Guild) else ob
-
-    #     if _obj is not None and not await self.cache.match_bot_guild(_obj, self.user.id):
-    #         return
-
-    #     await super()._run_event(coro, event_name, *args, **kwargs)
-
     async def get_prefix(self, message: discord.Message) -> str:
         """Get a guild's prefix"""
         if not message.guild:
             return
 
-        if self.user.id == 765159200204128266:  # its the beta bot
-            prefix = ""
+        # if self.user.id == 765159200204128266:  # its the beta bot
+        #     prefix = ""
         else:
             guild = self.cache.guild_data.get(message.guild.id)
             if guild:
@@ -159,6 +140,7 @@ class Quotient(commands.AutoShardedBot):
 
             await self.invoke(ctx)
 
+    @right_bot_check()
     async def on_message(self, message: discord.Message):
         self.seen_messages += 1
 
@@ -208,7 +190,7 @@ class Quotient(commands.AutoShardedBot):
         embed.set_footer(text=embed_footer)
         return embed
 
-    async def is_owner(self, user) -> bool:
+    async def is_owner(self, user: typing.Union[discord.Member, discord.User]) -> bool:
         if await super().is_owner(user):
             return True
 

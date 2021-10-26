@@ -11,6 +11,7 @@ class Guild(models.Model):
         table = "guild_data"
 
     guild_id = fields.BigIntField(pk=True, index=True)
+    bot_id = fields.BigIntField(default=config.MAIN_BOT)
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
     embed_footer = fields.TextField(default=config.FOOTER)
@@ -23,7 +24,7 @@ class Guild(models.Model):
     premium_notified = fields.BooleanField(default=False)
 
     public_profile = fields.BooleanField(default=True)  # whether to list the server on global leaderboards
-    
+
     private_channel = fields.BigIntField(null=True)
 
     dashboard_access = fields.JSONField(default=_dict)
