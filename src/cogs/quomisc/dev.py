@@ -12,7 +12,7 @@ from discord.ext import commands
 
 from .helper import tabulate_query
 from time import perf_counter as pf
-from models.models import Commands, Partner
+from models import Commands, Partner, Guild
 from utils import get_ipm, QuoUser, LinkButton, LinkType
 
 import datetime
@@ -33,6 +33,16 @@ class Dev(Cog):
 
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
+
+    @commands.command(hidden=True)
+    async def change_bot(self, ctx: Context, guild_id: int, bot_id: int):
+        _check = await Guild.filter(pk=guild_id, bot_id=bot_id).exists()
+
+        if _check:
+            return await ctx.error("The following combination already exists.")
+
+        await Guild.get(pk=guild_id).update(bot_id=bot_id)
+        await ctx.success(f"Successfully updated bot_id ({bot_id}) for {guild_id}.")
 
     @commands.command(hidden=True)
     async def pgift(self, ctx: Context, user: QuoUser, _type: PremiumPurchase):
