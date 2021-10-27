@@ -22,21 +22,27 @@ async def update_main_message(guild_id: int, bot):
     if not record:
         return
 
-    message = await record.message
-    if message:
-        from cogs.esports.views import SlotManagerView
+    message: discord.Message = await record.message
+    if not message:
+        return await SlotManager.filter(pk=record.id).delete()
 
-        view = SlotManagerView(bot)
+    from cogs.esports.views import SlotManagerView
 
-        _free = await free_slots(guild_id)
-        view.children[1].disabled = False
-        if not _free:
-            view.children[1].disabled = True
+    view = SlotManagerView(bot)
 
-        embed = await get_slot_manager_message(guild_id, _free)
-        return await message.edit(embed=embed, view=view)
+    _free = await free_slots(guild_id)
 
-    await SlotManager.filter(pk=record.id).delete()
+    view.children[1].disabled = False
+    if not _free:
+        view.children[1].disabled = True
+
+    embed = await get_slot_manager_message(guild_id, _free)
+    try:
+        await message.edit(embed=embed, view=view)
+    except:
+        await message.delete()
+        _m = await message.channel.send(embed=embed, view=view)
+        await SlotManager.filter(pk=record.id).update(message_id=_m.id)
 
 
 async def lock_for_registration(guild_id: int, scrim_id: int, bot):

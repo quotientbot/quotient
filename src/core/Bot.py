@@ -222,6 +222,10 @@ class Quotient(commands.AutoShardedBot):
         return self.get_guild(746337818388987967)
 
     @property
+    def invite_url(self):
+        return f"https://discord.com/oauth2/authorize?client_id={self.user.id}&scope=applications.commands%20bot&permissions=21175985838"
+
+    @property
     def reminders(self) -> Reminders:  # since we use it a lot
         return self.get_cog("Reminders")
 
@@ -236,7 +240,7 @@ class Quotient(commands.AutoShardedBot):
     async def getch(get_method, fetch_method, _id):  # why does c have all the fun?
         try:
             _result = get_method(_id) or await fetch_method(_id)
-        except (discord.HTTPException, discord.Forbidden, discord.NotFound):
+        except (discord.HTTPException, discord.NotFound):
             return None
         else:
             return _result

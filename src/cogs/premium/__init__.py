@@ -161,10 +161,6 @@ class Premium(Cog):
         else:
             await ctx.success(f"Alright")
 
-    # @commands.command()
-    # async def myorders(self, ctx: Context):
-    #     laters baby
-
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def pstatus(self, ctx: Context):
@@ -211,6 +207,12 @@ class Premium(Cog):
         # await ctx.send(embed=embed)
 
         await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
+
+    @commands.command()
+    @commands.bot_has_permissions(embed_links=True)
+    async def activate(self, ctx: Context):
+        """Activate any Premium Quotient."""
+
 
 
 def setup(bot) -> None:
