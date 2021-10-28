@@ -2,8 +2,11 @@ from __future__ import annotations
 
 
 from functools import wraps
+
 from .Cog import Cog
 
+from typing import TYPE_CHECKING
+import re
 import discord
 from .cache import CacheManager
 
@@ -12,12 +15,21 @@ class right_bot_check:
     def __call__(self, fn):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
+            if TYPE_CHECKING:
+                from .Bot import Quotient
 
             if isinstance(args[0], Cog):
-                bot = args[0].bot
+                bot: Quotient = args[0].bot
 
             else:
-                bot = args[0]
+                bot: Quotient = args[0]
+
+            if fn.__name__ == "on_message":
+                message: discord.Message = args[1]
+                if not bot.user.id == bot.config.MAIN_BOT:
+                    if re.match(f"^activate <@!?{bot.user.id}>$", message.content):
+                        print("dispatching")
+                        return bot.dispatch("premium_quotient_activate", message)
 
             for arg in args:
                 # check for both guild and guild_id

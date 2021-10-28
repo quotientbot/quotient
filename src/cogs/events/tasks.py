@@ -11,7 +11,7 @@ class QuoTasks(Cog):
         self.bot = bot
         self.insert_guilds.start()
         self.find_new_voters_and_premiums.start()
-        self.find_people_who_have_to_pay.start()
+        # self.find_people_who_have_to_pay.start()
 
     @tasks.loop(count=1)
     async def insert_guilds(self):

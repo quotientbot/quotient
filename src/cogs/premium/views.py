@@ -1,5 +1,7 @@
+from aiohttp import ClientSession
 from utils import emote
 import discord
+import io
 
 
 class PremiumView(discord.ui.View):
@@ -31,25 +33,28 @@ class PremiumView(discord.ui.View):
 
 
 class PremiumActivate(discord.ui.View):
-    def __init__(self):
+    def __init__(self, guild_id: int):
         super().__init__(timeout=None)
-        url = (
-            "https://discord.com/oauth2/authorize?client_id={0}&scope=applications.commands%20bot&permissions=21175985838"
-        )
+        url = "https://discord.com/oauth2/authorize?client_id={0}&scope=applications.commands%20bot&permissions=21175985838&guild_id={1}"
         _options = [
-            discord.ui.Button(url=url.format(846339012607082506), emoji="<:redquo:902966581951344672>"),
-            discord.ui.Button(url=url.format(846339012607082506), emoji="<:greenquo:902966579711578192>"),
-            discord.ui.Button(url=url.format(846339012607082506), emoji="<:whitequo:902966576800731147>"),
-            discord.ui.Button(url=url.format(846339012607082506), emoji="<:purplequo:902966579812237383>"),
-            discord.ui.Button(url=url.format(846339012607082506), emoji="<:orangequo:902966579938099200>"),
+            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:redquo:902966581951344672>"),
+            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:whitequo:902966576800731147>"),
+            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:greenquo:902966579711578192>"),
+            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:purplequo:902966579812237383>"),
+            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:orangequo:902966579938099200>"),
         ]
         for _item in _options:
             self.add_item(_item)
 
     @property
     def initial_message(self):
-        return (
-            "Choose your Color and Invite it\n"
-            "https://cdn.discordapp.com/attachments/779229002626760716/902885164156330104/all_pre.png "
-            "**Type `done` when you have it in the server.**"
-        )
+        return "Choose your Color and Invite it\n" "**Type `activate @Quotient` when you have it in the server.**\n"
+
+    @property
+    async def image(self):
+        async with ClientSession() as session:
+            async with session.get(
+                "https://cdn.discordapp.com/attachments/829953427336593429/903303537302319144/all_pre.png"
+            ) as res:
+                invert = io.BytesIO(await res.read())
+                return discord.File(invert, "premium.png")

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import typing
 
-from discord.enums import NotificationLevel
-
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -16,7 +14,7 @@ from cogs.esports.views import SlotManagerView, TourneySlotManager
 from cogs.esports.helpers.views import free_slots, get_slot_manager_message
 
 
-async def update_bot_messages(bot: Quotient, guild: discord.Guild):
+async def activate_premium(bot: Quotient, guild: discord.Guild):
 
     _slotmanager = await SlotManager.get_or_none(guild_id=guild.id)
 

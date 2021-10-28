@@ -155,7 +155,7 @@ async def toggle_channel(channel, role, _bool=True) -> bool:
         return False
 
 
-async def wait_and_purge(channel, *, limit=100, wait_for=10, check=lambda m: True):
+async def wait_and_purge(channel, *, limit=100, wait_for=15, check=lambda m: True):
     await asyncio.sleep(wait_for)
 
     with suppress(discord.HTTPException):
