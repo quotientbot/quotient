@@ -26,7 +26,7 @@ class right_bot_check:
 
             if fn.__name__ == "on_message":
                 message: discord.Message = args[1]
-                if not bot.user.id == bot.config.MAIN_BOT:
+                if not message.author.bot:
                     if re.match(f"^activate <@!?{bot.user.id}>$", message.content):
                         print("dispatching")
                         return bot.dispatch("premium_quotient_activate", message)

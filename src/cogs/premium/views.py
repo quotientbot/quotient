@@ -37,11 +37,11 @@ class PremiumActivate(discord.ui.View):
         super().__init__(timeout=None)
         url = "https://discord.com/oauth2/authorize?client_id={0}&scope=applications.commands%20bot&permissions=21175985838&guild_id={1}"
         _options = [
-            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:redquo:902966581951344672>"),
-            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:whitequo:902966576800731147>"),
+            discord.ui.Button(url=url.format(902856923311919104, guild_id), emoji="<:redquo:902966581951344672>"),
+            discord.ui.Button(url=url.format(902857418390765569, guild_id), emoji="<:whitequo:902966576800731147>"),
             discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:greenquo:902966579711578192>"),
-            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:purplequo:902966579812237383>"),
-            discord.ui.Button(url=url.format(846339012607082506, guild_id), emoji="<:orangequo:902966579938099200>"),
+            discord.ui.Button(url=url.format(902857046574129172, guild_id), emoji="<:purplequo:902966579812237383>"),
+            discord.ui.Button(url=url.format(744990850064580660, guild_id), emoji="<:orangequo:902966579938099200>"),
         ]
         for _item in _options:
             self.add_item(_item)
