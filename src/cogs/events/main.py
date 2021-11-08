@@ -84,4 +84,3 @@ class MainEvents(Cog, name="Main Events"):
         if guild.bot_id == self.bot.user.id:
             return await message.channel.send(f"*I am already there, working at your command day and night.*")
         # await activate_premium(self.bot, message.guild)
-        print("premmium req")
