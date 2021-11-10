@@ -56,6 +56,25 @@ class CacheManager:
             async for partner in record.media_partners.all():
                 self.media_partner_channels.add(partner.channel_id)
 
+    def guild_color(self, guild_id: int):
+        return self.guild_data.get(guild_id, {}).get("color", config.COLOR)
+
+    def guild_footer(self, guild_id: int):
+        return self.guild_data.get(guild_id, {}).get("footer", config.FOOTER)
+
+    async def update_guild_cache(self, guild_id: int, set_default=False) -> None:
+        if set_default:
+            await Guild.get(pk=guild_id).update(
+                prefix=config.PREFIX, embed_color=config.COLOR, embed_footer=config.FOOTER
+            )
+
+        _g = await Guild.get(pk=guild_id)
+        self.guild_data[guild_id] = {
+            "prefix": _g.prefix,
+            "color": _g.embed_color or config.COLOR,
+            "footer": _g.embed_footer or config.FOOTER,
+        }
+
     @staticmethod
     @cached(ttl=10, serializer=JsonSerializer())
     async def match_bot_guild(guild_id: int, bot_id: int) -> bool:

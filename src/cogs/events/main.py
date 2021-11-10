@@ -79,8 +79,15 @@ class MainEvents(Cog, name="Main Events"):
         print("event")
         guild = await Guild.get(pk=message.guild.id)
         if not guild.waiting_activation:
-            return await message.channel.send("Premium Quotients can't be activated directly.")
+            return await message.channel.send(
+                "Premium Quotients can't be activated directly.\n"
+                "Please use `qboost` if you have a boost left or use `qquochange` if you "
+                "are already premium but wish to change color."
+            )
 
         if guild.bot_id == self.bot.user.id:
-            return await message.channel.send(f"*I am already there, working at your command day and night.*")
+            return await message.channel.send(
+                f"I am already there, working at for you.\n\n||*Why would you want me to activate twice?*||"
+            )
+        
         # await activate_premium(self.bot, message.guild)

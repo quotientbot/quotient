@@ -6,15 +6,26 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from models import SlotManager, Tourney
+from models import SlotManager, Tourney,Guild
 import discord
-
+from constants import bot_colors
 
 from cogs.esports.views import SlotManagerView, TourneySlotManager
 from cogs.esports.helpers.views import free_slots, get_slot_manager_message
 
 
 async def activate_premium(bot: Quotient, guild: discord.Guild):
+    
+    __bot_id = bot.user.id
+
+    await Guild.get(pk=guild.id).update(
+        embed_color=bot_colors[__bot_id],
+        bot_id = __bot_id,
+        waiting_activation=False,
+    )
+    
+    
+
 
     _slotmanager = await SlotManager.get_or_none(guild_id=guild.id)
 

@@ -100,6 +100,15 @@ class ScrimBanType(Enum):
     unban = "unbanned"
 
 
+bot_colors = {
+    746348747918934096: 0x00FFB3,
+    744990850064580660: 0xF3B82B,
+    846339012607082506: 0x87EA5C,
+    902856923311919104: 0xFF4E4A,
+    902857046574129172: 0x5F6FFA,
+    902857418390765569: 0xFFFFFF,
+}
+
 perks = {
     "Premium Role": ["❌", "✅"],
     "Scrims": ["3", "Unlimited"],
