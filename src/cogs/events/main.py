@@ -89,5 +89,5 @@ class MainEvents(Cog, name="Main Events"):
             return await message.channel.send(
                 f"I am already there, working at for you.\n\n||*Why would you want me to activate twice?*||"
             )
-        
-        # await activate_premium(self.bot, message.guild)
+
+        await activate_premium(self.bot, message.guild)

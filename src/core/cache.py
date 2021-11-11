@@ -62,7 +62,7 @@ class CacheManager:
     def guild_footer(self, guild_id: int):
         return self.guild_data.get(guild_id, {}).get("footer", config.FOOTER)
 
-    async def update_guild_cache(self, guild_id: int, set_default=False) -> None:
+    async def update_guild_cache(self, guild_id: int, *, set_default=False) -> None:
         if set_default:
             await Guild.get(pk=guild_id).update(
                 prefix=config.PREFIX, embed_color=config.COLOR, embed_footer=config.FOOTER
