@@ -12,5 +12,3 @@ async def bot_before_invoke(ctx: Context):
 
 if __name__ == "__main__":
     bot.run(bot.config.DISCORD_TOKEN)
-
-

@@ -12,23 +12,27 @@ from utils import checks, strtime, IST
 from datetime import datetime, timedelta
 
 from .views import PremiumActivate
+import discord
+import config
 
 
 class Premium(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @property
-    def reminders(self):  # yes I do this a lot.
-        return self.bot.get_cog("Reminders")
-
     @commands.command()
     @checks.is_premium_user()
     async def boost(self, ctx: Context):
         """Upgrade your server with Quotient Premium."""
+
+        def __use_prime_bot(g: discord.Guild) -> bool:
+            return bool(g.get_member(config.PREMIUM_BOT))
+
         user = await User.get(user_id=ctx.author.id)
         if not user.premiums:
-            return await ctx.error("You have no boosts left.")
+            return await ctx.error(
+                "You have no Quotient Prime Boosts left.\n\nKindly purchase premium again to get 1 boost.\n"
+            )
 
         guild = await Guild.get(guild_id=ctx.guild.id)
 
@@ -43,29 +47,30 @@ class Premium(Cog):
             "\n\n*This action is irreversible.*",
             title="Are you sure you want to continue?",
         )
-        if prompt:
+        if not prompt:
+            return await ctx.simple(f"Alright, Aborting.")
 
-            await user.refresh_from_db(("premiums",))
-            if not user.premiums:
-                return await ctx.send("don't be a dedh shana bruh")
+        await user.refresh_from_db(("premiums",))
+        if not user.premiums:
+            return await ctx.send("don't be a dedh shana bruh")
 
-            await Guild.filter(guild_id=ctx.guild.id).update(
-                is_premium=True,
-                made_premium_by=ctx.author.id,
-                premium_end_time=end_time,
-                embed_color=self.bot.config.PREMIUM_COLOR,
-            )
-            await User.filter(user_id=ctx.author.id).update(
-                premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
-            )
-            await self.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
-            await self.reminders.create_timer(end_time, "guild_premium", guild_id=ctx.guild.id)
+        await guild.select_for_update().update(
+            is_premium=True,
+            made_premium_by=ctx.author.id,
+            premium_end_time=end_time,
+            embed_color=self.bot.config.PREMIUM_COLOR,
+            bot_id=config.PREMIUM_BOT if __use_prime_bot(ctx.guild) else self.bot.user.id,
+        )
+        await user.select_for_update().update(
+            premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
+        )
+        await self.bot.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
+        await self.bot.reminders.create_timer(end_time, "guild_premium", guild_id=ctx.guild.id)
 
-            await ctx.success(
-                f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}."
-            )
-        else:
-            await ctx.success(f"Alright")
+        await ctx.success(f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}.")
+
+        if not __use_prime_bot(ctx.guild):
+            ...
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
@@ -93,59 +98,46 @@ class Premium(Cog):
         embed = self.bot.embed(ctx, title="Quotient Premium", url=f"{self.bot.config.WEBSITE}")
         embed.add_field(name="User", value=atext, inline=False)
         embed.add_field(name="Server", value=btext, inline=False)
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
-        # table = PrettyTable()
-        # table.field_names = ["Perks", "Free Tier", "Premium Tier"]
+        return await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
 
-        # for key, val in constants.perks.items():
-        #     a, b = val
-        #     table.add_row([key, a, b])
+    # @commands.command()
+    # @commands.bot_has_permissions(embed_links=True)
+    # async def changequo(self, ctx: Context):
+    #     """Switch to another Quotient Premium bot."""
 
-        # table = table.get_string()
-        # embed = self.bot.embed(ctx, title="Free-Premium Comparison", url=f"{self.bot.config.WEBSITE}/premium")
-        # # embed.description = f"```{table}```"
-        # embed.set_image(url="https://media.discordapp.net/attachments/851846932593770496/872541228762300516/unknown.png")
-        # await ctx.send(embed=embed)
+    #     if not await ctx.is_premium_guild():
+    #         return await ctx.error("This server is not boosted. Please use `qboost`.")
 
-        await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
+    #     await self.bot.reminders.create_timer(
+    #         datetime.now(tz=IST) + timedelta(minutes=1),
+    #         "premium_activation",
+    #         channel_id=ctx.channel.id,
+    #         guild_id=ctx.guild.id,
+    #     )
 
-    @commands.command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def changequo(self, ctx: Context):
-        """Switch to another Quotient Premium bot."""
+    #     await Guild.get(pk=ctx.guild.id).update(waiting_activation=True)
 
-        if not await ctx.is_premium_guild():
-            return await ctx.error("This server is not boosted. Please use `qboost`.")
+    #     _view = PremiumActivate(ctx.guild.id)
+    #     await ctx.send(_view.initial_message, view=_view, file=await _view.image)
 
-        await self.bot.reminders.create_timer(
-            datetime.now(tz=IST) + timedelta(minutes=1),
-            "premium_activation",
-            channel_id=ctx.channel.id,
-            guild_id=ctx.guild.id,
-        )
+    # @Cog.listener()
+    # async def on_premium_activation_timer_complete(self, timer: Timer):
+    #     channel_id, guild_id = timer.kwargs["channel_id"], timer.kwargs["guild_id"]
 
-        await Guild.get(pk=ctx.guild.id).update(waiting_activation=True)
+    #     guild = await Guild.get(pk=guild_id)
+    #     if not guild.is_premium or not guild.waiting_activation:
+    #         return
 
-        _view = PremiumActivate(ctx.guild.id)
-        await ctx.send(_view.initial_message, view=_view, file=await _view.image)
+    #     await guild.select_for_update().update(waiting_activation=False)
 
-    @Cog.listener()
-    async def on_premium_activation_timer_complete(self, timer: Timer):
-        channel_id, guild_id = timer.kwargs["channel_id"], timer.kwargs["guild_id"]
-
-        guild = await Guild.get(pk=guild_id)
-        if not guild.is_premium or not guild.waiting_activation:
-            return
-
-        await guild.select_for_update().update(waiting_activation=False)
-
-        channel = self.bot.get_channel(channel_id)
-        await channel.send("Quotient Change request timed out. Kindly use `qchangequo` command again.")
+    #     channel = self.bot.get_channel(channel_id)
+    #     await channel.send("Quotient Change request timed out. Kindly use `qchangequo` command again.")
 
 
 def setup(bot) -> None:

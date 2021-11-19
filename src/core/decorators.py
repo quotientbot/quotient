@@ -24,13 +24,6 @@ class right_bot_check:
             else:
                 bot: Quotient = args[0]
 
-            if fn.__name__ == "on_message":
-                message: discord.Message = args[1]
-                if not message.author.bot:
-                    if re.match(f"^activate <@!?{bot.user.id}>$", message.content):
-                        print("dispatching")
-                        return bot.dispatch("premium_quotient_activate", message)
-
             for arg in args:
                 # check for both guild and guild_id
                 if hasattr(arg, "guild"):
@@ -49,5 +42,14 @@ class right_bot_check:
                 return
 
             return await fn(*args, **kwargs)
+
+        return wrapper
+
+
+class prime_event_check:
+    def __call__(self, fn):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            ...
 
         return wrapper
