@@ -43,7 +43,7 @@ class MainEvents(Cog, name="Main Events"):
                 "color": g.embed_color or self.bot.color,
                 "footer": g.embed_footer or config.FOOTER,
             }
-            await guild.chunk()
+            self.bot.loop.create_task(guild.chunk())
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):

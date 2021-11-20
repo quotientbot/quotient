@@ -7,13 +7,14 @@ if typing.TYPE_CHECKING:
 
 from core import Cog, Context
 from discord.ext import commands
-from models import User, Redeem, Guild, ArrayAppend, Timer
+from models import User, Redeem, Guild, ArrayAppend
 from utils import checks, strtime, IST
 from datetime import datetime, timedelta
 
-from .views import PremiumActivate
+from .views import InvitePrime
 import discord
 import config
+import constants
 
 
 class Premium(Cog):
@@ -22,6 +23,7 @@ class Premium(Cog):
 
     @commands.command()
     @checks.is_premium_user()
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
     async def boost(self, ctx: Context):
         """Upgrade your server with Quotient Premium."""
 
@@ -70,7 +72,8 @@ class Premium(Cog):
         await ctx.success(f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}.")
 
         if not __use_prime_bot(ctx.guild):
-            ...
+            _view = InvitePrime(ctx.guild.id)
+            await ctx.send(embed=_view.embed_msg, view=_view)
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
@@ -105,6 +108,25 @@ class Premium(Cog):
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
         return await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        if self.bot.user.id == 746348747918934096:
+            return
+
+        _g = await Guild.get_or_none(pk=guild.id)
+        if not _g:
+            return
+
+        if not _g.is_premium:
+            return await guild.leave()
+
+        await _g.select_for_update().update(bot_id=self.bot.user.id, embed_color=config.PREMIUM_COLOR)
+        await self.bot.cache.update_guild_cache(guild.id)
+
+    @Cog.listener()
+    async def on_guild_remove(self, guild: discord.Guild):
+        ...
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)

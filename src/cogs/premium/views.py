@@ -1,6 +1,7 @@
 from aiohttp import ClientSession
 from utils import emote
 import discord
+import config
 import io
 
 
@@ -58,3 +59,20 @@ class PremiumActivate(discord.ui.View):
             ) as res:
                 invert = io.BytesIO(await res.read())
                 return discord.File(invert, "premium.png")
+
+
+class InvitePrime(discord.ui.View):
+    def __init__(self, guild_id: int):
+        super().__init__(timeout=None)
+        url = f"https://discord.com/oauth2/authorize?client_id={config.PREMIUM_BOT}&scope=applications.commands%20bot&permissions=21175985838&guild_id={guild_id}"
+        self.add_item(discord.ui.Button(url=url, emoji=config.PRIME_EMOJI, label="Invite Prime"))
+
+    @property
+    def embed_msg(self):
+        return discord.Embed(
+            color=config.PREMIUM_COLOR,
+            description=(
+                "It seems that you don't have the Quotient Prime bot on your server, Also its completely fine if you don't "
+                "invite it but We would suggest against it.\n\n*You are paying for the service, why not enjoy it properly?*"
+            ),
+        )

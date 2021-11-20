@@ -59,7 +59,6 @@ class Quotient(commands.AutoShardedBot):
 
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
-        self.color = config.COLOR
         self.start_time = datetime.now(tz=IST)
         self.cmd_invokes = 0
         self.seen_messages = 0
@@ -88,6 +87,10 @@ class Quotient(commands.AutoShardedBot):
     def db(self):
         """to execute raw queries"""
         return Tortoise.get_connection("default")._pool
+
+    @property
+    def color(self):
+        return self.config.PREMIUM_COLOR if self.user.id == self.config.PREMIUM_BOT else self.config.COLOR
 
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
