@@ -37,5 +37,5 @@ class Guild(models.Model):
 
     @property
     def private_ch(self):
-        if self._guild is not None:
-            return self._guild.get_channel(self.private_channel)
+        if (g := self._guild) is not None:
+            return g.get_channel(self.private_channel)

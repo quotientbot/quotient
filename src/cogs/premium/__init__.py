@@ -14,7 +14,8 @@ from datetime import datetime, timedelta
 from .views import InvitePrime
 import discord
 import config
-import constants
+
+from core import event_bot_check
 
 
 class Premium(Cog):
@@ -126,7 +127,16 @@ class Premium(Cog):
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        ...
+        _g = await Guild.get_or_none(pk=guild.id, bot_id=config.PREMIUM_BOT)
+        if not _g:
+            return
+
+        if self.bot.user.id == config.MAIN_BOT:
+            ...
+            # TODO: send message to invite the main bot
+
+        if self.bot.user.id == config.PREMIUM_BOT:
+            await _g.select_for_update().update(bot_id=config.MAIN_BOT)
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)

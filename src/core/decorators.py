@@ -6,9 +6,11 @@ from functools import wraps
 from .Cog import Cog
 
 from typing import TYPE_CHECKING
-import re
 import discord
 from .cache import CacheManager
+
+
+__all__ = ("right_bot_check", "event_bot_check")
 
 
 class right_bot_check:
@@ -46,10 +48,14 @@ class right_bot_check:
         return wrapper
 
 
-class prime_event_check:
+class event_bot_check:
+    def __init__(self, bot_id: int):
+        self.bot_id = bot_id
+
     def __call__(self, fn):
         @wraps(fn)
         async def wrapper(*args, **kwargs):
-            ...
+            bot_id: int = args[0].bot.user.id
+            return await fn(*args, **kwargs) if bot_id == self.bot_id else None
 
         return wrapper

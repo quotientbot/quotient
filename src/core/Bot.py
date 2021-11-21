@@ -250,3 +250,12 @@ class Quotient(commands.AutoShardedBot):
 
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
+
+    async def convey_important_message(self, guild: discord.Guild, text: str):
+        _e = discord.Embed(title="⚠️__**IMPORTANT**__⚠️", description=text)
+
+        from models import Guild
+
+        _g = await Guild.get(pk=guild.id)
+        if _c := _g.private_ch:
+            ...
