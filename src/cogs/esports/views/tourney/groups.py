@@ -61,7 +61,7 @@ class TourneyGroupManager(EsportsBaseView):
         _list = []
 
         for idx, _chunk in enumerate(await self.tourney.get_groups(self.size), start=1):
-            e = discord.Embed(color=0x00FFB3, title=f"{self.tourney.name} Group {idx}")
+            e = discord.Embed(color=self.bot.color, title=f"{self.tourney.name} Group {idx}")
             e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
@@ -121,7 +121,7 @@ class TourneyGroupManager(EsportsBaseView):
                 )
 
         _e = discord.Embed(
-            color=0x00FFB3,
+            color=self.bot.color,
             title="Giving Group Roles:",
             description=f"{emote.check} Starting the role distribution!\n",
         )

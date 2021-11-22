@@ -8,6 +8,7 @@ from .Cog import Cog
 from typing import TYPE_CHECKING
 import discord
 from .cache import CacheManager
+from contextlib import suppress
 
 
 __all__ = ("right_bot_check", "event_bot_check")
@@ -26,22 +27,23 @@ class right_bot_check:
             else:
                 bot: Quotient = args[0]
 
-            for arg in args:
-                # check for both guild and guild_id
-                if hasattr(arg, "guild"):
+            with suppress(AttributeError):
+                for arg in args:
+                    # check for both guild and guild_id
+                    if hasattr(arg, "guild"):
 
-                    guild_id = arg.guild.id
-                    break
-                elif hasattr(arg, "guild_id"):
-                    guild_id = arg.guild_id
-                    break
-            else:
-                _obj = kwargs.get("guild") or kwargs.get("guild_id")
-                # guild id can be none here
-                guild_id = _obj.id if isinstance(_obj, discord.Guild) else _obj
+                        guild_id = arg.guild.id
+                        break
+                    elif hasattr(arg, "guild_id"):
+                        guild_id = arg.guild_id
+                        break
+                else:
+                    _obj = kwargs.get("guild") or kwargs.get("guild_id")
+                    # guild id can be none here
+                    guild_id = _obj.id if isinstance(_obj, discord.Guild) else _obj
 
-            if guild_id is not None and not await CacheManager.match_bot_guild(guild_id, bot.user.id):
-                return
+                if guild_id is not None and not await CacheManager.match_bot_guild(guild_id, bot.user.id):
+                    return
 
             return await fn(*args, **kwargs)
 

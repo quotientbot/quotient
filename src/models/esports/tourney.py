@@ -146,7 +146,7 @@ class Tourney(BaseDbModel):
                 return _chunk
 
     async def add_assigned_slot(self, slot: "TMSlot", message: discord.Message):
-        _e = discord.Embed(color=0x00FFB3)
+        _e = discord.Embed(color=self.bot.color)
         _e.description = f"**{slot.num}) NAME: [{slot.team_name.upper()}]({slot.jump_url})**\n"
 
         if len(message.mentions) > 0:

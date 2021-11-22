@@ -83,7 +83,7 @@ async def create_new_scrim(bot: Quotient, data: dict) -> dict:
     scrims_mod = discord.utils.get(guild.roles, name="scrims-mod")
 
     if scrims_mod is None:
-        scrims_mod = await guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
+        scrims_mod = await guild.create_role(name="scrims-mod", color=bot.color, reason=reason)
 
     overwrite = registration_channel.overwrites_for(guild.default_role)
     overwrite.update(read_messages=True, send_messages=True, read_message_history=True)

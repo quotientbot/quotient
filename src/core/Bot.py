@@ -258,7 +258,7 @@ class Quotient(commands.AutoShardedBot):
 
         _g = await Guild.get(pk=guild.id)
         if (_c := _g.private_ch) and _c.permissions_for(guild.me).embed_links:
-            _roles = [role.mention for role in guild.roles if role.permissions.administrator]
+            _roles = [role.mention for role in guild.roles if role.permissions.administrator and not role.managed]
             await _c.send(
                 embed=_e,
                 content=", ".join(_roles) if _roles else guild.owner.mention,

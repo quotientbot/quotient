@@ -78,7 +78,7 @@ async def check_tourney_requirements(bot, message: discord.Message, tourney: Tou
 
 async def t_ask_embed(ctx, value, description: str):
     embed = discord.Embed(
-        color=0x00FFB3,
+        color=ctx.bot.color,
         title=f"🛠️ Tournament Manager ({value}/5)",
         description=description,
     )

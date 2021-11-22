@@ -256,7 +256,7 @@ class ScrimManager(Cog, name="Esports"):
             scrims_mod = discord.utils.get(ctx.guild.roles, name="scrims-mod")
 
             if scrims_mod is None:
-                scrims_mod = await ctx.guild.create_role(name="scrims-mod", color=0x00FFB3, reason=reason)
+                scrims_mod = await ctx.guild.create_role(name="scrims-mod", color=self.bot.color, reason=reason)
 
             overwrite = registration_channel.overwrites_for(ctx.guild.default_role)
             overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
@@ -869,7 +869,7 @@ class ScrimManager(Cog, name="Esports"):
             # Tourney MODS
 
             if not (tourney_mod := tourney.modrole):
-                tourney_mod = await ctx.guild.create_role(name="tourney-mod", color=0x00FFB3, reason=reason)
+                tourney_mod = await ctx.guild.create_role(name="tourney-mod", color=self.bot.color, reason=reason)
 
             overwrite = tourney.registration_channel.overwrites_for(ctx.guild.default_role)
             overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
@@ -1344,7 +1344,7 @@ class ScrimManager(Cog, name="Esports"):
         role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
         if not role:
             role = await ctx.guild.create_role(
-                name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
+                name="quotient-tag-ignore", color=self.bot.color, reason=f"Created by {ctx.author}"
             )
 
         await EasyTag.create(guild_id=ctx.guild.id, channel_id=channel.id)
@@ -1456,7 +1456,7 @@ class ScrimManager(Cog, name="Esports"):
         role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
         if not role:
             role = await ctx.guild.create_role(
-                name="quotient-tag-ignore", color=0x00FFB3, reason=f"Created by {ctx.author}"
+                name="quotient-tag-ignore", color=self.bot.color, reason=f"Created by {ctx.author}"
             )
 
         await TagCheck.create(guild_id=ctx.guild.id, channel_id=channel.id, required_mentions=mentions)

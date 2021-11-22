@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
+from core import Cog, right_bot_check
 from models import Scrim, AssignedSlot, ArrayRemove, Timer, BannedTeam, BanLog
 
 from ..helpers import (
@@ -111,8 +111,10 @@ class ScrimEvents(Cog):
     # ==========================================================================================================
 
     @Cog.listener()
+    @right_bot_check()
     async def on_scrim_open_timer_complete(self, timer: Timer):
         """This listener opens the scrim registration at time."""
+        print("opening...")
         scrim_id = timer.kwargs["scrim_id"]
         scrim = await Scrim.get_or_none(pk=scrim_id)
 
@@ -143,7 +145,7 @@ class ScrimEvents(Cog):
         guild = scrim.guild
 
         if not guild:
-            return await scrim.delete()
+            return
 
         if not await should_open_scrim(scrim):
             return
