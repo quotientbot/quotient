@@ -251,11 +251,20 @@ class Quotient(commands.AutoShardedBot):
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
 
-    async def convey_important_message(self, guild: discord.Guild, text: str):
+    async def convey_important_message(self, guild: discord.Guild, text: str, *, view=None):
         _e = discord.Embed(title="⚠️__**IMPORTANT**__⚠️", description=text)
 
         from models import Guild
 
         _g = await Guild.get(pk=guild.id)
-        if _c := _g.private_ch:
-            ...
+        if (_c := _g.private_ch) and _c.permissions_for(guild.me).embed_links:
+            _roles = [role.mention for role in guild.roles if role.permissions.administrator]
+            await _c.send(
+                embed=_e,
+                content=", ".join(_roles) if _roles else guild.owner.mention,
+                allowed_mentions=AllowedMentions(roles=True),
+                view=view,
+            )
+
+        with suppress(discord.HTTPException):
+            await guild.owner.send(embed=_e, view=view)

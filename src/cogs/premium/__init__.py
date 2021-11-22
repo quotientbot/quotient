@@ -112,7 +112,7 @@ class Premium(Cog):
 
     @Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        if self.bot.user.id == 746348747918934096:
+        if not self.bot.user.id == config.PREMIUM_BOT:
             return
 
         _g = await Guild.get_or_none(pk=guild.id)
@@ -131,12 +131,15 @@ class Premium(Cog):
         if not _g:
             return
 
-        if self.bot.user.id == config.MAIN_BOT:
-            ...
-            # TODO: send message to invite the main bot
-
         if self.bot.user.id == config.PREMIUM_BOT:
             await _g.select_for_update().update(bot_id=config.MAIN_BOT)
+
+    @Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        if member.id == config.MAIN_BOT:
+            _g = await Guild.get_or_none(pk=member.guild.id, bot_id=config.PREMIUM_BOT)
+            if _g:
+                await self.bot.convey_important_message(member.guild, ("invite krlo vapis"))
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)

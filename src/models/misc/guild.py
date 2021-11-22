@@ -1,7 +1,7 @@
 from tortoise import models, fields
 from models.helpers import *
 import config
-
+import discord
 
 _dict = {"view": None, "embed": None, "scrims": None, "idp": None, "ptable": None, "tourney": None, "slotm": None}
 
@@ -32,10 +32,10 @@ class Guild(models.Model):
     dashboard_access = fields.JSONField(default=_dict)
 
     @property
-    def _guild(self):
+    def _guild(self) -> discord.Guild:
         return self.bot.get_guild(self.guild_id)
 
     @property
-    def private_ch(self):
+    def private_ch(self) -> discord.TextChannel:
         if (g := self._guild) is not None:
             return g.get_channel(self.private_channel)
