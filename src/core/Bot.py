@@ -152,7 +152,7 @@ class Quotient(commands.AutoShardedBot):
 
         await self.process_commands(message)
 
-    async def on_command(self, ctx):
+    async def on_command(self, ctx:Context):
         self.cmd_invokes += 1
         await constants.show_tip(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
@@ -160,23 +160,29 @@ class Quotient(commands.AutoShardedBot):
     async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
         print(Fore.RED + "------------------------------------------------------")
         print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
-        print(Fore.CYAN + f"[Quotient] Spawned {len(self.shards)} Shards")
 
         if not self.persistent_views_added:  # add persistent views
             from cogs.esports.views import SlotManagerView, TourneySlotManager
-            from models import SlotManager, Tourney
+            from models import SlotManager, Tourney, Guild
 
+            # Persistent views
             async for record in SlotManager.filter(toggle=True):
                 self.add_view(SlotManagerView(self), message_id=record.message_id)
 
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
                 self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
 
+            # HTTP server
             if not self.user.id == self.config.PREMIUM_BOT:
                 self.http_client = QuoHttpHandler(self)
                 self.loop.create_task(self.http_client.handle())
 
                 self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
+
+            # chunk only premium guilds
+            async for g in Guild.filter(is_premium=True):
+                if (_guild := self.get_guild(g.pk)) and not _guild.chunked:
+                    self.loop.create_task(_guild.chunk())
 
             self.persistent_views_added = True
 

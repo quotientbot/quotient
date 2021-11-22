@@ -13,6 +13,10 @@ class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        from .Bot import Quotient
+
+        self.bot: Quotient
+
     @property
     def db(self):
         return self.bot.db
@@ -50,7 +54,7 @@ class Context(commands.Context):
         An interactive reaction confirmation dialog.
         """
 
-        embed = discord.Embed(description=message, color=self.config.COLOR)
+        embed = discord.Embed(description=message, color=self.bot.color)
         if title is not None:
             embed.title = title
 
@@ -81,7 +85,7 @@ class Context(commands.Context):
         return await self.send(
             embed=discord.Embed(
                 description=f"{utils.check} | {message}",
-                color=self.config.COLOR,
+                color=self.bot.color,
             ),
             delete_after=delete_after,
         )
@@ -90,7 +94,7 @@ class Context(commands.Context):
         return await self.send(
             embed=discord.Embed(
                 description=message,
-                color=self.config.COLOR,
+                color=self.bot.color,
             ),
             delete_after=delete_after,
         )
