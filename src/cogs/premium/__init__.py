@@ -15,7 +15,7 @@ from .views import InvitePrime
 import discord
 import config
 
-from core import event_bot_check
+from .expire import activate_premium
 
 
 class Premium(Cog):
@@ -124,6 +124,7 @@ class Premium(Cog):
 
         await _g.select_for_update().update(bot_id=self.bot.user.id, embed_color=config.PREMIUM_COLOR)
         await self.bot.cache.update_guild_cache(guild.id)
+        await activate_premium(self.bot, guild)
 
     @Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):

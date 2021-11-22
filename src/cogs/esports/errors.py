@@ -301,7 +301,7 @@ class SMError(Cog):
 
         guild = scrim.guild
         if not guild:
-            await scrim.delete()
+            return
 
         if not user_id in await scrim.reserved_user_ids():
             return

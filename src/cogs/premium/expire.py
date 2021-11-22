@@ -6,23 +6,15 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from models import SlotManager, Tourney, Guild
+from models import SlotManager, Tourney
 import discord
-from constants import bot_colors
+import config
 
 from cogs.esports.views import SlotManagerView, TourneySlotManager
 from cogs.esports.helpers.views import free_slots, get_slot_manager_message
 
 
 async def activate_premium(bot: Quotient, guild: discord.Guild):
-
-    __bot_id = bot.user.id
-
-    await Guild.get(pk=guild.id).update(
-        embed_color=bot_colors[__bot_id],
-        bot_id=__bot_id,
-        waiting_activation=False,
-    )
 
     await bot.cache.update_guild_cache(guild.id)
 
@@ -42,7 +34,7 @@ async def activate_premium(bot: Quotient, guild: discord.Guild):
                 view.children[1].disabled = True
 
             embed = await get_slot_manager_message(guild.id, _free)
-
+            embed.color = config.PREMIUM_COLOR
             await msg.delete()
             _m: discord.Message = await _slotmanager.main_channel.send(embed=embed, view=view)
             await SlotManager.get(guild_id=guild.id).update(message_id=_m.id)
@@ -65,6 +57,7 @@ async def activate_premium(bot: Quotient, guild: discord.Guild):
                 slotm_channel = await _category.create_text_channel(_c.name, position=_c.position, overwrites=overwrites)
 
                 _e = TourneySlotManager.initial_embed(tourney)
+                _e.color = config.PREMIUM_COLOR
                 message = await slotm_channel.send(embed=_e, view=_view)
                 await Tourney.get(pk=tourney.id).update(slotm_channel_id=slotm_channel.id, slotm_message_id=message.id)
 
