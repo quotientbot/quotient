@@ -15,6 +15,8 @@ from datetime import datetime
 from constants import IST
 from typing import NoReturn, Optional
 from async_property import async_property
+from datetime import datetime
+
 import aiohttp, asyncio, os
 import config, constants
 import itertools
@@ -152,7 +154,7 @@ class Quotient(commands.AutoShardedBot):
 
         await self.process_commands(message)
 
-    async def on_command(self, ctx:Context):
+    async def on_command(self, ctx: Context):
         self.cmd_invokes += 1
         await constants.show_tip(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
@@ -238,6 +240,10 @@ class Quotient(commands.AutoShardedBot):
     def reminders(self) -> Reminders:  # since we use it a lot
         return self.get_cog("Reminders")
 
+    @property
+    def current_time(self):
+        return datetime.now(tz=IST)
+
     @async_property
     async def db_latency(self):
         t1 = time.perf_counter()
@@ -257,8 +263,10 @@ class Quotient(commands.AutoShardedBot):
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
 
-    async def convey_important_message(self, guild: discord.Guild, text: str, *, view=None):
-        _e = discord.Embed(title="⚠️__**IMPORTANT**__⚠️", description=text)
+    async def convey_important_message(
+        self, guild: discord.Guild, text: str, *, view=None, title="⚠️__**IMPORTANT**__⚠️"
+    ):
+        _e = discord.Embed(title=title, description=text)
 
         from models import Guild
 
@@ -267,7 +275,7 @@ class Quotient(commands.AutoShardedBot):
             _roles = [role.mention for role in guild.roles if role.permissions.administrator and not role.managed]
             await _c.send(
                 embed=_e,
-                content=", ".join(_roles) if _roles else guild.owner.mention,
+                content=", ".join(_roles[:2]) if _roles else guild.owner.mention,
                 allowed_mentions=AllowedMentions(roles=True),
                 view=view,
             )

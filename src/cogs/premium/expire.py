@@ -65,31 +65,48 @@ async def activate_premium(bot: Quotient, guild: discord.Guild):
 
 
 async def deactivate_premium(guild_id: int):
+    await Guild.filter(guild_id=guild_id).update(
+        embed_color=config.COLOR, embed_footer=config.FOOTER, bot_id=config.MAIN_BOT
+    )
+
+    _s: typing.List[Scrim] = (await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]
+    await Scrim.filter(id__in=(s.pk for s in _s)).delete()
+
+    _t: typing.List[Tourney] = (await Tourney.filter(guild_id=guild_id).order_by("id"))[2:]
+    await Tourney.filter(id__in=(t.pk for t in _t)).delete()
+
+    _tc: typing.List[TagCheck] = (await TagCheck.filter(guild_id=guild_id).order_by("id"))[1:]
+    await TagCheck.filter(id__in=(t.pk for t in _tc)).delete()
+
+    _ez: typing.List[EasyTag] = (await EasyTag.filter(guild_id=guild_id).order_by("id"))[1:]
+    await EasyTag.filter(id__in=(e.pk for e in _ez)).delete()
+
+    await Tourney.filter(guild_id=guild_id).update(emojis={})
     ...
 
 
-async def extra_guild_perks(guild: discord.Guild, model: Guild):
+async def extra_guild_perks(guild: discord.Guild):
 
     _list = [
-        "You will lose access of Quotient Prime Bot.",
-        "You won't be able to set custom color and footer for embeds."
-        "Tourney reactions emojis will be changed to default.",
+        "You will lose access of Quotient Prime Bot.\n",
+        "You won't be able to set custom color and footer for embeds.\n"
+        "Tourney reactions emojis will be changed to default.\n",
     ]
 
-    if _s := await Scrim.filter(guild_id=guild.id).order_by("id")[3:]:
-        _list.append(f"{plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})")
+    if (_s := await Scrim.filter(guild_id=guild.id).order_by("id"))[3:]:
+        _list.append(f"{plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})\n")
 
-    if _t := await Tourney.filter(guild_id=guild.id).order_by("id")[2:]:
-        _list.append(f"{plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})")
+    if (_t := await Tourney.filter(guild_id=guild.id).order_by("id"))[2:]:
+        _list.append(f"{plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})\n")
 
-    if _tc := await TagCheck.filter(guild_id=guild.id).order_by("id")[1:]:
+    if (_tc := await TagCheck.filter(guild_id=guild.id).order_by("id"))[1:]:
         _list.append(
-            f"{len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})"
+            f"{len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})\n"
         )
 
-    if _ez := await EasyTag.filter(guild_id=guild.id).order_by("id")[1:]:
+    if (_ez := await EasyTag.filter(guild_id=guild.id).order_by("id"))[1:]:
         _list.append(
-            f"{len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})"
+            f"{len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})\n"
         )
 
     return _list
@@ -101,11 +118,15 @@ async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
             color=discord.Color.red(), title="⚠️__**Quotient Prime Ending Soon**__⚠️", url=config.SERVER_LINK
         )
 
-        _e.description = f"This is to inform you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_end_time)}"
+        _e.description = (
+            f"This is to inform you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_end_time)}"
+            "\n\n*Wondering What you'll lose?*"
+            )
 
-        _perks = "*\n".join(await extra_guild_perks(model))
+        
+        _perks = "- ".join(await extra_guild_perks(guild))
 
-        _e.description += f"```{_perks}```"
+        _e.description += f"```diff\n{_perks}```"
 
         _view = PremiumView(label="Buy Prime and Save Server from Apocalypse")
         await _ch.send(embed=_e, view=_view)

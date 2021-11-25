@@ -21,6 +21,7 @@ from .expire import activate_premium, remind_guild_to_pay, remind_user_to_pay
 class Premium(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.remind_peeps_to_pay.start()
 
     @commands.command()
     @checks.is_premium_user()
@@ -144,6 +145,7 @@ class Premium(Cog):
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):
+        await self.bot.wait_until_ready()
         async for user in User.filter(
             is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
         ):
