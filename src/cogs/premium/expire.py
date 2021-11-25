@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import typing
 
-from models.esports.scrims import Scrim
-
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from models import SlotManager, Tourney, Guild, User, Guild, TagCheck
+from models import SlotManager, Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag
 import discord
 import config
 from utils import discord_timestamp, plural
@@ -89,12 +87,20 @@ async def extra_guild_perks(guild: discord.Guild, model: Guild):
             f"{len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})"
         )
 
+    if _ez := await EasyTag.filter(guild_id=guild.id).order_by("id")[1:]:
+        _list.append(
+            f"{len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})"
+        )
+
     return _list
 
 
 async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
     if (_ch := model.private_ch) and _ch.permissions_for(_ch.guild.me).embed_links:
-        _e = discord.Embed(color=discord.Color.red(), title="⚠️__**Quotient Prime Ending Soon**__⚠️")
+        _e = discord.Embed(
+            color=discord.Color.red(), title="⚠️__**Quotient Prime Ending Soon**__⚠️", url=config.SERVER_LINK
+        )
+
         _e.description = f"This is to inform you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_end_time)}"
 
         _perks = "*\n".join(await extra_guild_perks(model))
