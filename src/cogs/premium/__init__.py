@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from core import Cog, Context
-from discord.ext import commands
+from discord.ext import commands, tasks
 from models import User, Redeem, Guild, ArrayAppend
 from utils import checks, strtime, IST
 from datetime import datetime, timedelta
@@ -15,7 +15,7 @@ from .views import InvitePrime
 import discord
 import config
 
-from .expire import activate_premium
+from .expire import activate_premium, remind_guild_to_pay, remind_user_to_pay
 
 
 class Premium(Cog):
@@ -141,6 +141,20 @@ class Premium(Cog):
             _g = await Guild.get_or_none(pk=member.guild.id, bot_id=config.PREMIUM_BOT)
             if _g:
                 await self.bot.convey_important_message(member.guild, ("invite krlo vapis"))
+
+    @tasks.loop(hours=48)
+    async def remind_peeps_to_pay(self):
+        async for user in User.filter(
+            is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
+        ):
+            _u = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.pk)
+            if _u:
+                await remind_user_to_pay(_u, user)
+
+        async for guild in Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST) + timedelta(days=10)):
+            _g = self.bot.get_guild(guild.pk)
+            if _g:
+                await remind_guild_to_pay(_g, guild)
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)

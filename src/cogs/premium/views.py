@@ -6,12 +6,10 @@ import io
 
 
 class PremiumView(discord.ui.View):
-    def __init__(self, text="*This feature requires you to have Quotient Premium.*"):
+    def __init__(self, text="*This feature requires you to have Quotient Premium.*", *, label="Try Premium"):
         super().__init__(timeout=None)
         self.text = text
-        self.add_item(
-            discord.ui.Button(url="https://quotientbot.xyz/premium/buy", emoji=emote.diamond, label="Try Premium")
-        )
+        self.add_item(discord.ui.Button(url="https://quotientbot.xyz/premium/buy", emoji=emote.diamond, label=label))
 
     @property
     def premium_embed(self) -> discord.Embed:
