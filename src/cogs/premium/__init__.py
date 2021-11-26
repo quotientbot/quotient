@@ -7,9 +7,10 @@ if typing.TYPE_CHECKING:
 
 from core import Cog, Context
 from discord.ext import commands, tasks
-from models import User, Redeem, Guild, ArrayAppend
+from models import User, Redeem, Guild, ArrayAppend, Timer
 from utils import checks, strtime, IST
 from datetime import datetime, timedelta
+from tortoise.query_utils import Q
 
 from .views import InvitePrime
 import discord
@@ -145,18 +146,38 @@ class Premium(Cog):
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):
-        await self.bot.wait_until_ready()
         async for user in User.filter(
             is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
         ):
             _u = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.pk)
             if _u:
+                if not await self.ensure_reminders(user.pk, user.premium_expire_time):
+                    await self.bot.reminders.create_timer(user.premium_expire_time, "user_premium", user_id=user.pk)
+
                 await remind_user_to_pay(_u, user)
 
         async for guild in Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST) + timedelta(days=10)):
             _g = self.bot.get_guild(guild.pk)
+
+            if not await self.ensure_reminders(guild.pk, guild.premium_end_time):
+                await self.bot.reminders.create_timer(guild.premium_end_time, "guild_premium", guild_id=guild.pk)
+
             if _g:
                 await remind_guild_to_pay(_g, guild)
+
+    async def ensure_reminders(self, _id: int, _time: datetime):
+        return await Timer.filter(
+            Q(event="guild_premium", extra={"args": [], "kwargs": {"guild_id": _id}})
+            | Q(event="user_premium", extra={"args": [], "kwargs": {"user_id": _id}}),
+            expires=_time,
+        ).exists()
+
+    def cog_unload(self):
+        self.remind_peeps_to_pay.stop()
+
+    @remind_peeps_to_pay
+    async def before_loops(self):
+        await self.bot.wait_until_ready()
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)

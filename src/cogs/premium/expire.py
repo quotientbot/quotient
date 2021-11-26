@@ -88,25 +88,25 @@ async def deactivate_premium(guild_id: int):
 async def extra_guild_perks(guild: discord.Guild):
 
     _list = [
-        "You will lose access of Quotient Prime Bot.\n",
-        "You won't be able to set custom color and footer for embeds.\n"
-        "Tourney reactions emojis will be changed to default.\n",
+        "- You will lose access of Quotient Prime Bot.",
+        "- You won't be able to set custom color and footer for embeds.",
+        "- Tourney reactions emojis will be changed to default.",
     ]
 
     if (_s := await Scrim.filter(guild_id=guild.id).order_by("id"))[3:]:
-        _list.append(f"{plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})\n")
+        _list.append(f"- {plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})")
 
     if (_t := await Tourney.filter(guild_id=guild.id).order_by("id"))[2:]:
-        _list.append(f"{plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})\n")
+        _list.append(f"- {plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})")
 
     if (_tc := await TagCheck.filter(guild_id=guild.id).order_by("id"))[1:]:
         _list.append(
-            f"{len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})\n"
+            f"- {len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})"
         )
 
     if (_ez := await EasyTag.filter(guild_id=guild.id).order_by("id"))[1:]:
         _list.append(
-            f"{len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})\n"
+            f"- {len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})"
         )
 
     return _list
@@ -121,14 +121,13 @@ async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
         _e.description = (
             f"This is to inform you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_end_time)}"
             "\n\n*Wondering What you'll lose?*"
-            )
+        )
 
-        
-        _perks = "- ".join(await extra_guild_perks(guild))
+        _perks = "\n".join(await extra_guild_perks(guild))
 
         _e.description += f"```diff\n{_perks}```"
 
-        _view = PremiumView(label="Buy Prime and Save Server from Apocalypse")
+        _view = PremiumView(label="Buy Prime")
         await _ch.send(embed=_e, view=_view)
 
 

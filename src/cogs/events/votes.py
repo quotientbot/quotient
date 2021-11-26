@@ -107,10 +107,6 @@ class Votes(Cog):
         except:
             pass
 
-        # we create a timer to remind the user that their premium is expiring soon and a timer of the actual expire_time
-        await self.reminders.create_timer(
-            datetime.now(tz=constants.IST) + timedelta(days=26), "user_premium_reminder", user_id=record.user_id
-        )
         await self.reminders.create_timer(
             datetime.now(tz=constants.IST) + timedelta(days=30), "user_premium", user_id=record.user_id
         )

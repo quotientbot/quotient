@@ -1,9 +1,15 @@
-from datetime import datetime
-from constants import IST
-from core import Cog, Quotient
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core import Quotient
+
+from core import Cog
+
 from discord.ext import tasks
-import models
 import config
+from models import User, Guild, Votes, Premium
 
 
 class QuoTasks(Cog):
@@ -11,7 +17,6 @@ class QuoTasks(Cog):
         self.bot = bot
         self.insert_guilds.start()
         self.find_new_voters_and_premiums.start()
-        # self.find_people_who_have_to_pay.start()
 
     @tasks.loop(count=1)
     async def insert_guilds(self):
@@ -24,37 +29,22 @@ class QuoTasks(Cog):
         """
         This task fetches if someone purchased premium or voted for Quotient
         """
-        records = await models.Votes.filter(is_voter=True, notified=False)
+        records = await Votes.filter(is_voter=True, notified=False)
         if records:
             for record in records:
                 self.bot.dispatch("vote", record)
 
-        records = await models.Premium.filter(is_done=True, is_notified=False)
+        records = await Premium.filter(is_done=True, is_notified=False)
         if records:
             for record in records:
                 self.bot.dispatch("premium_purchase", record)
 
         # both these listeners are in ./src/cogs/events/votes.py
 
-    @tasks.loop(seconds=15)
-    async def find_people_who_have_to_pay(self):
-        users = await models.User.filter(is_premium=True, premium_expire_time__lte=datetime.now(tz=IST))
-        guilds = await models.Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST))
-
-        if users:
-            for user in users:
-                self.bot.dispatch("user_premium_expire", user)
-
-        if guilds:
-            for guild in guilds:
-                self.bot.dispatch("guild_premium_expire", guild)
-
     def cog_unload(self):
         self.find_new_voters_and_premiums.stop()
-        self.find_people_who_have_to_pay.stop()
 
     @insert_guilds.before_loop
     @find_new_voters_and_premiums.before_loop
-    @find_people_who_have_to_pay.before_loop
     async def before_loops(self):
         await self.bot.wait_until_ready()
