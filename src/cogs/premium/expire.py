@@ -89,8 +89,9 @@ async def extra_guild_perks(guild: discord.Guild):
 
     _list = [
         "- You will lose access of Quotient Prime Bot.",
-        "- You won't be able to set custom color and footer for embeds.",
+        "- No custom color and footer for embeds.",
         "- Tourney reactions emojis will be changed to default.",
+        "- No more than 1 Media Partner Channel per tourney.",
     ]
 
     if (_s := await Scrim.filter(guild_id=guild.id).order_by("id"))[3:]:
@@ -125,10 +126,19 @@ async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
 
         _perks = "\n".join(await extra_guild_perks(guild))
 
+        _roles = [
+            role.mention for role in guild.roles if all((role.permissions.administrator, not role.managed, role.members))
+        ]
+
         _e.description += f"```diff\n{_perks}```"
 
-        _view = PremiumView(label="Buy Prime")
-        await _ch.send(embed=_e, view=_view)
+        _view = PremiumView(label="Buy Quotient Prime")
+        await _ch.send(
+            embed=_e,
+            view=_view,
+            content=", ".join(_roles[:2]) if _roles else guild.owner.mention,
+            allowed_mentions=discord.AllowedMentions(roles=True),
+        )
 
 
 async def remind_user_to_pay(user: discord.User, model: User):
@@ -138,5 +148,5 @@ async def remind_user_to_pay(user: discord.User, model: User):
         f"\n[*Click Me To Continue Enjoying Prime*]({config.WEBSITE}/premium)"
     )
     with suppress(discord.HTTPException):
-        _view = PremiumView(label="Purchase Prime")
+        _view = PremiumView(label="Purchase Quotient Prime")
         await user.send(embed=_e, view=_view)

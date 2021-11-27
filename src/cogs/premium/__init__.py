@@ -165,7 +165,7 @@ class Premium(Cog):
             if _g:
                 await remind_guild_to_pay(_g, guild)
 
-    async def ensure_reminders(self, _id: int, _time: datetime):
+    async def ensure_reminders(self, _id: int, _time: datetime) -> bool:
         return await Timer.filter(
             Q(event="guild_premium", extra={"args": [], "kwargs": {"guild_id": _id}})
             | Q(event="user_premium", extra={"args": [], "kwargs": {"user_id": _id}}),
