@@ -179,6 +179,17 @@ class Premium(Cog):
     async def before_loops(self):
         await self.bot.wait_until_ready()
 
+    @Cog.listener()
+    async def on_guild_premium_timer_complete(self, timer:Timer):
+        ...
+
+    @Cog.listener()
+    async def on_user_premium_timer_complete(self, timer:Timer):
+        ...
+
+        
+    
+
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
     # async def changequo(self, ctx: Context):

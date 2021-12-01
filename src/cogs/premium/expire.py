@@ -82,7 +82,7 @@ async def deactivate_premium(guild_id: int):
     await EasyTag.filter(id__in=(e.pk for e in _ez)).delete()
 
     await Tourney.filter(guild_id=guild_id).update(emojis={})
-    ...
+    return
 
 
 async def extra_guild_perks(guild: discord.Guild):

@@ -23,12 +23,10 @@ class Votes(Cog):
         if not member.guild or not member.guild.id == self.bot.server.id:
             return
 
-        votecheck = await models.Votes.get_or_none(user_id=member.id)
-        if votecheck is not None and votecheck.is_voter:
+        if await models.Votes.get(user_id=member.id, is_voter=True).exists():
             await member.add_roles(discord.Object(id=self.bot.config.VOTER_ROLE))
 
-        premiumcheck = await models.User.get_or_none(user_id=member.id)
-        if premiumcheck is not None and premiumcheck.is_premium:
+        if await models.User.get(pk=member.id, is_premium=True).exists():
             await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
 
     @Cog.listener()
@@ -110,43 +108,6 @@ class Votes(Cog):
         await self.reminders.create_timer(
             datetime.now(tz=constants.IST) + timedelta(days=30), "user_premium", user_id=record.user_id
         )
-
-    @Cog.listener()
-    async def on_user_premium_reminder_timer_complete(self, timer: models.Timer):
-        user_id = timer.kwargs["user_id"]
-        record = await models.User.get(user_id=user_id)
-        if not record.premium_expire_time < datetime.now(tz=constants.IST) + timedelta(days=4):
-            return  # this means they have already renewed
-
-        user = self.bot.get_user(user_id) or await self.bot.fetch_user(user_id)
-        if user is not None:
-            em = discord.Embed(color=discord.Color.red(), title="Quotient Premium Ending Soon")
-            em.description = f"{constants.random_greeting()},\nThis is to remind you that your quotient premium is going to end very soon. You can [click here]({self.bot.config.WEBSITE}/premium) to renew. \n\nPremium will expire on `{strtime(record.premium_expire_time)}`"
-
-            try:
-                await user.send(embed=em)
-            except:
-                pass
-
-    @Cog.listener()
-    async def on_server_premium_reminder_timer_complete(self, timer: models.Timer):
-        guild_id = timer.kwargs["guild_id"]
-        record = await models.Guild.get_or_none(guild_id=guild_id)
-        if not record:
-            return
-
-        if not record.premium_end_time < datetime.now(tz=constants.IST) + timedelta(days=4):
-            return
-
-        guild = self.bot.get_guild(guild_id)
-        if guild is not None:
-            embed = discord.Embed(color=discord.Color.red(), title="Quotient Premium expiring soon!")
-            embed.description = f"{constants.random_greeting()},\nThis is to remind you that your server ({guild.name})'s Quotient premium is endling soon. You can [click here]({self.bot.config.WEBSITE}/premium) to renew. \n\nPremium will expire on `{strtime(record.premium_end_time)}`"
-
-            try:
-                await guild.owner.send(embed=embed)
-            except:
-                pass
 
     @Cog.listener()
     async def on_guild_premium_expire(self, guild: models.Guild):
