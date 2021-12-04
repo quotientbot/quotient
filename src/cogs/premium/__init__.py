@@ -12,17 +12,19 @@ from utils import checks, strtime, IST
 from datetime import datetime, timedelta
 from tortoise.query_utils import Q
 
-from .views import InvitePrime
+from contextlib import suppress
+
+from .views import InvitePrime, PremiumView
 import discord
 import config
 
-from .expire import activate_premium, remind_guild_to_pay, remind_user_to_pay
+from .expire import activate_premium, remind_guild_to_pay, remind_user_to_pay, deactivate_premium, extra_guild_perks
 
 
 class Premium(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.remind_peeps_to_pay.start()
+        self.reminder_task = self.remind_peeps_to_pay.start()
 
     @commands.command()
     @checks.is_premium_user()
@@ -59,14 +61,14 @@ class Premium(Cog):
         if not user.premiums:
             return await ctx.send("don't be a dedh shana bruh")
 
-        await guild.select_for_update().update(
+        await Guild.get(pk=guild.pk).update(
             is_premium=True,
             made_premium_by=ctx.author.id,
             premium_end_time=end_time,
             embed_color=self.bot.config.PREMIUM_COLOR,
             bot_id=config.PREMIUM_BOT if __use_prime_bot(ctx.guild) else self.bot.user.id,
         )
-        await user.select_for_update().update(
+        await User.get(pk=user.pk).update(
             premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
         )
         await self.bot.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
@@ -124,7 +126,7 @@ class Premium(Cog):
         if not _g.is_premium:
             return await guild.leave()
 
-        await _g.select_for_update().update(bot_id=self.bot.user.id, embed_color=config.PREMIUM_COLOR)
+        await Guild.get(pk=_g.pk).update(bot_id=self.bot.user.id, embed_color=config.PREMIUM_COLOR)
         await self.bot.cache.update_guild_cache(guild.id)
         await activate_premium(self.bot, guild)
 
@@ -135,7 +137,7 @@ class Premium(Cog):
             return
 
         if self.bot.user.id == config.PREMIUM_BOT:
-            await _g.select_for_update().update(bot_id=config.MAIN_BOT)
+            await Guild.get(pk=_g.pk).update(bot_id=config.MAIN_BOT)
 
     @Cog.listener()
     async def on_member_remove(self, member: discord.Member):
@@ -180,15 +182,62 @@ class Premium(Cog):
         await self.bot.wait_until_ready()
 
     @Cog.listener()
-    async def on_guild_premium_timer_complete(self, timer:Timer):
-        ...
+    async def on_guild_premium_timer_complete(self, timer: Timer):
+        guild_id = timer.kwargs["guild_id"]
+
+        _g = await Guild.get_or_none(pk=guild_id)
+        if not _g:
+            return
+
+        if not _g.premium_end_time == timer.expires:
+            return
+
+        _perks = "\n".join(await extra_guild_perks(guild_id))
+
+        await deactivate_premium(guild_id)
+
+        if (_ch := _g.private_ch) and _ch.permissions_for(_ch.guild.me).embed_links:
+
+            _e = discord.Embed(
+                color=discord.Color.red(), title="⚠️__**Quotient Prime Subscription Ended**__⚠️", url=config.SERVER_LINK
+            )
+            _e.description = (
+                "This is to inform you that your subscription of Quotient Prime has been ended.\n\n"
+                "*Following is a list of perks or data you lost:*"
+            )
+
+            _e.description += f"```diff\n{_perks}```"
+
+            _roles = [
+                role.mention
+                for role in _ch.guild.roles
+                if all((role.permissions.administrator, not role.managed, role.members))
+            ]
+
+            _view = PremiumView(label="Buy Quotient Prime")
+            await _ch.send(
+                embed=_e,
+                view=_view,
+                content=", ".join(_roles[:2]) if _roles else _ch.guild.owner.mention,
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
 
     @Cog.listener()
-    async def on_user_premium_timer_complete(self, timer:Timer):
-        ...
+    async def on_user_premium_timer_complete(self, timer: Timer):
+        user_id = timer.kwargs["user_id"]
+        _user = await User.get_or_none(pk=user_id)
+        if not _user:
+            return
 
-        
-    
+        if not _user.premium_expire_time == timer.expires:
+            return
+
+        _q = "UPDATE user_data SET is_premium = FALSE , made_premium = '{}' WHERE user_id = $1"
+        await self.bot.db.execute(_q, user_id)
+
+        member = await self.bot.get_or_fetch_member(self.bot.server, _user.pk)
+        if member:
+            await member.remove_roles(discord.Object(id=config.PREMIUM_ROLE))
 
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
