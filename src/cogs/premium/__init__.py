@@ -132,7 +132,7 @@ class PremiumCog(Cog, name="Premium"):
         if member.id == config.MAIN_BOT:
             _g = await Guild.get_or_none(pk=member.guild.id, bot_id=config.PREMIUM_BOT)
             if _g:
-                await self.bot.convey_important_message(member.guild, ("invite krlo vapis"))
+                await self.bot.convey_important_message(member.guild, ("invite krlo vapis"))  # TODO: write here
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):

@@ -1,7 +1,11 @@
+from typing import List, Mapping
 from difflib import get_close_matches
 from discord.ext import commands
 from utils import get_ipm, QuoPaginator, truncate_string, LinkType, LinkButton
 import discord
+import config
+
+from .Cog import Cog
 
 
 class HelpCommand(commands.HelpCommand):
@@ -15,23 +19,19 @@ class HelpCommand(commands.HelpCommand):
 
     @property
     def color(self):
-        return self.context.config.COLOR
+        return self.context.bot.color
 
-    @property
-    def config(self):
-        return self.context.bot.config
-
-    async def send_bot_help(self, mapping):
+    async def send_bot_help(self, mapping: Mapping[Cog, List[commands.Command]]):
         ctx = self.context
 
         hidden = ("HelpCog", "Dev")
 
         embed = discord.Embed(color=self.color)
-        server = f"[Support Server]({self.config.SERVER_LINK})"
-        invite = f"[Invite Me]({self.config.BOT_INVITE})"
-        src = f"[Source]({self.config.REPOSITORY})"
-        dashboard = f"[Dashboard]({self.config.WEBSITE})"
-        donate = f"[Donate]({self.config.DONATE_LINK})"
+        server = f"[Support Server]({config.SERVER_LINK})"
+        invite = f"[Invite Me]({config.BOT_INVITE})"
+        src = f"[Source]({config.REPOSITORY})"
+        dashboard = f"[Dashboard]({config.WEBSITE})"
+        donate = f"[Donate]({config.DONATE_LINK})"
 
         embed.description = f"{server} **|** {invite} **|** {src} **|** {dashboard} **|** {donate}"
 
@@ -47,10 +47,10 @@ class HelpCommand(commands.HelpCommand):
 
         embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
 
-        links = [LinkType("Support Server", self.config.SERVER_LINK), LinkType("Invite Me", self.config.BOT_INVITE)]
+        links = [LinkType("Support Server", config.SERVER_LINK), LinkType("Invite Me", config.BOT_INVITE)]
         await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))
 
-    async def send_group_help(self, group):
+    async def send_group_help(self, group: commands.Group):
         prefix = self.context.prefix
 
         if not group.commands:
@@ -70,7 +70,7 @@ class HelpCommand(commands.HelpCommand):
             embed.add_field(name="Aliases", value=", ".join(f"`{aliases}`" for aliases in group.aliases), inline=False)
         await self.context.send(embed=embed, embed_perms=True)
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog: Cog):
         paginator = QuoPaginator(self.context, per_page=14)
         c = 0
         for cmd in cog.get_commands():
@@ -82,7 +82,7 @@ class HelpCommand(commands.HelpCommand):
         paginator.title = f"{cog.qualified_name.title()} ({c})"
         await paginator.start()
 
-    async def send_command_help(self, cmd):
+    async def send_command_help(self, cmd: commands.Command):
         embed = discord.Embed(color=self.color)
         embed.title = cmd.qualified_name
         embed.description = cmd.help or "No help found..."
