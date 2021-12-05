@@ -9,7 +9,7 @@ from core import Cog
 
 from discord.ext import tasks
 import config
-from models import User, Guild, Votes, Premium
+from models import Votes, Premium
 
 
 class QuoTasks(Cog):
@@ -29,17 +29,11 @@ class QuoTasks(Cog):
         """
         This task fetches if someone purchased premium or voted for Quotient
         """
-        records = await Votes.filter(is_voter=True, notified=False)
-        if records:
-            for record in records:
-                self.bot.dispatch("vote", record)
+        async for record in Votes.filter(is_voter=True, notified=False):
+            self.bot.dispatch("vote", record)
 
-        records = await Premium.filter(is_done=True, is_notified=False)
-        if records:
-            for record in records:
-                self.bot.dispatch("premium_purchase", record)
-
-        # both these listeners are in ./src/cogs/events/votes.py
+        async for record in Premium.filter(is_done=True, is_notified=False):
+            self.bot.dispatch("premium_purchase", record)
 
     def cog_unload(self):
         self.find_new_voters_and_premiums.stop()

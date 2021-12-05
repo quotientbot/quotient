@@ -5,10 +5,9 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from discord import Webhook
-from datetime import datetime, timedelta
 from core import Cog
 
-from models import Votes, User, Guild, Premium, Timer
+from models import Votes, User, Timer
 from contextlib import suppress
 
 import constants
@@ -77,42 +76,3 @@ class VotesCog(Cog):
                 await member.send(embed=embed)
             except:
                 pass
-
-    @Cog.listener()
-    async def on_premium_purchase(self, record: Premium):
-        await Premium.filter(order_id=record.order_id).update(is_notified=True)
-        member = self.bot.server.get_member(record.user_id)
-        if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
-
-        member = member if member is not None else await self.bot.fetch_user(record.user_id)
-
-        with suppress(discord.HTTPException, AttributeError):
-            embed = discord.Embed(
-                color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
-            )
-            embed.set_image(url=constants.random_thanks())
-            await self.hook.send(
-                embed=embed,
-                username="premium-logs",
-                avatar_url=self.bot.config.PREMIUM_AVATAR,
-            )
-
-        embed = discord.Embed(
-            color=discord.Color.gold(),
-            title="Premium Purchase Successful",
-            description=f"{constants.random_greeting()} {member.mention},\nThanks for purchasing Quotient Premium.\nYou have now access to all Premium Perks and A special role in our server.",
-        )
-        if member not in self.bot.server.members:
-            embed.description += f"\n\nI notice you are not in our support server. Join it by [clicking here]({self.bot.config.SERVER_LINK}) to get special role."
-
-        embed.description += f"You can upgrade a server by using `qboost` command in that server or you can use `qhelp premium` command to get a list of commands related to Quotient Premium."
-
-        try:
-            await member.send(embed=embed)
-        except:
-            pass
-
-        await self.bot.reminders.create_timer(
-            datetime.now(tz=constants.IST) + timedelta(days=30), "user_premium", user_id=record.user_id
-        )

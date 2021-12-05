@@ -1,5 +1,7 @@
 from aiohttp import ClientSession
 from utils import emote
+from typing import List
+
 import discord
 import config
 import io
@@ -74,3 +76,29 @@ class InvitePrime(discord.ui.View):
                 "invite it but We would suggest against it.\n\n*You are paying for the service, why not enjoy it properly?*"
             ),
         )
+
+
+class GuildSelector(discord.ui.Select):
+    def __init__(self, guilds: List[discord.Guild], default=[]):
+
+        _options = []
+        for guild in guilds:
+            _options.append(
+                discord.SelectOption(
+                    label=guild.name,
+                    value=guild.id,
+                    description=f"Owner: {guild.owner} (Members: {guild.member_count})",
+                    emoji=emote.diamond if guild.id in default else "<a:right_bullet:898869989648506921>",
+                )
+            )
+
+        _options.append(
+            discord.SelectOption(
+                label="Not Listed?", description="Select me if your server is not Listed", value=0, emoji=emote.error
+            )
+        )
+        super().__init__(options=_options, placeholder="Select a server to Upgrade")
+
+    async def callback(self, interaction: discord.Interaction):
+        self.view.stop()
+        self.view.custom_id = interaction.data["values"][0]

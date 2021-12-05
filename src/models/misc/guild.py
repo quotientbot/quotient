@@ -1,12 +1,15 @@
-from tortoise import models, fields
+from models import BaseDbModel
+
+from tortoise import fields
 from models.helpers import *
 import config
 import discord
 
+
 _dict = {"view": None, "embed": None, "scrims": None, "idp": None, "ptable": None, "tourney": None, "slotm": None}
 
 
-class Guild(models.Model):
+class Guild(BaseDbModel):
     class Meta:
         table = "guild_data"
 
@@ -39,3 +42,7 @@ class Guild(models.Model):
     def private_ch(self) -> discord.TextChannel:
         if (g := self._guild) is not None:
             return g.get_channel(self.private_channel)
+
+    @property
+    def booster(self):
+        return self.bot.get_user(self.made_premium_by)

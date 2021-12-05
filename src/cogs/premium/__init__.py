@@ -5,26 +5,29 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context
+from core import Cog, Context, event_bot_check
 from discord.ext import commands, tasks
-from models import User, Redeem, Guild, ArrayAppend, Timer
-from utils import checks, strtime, IST
+from models import User, Redeem, Guild, ArrayAppend, Timer, Premium
+from utils import checks, strtime, IST, Prompt
 from datetime import datetime, timedelta
 from tortoise.query_utils import Q
 
 from contextlib import suppress
+from constants import random_greeting, random_thanks
 
-from .views import InvitePrime, PremiumView
+from .views import InvitePrime, PremiumView, GuildSelector
+
 import discord
 import config
 
 from .expire import activate_premium, remind_guild_to_pay, remind_user_to_pay, deactivate_premium, extra_guild_perks
 
 
-class Premium(Cog):
+class PremiumCog(Cog, name="Premium"):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.reminder_task = self.remind_peeps_to_pay.start()
+        self.remind_peeps_to_pay.start()
+        self.hook = discord.Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
 
     @commands.command()
     @checks.is_premium_user()
@@ -43,11 +46,9 @@ class Premium(Cog):
 
         guild = await Guild.get(guild_id=ctx.guild.id)
 
-        if guild.premium_end_time and guild.premium_end_time > datetime.now(tz=IST):
-            end_time = guild.premium_end_time + timedelta(days=30)
-
-        else:
-            end_time = datetime.now(tz=IST) + timedelta(days=30)
+        end_time = (
+            guild.premium_end_time + timedelta(days=30) if guild.is_premium else datetime.now(tz=IST) + timedelta(days=30)
+        )
 
         prompt = await ctx.prompt(
             f"This server will be upgraded with Quotient Premium till {strtime(end_time)}."
@@ -57,24 +58,11 @@ class Premium(Cog):
         if not prompt:
             return await ctx.simple(f"Alright, Aborting.")
 
-        await user.refresh_from_db(("premiums",))
-        if not user.premiums:
-            return await ctx.send("don't be a dedh shana bruh")
+        _bool = await self.boost_guild(ctx.guild, end_time, ctx.author)
+        if not _bool:
+            return await ctx.send("*Hmmmm*")
 
-        await Guild.get(pk=guild.pk).update(
-            is_premium=True,
-            made_premium_by=ctx.author.id,
-            premium_end_time=end_time,
-            embed_color=self.bot.config.PREMIUM_COLOR,
-            bot_id=config.PREMIUM_BOT if __use_prime_bot(ctx.guild) else self.bot.user.id,
-        )
-        await User.get(pk=user.pk).update(
-            premiums=user.premiums - 1, made_premium=ArrayAppend("made_premium", ctx.guild.id)
-        )
-        await self.bot.reminders.create_timer(end_time - timedelta(days=4), "guild_premium_reminder", guild=ctx.guild.id)
-        await self.bot.reminders.create_timer(end_time, "guild_premium", guild_id=ctx.guild.id)
-
-        await ctx.success(f"Congratulations, this server has been upgraded to Quotient Premium till {strtime(end_time)}.")
+        await ctx.success(f"Congratulations, this server has been upgraded to Premium till `{strtime(end_time)}`.")
 
         if not __use_prime_bot(ctx.guild):
             _view = InvitePrime(ctx.guild.id)
@@ -239,6 +227,111 @@ class Premium(Cog):
         if member:
             await member.remove_roles(discord.Object(id=config.PREMIUM_ROLE))
 
+    @Cog.listener()
+    @event_bot_check(config.MAIN_BOT)
+    async def on_premium_purchase(self, record: Premium):
+        await Premium.get(order_id=record.order_id).update(is_notified=True)
+
+        member = self.bot.server.get_member(record.user_id)
+        if member is not None:
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
+
+        else:
+            member = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.user_id)
+
+        with suppress(discord.HTTPException, AttributeError):
+            _e = discord.Embed(
+                color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
+            )
+            _e.set_image(url=random_thanks())
+            # await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
+
+        _e = discord.Embed(
+            color=self.bot.color,
+            title="Quotient Boost Purchase Successful",
+            url=self.bot.config.SERVER_LINK,
+            description=(
+                f"{random_greeting()} {member.mention},\n"
+                "Thanks for purchasing Quotient Premium. **Upgrade any server with premium perks for 30 days with "
+                "`qboost` command** or select a server from Select Menu provided below."
+            ),
+        )
+
+        if member not in self.bot.server.members:
+            _e.description += f"\n\n[To claim your Premium Role, Join Quotient HQ]({self.bot.config.SERVER_LINK})."
+
+        _view = discord.ui.View(timeout=None)
+
+        made_premium = (await User.get(pk=member.id)).made_premium
+
+        _view.add_item(GuildSelector(member.mutual_guilds[:24], made_premium))
+
+        try:
+            _main_m = await member.send(embed=_e, view=_view)
+            await _view.wait()
+
+            _view.children[0].disabled = True
+            await _main_m.edit(embed=_main_m.embeds[0], view=_view)
+
+            _prompt = Prompt(member.id)
+
+            _e = discord.Embed(color=self.bot.color, description="**Are you sure you want to continue?**\n\n")
+            guild = self.bot.get_guild(int(_view.custom_id))
+
+            g = await Guild.get(pk=guild.id)
+
+            end_time = (
+                g.premium_end_time + timedelta(days=30) if g.is_premium else datetime.now(tz=IST) + timedelta(days=30)
+            )
+
+            _e.description += (
+                f"{guild.name} will be upgraded with Quotient Premium till `{strtime(end_time)}`.\n"
+                "*This action is irreversible.*"
+            )
+
+            _m = await member.send(embed=_e, view=_prompt)
+            await _prompt.wait()
+            await _m.delete()
+
+            if not _prompt.value:
+                return await member.send("Alright this window is closed, **Use `qboost` in any server to upgrade.**")
+
+            _bool = await self.boost_guild(guild, end_time, member)
+
+            if not _bool:
+                return await member.send("*hmmmm*", delete_after=5)
+
+            await member.send(f"Successfully upgraded **{guild.name}** with Quotient Prime till `{strtime(end_time)}`.")
+
+            if not guild.get_member(config.PREMIUM_BOT):
+                _view = InvitePrime(guild.id)
+                await member.send(embed=_view.embed_msg, view=_view)
+
+        except Exception as e:
+            await member.send(e)
+
+    async def boost_guild(self, guild: discord.Guild, end_time: datetime, user: discord.Member | discord.User) -> bool:
+        def __use_prime_bot(g: discord.Guild) -> bool:
+            return bool(g.get_member(config.PREMIUM_BOT))
+
+        _u = await User.get(pk=user.id)
+
+        if not _u.premiums:
+            return False
+
+        await Guild.get(pk=guild.id).update(
+            is_premium=True,
+            made_premium_by=_u.pk,
+            premium_end_time=end_time,
+            embed_color=self.bot.config.PREMIUM_COLOR,
+            bot_id=config.PREMIUM_BOT if __use_prime_bot(guild) else self.bot.user.id,
+        )
+
+        await User.get(pk=_u.pk).update(premiums=_u.premiums - 1, made_premium=ArrayAppend("made_premium", guild.id))
+        await self.bot.reminders.create_timer(end_time, "guild_premium", guild_id=guild.id)
+
+        return True
+
     # @commands.command()
     # @commands.bot_has_permissions(embed_links=True)
     # async def changequo(self, ctx: Context):
@@ -274,4 +367,4 @@ class Premium(Cog):
 
 
 def setup(bot) -> None:
-    bot.add_cog(Premium(bot))
+    bot.add_cog(PremiumCog(bot))
