@@ -237,7 +237,7 @@ class PremiumCog(Cog, name="Premium"):
                 color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
             )
             _e.set_image(url=random_thanks())
-            # await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
+            await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
 
         _e = discord.Embed(
             color=self.bot.color,
