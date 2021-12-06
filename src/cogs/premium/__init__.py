@@ -47,7 +47,7 @@ class PremiumCog(Cog, name="Premium"):
         guild = await Guild.get(guild_id=ctx.guild.id)
 
         end_time = (
-            guild.premium_end_time + timedelta(days=30) if guild.is_premium else datetime.now(tz=IST) + timedelta(days=30)
+            guild.premium_end_time + timedelta(days=28) if guild.is_premium else datetime.now(tz=IST) + timedelta(days=28)
         )
 
         prompt = await ctx.prompt(
@@ -208,14 +208,12 @@ class PremiumCog(Cog, name="Premium"):
     @event_bot_check(config.MAIN_BOT)
     async def on_user_premium_timer_complete(self, timer: Timer):
         user_id = timer.kwargs["user_id"]
-        _user = await User.get_or_none(pk=user_id)
-        if not _user:
-            return
+        _user = await User.get(pk=user_id)
 
         if not _user.premium_expire_time == timer.expires:
             return
 
-        _q = "UPDATE user_data SET is_premium = FALSE , made_premium = '{}' WHERE user_id = $1"
+        _q = "UPDATE user_data SET is_premium = FALSE ,premiums=0 ,made_premium = '{}' WHERE user_id = $1"
         await self.bot.db.execute(_q, user_id)
 
         member = await self.bot.get_or_fetch_member(self.bot.server, _user.pk)
@@ -276,7 +274,7 @@ class PremiumCog(Cog, name="Premium"):
             g = await Guild.get(pk=guild.id)
 
             end_time = (
-                g.premium_end_time + timedelta(days=30) if g.is_premium else datetime.now(tz=IST) + timedelta(days=30)
+                g.premium_end_time + timedelta(days=28) if g.is_premium else datetime.now(tz=IST) + timedelta(days=28)
             )
 
             _e.description += (
