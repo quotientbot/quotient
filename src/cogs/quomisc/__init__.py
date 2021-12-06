@@ -18,7 +18,7 @@ from constants import PartnerRequest
 
 import inspect, time
 
-from .views import VoteButton
+from .views import MoneyButton, VoteButton
 
 from .dev import *
 import discord
@@ -259,10 +259,22 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def money(self, ctx: Context):
         user = await User.get(user_id=ctx.author.id)
-        await ctx.simple(
+
+        e = self.bot.embed(ctx, title="Your Quo Coins")
+        e.set_thumbnail(url=self.bot.user.avatar.url)
+
+        e.description = (
             f"💰 | You have a total of `{user.money} Quo Coins`.\n"
             f"*Quo Coins can be earned by voting [here]({ctx.config.WEBSITE}/vote)*"
         )
+
+        _view = MoneyButton(ctx)
+        if not user.money >= 120:
+            _view.children[0] = discord.ui.Button(
+                label=f"Claim Prime (120 coins)", custom_id="claim_prime", style=discord.ButtonStyle.grey, disabled=True
+            )   
+
+        _view.message = await ctx.send(embed=e, embed_perms=True, view=_view)
 
     @commands.command()
     async def vote(self, ctx: Context):
