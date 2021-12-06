@@ -103,10 +103,8 @@ class PremiumCog(Cog, name="Premium"):
         return await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
 
     @Cog.listener()
+    @event_bot_check(config.PREMIUM_BOT)
     async def on_guild_join(self, guild: discord.Guild):
-        if not self.bot.user.id == config.PREMIUM_BOT:
-            return
-
         _g = await Guild.get_or_none(pk=guild.id)
         if not _g:
             return
@@ -119,15 +117,12 @@ class PremiumCog(Cog, name="Premium"):
         await activate_premium(self.bot, guild)
 
     @Cog.listener()
+    @event_bot_check(config.PREMIUM_BOT)
     async def on_guild_remove(self, guild: discord.Guild):
-        _g = await Guild.get_or_none(pk=guild.id, bot_id=config.PREMIUM_BOT)
-        if not _g:
-            return
-
-        if self.bot.user.id == config.PREMIUM_BOT:
-            await Guild.get(pk=_g.pk).update(bot_id=config.MAIN_BOT)
+        await Guild.get(pk=guild.id, bot_id=config.PREMIUM_BOT).update(bot_id=config.MAIN_BOT)
 
     @Cog.listener()
+    @event_bot_check(config.PREMIUM_BOT)
     async def on_member_remove(self, member: discord.Member):
         if member.id == config.MAIN_BOT:
             _g = await Guild.get_or_none(pk=member.guild.id, bot_id=config.PREMIUM_BOT)
@@ -136,6 +131,8 @@ class PremiumCog(Cog, name="Premium"):
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):
+        await self.bot.wait_until_ready()
+
         async for user in User.filter(
             is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
         ):
@@ -165,11 +162,8 @@ class PremiumCog(Cog, name="Premium"):
     def cog_unload(self):
         self.remind_peeps_to_pay.stop()
 
-    @remind_peeps_to_pay
-    async def before_loops(self):
-        await self.bot.wait_until_ready()
-
     @Cog.listener()
+    @event_bot_check(config.MAIN_BOT)
     async def on_guild_premium_timer_complete(self, timer: Timer):
         guild_id = timer.kwargs["guild_id"]
 
@@ -211,6 +205,7 @@ class PremiumCog(Cog, name="Premium"):
             )
 
     @Cog.listener()
+    @event_bot_check(config.MAIN_BOT)
     async def on_user_premium_timer_complete(self, timer: Timer):
         user_id = timer.kwargs["user_id"]
         _user = await User.get_or_none(pk=user_id)
