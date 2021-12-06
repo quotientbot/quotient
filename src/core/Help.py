@@ -27,13 +27,12 @@ class HelpCommand(commands.HelpCommand):
         hidden = ("HelpCog", "Dev")
 
         embed = discord.Embed(color=self.color)
+
         server = f"[Support Server]({config.SERVER_LINK})"
         invite = f"[Invite Me]({config.BOT_INVITE})"
-        src = f"[Source]({config.REPOSITORY})"
         dashboard = f"[Dashboard]({config.WEBSITE})"
-        donate = f"[Donate]({config.DONATE_LINK})"
 
-        embed.description = f"{server} **|** {invite} **|** {src} **|** {dashboard} **|** {donate}"
+        embed.description = f"{server} **|** {invite} **|** {dashboard}"
 
         for cog, cmds in mapping.items():
             if cog and not cog.qualified_name in hidden and await self.filter_commands(cmds, sort=True):
@@ -44,8 +43,6 @@ class HelpCommand(commands.HelpCommand):
                 )
 
         cmds = sum(1 for i in self.context.bot.walk_commands())
-
-        embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
 
         links = [LinkType("Support Server", config.SERVER_LINK), LinkType("Invite Me", config.BOT_INVITE)]
         await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))

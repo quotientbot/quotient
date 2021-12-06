@@ -1,14 +1,24 @@
+from __future__ import annotations
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+
 from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import format_relative
-from utils import get_ipm, strtime, human_timedelta, split_list, checks, LinkButton, LinkType
-from core import Cog, Quotient, Context
+from utils import get_ipm, human_timedelta, checks, LinkButton, LinkType
+from core import Cog, Context
 from models import Guild, Votes, User, Commands, Partner
 from discord.ext import commands
 from utils import QuoColor, string_input, LinkType, LinkButton, truncate_string
 from collections import Counter
 from constants import PartnerRequest
-from glob import glob
+
 import inspect, time
+
+from .views import VoteButton
 
 from .dev import *
 import discord
@@ -51,7 +61,6 @@ class Quomisc(Cog, name="quomisc"):
         embed = self.bot.embed(ctx)
         embed.description = (
             f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n"
-            f"[Click Here to Invite Quotient Prime]({self.bot.config.PREMIUM_INVITE})\n"
             f"[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         )
         await ctx.send(embed=embed)
@@ -215,7 +224,7 @@ class Quomisc(Cog, name="quomisc"):
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx, *, new_prefix: str):
+    async def prefix(self, ctx: Context, *, new_prefix: str):
         """Change your server's prefix"""
         if len(new_prefix) > 5:
             return await ctx.error(f"Prefix cannot contain more than 5 characters.")
@@ -227,7 +236,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     @commands.has_permissions(manage_guild=True)
     @checks.is_premium_guild()
-    async def color(self, ctx, *, new_color: QuoColor):
+    async def color(self, ctx: Context, *, new_color: QuoColor):
         """Change color of Quotient's embeds"""
         color = int(str(new_color).replace("#", ""), 16)  # The hex value of a color.
 
@@ -238,7 +247,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     @checks.is_premium_guild()
     @commands.has_permissions(manage_guild=True)
-    async def footer(self, ctx, *, new_footer: str):
+    async def footer(self, ctx: Context, *, new_footer: str):
         """Change footer of embeds sent by Quotient"""
         if len(new_footer) > 50:
             return await ctx.success(f"Footer cannot contain more than 50 characters.")
@@ -247,99 +256,43 @@ class Quomisc(Cog, name="quomisc"):
         await Guild.filter(guild_id=ctx.guild.id).update(embed_footer=new_footer)
         await ctx.send(f"Updated server footer.")
 
-    @commands.command(aliases=["modules", "exts"])
-    async def extensions(self, ctx):
-        """List of modules that work at a current time."""
-        exts = split_list(self.bot.cogs, 3)
-        length = max([len(element) for row in exts for element in row])
-        rows = ("".join(e.ljust(length + 2) for e in row) for row in exts)
-        embed = ctx.bot.embed(ctx, title=f"Currently working modules", description="```%s```" % "\n".join(rows))
-        await ctx.send(embed=embed)
-
     @commands.command()
     async def money(self, ctx: Context):
-        user = await User.get(user_id=ctx.author.id).only("user_id", "money")
-        await ctx.simple(f"💰 | You own `{user.money} Quo Coins`.")
-
-    @commands.command()
-    async def shop(self, ctx: Context):
-        embed = discord.Embed(color=self.bot.color)
-        embed.set_footer(text=f"Use '{ctx.prefix}buy <item>' to buy something")
-        embed.description = (
-            f"<:prime:878493632720699392> **Quotient Premium** — [⏣ 120]({self.bot.config.SERVER_LINK})"
-            f"\nGet a Quotient Premium redeem code, this can be used to upgrade any server with Quotient Premium for 1 Month."
+        user = await User.get(user_id=ctx.author.id)
+        await ctx.simple(
+            f"💰 | You have a total of `{user.money} Quo Coins`.\n"
+            f"*Quo Coins can be earned by voting [here]({ctx.config.WEBSITE}/vote)*"
         )
-        await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command()
-    async def buy(self, ctx: Context, item: str):
-        await ctx.error("This command is currently under development, will be available soon.")
+    async def vote(self, ctx: Context):
+        e = self.bot.embed(ctx, title="Vote for Quotient")
+        e.description = (
+            "**Rewards**\n"
+            "<a:roocool:917297222989795339> Voter Role `12 hrs`\n"
+            f"{self.bot.config.PRIME_EMOJI} Quo Coin `x1`"
+        )
+        e.set_thumbnail(url=self.bot.user.avatar.url)
+
+        _view = VoteButton(ctx)
+
+        vote = await Votes.get_or_none(pk=ctx.author.id)
+        if vote and vote.is_voter:
+            _b = discord.ui.Button(
+                disabled=True,
+                style=discord.ButtonStyle.grey,
+                custom_id="vote_quo",
+                label=f"Vote in {human_timedelta(vote.expire_time,accuracy=1,suffix=False)}",
+            )
+            _view.children[0] = _b
+
+        _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
     @commands.command()
     async def dashboard(self, ctx: Context):
         await ctx.send(
             f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
         )
-
-    @commands.command()
-    async def vote(self, ctx: Context):
-        await ctx.send(f"You can vote for me here:\n<https://quotientbot.xyz/vote>")
-
-    # @commands.group(aliases=("msg",), invoke_without_command=True)
-    # async def message(self, ctx: Context, user: Optional[QuoUser]):
-    #     """
-    #     This returns a total number of messages a user has sent in a server or globally.
-    #     """
-    #     user = user or ctx.author
-    #     total = await Messages.filter(author_id=user.id).all().count() or 0
-    #     server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id).all().count() or 0
-
-    #     embed = self.bot.embed(ctx, title="📧 Messages")
-    #     embed.description = (
-    #         f"**{user}** has sent `{plural(server):message|messages}` in this server. (`{total}` Globally)"
-    #     )
-    #     await ctx.send(embed=embed, embed_perms=True)
-
-    # @message.command(name="for")
-    # async def msg_for(self, ctx: Context, user: Optional[QuoUser], days: Optional[int] = 7):
-    #     """
-    #     Returns no. of msges sent by a user withing some days.
-    #     """
-    #     user = user or ctx.author
-    #     sent_at = datetime.now(tz=IST) - timedelta(days=days)
-
-    #     total = await Messages.filter(author_id=user.id, sent_at__gte=sent_at).all().count() or 0
-    #     server = await Messages.filter(author_id=user.id, guild_id=ctx.guild.id, sent_at__gte=sent_at).all().count() or 0
-
-    #     embed = self.bot.embed(ctx, title=f"Messages for {plural(days):day|days}")
-    #     embed.description = f"**{user}** has sent `{plural(server):message|messages}` in this server in last `{plural(days):day|days}`. (`{total}` Globally)"
-    #     await ctx.send(embed=embed, embed_perms=True)
-
-    # @message.command(name="server")
-    # async def msg_server(self, ctx: Context, days: Optional[int]):
-    #     """
-    #     Returns no. of messages sent in a server.
-    #     Days is an optional argument.
-    #     """
-    #     total = await Messages.filter(guild_id=ctx.guild.id).all().order_by("sent_at")
-    #     bots = sum(1 for i in (msg for msg in total if msg.bot))
-
-    #     embed = self.bot.embed(ctx, title="📧 Server Messages")
-    #     embed.add_field(name="Total", value=sum(1 for i in total))
-    #     embed.add_field(name="Bots", value=bots)
-    #     embed.set_footer(text=f"Counting Since {strtime(total[0].sent_at)}")
-    #     await ctx.send(embed=embed)
-
-    # @message.command(name="stats")
-    # async def msg_stats(self, ctx: Context, user: Optional[QuoUser]):
-    #     """
-    #     Returns message stats of the server or a user.
-    #     """
-    #     return await ctx.error("This command is currently under development.")
-    #     if user:
-    #         await member_msg_stats(ctx, user)
-    #     else:
-    #         await guild_msg_stats(ctx)
 
     @commands.group(invoke_without_command=True)
     async def partnership(self, ctx: Context):
