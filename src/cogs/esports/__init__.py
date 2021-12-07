@@ -1185,7 +1185,7 @@ class ScrimManager(Cog, name="Esports"):
             raise TourneyError(f"I can not find open role for Tourney (`{tourney.id}`)")
 
         prompt = await ctx.prompt(
-            f"Are you sure you want to stop registrations for Tourney (`{tourney.id}`)?\n>You can start them later with `{ctx.prefix}tourney start {tourney.id}` command"
+            f"Are you sure you want to stop registrations for Tourney (`{tourney.id}`)?\n> You can start them later with `{ctx.prefix}tourney start {tourney.id}` command"
         )
         if prompt:
             await toggle_channel(channel, open_role, False)

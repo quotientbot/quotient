@@ -173,7 +173,12 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
-    await registration_channel.send(embed=registration_close_embed(scrim))
+    _e = registration_close_embed(scrim)
+
+    if ctx.bot.is_prime and _e.color == discord.Color(65459):
+        _e.color = ctx.bot.config.PREMIUM_COLOR
+
+    await registration_channel.send(embed=_e)
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
     ctx.bot.loop.create_task(unlock_after_registration(scrim.guild_id, scrim.id, ctx.bot))

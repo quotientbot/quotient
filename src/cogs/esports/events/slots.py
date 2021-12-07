@@ -1,6 +1,8 @@
 from __future__ import annotations
 import typing
 
+from core.decorators import right_bot_check
+
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -18,6 +20,7 @@ class SlotManagerEvents(Cog):
         self.bot = bot
 
     @Cog.listener()
+    @right_bot_check()
     async def on_scrim_lock_timer_complete(self, timer: Timer):
         scrim_id = timer.kwargs["scrim_id"]
         scrim = await Scrim.get_or_none(pk=scrim_id)
@@ -49,6 +52,7 @@ class SlotManagerEvents(Cog):
         )
 
     @Cog.listener()
+    @right_bot_check()
     async def on_guild_channel_delete(self, channel):
         if not isinstance(channel, discord.TextChannel):
             return
@@ -60,6 +64,7 @@ class SlotManagerEvents(Cog):
         await delete_slotmanager(record, self.bot)
 
     @Cog.listener()
+    @right_bot_check()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         if not payload.guild_id:
             return

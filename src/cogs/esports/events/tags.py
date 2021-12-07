@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import typing
 
+from core.decorators import right_bot_check
+
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -21,6 +23,7 @@ class TagEvents(Cog):
         self.bot = bot
 
     @Cog.listener(name="on_message")
+    @right_bot_check()
     async def on_tagcheck_msg(self, message: discord.Message):
         if not message.guild or message.author.bot:
             return
@@ -70,6 +73,7 @@ class TagEvents(Cog):
     # ==========================================================================================================
 
     @Cog.listener(name="on_message")
+    @right_bot_check()
     async def on_eztag_msg(self, message: discord.Message):
         if not message.guild or message.author.bot:
             return

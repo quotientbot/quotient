@@ -41,7 +41,9 @@ class ScrimEvents(Cog):
         self.__scrim_lock = asyncio.Lock()
 
     @Cog.listener("on_message")
+    @right_bot_check()
     async def on_scrim_registration(self, message: discord.Message):
+
         if not message.guild or message.author.bot:
             return
 
@@ -53,7 +55,7 @@ class ScrimEvents(Cog):
         scrim = await Scrim.get_or_none(
             registration_channel_id=channel_id,
         )
-
+        print(scrim)
         if scrim is None:  # Scrim is possibly deleted
             return self.bot.cache.scrim_channels.discard(channel_id)
 
@@ -114,7 +116,7 @@ class ScrimEvents(Cog):
     @right_bot_check()
     async def on_scrim_open_timer_complete(self, timer: Timer):
         """This listener opens the scrim registration at time."""
-        print("opening...")
+
         scrim_id = timer.kwargs["scrim_id"]
         scrim = await Scrim.get_or_none(pk=scrim_id)
 
@@ -196,9 +198,14 @@ class ScrimEvents(Cog):
         registration_channel = scrim.registration_channel
         open_role = scrim.open_role
 
+        _e = await registration_open_embed(scrim)
+
+        if self.bot.is_prime and _e.color == discord.Color(65459):
+            _e.color = self.bot.config.PREMIUM_COLOR
+
         await registration_channel.send(
             content=scrim_work_role(scrim, EsportsRole.ping),
-            embed=await registration_open_embed(scrim),
+            embed=_e,
             allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
         )
 
@@ -209,6 +216,7 @@ class ScrimEvents(Cog):
         self.bot.loop.create_task(lock_for_registration(guild.id, scrim.id, self.bot))
 
     @Cog.listener()
+    @right_bot_check()
     async def on_autoclean_timer_complete(self, timer: Timer):
         scrim_id = timer.kwargs["scrim_id"]
 
@@ -249,6 +257,7 @@ class ScrimEvents(Cog):
                 )
 
     @Cog.listener()
+    @right_bot_check()
     async def on_scrim_ban_timer_complete(self, timer: Timer):
         scrims = timer.kwargs["scrims"]
         user_id = timer.kwargs["user_id"]

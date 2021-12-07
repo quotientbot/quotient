@@ -94,6 +94,10 @@ class Quotient(commands.AutoShardedBot):
     def color(self):
         return self.config.PREMIUM_COLOR if self.user.id == self.config.PREMIUM_BOT else self.config.COLOR
 
+    @property
+    def is_prime(self) -> bool:
+        return self.user.id == self.config.PREMIUM_BOT
+
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -199,6 +203,12 @@ class Quotient(commands.AutoShardedBot):
         embed = discord.Embed(**kwargs)
         embed.color = embed_color
         embed.set_footer(text=embed_footer)
+        return embed
+
+    def fix_color(self, embed: discord.Embed) -> discord.Embed:
+        if self.is_prime and embed.color == discord.Color(65459):
+            embed.color = self.config.PREMIUM_COLOR
+
         return embed
 
     async def is_owner(self, user: typing.Union[discord.Member, discord.User]) -> bool:
