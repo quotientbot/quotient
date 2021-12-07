@@ -55,7 +55,7 @@ class ScrimEvents(Cog):
         scrim = await Scrim.get_or_none(
             registration_channel_id=channel_id,
         )
-        print(scrim)
+
         if scrim is None:  # Scrim is possibly deleted
             return self.bot.cache.scrim_channels.discard(channel_id)
 

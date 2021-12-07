@@ -91,20 +91,17 @@ async def update_confirmed_message(tourney: Tourney, link: str):
 
     message = None
 
-    with suppress(discord.HTTPException, discord.NotFound):
+    with suppress(discord.HTTPException, IndexError):
         message = await tourney.guild.get_channel(_ids[0]).fetch_message(_ids[1])
 
-    if message:
-        try:
+        if message:
             e = message.embeds[0]
-        except IndexError:
-            return
 
-        e.description = "~~" + e.description.strip() + "~~"
-        e.title = "Cancelled Slot"
-        e.color = discord.Color.red()
+            e.description = "~~" + e.description.strip() + "~~"
+            e.title = "Cancelled Slot"
+            e.color = discord.Color.red()
 
-        await message.edit(embed=e)
+            await message.edit(embed=e)
 
 
 async def csv_tourney_data(tourney: Tourney):

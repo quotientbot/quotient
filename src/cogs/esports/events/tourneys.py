@@ -114,7 +114,7 @@ class TourneyEvents(Cog):
             return
 
         tourney = await Tourney.get_or_none(registration_channel_id=channel_id)
-        print(tourney)
+
         if tourney is None:
             return self.bot.cache.tourney_channels.discard(channel_id)
 
@@ -254,6 +254,9 @@ class TourneyEvents(Cog):
             if slot:
                 if slot.confirm_jump_url:
                     self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
+
+                if not await self.bot.cache.match_bot_guild(tourney.guild_id, self.bot.user.id):
+                    return
 
                 if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
                     m = tourney.guild.get_member(slot.leader_id)
