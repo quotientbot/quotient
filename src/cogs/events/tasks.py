@@ -17,7 +17,10 @@ from models import Votes, Premium
 class QuoTasks(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.bot.loop.create_task(self.startup_tasks())
 
+    async def startup_tasks(self):
+        await self.bot.wait_until_ready()
         if not self.bot.is_prime:
             self.insert_guilds.start()
             self.find_new_voters_and_premiums.start()

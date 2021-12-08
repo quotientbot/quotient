@@ -221,7 +221,6 @@ class PremiumCog(Cog, name="Premium"):
             await member.remove_roles(discord.Object(id=config.PREMIUM_ROLE))
 
     @Cog.listener()
-    @event_bot_check(config.MAIN_BOT)
     async def on_premium_purchase(self, record: Premium):
         await Premium.get(order_id=record.order_id).update(is_notified=True)
 
