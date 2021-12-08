@@ -1,12 +1,14 @@
-from tortoise import fields, models, exceptions
+from models import BaseDbModel
+
+from tortoise import fields, models
 from models.helpers import *
 
 from constants import AutocleanType, Day
 from PIL import Image, ImageFont, ImageDraw
-from discord.ext.commands import BadArgument
+from discord.ext.commands import BadArgument, TextChannelConverter, ChannelNotFound
 
 from ast import literal_eval as leval
-from typing import Optional
+from typing import Optional, Union
 from pathlib import Path
 
 import discord
@@ -15,7 +17,7 @@ import utils
 import io
 
 
-class Scrim(models.Model):
+class Scrim(BaseDbModel):
     class Meta:
         table = "sm.scrims"
 
@@ -68,18 +70,22 @@ class Scrim(models.Model):
         return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Scrim: {self.id})"
 
     @classmethod
-    async def convert(cls, ctx, argument: str):
-        try:
-            argument = int(argument)
-        except ValueError:
-            pass
-        else:
-            try:
-                return await cls.get(pk=argument, guild_id=ctx.guild.id)
-            except exceptions.DoesNotExist:
-                pass
+    async def convert(cls, ctx, argument: Union[str, discord.TextChannel]):
+        scrim = None
 
-        raise BadArgument(f"This is not a valid Scrim ID.\n\nGet a valid ID with `{ctx.prefix}smanager config`")
+        try:
+            _c = await TextChannelConverter().convert(ctx, argument)
+            scrim = await cls.get_or_none(registration_channel_id=_c.id, guild_id=ctx.guild.id)
+        except ChannelNotFound:
+            if argument.isdigit():
+                scrim = await cls.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
+
+        if not scrim:
+            raise BadArgument(
+                f"This is not a valid Scrim ID or registration channel.\n\nGet a valid ID with `{ctx.prefix}s config`"
+            )
+
+        return scrim
 
     @property
     def guild(self) -> Optional[discord.Guild]:

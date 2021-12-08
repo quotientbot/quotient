@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
     import config as cfg
-    import constants as csts
+    
 
 from discord import AllowedMentions, Intents
 from colorama import Fore, init
@@ -26,6 +26,8 @@ import discord
 import mystbin
 import dbl
 import time
+
+import constants as csts
 
 from .decorators import right_bot_check
 from .Context import Context
