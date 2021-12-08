@@ -5,13 +5,14 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from discord import Webhook
-from core import Cog
+from core import Cog, event_bot_check, right_bot_check
 
 from models import Votes, User, Timer
 from contextlib import suppress
 
 import constants
 import discord
+import config
 
 
 class VotesCog(Cog):
@@ -20,6 +21,7 @@ class VotesCog(Cog):
         self.hook = Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
 
     @Cog.listener()
+    @event_bot_check(config.MAIN_BOT)
     async def on_member_join(self, member: discord.Member):
         """we grant users voter, premium role if they join later."""
         if not member.guild or not member.guild.id == self.bot.server.id:
@@ -52,6 +54,7 @@ class VotesCog(Cog):
             await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
+    @right_bot_check()
     async def on_vote_timer_complete(self, timer: Timer):
         user_id = timer.kwargs["user_id"]
         vote = await Votes.get(user_id=user_id)

@@ -5,6 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
     import config as cfg
+    import constants as csts
 
 from discord import AllowedMentions, Intents
 from colorama import Fore, init
@@ -12,13 +13,13 @@ from discord.ext import commands
 from tortoise import Tortoise
 
 from datetime import datetime
-from constants import IST
+
 from typing import NoReturn, Optional
 from async_property import async_property
 from datetime import datetime
 
 import aiohttp, asyncio, os
-import config, constants
+import config
 import itertools
 import traceback
 import discord
@@ -61,7 +62,7 @@ class Quotient(commands.AutoShardedBot):
 
         asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
-        self.start_time = datetime.now(tz=IST)
+        self.start_time = datetime.now(tz=csts.IST)
         self.cmd_invokes = 0
         self.seen_messages = 0
         self.binclient = mystbin.Client()
@@ -160,7 +161,7 @@ class Quotient(commands.AutoShardedBot):
 
     async def on_command(self, ctx: Context):
         self.cmd_invokes += 1
-        await constants.show_tip(ctx)
+        await csts.show_tip(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
     async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
@@ -252,7 +253,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def current_time(self):
-        return datetime.now(tz=IST)
+        return datetime.now(tz=csts.IST)
 
     @async_property
     async def db_latency(self):

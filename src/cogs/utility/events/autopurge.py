@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
+from core import Cog, right_bot_check
 from models import AutoPurge, Timer, Snipe
 from contextlib import suppress
 from datetime import datetime, timedelta
@@ -22,6 +22,7 @@ class AutoPurgeEvents(Cog):
         await Snipe.filter(delete_time__lte=(datetime.now(tz=IST) - timedelta(days=15))).delete()
 
     @Cog.listener()
+    @right_bot_check()
     async def on_message_delete(self, message: discord.Message):
         if not message.guild:
             return
@@ -34,6 +35,7 @@ class AutoPurgeEvents(Cog):
         )
 
     @Cog.listener()
+    @right_bot_check()
     async def on_message(self, message: discord.Message):
         if not message.guild or not message.channel.id in self.bot.cache.autopurge_channels:
             return
@@ -50,6 +52,7 @@ class AutoPurgeEvents(Cog):
         )
 
     @Cog.listener()
+    @right_bot_check()
     async def on_autopurge_timer_complete(self, timer: Timer):
 
         message_id, channel_id = timer.kwargs["message_id"], timer.kwargs["channel_id"]
@@ -69,7 +72,8 @@ class AutoPurgeEvents(Cog):
                 await msg.delete()
 
     @Cog.listener()
-    async def on_guild_channel_delete(self, channel):
+    @right_bot_check()
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
         if channel.id in self.bot.cache.autopurge_channels:
             await AutoPurge.filter(channel_id=channel.id).delete()
             self.bot.cache.autopurge_channels.discard(channel.id)

@@ -1,7 +1,13 @@
-from core import Cog, Quotient
+from __future__ import annotations
+import typing
+
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
+from core import Cog, right_bot_check
 from models import Timer, Lockdown
 from constants import LockType
-import discord
 
 
 class LockEvents(Cog):
@@ -9,13 +15,7 @@ class LockEvents(Cog):
         self.bot = bot
 
     @Cog.listener()
-    async def on_member_join(self, member: discord.Member):
-        """
-        Mute them if they were muted
-        """
-        pass
-
-    @Cog.listener()
+    @right_bot_check()
     async def on_lockdown_timer_complete(self, timer: Timer):
         _type = timer.kwargs["_type"]
 

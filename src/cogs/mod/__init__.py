@@ -1,12 +1,19 @@
-from utils.time import discord_timestamp, human_timedelta
+from __future__ import annotations
+
+from typing import Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from core import Quotient
+
+
 from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
-from core import Cog, Quotient, Context
+from core import Cog, Context
 from models import Lockdown
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser, human_timedelta
 from constants import LockType
-from typing import Optional, Union
+
 import discord
 import re
 
@@ -14,9 +21,6 @@ import re
 class Mod(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-
-    def cog_check(self, ctx):
-        return ctx.guild is not None
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
@@ -170,7 +174,7 @@ class Mod(Cog):
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.cooldown(2, 1, type=commands.BucketType.user)
-    async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
+    async def unban(self, ctx: Context, member: BannedMember, *, reason: ActionReason = None):
         """Unbans a member from the server.
         You can pass either the ID of the banned member or the Name#Discrim
         combination of the member. Typically the ID is easiest to use.

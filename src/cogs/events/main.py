@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from models import Guild, Timer
-from core import Cog, Context
+from core import Cog, Context, right_bot_check, event_bot_check
 
 from contextlib import suppress
 from constants import random_greeting, IST
@@ -35,6 +35,7 @@ class MainEvents(Cog, name="Main Events"):
 
     # incomplete?, I know
     @Cog.listener()
+    @event_bot_check(config.MAIN_BOT)
     async def on_guild_join(self, guild: discord.Guild):
         with suppress(AttributeError):
             g, b = await Guild.get_or_create(guild_id=guild.id)
@@ -44,21 +45,6 @@ class MainEvents(Cog, name="Main Events"):
                 "footer": g.embed_footer or config.FOOTER,
             }
             self.bot.loop.create_task(guild.chunk())
-
-    @Cog.listener()
-    async def on_guild_remove(self, guild: discord.Guild):
-        await self.bot.reminders.create_timer(
-            datetime.now(tz=IST) + timedelta(minutes=20), "erase_guild", guild_id=guild.id
-        )
-        with suppress(AttributeError, KeyError):
-            self.bot.cache.guild_data.pop(guild.id)
-
-    @Cog.listener()
-    async def on_erase_guild_timer_complete(self, timer: Timer):
-        guild_id = timer.kwargs["guild_id"]
-        guild = self.bot.get_guild(guild_id)
-        if not guild:
-            await erase_guild(guild_id)
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):

@@ -1,9 +1,15 @@
+from __future__ import annotations
+import typing
+
+if typing.TYPE_CHECKING:
+    from core import Quotient
+
 from contextlib import suppress
 from models import Autorole, ArrayRemove
-from core import Cog, Quotient, Context
+from core import Cog, Context, right_bot_check
 import discord
 
-from models.models import Commands
+from models import Commands
 
 
 class CmdEvents(Cog):
@@ -39,6 +45,7 @@ class CmdEvents(Cog):
         )
 
     @Cog.listener(name="on_member_join")
+    @right_bot_check()
     async def on_autorole(self, member: discord.Member):
         guild = member.guild
 
