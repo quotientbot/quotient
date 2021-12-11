@@ -15,7 +15,6 @@ class Guild(BaseDbModel):
 
     guild_id = fields.BigIntField(pk=True, index=True)
     bot_id = fields.BigIntField(default=config.MAIN_BOT)
-    waiting_activation = fields.BooleanField(default=False)
 
     prefix = fields.CharField(default="q", max_length=5)
     embed_color = fields.IntField(default=65459, null=True)
