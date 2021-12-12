@@ -47,7 +47,7 @@ class Scrim(BaseDbModel):
     stoggle = fields.BooleanField(default=True)
     open_role_id = fields.BigIntField(null=True)
     autodelete_rejects = fields.BooleanField(default=False)
-    autodelete_extras = fields.BooleanField(default=False)
+    autodelete_extras = fields.BooleanField(default=True)
     teamname_compulsion = fields.BooleanField(default=False)
 
     time_elapsed = fields.CharField(null=True, max_length=100)
