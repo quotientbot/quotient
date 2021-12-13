@@ -155,7 +155,7 @@ async def setup_slotmanager(ctx, post_channel: discord.TextChannel) -> None:
 
     embed = await get_slot_manager_message(ctx.guild.id, _free)
 
-    msg: discord.Message = await main_channel.send(embed=ctx.bot.fix_color(embed), view=view)
+    msg: discord.Message = await main_channel.send(embed=embed, view=view)
 
     sm = await SlotManager.create(
         guild_id=ctx.guild.id, main_channel_id=main_channel.id, updates_channel_id=post_channel.id, message_id=msg.id

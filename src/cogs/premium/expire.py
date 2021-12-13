@@ -2,72 +2,17 @@ from __future__ import annotations
 
 import typing
 
-if typing.TYPE_CHECKING:
-    from core import Quotient
-
 from contextlib import suppress
-from models import SlotManager, Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag
+from models import Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag
 import discord
 import config
 from utils import discord_timestamp, plural
 
 from .views import PremiumView
-from cogs.esports.views import SlotManagerView, TourneySlotManager
-from cogs.esports.helpers.views import free_slots, get_slot_manager_message
-
-
-async def activate_premium(bot: Quotient, guild: discord.Guild):
-
-    await bot.cache.update_guild_cache(guild.id)
-
-    _slotmanager = await SlotManager.get_or_none(guild_id=guild.id)
-
-    if _slotmanager:
-        msg: discord.Message = await _slotmanager.message
-
-        with suppress(discord.HTTPException):
-
-            view = SlotManagerView(bot)
-
-            _free = await free_slots(guild.id)
-
-            view.children[1].disabled = False
-            if not _free:
-                view.children[1].disabled = True
-
-            embed = await get_slot_manager_message(guild.id, _free)
-            embed.color = config.PREMIUM_COLOR
-            await msg.delete()
-            _m: discord.Message = await _slotmanager.main_channel.send(embed=embed, view=view)
-            await SlotManager.get(guild_id=guild.id).update(message_id=_m.id)
-
-    tourneys = await Tourney.filter(guild_id=guild.id)
-    if tourneys:
-        for tourney in tourneys:
-            if (_c := tourney.slotm_channel) and _c.permissions_for(guild.me).manage_channels:
-                await _c.delete()
-                _view = TourneySlotManager(bot, tourney=tourney)
-
-                _category = _c.category
-                overwrites = {
-                    guild.default_role: discord.PermissionOverwrite(
-                        read_messages=True, send_messages=False, read_message_history=True
-                    ),
-                    guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
-                }
-
-                slotm_channel = await _category.create_text_channel(_c.name, position=_c.position, overwrites=overwrites)
-
-                _e = TourneySlotManager.initial_embed(tourney)
-                _e.color = config.PREMIUM_COLOR
-                message = await slotm_channel.send(embed=_e, view=_view)
-                await Tourney.get(pk=tourney.id).update(slotm_channel_id=slotm_channel.id, slotm_message_id=message.id)
 
 
 async def deactivate_premium(guild_id: int):
-    await Guild.filter(guild_id=guild_id).update(
-        embed_color=config.COLOR, embed_footer=config.FOOTER, bot_id=config.MAIN_BOT, is_premium=False
-    )
+    await Guild.filter(guild_id=guild_id).update(embed_color=config.COLOR, embed_footer=config.FOOTER, is_premium=False)
 
     _s: typing.List[Scrim] = (await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]
     await Scrim.filter(id__in=(s.pk for s in _s)).delete()
@@ -88,7 +33,6 @@ async def deactivate_premium(guild_id: int):
 async def extra_guild_perks(guild_id: int):
 
     _list = [
-        "- You will lose access of Quotient Prime Bot.",
         "- No custom color and footer for embeds.",
         "- Tourney reactions emojis will be changed to default.",
         "- No more than 1 Media Partner Channel per tourney.",

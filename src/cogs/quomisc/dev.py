@@ -35,16 +35,6 @@ class Dev(Cog):
         return ctx.author.id in ctx.config.DEVS
 
     @commands.command(hidden=True)
-    async def change_bot(self, ctx: Context, guild_id: int, bot_id: int):
-        _check = await Guild.filter(pk=guild_id, bot_id=bot_id).exists()
-
-        if _check:
-            return await ctx.error("The following combination already exists.")
-
-        await Guild.get(pk=guild_id).update(bot_id=bot_id)
-        await ctx.success(f"Successfully updated bot_id ({bot_id}) for {guild_id}.")
-
-    @commands.command(hidden=True)
     async def pgift(self, ctx: Context, user: QuoUser, _type: PremiumPurchase):
         await ctx.send(_type)
 

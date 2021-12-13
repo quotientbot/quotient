@@ -5,19 +5,15 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from models import Guild, Timer
-from core import Cog, Context, right_bot_check, event_bot_check
+from models import Guild
+from core import Cog, Context
 
 from contextlib import suppress
-from constants import random_greeting, IST
+from constants import random_greeting
 import discord
 
-from .utils import erase_guild
-from datetime import datetime, timedelta
 import re
 import config
-
-from cogs.premium.expire import activate_premium
 
 
 class MainEvents(Cog, name="Main Events"):
@@ -35,7 +31,6 @@ class MainEvents(Cog, name="Main Events"):
 
     # incomplete?, I know
     @Cog.listener()
-    @event_bot_check(config.MAIN_BOT)
     async def on_guild_join(self, guild: discord.Guild):
         with suppress(AttributeError):
             g, b = await Guild.get_or_create(guild_id=guild.id)

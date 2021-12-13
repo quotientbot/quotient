@@ -75,7 +75,7 @@ class CacheManager:
             "footer": _g.embed_footer or config.FOOTER,
         }
 
-    @staticmethod
-    @cached(ttl=10, serializer=JsonSerializer())
-    async def match_bot_guild(guild_id: int, bot_id: int) -> bool:
-        return await Guild.filter(pk=guild_id, bot_id=bot_id).exists()
+    # @staticmethod
+    # @cached(ttl=10, serializer=JsonSerializer())
+    # async def match_bot_guild(guild_id: int, bot_id: int) -> bool:
+    #     return await Guild.filter(pk=guild_id, bot_id=bot_id).exists()

@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, right_bot_check
+from core import Cog
 from models import Scrim, AssignedSlot, ArrayRemove, Timer, BannedTeam, BanLog
 
 from ..helpers import (
@@ -41,7 +41,6 @@ class ScrimEvents(Cog):
         self.__scrim_lock = asyncio.Lock()
 
     @Cog.listener("on_message")
-    @right_bot_check()
     async def on_scrim_registration(self, message: discord.Message):
 
         if not message.guild or message.author.bot:
@@ -113,7 +112,6 @@ class ScrimEvents(Cog):
     # ==========================================================================================================
 
     @Cog.listener()
-    @right_bot_check()
     async def on_scrim_open_timer_complete(self, timer: Timer):
         """This listener opens the scrim registration at time."""
 
@@ -200,9 +198,6 @@ class ScrimEvents(Cog):
 
         _e = await registration_open_embed(scrim)
 
-        if self.bot.is_prime and _e.color == discord.Color(65459):
-            _e.color = self.bot.config.PREMIUM_COLOR
-
         await registration_channel.send(
             content=scrim_work_role(scrim, EsportsRole.ping),
             embed=_e,
@@ -216,7 +211,6 @@ class ScrimEvents(Cog):
         self.bot.loop.create_task(lock_for_registration(guild.id, scrim.id, self.bot))
 
     @Cog.listener()
-    @right_bot_check()
     async def on_autoclean_timer_complete(self, timer: Timer):
         scrim_id = timer.kwargs["scrim_id"]
 
@@ -257,7 +251,6 @@ class ScrimEvents(Cog):
                 )
 
     @Cog.listener()
-    @right_bot_check()
     async def on_scrim_ban_timer_complete(self, timer: Timer):
         scrims = timer.kwargs["scrims"]
         user_id = timer.kwargs["user_id"]

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from core.decorators import event_bot_check, right_bot_check
 
 if TYPE_CHECKING:
     from core import Quotient
@@ -17,13 +16,9 @@ from models import Votes, Premium
 class QuoTasks(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.bot.loop.create_task(self.startup_tasks())
 
-    async def startup_tasks(self):
-        await self.bot.wait_until_ready()
-        if not self.bot.is_prime:
-            self.insert_guilds.start()
-            self.find_new_voters_and_premiums.start()
+        self.insert_guilds.start()
+        self.find_new_voters_and_premiums.start()
 
     @tasks.loop(count=1)
     async def insert_guilds(self):

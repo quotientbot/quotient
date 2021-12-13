@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
     import config as cfg
-    
+
 
 from discord import AllowedMentions, Intents
 from colorama import Fore, init
@@ -29,7 +29,6 @@ import time
 
 import constants as csts
 
-from .decorators import right_bot_check
 from .Context import Context
 from .Help import HelpCommand
 from .HttpHandler import QuoHttpHandler
@@ -95,11 +94,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def color(self):
-        return self.config.PREMIUM_COLOR if self.user.id == self.config.PREMIUM_BOT else self.config.COLOR
-
-    @property
-    def is_prime(self) -> bool:
-        return self.user.id == self.config.PREMIUM_BOT
+        return self.config.COLOR
 
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
@@ -152,7 +147,6 @@ class Quotient(commands.AutoShardedBot):
 
             await self.invoke(ctx)
 
-    @right_bot_check()
     async def on_message(self, message: discord.Message):
         self.seen_messages += 1
 
@@ -206,12 +200,6 @@ class Quotient(commands.AutoShardedBot):
         embed = discord.Embed(**kwargs)
         embed.color = embed_color
         embed.set_footer(text=embed_footer)
-        return embed
-
-    def fix_color(self, embed: discord.Embed) -> discord.Embed:
-        if self.is_prime and embed.color == discord.Color(65459):
-            embed.color = self.config.PREMIUM_COLOR
-
         return embed
 
     async def is_owner(self, user: typing.Union[discord.Member, discord.User]) -> bool:

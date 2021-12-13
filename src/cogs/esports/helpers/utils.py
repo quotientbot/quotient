@@ -175,9 +175,6 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     channel_update = await toggle_channel(registration_channel, open_role, False)
     _e = registration_close_embed(scrim)
 
-    if ctx.bot.is_prime and _e.color == discord.Color(65459):
-        _e.color = ctx.bot.config.PREMIUM_COLOR
-
     await registration_channel.send(embed=_e)
 
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)

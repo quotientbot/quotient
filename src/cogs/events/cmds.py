@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
 
 from contextlib import suppress
 from models import Autorole, ArrayRemove
-from core import Cog, Context, right_bot_check
+from core import Cog, Context
 import discord
 
 from models import Commands
@@ -45,7 +45,6 @@ class CmdEvents(Cog):
         )
 
     @Cog.listener(name="on_member_join")
-    @right_bot_check()
     async def on_autorole(self, member: discord.Member):
         guild = member.guild
 

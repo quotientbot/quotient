@@ -3,7 +3,6 @@ from contextlib import suppress
 
 import typing
 from cogs.esports.helpers.tourney import get_tourney_from_channel
-from core.decorators import right_bot_check
 
 from models.esports.tourney import MediaPartner, PartnerSlot
 
@@ -102,7 +101,6 @@ class TourneyEvents(Cog):
             await tourney.end_process()
 
     @Cog.listener("on_message")
-    @right_bot_check()
     async def on_tourney_registration(self, message: discord.Message):
 
         if not message.guild or message.author.bot:
@@ -182,7 +180,6 @@ class TourneyEvents(Cog):
     #         return await ...  # cancel kardo slot user ka
 
     @Cog.listener(name="on_message")
-    @right_bot_check()
     async def on_media_partner_message(self, message: discord.Message):
         if not all((message.guild, not message.author.bot, message.channel.id in self.bot.cache.media_partner_channels)):
             return
@@ -266,13 +263,11 @@ class TourneyEvents(Cog):
                 await slot.delete()
 
     @Cog.listener()
-    @right_bot_check()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):
         await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)
         await MediaPartner.filter(channel_id=channel.id).delete()
 
     @Cog.listener()
-    @right_bot_check()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
         if before.roles != after.roles:
             tourney = await Tourney.filter(guild_id=before.guild.id).first()
@@ -302,7 +297,6 @@ class TourneyEvents(Cog):
                         await tourney.logschan.send(msg)
 
     @Cog.listener()
-    @right_bot_check()
     async def on_guild_channel_update(self, before: discord.TextChannel, after: discord.TextChannel):
         if before.name == after.name or not before.name == "quotient-tourney-logs":
             return
@@ -320,7 +314,6 @@ class TourneyEvents(Cog):
         await after.send(embed=_e, content=after.guild.owner.mention)
 
     @Cog.listener()
-    @right_bot_check()
     async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
         if before.name == after.name or not before.name == "tourney-mod":
             return

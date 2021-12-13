@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, right_bot_check
+from core import Cog
 from models import Timer, Lockdown
 from constants import LockType
 
@@ -15,7 +15,6 @@ class LockEvents(Cog):
         self.bot = bot
 
     @Cog.listener()
-    @right_bot_check()
     async def on_lockdown_timer_complete(self, timer: Timer):
         _type = timer.kwargs["_type"]
 

@@ -5,7 +5,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, right_bot_check
+from core import Cog
 from models import Timer
 import discord
 from utils import discord_timestamp
@@ -17,7 +17,6 @@ class ReminderEvents(Cog):
         self.bot = bot
 
     @Cog.listener()
-    @right_bot_check()
     async def on_reminder_timer_complete(self, timer: Timer):
         author_id, channel_id, message = timer.args
 
