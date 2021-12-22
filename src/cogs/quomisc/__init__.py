@@ -273,11 +273,6 @@ class Quomisc(Cog, name="quomisc"):
             _view.children[0] = discord.ui.Button(
                 label=f"Claim Prime (120 coins)", custom_id="claim_prime", style=discord.ButtonStyle.grey, disabled=True
             )   
-        
-        member = self.bot.server.get_member(user.pk)
-        if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
-
 
         _view.message = await ctx.send(embed=e, embed_perms=True, view=_view)
 

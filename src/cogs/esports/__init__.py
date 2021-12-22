@@ -45,7 +45,7 @@ from models import *
 from datetime import datetime, timedelta
 from discord.ext import commands
 
-from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents
+from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents, Ssverification
 from .errors import ScrimError, SMError, TourneyError, PointsError
 
 import discord
@@ -777,7 +777,7 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="create", aliases=("setup",))
     @checks.can_use_tm()
     @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_channels=True, manage_roles=True)
+    @commands.bot_has_guild_permissions(embed_links=True, add_reactions=True, manage_channels=True, manage_roles=True)
     async def t_create(self, ctx: Context):
         """
         Create or setup tournaments
@@ -786,7 +786,7 @@ class ScrimManager(Cog, name="Esports"):
         db_guild = await Guild.get(guild_id=ctx.guild.id)
 
         if count >= 2 and not db_guild.is_premium:
-            raise TourneyError("You can't have more than 2 tournaments concurrently.")
+            raise TourneyError("You can't have more than 1 tournaments concurrently.")
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -1036,7 +1036,6 @@ class ScrimManager(Cog, name="Esports"):
         e = self.bot.embed(ctx)
         e.description = ""
         for count, i in enumerate(records, 1):
-            channel = getattr(i.registration_channel, "mention", "`deleted-channel`")
             e.description += f"`{count}. ` | **{i}**\n"
 
         await ctx.send(embed=e)
@@ -1707,6 +1706,111 @@ class ScrimManager(Cog, name="Esports"):
         await BanLog.update_or_create(guild_id=ctx.guild.id, defaults={"channel_id": channel.id})
         await ctx.success(f"Successfully set {channel.mention} as esports ban/unban log channel.")
 
+    async def ss_ask(self, ctx: Context, value: int, desc: str, *, image=None):
+        embed = self.bot.embed(ctx, title=f"<:add:844825523003850772> SS-Verification ({value}/6)")
+        embed.description = desc
+        if image:
+            embed.set_image(url=image)
+
+        embed.set_footer(text=f'Reply with "cancel" to stop the process.')
+        return await ctx.send(embed=embed, embed_perms=True)
+
+    @commands.group(invoke_without_command=True, aliases=("ss",))
+    async def ssverify(self, ctx: Context):
+        """
+        Screenshots Moderator module of Quotient
+        """
+        await ctx.send_help(ctx.command)
+
+    @ssverify.command(name="setup")
+    @checks.can_use_tm()
+    @commands.bot_has_permissions(manage_channels=True, add_reactions=True, embed_links=True, manage_roles=True)
+    async def ssverify_setup(self, ctx: Context):
+        """
+        Setup Youtube/Insta ss verification in a channel.
+        """
+        if not await ctx.is_premium_guild():
+            return await ctx.premium_mango("You need Quotient Prime to setup ssverification.")
+
+        def check(message: discord.Message):
+            if message.content.strip().lower() == "cancel":
+                raise TourneyError("Alright, reverting all process.")
+
+            return message.author == ctx.author and ctx.channel == message.channel
+
+        await self.ss_ask(
+            ctx, 1, ("In which channel do you want to setup ssverification?\n\n" "`Mention the channel or enter its ID.`")
+        )
+
+        channel = await inputs.channel_input(ctx, check)
+
+        if await SSVerify.filter(pk=channel.id).exists():
+            return await ctx.error(f"{channel.mention} is already a ssverification channel.")
+
+        if not channel.permissions_for(ctx.guild.me).embed_links:
+            return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
+
+        record = SSVerify(channel_id=channel.id, guild_id=ctx.guild.id)
+
+        await self.ss_ask(
+            ctx,
+            2,
+            (
+                "Which role do you want to give to users who have verified their ss?\n\n"
+                "`Mention the role or enter its ID.`"
+            ),
+        )
+
+        role = await inputs.role_input(ctx, check)
+        record.role_id = role.id
+
+        await self.ss_ask(
+            ctx, 3, "How many screenshots are required to get verified?\n\n`Kindly enter a number between 1 and 10.`"
+        )
+        required_ss = await inputs.integer_input(ctx, check)
+        if 1 > required_ss or required_ss > 10:
+            return await ctx.error("Please enter a number between 1 and 10.")
+
+        record.required_ss = required_ss
+
+        await self.ss_ask(ctx, 4, "Which ss are to be checked, yt or insta?\n\n`Enter youtube or instagram.`")
+        _type = await inputs.string_input(ctx, check)
+
+        if (_type := _type.lower().strip()) not in ("youtube", "instagram"):
+            return await ctx.error("Please enter either youtube or instagram.")
+
+        record.ss_type = SSType(_type)
+
+        await self.ss_ask(ctx, 5, f"What is the name of your {_type} page?\n\n`Kindly enter the exact name.`")
+        record.channel_name = await inputs.string_input(ctx, check)
+
+        await self.ss_ask(ctx, 6, f"Kindly enter a direct link to your page (`{record.channel_name}`).")
+        record.channel_link = await inputs.string_input(ctx, check)
+
+        record.success_message
+
+        await record.save()
+
+        self.bot.cache.ssverify_channels.add(record.channel_id)
+        await ctx.success(f"Successfully setup ssverification in {channel.mention}.")
+
+    @ssverify.command(name="edit")
+    @checks.can_use_tm()
+    async def ssverify_edit(self, ctx: Context, *, channel: SSVerify):
+        """
+        Edit preferences of a ssverify channel.
+        """
+        _view = SsVerifyEditor(ctx, channel)
+        embed = _view.initial_embed(channel).set_thumbnail(url=ctx.guild.me.avatar.url)
+        _view.message = await ctx.send(embed=embed, embed_perms=True, view=_view)
+
+    @ssverify.command(name="list")
+    @checks.can_use_tm()
+    async def ssverify_list(self, ctx: Context):
+        records = await SSVerify.filter(guild_id=ctx.guild.id)
+        if not records:
+            return await ctx.error(f"You don't have any ssverification channel set.\n\nUse `{ctx.prefix}ssverify setup`")
+
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
@@ -1715,3 +1819,4 @@ def setup(bot):
     bot.add_cog(TourneyEvents(bot))
     bot.add_cog(TagEvents(bot))
     bot.add_cog(SlotManagerEvents(bot))
+    bot.add_cog(Ssverification(bot))

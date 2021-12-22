@@ -30,6 +30,8 @@ colour = "^0.1.5"
 imgkit = "^1.2.2"
 aiocache = {extras = ["msgpack"], version = "^0.11.1"}
 ujson = "^4.2.0"
+ImageHash = "^4.2.1"
+pytesseract = "^0.3.8"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}

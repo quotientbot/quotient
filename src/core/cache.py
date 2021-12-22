@@ -4,13 +4,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 
-from models import Guild, EasyTag, TagCheck, Scrim, Tourney, AutoPurge
+from models import Guild, EasyTag, TagCheck, Scrim, Tourney, AutoPurge, SSVerify
 import config
 from constants import IST
 from datetime import datetime
-
-from aiocache import cached
-from aiocache.serializers import JsonSerializer
 
 
 class CacheManager:
@@ -27,6 +24,7 @@ class CacheManager:
         self.tourney_channels = set()
         self.autopurge_channels = set()
         self.media_partner_channels = set()
+        self.ssverify_channels = set()
 
     async def fill_temp_cache(self):
 
@@ -55,6 +53,9 @@ class CacheManager:
         async for record in Tourney.all():
             async for partner in record.media_partners.all():
                 self.media_partner_channels.add(partner.channel_id)
+
+        async for record in SSVerify.all():
+            self.ssverify_channels.add(record.channel_id)
 
     def guild_color(self, guild_id: int):
         return self.guild_data.get(guild_id, {}).get("color", config.COLOR)

@@ -43,11 +43,6 @@ class AutocleanType(Enum):
     role = "role"
 
 
-class SSStatus(Enum):
-    approved = "approved"
-    disapproved = "disapproved"
-
-
 class VerifyImageError(Enum):
     Invalid = "InvalidScreenshot"
     NotSame = "NotSame"

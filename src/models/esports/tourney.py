@@ -134,7 +134,7 @@ class Tourney(BaseDbModel):
 
     @staticmethod
     def is_ignorable(member: discord.Member) -> bool:
-        return "tourney-mod" in (role.name for role in member.roles)
+        return "tourney-mod" in (role.name.lower() for role in member.roles)
 
     async def get_groups(self, size: int) -> List[List["TMSlot"]]:
         return split_list(await self.assigned_slots.all().order_by("num"), size)

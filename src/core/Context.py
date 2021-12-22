@@ -26,6 +26,10 @@ class Context(commands.Context):
         return self.bot.session
 
     @property
+    def guild_color(self):
+        return self.bot.cache.guild_color(self.guild.id)
+
+    @property
     def config(self) -> cfg:
         return self.bot.config
 
@@ -69,7 +73,7 @@ class Context(commands.Context):
             return view.value
 
     async def error(self, message, delete_after=None):
-        return await self.send(
+        return await self.reply(
             embed=discord.Embed(description=message, color=discord.Color.red()),
             delete_after=delete_after,
         )
@@ -82,7 +86,7 @@ class Context(commands.Context):
             await msg.delete()
 
     async def success(self, message, delete_after=None):
-        return await self.send(
+        return await self.reply(
             embed=discord.Embed(
                 description=f"{utils.check} | {message}",
                 color=self.bot.color,
@@ -91,7 +95,7 @@ class Context(commands.Context):
         )
 
     async def simple(self, message, delete_after=None):
-        return await self.send(
+        return await self.reply(
             embed=discord.Embed(
                 description=message,
                 color=self.bot.color,

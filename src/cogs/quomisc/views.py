@@ -82,6 +82,11 @@ class MoneyButton(BaseView):
         await User.get(pk=self.ctx.author.id).update(
             is_premium=True, premium_expire_time=end_time, money=_u.money - 120, premiums=_u.premiums + 1
         )
+
+        member = self.bot.server.get_member(self.ctx.author.id)
+        if member is not None:
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
+
         await self.ctx.success(
             "Credited Quotient Prime for 1 Month to your account,\n\n"
             "Use `qboost` in any server to upgrade it with Prime."
