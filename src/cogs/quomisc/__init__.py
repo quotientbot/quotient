@@ -10,11 +10,10 @@ from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import format_relative
 from utils import get_ipm, human_timedelta, checks, LinkButton, LinkType
 from core import Cog, Context
-from models import Guild, Votes, User, Commands, Partner
+from models import Guild, Votes, User, Commands
 from discord.ext import commands
-from utils import QuoColor, string_input, LinkType, LinkButton, truncate_string
+from utils import QuoColor, LinkType, LinkButton, truncate_string
 from collections import Counter
-from constants import PartnerRequest
 
 import inspect, time
 
@@ -63,7 +62,7 @@ class Quomisc(Cog, name="quomisc"):
             f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n"
             f"[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         )
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, embed_perms=True)
 
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
@@ -272,7 +271,7 @@ class Quomisc(Cog, name="quomisc"):
         if not user.money >= 120:
             _view.children[0] = discord.ui.Button(
                 label=f"Claim Prime (120 coins)", custom_id="claim_prime", style=discord.ButtonStyle.grey, disabled=True
-            )   
+            )
 
         _view.message = await ctx.send(embed=e, embed_perms=True, view=_view)
 
@@ -298,6 +297,10 @@ class Quomisc(Cog, name="quomisc"):
             )
             _view.children[0] = _b
 
+        e.set_footer(
+            text=f"Your votes: {vote.total_votes}",
+            icon_url=getattr(ctx.author.avatar, "url", self.bot.user.avatar.url),
+        )
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
     @commands.command()
@@ -306,137 +309,137 @@ class Quomisc(Cog, name="quomisc"):
             f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
         )
 
-    @commands.group(invoke_without_command=True)
-    async def partnership(self, ctx: Context):
-        """Join hands with a cool Esports management bot."""
-        await ctx.send_help(ctx.command)
+    # @commands.group(invoke_without_command=True)
+    # async def partnership(self, ctx: Context):
+    #     """Join hands with a cool Esports management bot."""
+    #     await ctx.send_help(ctx.command)
 
-    @partnership.command(name="apply")
-    @commands.has_permissions(manage_guild=True)
-    async def partner_apply(self, ctx: Context):
-        """
-        Apply for a Quotient partnership program.
-        """
-        await ctx.send(
-            f"Please use `{ctx.prefix}partnership info` to know more about Quotient's Partner Program.", delete_after=5
-        )
-        if not ctx.guild.member_count >= 8000:
-            return await ctx.error(
-                "I am very sorry to be the bearer of bad news but for now we only allow servers with **8000+ members** to apply for "
-                f"Quotient's Partnership Program. \nYou can talk to [deadshot#7999]({self.bot.config.SERVER_LINK}) "
-                "if you plan to host more than 15 scrims with Quotient to get **1 Month Free Trial**."
-            )
+    # @partnership.command(name="apply")
+    # @commands.has_permissions(manage_guild=True)
+    # async def partner_apply(self, ctx: Context):
+    #     """
+    #     Apply for a Quotient partnership program.
+    #     """
+    #     await ctx.send(
+    #         f"Please use `{ctx.prefix}partnership info` to know more about Quotient's Partner Program.", delete_after=5
+    #     )
+    #     if not ctx.guild.member_count >= 8000:
+    #         return await ctx.error(
+    #             "I am very sorry to be the bearer of bad news but for now we only allow servers with **8000+ members** to apply for "
+    #             f"Quotient's Partnership Program. \nYou can talk to [deadshot#7999]({self.bot.config.SERVER_LINK}) "
+    #             "if you plan to host more than 15 scrims with Quotient to get **1 Month Free Trial**."
+    #         )
 
-        record = await Partner.get_or_none(guild_id=ctx.guild.id)
-        if record:
-            if record.status == PartnerRequest.pending:
-                return await ctx.error(f"You have already submitted a request and its pending review, please wait.")
+    #     record = await Partner.get_or_none(guild_id=ctx.guild.id)
+    #     if record:
+    #         if record.status == PartnerRequest.pending:
+    #             return await ctx.error(f"You have already submitted a request and its pending review, please wait.")
 
-            if record.status == PartnerRequest.approved:
-                return await ctx.error(f"You have already been approved for the program.")
+    #         if record.status == PartnerRequest.approved:
+    #             return await ctx.error(f"You have already been approved for the program.")
 
-        await ctx.send("Tell us about your server in 200 characters.")
+    #     await ctx.send("Tell us about your server in 200 characters.")
 
-        description = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
-        if len(description) > 200:
-            return await ctx.error(
-                f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200."
-            )
+    #     description = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
+    #     if len(description) > 200:
+    #         return await ctx.error(
+    #             f"The description you provided is a little long ({len(description)} characters). Kindly keep it under 200."
+    #         )
 
-        await ctx.send("How many scrims do you host daily and what are your future plans regarding them?")
-        num_scrims = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
+    #     await ctx.send("How many scrims do you host daily and what are your future plans regarding them?")
+    #     num_scrims = await string_input(ctx, lambda msg: ctx.author == msg.author and ctx.channel == msg.channel)
 
-        prompt = await ctx.prompt(
-            "These details along with your name and server ID will be sent to the team for verification."
-            "\n\nAre you sure, you wish to continue?"
-        )
-        if not prompt:
-            return await ctx.simple("Ok! Aborting")
+    #     prompt = await ctx.prompt(
+    #         "These details along with your name and server ID will be sent to the team for verification."
+    #         "\n\nAre you sure, you wish to continue?"
+    #     )
+    #     if not prompt:
+    #         return await ctx.simple("Ok! Aborting")
 
-        channels = [
-            channel for channel in ctx.guild.text_channels if channel.permissions_for(ctx.me).create_instant_invite
-        ]
-        if not channels:
-            return await ctx.error(f"I do not have perms to create invite in any channel, please gib me perms.")
+    #     channels = [
+    #         channel for channel in ctx.guild.text_channels if channel.permissions_for(ctx.me).create_instant_invite
+    #     ]
+    #     if not channels:
+    #         return await ctx.error(f"I do not have perms to create invite in any channel, please gib me perms.")
 
-        invite = await channels[0].create_invite(reason="Partner program application", unique=False)
+    #     invite = await channels[0].create_invite(reason="Partner program application", unique=False)
 
-        embed = discord.Embed(color=self.bot.color, title=f"{ctx.guild.name} ({ctx.guild.member_count})", url=str(invite))
-        embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar.url)
-        embed.description = description
-        embed.add_field(name="Scrims Info", value=truncate_string(num_scrims))
-        embed.add_field(
-            name="Information", value=f"Server ID: {ctx.guild.id}\nOwner: {ctx.guild.owner} ({ctx.guild.owner.id})"
-        )
+    #     embed = discord.Embed(color=self.bot.color, title=f"{ctx.guild.name} ({ctx.guild.member_count})", url=str(invite))
+    #     embed.set_author(name=f"{ctx.author} ({ctx.author.id})", icon_url=ctx.author.avatar.url)
+    #     embed.description = description
+    #     embed.add_field(name="Scrims Info", value=truncate_string(num_scrims))
+    #     embed.add_field(
+    #         name="Information", value=f"Server ID: {ctx.guild.id}\nOwner: {ctx.guild.owner} ({ctx.guild.owner.id})"
+    #     )
 
-        channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 871741209566146600)
+    #     channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 871741209566146600)
 
-        m = await channel.send(embed=embed)
-        await Partner.create(guild_id=ctx.guild.id, description=description, invite=str(invite), message_id=m.id)
-        await ctx.success(
-            f"Your application has been submitted, please wait for the team to review it."
-            "\nYou will recieve a DM after we are done.\n\n"
-            f"You can manually check the status of your application with `{ctx.prefix}partnership status`"
-        )
+    #     m = await channel.send(embed=embed)
+    #     await Partner.create(guild_id=ctx.guild.id, description=description, invite=str(invite), message_id=m.id)
+    #     await ctx.success(
+    #         f"Your application has been submitted, please wait for the team to review it."
+    #         "\nYou will recieve a DM after we are done.\n\n"
+    #         f"You can manually check the status of your application with `{ctx.prefix}partnership status`"
+    #     )
 
-    @partnership.command(name="status")
-    async def partnership_status(self, ctx: Context):
-        """Check your server's partnership status"""
-        record = await Partner.get_or_none(guild_id=ctx.guild.id)
-        if not record:
-            return await ctx.simple("You have never applied for Quotient's Partnership Program")
+    # @partnership.command(name="status")
+    # async def partnership_status(self, ctx: Context):
+    #     """Check your server's partnership status"""
+    #     record = await Partner.get_or_none(guild_id=ctx.guild.id)
+    #     if not record:
+    #         return await ctx.simple("You have never applied for Quotient's Partnership Program")
 
-        if record.status == PartnerRequest.pending:
-            return await ctx.simple("Your Quotient Partnership Program Application is pending review.")
+    #     if record.status == PartnerRequest.pending:
+    #         return await ctx.simple("Your Quotient Partnership Program Application is pending review.")
 
-        if record.status == PartnerRequest.approved:
-            return await ctx.simple("Your server is a member of Quotient's Partnership Program.")
-        mod = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.mod)
-        return await ctx.simple(
-            f"Your application for Quotient's Partnership Program was denied by **{mod}**."
-            f"**Reason**: {record.review_note or 'No Reason Given...'}"
-        )
+    #     if record.status == PartnerRequest.approved:
+    #         return await ctx.simple("Your server is a member of Quotient's Partnership Program.")
+    #     mod = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.mod)
+    #     return await ctx.simple(
+    #         f"Your application for Quotient's Partnership Program was denied by **{mod}**."
+    #         f"**Reason**: {record.review_note or 'No Reason Given...'}"
+    #     )
 
-    @partnership.command(name="info")
-    async def partnership_info(self, ctx: Context):
-        """Get info about Quotient's Partnership Program"""
-        embed = discord.Embed(color=self.bot.color, title="Quotient Partner Program")
-        embed.description = "It is a way for us to return the love we get from you everyday."
-        embed.add_field(
-            name="Perks",
-            value=(
-                "- Lifetime Quotient Premium.\n"
-                "- Special Partner Role to the owner in our support server.\n"
-                "- Free lifetime promotions on our official site, along with your invite link.\n"
-                "- Lifetime entry of your server in `partners` page on our site.\n"
-            ),
-            inline=False,
-        )
+    # @partnership.command(name="info")
+    # async def partnership_info(self, ctx: Context):
+    #     """Get info about Quotient's Partnership Program"""
+    #     embed = discord.Embed(color=self.bot.color, title="Quotient Partner Program")
+    #     embed.description = "It is a way for us to return the love we get from you everyday."
+    #     embed.add_field(
+    #         name="Perks",
+    #         value=(
+    #             "- Lifetime Quotient Premium.\n"
+    #             "- Special Partner Role to the owner in our support server.\n"
+    #             "- Free lifetime promotions on our official site, along with your invite link.\n"
+    #             "- Lifetime entry of your server in `partners` page on our site.\n"
+    #         ),
+    #         inline=False,
+    #     )
 
-        embed.add_field(
-            name="Requirements",
-            value=(
-                "- Atleast 8000 members in your server.\n"
-                "- Willing to have separate channel containing our description on your server.\n"
-                "- Monthly promotion with everyone ping.\n"
-            ),
-        )
+    #     embed.add_field(
+    #         name="Requirements",
+    #         value=(
+    #             "- Atleast 8000 members in your server.\n"
+    #             "- Willing to have separate channel containing our description on your server.\n"
+    #             "- Monthly promotion with everyone ping.\n"
+    #         ),
+    #     )
 
-        embed.set_footer(
-            text="Note that fulfilling the requirements does not guarantee you partnership, our team have the sole right to accept or deny your application"
-        )
-        await ctx.send(embed=embed, embed_perms=True)
+    #     embed.set_footer(
+    #         text="Note that fulfilling the requirements does not guarantee you partnership, our team have the sole right to accept or deny your application"
+    #     )
+    #     await ctx.send(embed=embed, embed_perms=True)
 
-    @partnership.command(name="msg")
-    @commands.has_permissions(manage_guild=True)
-    async def partnership_msg(self, ctx: Context):
-        """
-        Send the monthly Promotion message
-        """
+    # @partnership.command(name="msg")
+    # @commands.has_permissions(manage_guild=True)
+    # async def partnership_msg(self, ctx: Context):
+    #     """
+    #     Send the monthly Promotion message
+    #     """
 
-        channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 782161513825042462)
-        msg = await channel.fetch_message(876480309519081563)
-        await ctx.send(f"```{msg.content}```")
+    #     channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 782161513825042462)
+    #     msg = await channel.fetch_message(876480309519081563)
+    #     await ctx.send(f"```{msg.content}```")
 
 
 def setup(bot) -> None:
