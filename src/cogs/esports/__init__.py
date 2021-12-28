@@ -1814,6 +1814,9 @@ class ScrimManager(Cog, name="Esports"):
     @ssverify.command(name="list")
     @checks.can_use_tm()
     async def ssverify_list(self, ctx: Context):
+        """
+        Info of all ssverify setup in the server.
+        """
         records = await SSVerify.filter(guild_id=ctx.guild.id)
         if not records:
             return await ctx.error(f"You don't have any ssverification channel set.\n\nUse `{ctx.prefix}ssverify setup`")
@@ -1832,6 +1835,36 @@ class ScrimManager(Cog, name="Esports"):
             paginator.add_line(f"**`<<<<<<-- {idx:02d} -->>>>>>`**\n\n{text}")
 
         await paginator.start()
+
+    @ssverify.command(name="userinfo")
+    @checks.can_use_tm()
+    async def ssverify_userinfo(self, ctx: Context, ss_channel: SSVerify, member: discord.Member):
+        """
+        Information about a user's submitted screenshots
+        """
+        records = await ss_channel.data.filter(author_id=member.id)
+        if not records:
+            return await ctx.error(f"{member.mention} has not submitted any valid ss yet.")
+
+        _e = self.bot.embed(
+            ctx,
+            description=(
+                f"{member.mention}'s ssverification info\n\n"
+                f"`1.` Submitted `{plural(len(records)):screenshot|screenshots}`.\n"
+                f"`2.` They need `{plural(await ss_channel.required_by_user(member.id)):screenshot|screenshots}`."
+            ),
+        )
+        _e.description += "\n\nMessage Links:\n"
+
+        _list = []
+        for record in records:
+            _list.append(
+                f"[`{record.submitted_at.strftime('%d/%b %H:%M')}`](https://discord.com/channels/{ctx.guild.id}/{record.channel_id}/{record.message_id})"
+            )
+
+        _e.description += ", ".join(_list)
+
+        await ctx.send(embed=_e, embed_perms=True)
 
 
 def setup(bot):

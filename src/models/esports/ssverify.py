@@ -92,7 +92,8 @@ class SSVerify(BaseDbModel):
         return await self.data.filter(author_id=user_id).count() >= self.required_ss
 
     async def required_by_user(self, user_id: int):
-        return 0 if (diff := self.required_ss - await self.data.filter(author_id=user_id).count() <= 0) else diff
+        diff = self.required_ss - await self.data.filter(author_id=user_id).count()
+        return 0 if diff <= 0 else diff
 
     async def full_delete(self):
 
