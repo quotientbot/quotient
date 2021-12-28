@@ -25,9 +25,6 @@ async def get_image(attch: discord.Attachment):
     if h >= 800:
         cropped.append(image.crop((0, 0, w, 800)))
 
-    for i in cropped:
-        i.show()
-
     return image, cropped
 
 

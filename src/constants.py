@@ -163,9 +163,10 @@ tips = (
     "You can get a list of Quotient premium perks with `perks` command.",
     "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
-    "You can look into my source code, use `source` command.",
+    "You can look into my source code with `src` command.",
     "Quotient now gives tourney data in excel sheets, use `t data` cmd.",
     "Quotient can create groups and give roles too, use `t groups` cmd.",
+    "Quotient can detect and verify youtube/insta screenshots (`ssverify` cmd).",
 )
 
 
