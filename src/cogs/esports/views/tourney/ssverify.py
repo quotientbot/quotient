@@ -158,11 +158,7 @@ class SsVerifyEditor(EsportsBaseView):
         if not prompt:
             return await self.ctx.simple("Alright, Aborting", 3)
 
-        data = await self.model.data.all()
 
-        await SSData.filter(pk__in=[_.pk for _ in data]).delete()
-
-        await self.model.delete()
-        self.bot.cache.ssverify_channels.discard(self.model.channel_id)
+        await self.model.full_delete()
         await self.ctx.success("SSverification setup deleted.")
         await self.on_timeout()

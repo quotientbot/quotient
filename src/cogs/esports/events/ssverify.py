@@ -105,6 +105,20 @@ class Ssverification(Cog):
         else:
             return discord.Color.red()
 
+    # @Cog.listener()
+    # async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    #     ...
+
     @Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        ...
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
+        if channel.id in self.bot.cache.ssverify_channels:
+            record = await SSVerify.get_or_none(channel_id=channel.id)
+            if record:
+                await record.full_delete()
+
+    @Cog.listener()
+    async def on_guild_role_delete(self, role: discord.Role):
+        records = await SSVerify.filter(role_id=role.id)
+        if records:
+            for record in records:
+                await record.full_delete()

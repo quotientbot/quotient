@@ -37,7 +37,6 @@ class SSVerify(BaseDbModel):
     required_ss = fields.IntField()
     channel_name = fields.CharField(max_length=50)
     channel_link = fields.CharField(max_length=150)
-    logo_link = fields.CharField(max_length=150, null=True)
 
     ss_type = fields.CharEnumField(SSType)
 
@@ -94,3 +93,11 @@ class SSVerify(BaseDbModel):
 
     async def required_by_user(self, user_id: int):
         return 0 if (diff := self.required_ss - await self.data.filter(author_id=user_id).count() <= 0) else diff
+
+    async def full_delete(self):
+
+        self.bot.cache.ssverify_channels.discard(self.channel_id)
+        data = await self.data.all()
+
+        await SSData.filter(pk__in=[d.id for d in data]).delete()
+        await self.delete()

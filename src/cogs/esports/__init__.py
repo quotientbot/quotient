@@ -1818,6 +1818,21 @@ class ScrimManager(Cog, name="Esports"):
         if not records:
             return await ctx.error(f"You don't have any ssverification channel set.\n\nUse `{ctx.prefix}ssverify setup`")
 
+        paginator = QuoPaginator(ctx, title=f"Total ssverify-setup: {len(records)}", per_page=1)
+
+        for idx, record in enumerate(records, start=1):
+            text = (
+                f"> Channel: {getattr(record.channel,'mention','`not-found`')}\n"
+                f"> Role: {getattr(record.role,'mention','`not-found`')}\n"
+                f"> Required SS: `{record.required_ss}`\n"
+                f"> SS Type: `{record.ss_type.value.title()}`\n"
+                f"> Page: [`{record.channel_name.title()}`]({record.channel_link})\n"
+            )
+
+            paginator.add_line(f"**`<<<<<<-- {idx:02d} -->>>>>>`**\n\n{text}")
+
+        await paginator.start()
+
 
 def setup(bot):
     bot.add_cog(ScrimManager(bot))
