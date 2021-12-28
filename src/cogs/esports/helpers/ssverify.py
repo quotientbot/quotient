@@ -7,6 +7,7 @@ import pytesseract
 from constants import SSType
 
 from models import SSVerify
+from utils import to_async
 
 from typing import NamedTuple, Tuple
 
@@ -28,7 +29,8 @@ async def get_image(attch: discord.Attachment):
     return image, cropped
 
 
-async def get_image_string(img):
+@to_async()
+def get_image_string(img):
     width, height = img.size
     img = img.resize((width * 3, height * 3))
 
@@ -36,7 +38,8 @@ async def get_image_string(img):
     return pytesseract.image_to_string(img, lang="eng", config=config)
 
 
-async def get_image_hash(img):
+@to_async()
+def get_image_hash(img):
     return imagehash.dhash(img)
 
 
