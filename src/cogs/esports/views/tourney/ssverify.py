@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from core import Quotient
 
 from utils import regional_indicator as ri, inputs, truncate_string
-from models import SSVerify
+from models import SSVerify, SSData
 import discord
 from string import ascii_uppercase
 
@@ -146,6 +146,23 @@ class SsVerifyEditor(EsportsBaseView):
 
         await self.__update_model(success_message=msg)
 
-    @discord.ui.button(custom_id="ssverify_stop", label="Stop", style=discord.ButtonStyle.red)
+    @discord.ui.button(custom_id="ssverify_stop", label="Stop Editing", style=discord.ButtonStyle.green)
     async def stop_editor(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await self.on_timeout()
+
+    @discord.ui.button(custom_id="ssverify_delete", label="Delete Setup", style=discord.ButtonStyle.red)
+    async def delete_ssverify(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        prompt = await self.ctx.prompt("Are you sure you want to delete this setup?\n\n`This action cannot be undone.`")
+        if not prompt:
+            return await self.ctx.simple("Alright, Aborting", 3)
+
+        data = await self.model.data.all()
+
+        await SSData.filter(pk__in=(_.pk for _ in data)).delete()
+
+        await self.model.delete()
+        self.bot.cache.ssverify_channels.discard(self.model.channel_id)
+        await self.ctx.success("SSverification setup deleted.")
         await self.on_timeout()

@@ -45,6 +45,7 @@ from models import *
 from datetime import datetime, timedelta
 from discord.ext import commands
 
+from tortoise.query_utils import Q
 from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents, Ssverification
 from .errors import ScrimError, SMError, TourneyError, PointsError
 
@@ -1077,7 +1078,9 @@ class ScrimManager(Cog, name="Esports"):
     @checks.has_done_setup()
     async def tourney_deleteslot(self, ctx: Context, tourney: Tourney, *, user: discord.User):
         """Remove someone's slot"""
-        _slots = await tourney.assigned_slots.filter(members__contains=user.id).order_by("num")
+
+        _slots = await tourney.assigned_slots.filter(Q(leader_id=user.id) | Q(members__contains=user.id)).order_by("num")
+
         if not _slots:
             raise TourneyError(f"**{user}** has no slot in {tourney}.")
 

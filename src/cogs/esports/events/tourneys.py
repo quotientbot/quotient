@@ -225,6 +225,8 @@ class TourneyEvents(Cog):
             )
             return await message.reply(embed=_e, delete_after=7)
 
+        message.content = normalize("NFKC", message.content.lower())
+
         if not await check_tourney_requirements(self.bot, message, tourney):
             return
 

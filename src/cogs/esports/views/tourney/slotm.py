@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 from ...helpers import update_confirmed_message
 from cogs.esports.helpers.views import update_channel_for
+from tortoise.query_utils import Q
 
 import config
 import discord
@@ -68,7 +69,10 @@ class TourneySlotManager(discord.ui.View):
     async def cancel_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        _slots = await self.tourney.assigned_slots.filter(members__contains=interaction.user.id).order_by("num")
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=interaction.user.id) | Q(members__contains=interaction.user.id)
+        ).order_by("num")
+
         if not _slots:
             return await interaction.followup.send(
                 embed=self.red_embed(f"You don't have any slot, because you haven't registered in {self.tourney} yet."),
@@ -106,7 +110,10 @@ class TourneySlotManager(discord.ui.View):
     async def _slots_info(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        _slots = await self.tourney.assigned_slots.filter(members__contains=interaction.user.id).order_by("num")
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=interaction.user.id) | Q(members__contains=interaction.user.id)
+        ).order_by("num")
+
         if not _slots:
             return await interaction.followup.send(
                 embed=self.red_embed(f"You don't have any slot, because you haven't registered in {self.tourney} yet."),
@@ -127,7 +134,10 @@ class TourneySlotManager(discord.ui.View):
     async def _change_slot_name(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        _slots = await self.tourney.assigned_slots.filter(members__contains=interaction.user.id).order_by("num")
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=interaction.user.id) | Q(members__contains=interaction.user.id)
+        ).order_by("num")
+
         if not _slots:
             return await interaction.followup.send(
                 embed=self.red_embed(f"You don't have any slot, because you haven't registered in {self.tourney} yet."),

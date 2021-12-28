@@ -9,6 +9,9 @@ class plural:
     def __init__(self, value):
         self.value = value
 
+        if isinstance(self.value, list):
+            self.value = len(self.value)
+
     def __format__(self, format_spec):
         v = self.value
         singular, sep, plural = format_spec.partition("|")

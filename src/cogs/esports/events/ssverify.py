@@ -9,9 +9,12 @@ if typing.TYPE_CHECKING:
 
 import asyncio
 
+from contextlib import suppress
+from utils import emote, plural
+
 from core import Cog, Context
 from models import SSVerify, SSData
-from ..helpers.ssverify import get_image, get_image_hash, verify_image, valid_attachments, VerifyResult
+from ..helpers.ssverify import get_image, verify_image, valid_attachments, VerifyResult
 
 
 class Ssverification(Cog):
@@ -33,39 +36,62 @@ class Ssverification(Cog):
 
         ctx: Context = await self.bot.get_context(message)
 
-        if await record.is_user_verified(message.author.id):
-            return await ctx.reply("Your screenshots are already verified, kindly move onto next step.")
+        with suppress(discord.HTTPException):
+            if await record.is_user_verified(message.author.id):
+                return await ctx.reply("Your screenshots are already verified, kindly move onto next step.")
 
-        if not (attachments := valid_attachments(message)):
-            return await ctx.reply("Kindly send screenshots in `png/jpg/jpeg` format only.")
+            if not (attachments := valid_attachments(message)):
+                return await ctx.reply("Kindly send screenshots in `png/jpg/jpeg` format only.")
 
-        _list: typing.List[VerifyResult] = []
-
-        for _att in attachments:
-            img = await get_image(_att)
-            _list.append(await verify_image(record, img))
-
-        async with self.__verify_lock:
-            _e = discord.Embed(title="", description="", color=self.color_bool([i.verified for i in _list]))
-
-            for _ in _list:
-                _e.description += f"{record.emoji(_.verified)} | {_.reason}\n"
-
-                if _.verified:
-                    data = await SSData.create(
-                        author_id=ctx.author.id, channel_id=ctx.channel.id, message_id=ctx.message.id, hash=_.hash
-                    )
-                    await record.data.add(data)
-
-            _e.set_footer(
-                text=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
-                icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
+            m = await message.reply(
+                embed=discord.Embed(
+                    color=discord.Color.yellow(),
+                    description=f"Processing your {plural(attachments):screenshot|screenshots}... {emote.loading}",
+                )
             )
 
-            await message.reply(embed=_e)
+            _list: typing.List[VerifyResult] = []
 
-            if await record.is_user_verified(ctx.author.id):
-                await message.reply("verified now")
+            for _att in attachments:
+                img = await get_image(_att)
+
+                _list.append(await verify_image(record, img))
+
+            async with self.__verify_lock:
+                _e = discord.Embed(title="", description="", color=self.color_bool([i.verified for i in _list]))
+
+                for _ in _list:
+                    _e.description += f"{record.emoji(_.verified)} | {_.reason}\n"
+
+                    if _.verified:
+                        data = await SSData.create(
+                            author_id=ctx.author.id, channel_id=ctx.channel.id, message_id=ctx.message.id, hash=_.hash
+                        )
+                        await record.data.add(data)
+
+                _e.set_footer(
+                    text=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
+                    icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
+                )
+
+                try:
+                    await m.delete()
+                except discord.HTTPException:
+                    pass
+
+                await message.reply(embed=_e)
+
+                if await record.is_user_verified(ctx.author.id):
+                    await message.reply(
+                        embed=discord.Embed(
+                            title="",
+                            description=f"{ctx.author.mention} Your screenshots are verified, Move to next step.",
+                            color=discord.Color.green(),
+                        )
+                    )
+
+                    await message.author.add_roles(discord.Object(id=record.role_id))
+                    await message.author.send(record.success_message)
 
     def color_bool(self, colors: typing.List[bool]):
         _t, _f = sum(1 for _ in colors if _), sum(1 for _ in colors if not _)
@@ -78,3 +104,7 @@ class Ssverification(Cog):
 
         else:
             return discord.Color.red()
+
+    @Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        ...

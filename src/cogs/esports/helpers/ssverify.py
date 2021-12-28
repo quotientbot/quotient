@@ -8,17 +8,37 @@ from constants import SSType
 
 from models import SSVerify
 
-from typing import NamedTuple
+from typing import NamedTuple, Tuple
 
 
 async def get_image(attch: discord.Attachment):
-    return Image.open(io.BytesIO(await attch.read())).convert("L")
+    image = Image.open(io.BytesIO(await attch.read())).convert("L")
+
+    cropped = []
+    cropped.append(image)
+
+    w, h = image.size
+    print(w, h)
+
+    if h >= 1550:
+        print("1550 true")
+        cropped.append(image.crop((0, 0, w, 1550)))
+
+    if h >= 800:
+        print("800 true")
+        cropped.append(image.crop((0, 0, w, 800)))
+
+    for i in cropped:
+        i.show()
+
+    return image, cropped
 
 
 async def get_image_string(img):
     width, height = img.size
-    img = img.resize((width * 2, height * 2))
-    config = "--oem 3 --psm 11"
+    img = img.resize((width * 3, height * 3))
+
+    config = "--oem 3 --psm 12"
     return pytesseract.image_to_string(img, lang="eng", config=config)
 
 
@@ -36,26 +56,43 @@ class VerifyResult(NamedTuple):
     hash: str = None
 
 
-async def verify_image(record: SSVerify, img: Image):
-    _text = (await get_image_string(img)).lower().replace(" ", "")
-    name = record.channel_name.lower().replace(" ", "")
+async def verify_image(record: SSVerify, group: Tuple):
+
+    img, cropped = group
 
     _hash = str(await get_image_hash(img))
 
     if _match := await record.find_hash(str(_hash)):
         return VerifyResult(f"Already posted by {getattr(_match.author,'mention','Unknown')}")
 
+    _text = ""
+
+    for _ in cropped:
+        _text += (await get_image_string(img)).lower().replace(" ", "")
+
+    name = record.channel_name.lower().replace(" ", "")
+
+    print(_text)
+    print("-" * 20)
+
     if record.ss_type == SSType.yt:
-        if not all(("subscribers" in _text, "videos" in _text)):
+        if not any(_ in _text for _ in ("subscribers", "subscribe")):
             return VerifyResult("Not a valid youtube screenshot.")
 
         elif not name in _text:
-            return VerifyResult(f"Screenshot must belong to `{record.channel_name}` channel.")
+            return VerifyResult(f"Screenshot must belong to [`{record.channel_name}`]({record.channel_link}) channel.")
 
-        elif not "subscribed" in _text:
+        elif not any(_s in _text for _s in ("subscribed", "stese", "ibed")):
             return VerifyResult("You must subscribe to get verified.")
 
-        return VerifyResult("Verified Successfully!", True, _hash)
-
     elif record.ss_type == SSType.insta:
-        ...
+        if not "followers" in _text:
+            return VerifyResult("Not a valid instagram screenshot.")
+
+        elif not name in _text:
+            return VerifyResult(f"Screenshot must belong to [`{record.channel_name}`]({record.channel_link}) page.")
+
+        elif not "following" in _text:
+            return VerifyResult("You must follow the page to get verified.")
+
+    return VerifyResult("Verified Successfully!", True, _hash)
