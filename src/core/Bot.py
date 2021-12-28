@@ -94,7 +94,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def prime_link(self):
-        return "https://discord.com/channels/746337818388987967/920157559619473428/920158625262104636"
+        return "https://discord.gg/hxgevz9Z4e"
 
     @property
     def color(self):

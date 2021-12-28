@@ -13,7 +13,7 @@ class PremiumView(discord.ui.View):
         self.text = text
         self.add_item(
             discord.ui.Button(
-                url="https://discord.com/channels/746337818388987967/920157559619473428/920158625262104636",
+                url="https://discord.gg/hxgevz9Z4e",
                 emoji=emote.diamond,
                 label=label,
             )
