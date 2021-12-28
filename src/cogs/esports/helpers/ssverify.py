@@ -18,14 +18,11 @@ async def get_image(attch: discord.Attachment):
     cropped.append(image)
 
     w, h = image.size
-    print(w, h)
 
     if h >= 1550:
-        print("1550 true")
         cropped.append(image.crop((0, 0, w, 1550)))
 
     if h >= 800:
-        print("800 true")
         cropped.append(image.crop((0, 0, w, 800)))
 
     for i in cropped:
@@ -63,12 +60,14 @@ async def verify_image(record: SSVerify, group: Tuple):
     _hash = str(await get_image_hash(img))
 
     if _match := await record.find_hash(str(_hash)):
-        return VerifyResult(f"Already posted by {getattr(_match.author,'mention','Unknown')}")
+        return VerifyResult(f"Already posted by {getattr(_match.author,'mention','Unknown')}.")
 
-    _text = ""
+    clean_text = ""
 
     for _ in cropped:
-        _text += (await get_image_string(img)).lower().replace(" ", "")
+        clean_text += await get_image_string(img)
+
+    _text = clean_text.lower().replace(" ", "")
 
     name = record.channel_name.lower().replace(" ", "")
 
@@ -76,6 +75,7 @@ async def verify_image(record: SSVerify, group: Tuple):
     print("-" * 20)
 
     if record.ss_type == SSType.yt:
+
         if not any(_ in _text for _ in ("subscribers", "subscribe")):
             return VerifyResult("Not a valid youtube screenshot.")
 
@@ -92,7 +92,7 @@ async def verify_image(record: SSVerify, group: Tuple):
         elif not name in _text:
             return VerifyResult(f"Screenshot must belong to [`{record.channel_name}`]({record.channel_link}) page.")
 
-        elif not "following" in _text:
+        elif "Follow " in clean_text:
             return VerifyResult("You must follow the page to get verified.")
 
     return VerifyResult("Verified Successfully!", True, _hash)
