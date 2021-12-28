@@ -11,7 +11,13 @@ class PremiumView(discord.ui.View):
     def __init__(self, text="*This feature requires you to have Quotient Premium.*", *, label="Try Premium"):
         super().__init__(timeout=None)
         self.text = text
-        self.add_item(discord.ui.Button(url="https://quotientbot.xyz/premium/buy", emoji=emote.diamond, label=label))
+        self.add_item(
+            discord.ui.Button(
+                url="https://discord.com/channels/746337818388987967/920157559619473428/920158625262104636",
+                emoji=emote.diamond,
+                label=label,
+            )
+        )
 
     @property
     def premium_embed(self) -> discord.Embed:
@@ -28,7 +34,7 @@ class PremiumView(discord.ui.View):
             "- Unlimited ssverification and media partner channels.\n"
             "- Premium role in our server and 10+ other benefits..."
         )
-        _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/901494096579936318/premium.png")
+        _e.set_image(url="https://cdn.discordapp.com/attachments/829938693707399178/924018654973157406/new-prices.png")
         # _e.set_footer(text="Buy Premium and I'll love you even more - deadshot#7999")
         return _e
 

@@ -89,7 +89,7 @@ async def remind_user_to_pay(user: discord.User, model: User):
     _e = discord.Embed(color=discord.Color.red(), title="⚠️__**IMPORTANT**__⚠️")
     _e.description = (
         f"This is to remind you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_expire_time)}"
-        f"\n[*Click Me To Continue Enjoying Prime*]({config.WEBSITE}/premium)"
+        f"\n[*Click Me To Continue Enjoying Prime*](https://discord.com/channels/746337818388987967/920157559619473428/920158625262104636)"
     )
     with suppress(discord.HTTPException):
         _view = PremiumView(label="Purchase Quotient Prime")

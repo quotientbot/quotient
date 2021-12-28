@@ -157,8 +157,6 @@ def random_thanks():
 
 
 tips = (
-    "You can setup unlimited scrims & tourneys with Quotient Premium:\nhttps://quotientbot.xyz/premium",
-    "You can create unlimited giveaways with Quotient Premium:\nhttps://quotientbot.xyz/premium",
     "We have an awesome support server:\ndiscord.gg/aBM5xz6",
     "You can set custom reactions for tourneys with `t emojis` cmd",
     "I like your face : )",  # I really do

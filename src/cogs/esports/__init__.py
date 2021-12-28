@@ -137,7 +137,7 @@ class ScrimManager(Cog, name="Esports"):
 
         if count >= 3 and not guild.is_premium:
             raise ScrimError(
-                f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n{self.bot.config.WEBSITE}/premium"
+                f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n[Click Me]({self.bot.prime_link})"
             )
 
         def check(message: discord.Message):
@@ -1332,7 +1332,7 @@ class ScrimManager(Cog, name="Esports"):
 
         if count == 1 and not guild.is_premium:
             return await ctx.error(
-                f"Upgrade your server to Quotient Premium to setup more than 1 EasyTag channel.\n{self.bot.config.WEBSITE}/premium"
+                f"Upgrade your server to Quotient Premium to setup more than 1 EasyTag channel.\n[Click Me to Purchase]({self.bot.prime_link})"
             )
 
         if channel.id in self.bot.cache.eztagchannels:
@@ -1444,7 +1444,7 @@ class ScrimManager(Cog, name="Esports"):
 
         if count == 1 and not guild.is_premium:
             return await ctx.error(
-                f"Upgrade your server to Quotient Premium to setup more than 1 Tagcheck channel.\n{self.bot.config.WEBSITE}/premium"
+                f"Upgrade your server to Quotient Premium to setup more than 1 Tagcheck channel.\n[Click Me to Purchase]({self.bot.prime_link})"
             )
 
         if channel.id in self.bot.cache.tagcheck:

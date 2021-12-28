@@ -615,7 +615,7 @@ class Utility(Cog, name="utility"):
         if (count := await AutoPurge.filter(guild_id=ctx.guild.id).count()) >= 1 and not await ctx.is_premium_guild():
             return await ctx.error(
                 "You cannot set autopurge in more than 1 channel in free tier."
-                f"\nHowever [Quotient Premium]({ctx.config.WEBSITE}/premium) allows you to set autopurge in unlimited channels."
+                f"\nHowever [Quotient Premium]({ctx.bot.prime_link}) allows you to set autopurge in unlimited channels."
             )
 
         if channel.id in self.bot.cache.autopurge_channels:
