@@ -71,19 +71,16 @@ async def verify_image(record: SSVerify, group: Tuple):
 
     name = record.channel_name.lower().replace(" ", "")
 
-    print(_text)
-    print("-" * 20)
-
     if record.ss_type == SSType.yt:
 
-        if not any(_ in _text for _ in ("subscribers", "subscribe")):
+        if not any(_ in _text for _ in ("subscribe", "videos")):
             return VerifyResult("Not a valid youtube screenshot.")
 
         elif not name in _text:
             return VerifyResult(f"Screenshot must belong to [`{record.channel_name}`]({record.channel_link}) channel.")
 
-        elif not any(_s in _text for _s in ("subscribed", "stese", "ibed")):
-            return VerifyResult("You must subscribe to get verified.")
+        elif "SUBSCRIBE" in clean_text:
+            return VerifyResult(f"You must subscribe [`{record.channel_name}`]({record.channel_link}) to get verified.")
 
     elif record.ss_type == SSType.insta:
         if not "followers" in _text:
