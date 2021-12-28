@@ -967,6 +967,10 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.success(f"Alright! Aborting")
 
         self.bot.cache.tourney_channels.discard(tourney.registration_channel_id)
+
+        data = await tourney.assigned_slots.all()
+        await TMSlot.filter(pk__in=[_.pk for _ in data]).delete()
+
         await tourney.delete()
 
         if tourney.slotm_channel_id:
@@ -1094,14 +1098,14 @@ class ScrimManager(Cog, name="Esports"):
                 return await ctx.error("Slot is already deleted.")
 
             if slot.confirm_jump_url:
-                self.bot.loop.create_task(update_confirmed_message(self.tourney, slot.confirm_jump_url))
+                self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
 
             if len(_slots) == 1:
                 m = ctx.guild.get_member(user.id)
                 if m:
-                    self.bot.loop.create_task(m.remove_roles(tourney.role))
+                    self.bot.loop.create_task(m.remove_roles(discord.Object(id=tourney.role_id)))
 
-            await slot.delete()
+            await TMSlot.filter(pk=slot.id).delete()
 
             return await ctx.success(f"Successfully deleted slot.")
 

@@ -160,7 +160,7 @@ class SsVerifyEditor(EsportsBaseView):
 
         data = await self.model.data.all()
 
-        await SSData.filter(pk__in=(_.pk for _ in data)).delete()
+        await SSData.filter(pk__in=[_.pk for _ in data]).delete()
 
         await self.model.delete()
         self.bot.cache.ssverify_channels.discard(self.model.channel_id)

@@ -238,9 +238,8 @@ class TourneyEvents(Cog):
         message_id = payload.message_id
         _del = await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
 
+        tourney = None
         if not _del:
-            tourney = None
-
             if payload.channel_id in self.bot.cache.media_partner_channels:
                 media_partner = await MediaPartner.get_or_none(pk=payload.channel_id)
                 if media_partner:
@@ -254,15 +253,12 @@ class TourneyEvents(Cog):
                 if slot.confirm_jump_url:
                     self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
 
-                if not await self.bot.cache.match_bot_guild(tourney.guild_id, self.bot.user.id):
-                    return
-
                 if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
                     m = tourney.guild.get_member(slot.leader_id)
                     if m:
                         self.bot.loop.create_task(m.remove_roles(tourney.role))
 
-                await slot.delete()
+                await TMSlot.filter(pk=slot.pk).delete()
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):

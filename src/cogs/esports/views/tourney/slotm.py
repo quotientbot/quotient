@@ -24,12 +24,13 @@ class TCancelSlotSelector(discord.ui.Select):
 
         _options = []
         for slot in slots:
+            slot.members.append(slot.leader_id)
             _options.append(
                 discord.SelectOption(
                     label=f"Number {slot.num} ─ {slot.team_name.title()}",
-                    description=f"Team: {', '.join((str(m) for m in map(bot.get_user, slot.members)))}",
+                    description=f"Team: {', '.join((str(m) for m in map(bot.get_user, set(slot.members))))}",
                     value=slot.id,
-                    emoji="<a:right_bullet:898869989648506921>",
+                    emoji="<:text:815827264679706624>",
                 )
             )
 
@@ -101,9 +102,11 @@ class TourneySlotManager(discord.ui.View):
                 self.bot.loop.create_task(update_confirmed_message(self.tourney, slot.confirm_jump_url))
 
             if len(_slots) == 1:
-                self.bot.loop.create_task(interaction.user.remove_roles(self.tourney.role))
+                member = interaction.guild.get_member(slot.leader_id)
+                if member:
+                    self.bot.loop.create_task(member.remove_roles(self.tourney.role))
 
-            await slot.delete()
+            await TMSlot.filter(pk=slot.id).delete()
             return await interaction.followup.send(f"{emote.check} | Your slot was removed.", ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Slots")
