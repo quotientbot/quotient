@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from cogs.esports.errors import TourneyError
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -20,7 +21,7 @@ class Errors(Cog):
     @Cog.listener()
     async def on_command_error(self, ctx: Context, err):
 
-        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.NotFound)
+        ignored = (commands.CommandNotFound, commands.NoPrivateMessage, discord.Forbidden, discord.NotFound, TourneyError)
 
         if isinstance(err, ignored):
             return

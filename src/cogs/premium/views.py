@@ -26,7 +26,7 @@ class PremiumView(discord.ui.View):
         )
 
         _e.description += (
-            f"\n{self.text}\n\n**Quotient Premium includes:**\n"
+            f"\n`{self.text}`\n\n**Quotient Premium includes:**\n"
             "- Host Unlimited Scrims and Tournaments.\n"
             "- Unlimited tagcheck and easytag channels.\n"
             "- Custom footer and color of all embeds bot sends.\n"

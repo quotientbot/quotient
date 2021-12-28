@@ -91,7 +91,9 @@ class Ssverification(Cog):
                     )
 
                     await message.author.add_roles(discord.Object(id=record.role_id))
-                    await message.author.send(record.success_message)
+                    await message.author.send(
+                        f"**Message from {message.guild.name} after ssverification**\n\n{record.success_message}"
+                    )
 
     def color_bool(self, colors: typing.List[bool]):
         _t, _f = sum(1 for _ in colors if _), sum(1 for _ in colors if not _)

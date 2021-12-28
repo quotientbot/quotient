@@ -1434,6 +1434,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="set")
     @commands.has_permissions(manage_guild=True)
+    @checks.has_done_setup()
     async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int):
         """
         Set a channel for tagcheck.
@@ -1473,6 +1474,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @tagcheck.command(name="config")
+    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     async def tagcheck_config(self, ctx: Context):
         """
@@ -1548,6 +1550,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @slotmanager.command(name="setup")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_channels=True)
     async def _slotmanager_setup(self, ctx: Context):
         """Setup Slot-Manager in the server"""
@@ -1618,6 +1621,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @slotmanager.command(name="lock")
     @checks.can_use_sm()
+    @checks.has_done_setup()
     async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = None):
         """Lock slot management of any scrim"""
 
@@ -1731,13 +1735,16 @@ class ScrimManager(Cog, name="Esports"):
 
     @ssverify.command(name="setup")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     @commands.bot_has_permissions(manage_channels=True, add_reactions=True, embed_links=True, manage_roles=True)
     async def ssverify_setup(self, ctx: Context):
         """
         Setup Youtube/Insta ss verification in a channel.
         """
+
         if not await ctx.is_premium_guild():
-            return await ctx.premium_mango("You need Quotient Prime to setup ssverification.")
+            if await SSVerify.filter(guild_id=ctx.guild.id).count() >= 1:
+                return await ctx.premium_mango("You need Quotient Prime to setup more than 1 ssverification channel.")
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -1799,10 +1806,14 @@ class ScrimManager(Cog, name="Esports"):
         await record.save()
 
         self.bot.cache.ssverify_channels.add(record.channel_id)
-        await ctx.success(f"Successfully setup ssverification in {channel.mention}.")
+        await ctx.success(
+            f"Successfully setup ssverification in {channel.mention}.\n\n"
+            f"Kindly use `{ctx.prefix}ss edit #{channel.name}` to edit settings or add a success message."
+            )
 
     @ssverify.command(name="edit")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def ssverify_edit(self, ctx: Context, *, channel: SSVerify):
         """
         Edit preferences of a ssverify channel.
@@ -1813,6 +1824,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @ssverify.command(name="list")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def ssverify_list(self, ctx: Context):
         """
         Info of all ssverify setup in the server.
@@ -1838,6 +1850,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @ssverify.command(name="userinfo")
     @checks.can_use_tm()
+    @checks.has_done_setup()
     async def ssverify_userinfo(self, ctx: Context, ss_channel: SSVerify, member: discord.Member):
         """
         Information about a user's submitted screenshots
