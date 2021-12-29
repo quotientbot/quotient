@@ -108,7 +108,7 @@ async def free_slots(guild_id: int):
                 continue
 
         _list.append(
-            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,sorted(scrim.available_slots)))} (ID: {scrim.id})"
+            f"`{idx}` {getattr(scrim.registration_channel,'mention','deleted-channel')} ─ Slot {', '.join(map(str,sorted(scrim.available_slots)))}"
         )
 
     return _list
