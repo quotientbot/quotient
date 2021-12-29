@@ -79,7 +79,7 @@ async def verify_image(record: SSVerify, group: Tuple):
         elif not name in _text:
             return VerifyResult(f"Screenshot must belong to [`{record.channel_name}`]({record.channel_link}) channel.")
 
-        elif "SUBSCRIBE" in clean_text:
+        elif "SUBSCRIBE " in clean_text:
             return VerifyResult(f"You must subscribe [`{record.channel_name}`]({record.channel_link}) to get verified.")
 
     elif record.ss_type == SSType.insta:
