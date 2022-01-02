@@ -85,13 +85,14 @@ class Context(commands.Context):
         with suppress(discord.NotFound, discord.Forbidden):
             await msg.delete()
 
-    async def success(self, message, delete_after=None):
+    async def success(self, message, delete_after=None, **kwargs):
         return await self.reply(
             embed=discord.Embed(
                 description=f"{utils.check} | {message}",
                 color=self.bot.color,
             ),
             delete_after=delete_after,
+            **kwargs,
         )
 
     async def simple(self, message, delete_after=None):

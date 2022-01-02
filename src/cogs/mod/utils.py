@@ -1,8 +1,9 @@
+from core import Context
 from collections import Counter
 import discord
 
 
-async def _self_clean_system(ctx, search) -> dict:
+async def _self_clean_system(ctx: Context, search: int) -> dict:
     count = 0
     async for msg in ctx.history(limit=search, before=ctx.message):
         if msg.author == ctx.me:
@@ -11,28 +12,15 @@ async def _self_clean_system(ctx, search) -> dict:
     return {"Bot": count}
 
 
-async def _complex_cleanup_strategy(ctx, search) -> Counter:
-    def check(m):
+async def _complex_cleanup_strategy(ctx: Context, search) -> Counter:
+    def check(m: discord.Message):
         return m.author == ctx.me or m.content.startswith(ctx.prefix)
 
     deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
     return Counter(m.author.display_name for m in deleted)
 
 
-async def role_checker(ctx, role):
-    if role.managed:
-        await ctx.error(f"Role is an integrated role and cannot be added manually.")
-        return False
-    if ctx.me.top_role.position <= role.position:
-        await ctx.error(f"The position of {role.mention} is above my toprole ({ctx.me.top_role.mention})")
-        return False
-    if not ctx.author == ctx.guild.owner and ctx.author.top_role.position <= role.position:
-        await ctx.error(f"The position of {role.mention} is above your top role ({ctx.author.top_role.mention})")
-        return False
-    return True
-
-
-async def do_removal(ctx, limit, predicate, *, before=None, after=None):
+async def do_removal(ctx: Context, limit, predicate, *, before=None, after=None):
     if limit > 2000:
         return await ctx.error(f"Too many messages to search given ({limit}/2000)")
 

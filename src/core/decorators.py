@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from functools import wraps
 
+from core.Context import Context
+
 from .Cog import Cog
+import discord
 
 from typing import TYPE_CHECKING
 import discord
@@ -11,7 +14,7 @@ from .cache import CacheManager
 from contextlib import suppress
 
 
-__all__ = ("right_bot_check", "event_bot_check")
+__all__ = ("right_bot_check", "event_bot_check", "role_command_check")
 
 
 class right_bot_check:
@@ -59,5 +62,36 @@ class event_bot_check:
         async def wrapper(*args, **kwargs):
             bot_id: int = args[0].bot.user.id
             return await fn(*args, **kwargs) if bot_id == self.bot_id else None
+
+        return wrapper
+
+
+class role_command_check:
+    def __call__(self, fn):
+        @wraps(fn)
+        async def wrapper(*args, **kwargs):
+            cog, ctx, *role = args
+
+            role: discord.Role = role[0] if isinstance(role, list) else role
+            ctx: Context
+
+            if role.managed:
+                return await ctx.error(f"Role is an integrated role and cannot be added manually.")
+
+            if ctx.me.top_role.position <= role.position:
+                return await ctx.error(f"The position of {role.mention} is above my toprole ({ctx.me.top_role.mention})")
+
+            if not ctx.author == ctx.guild.owner and ctx.author.top_role.position <= role.position:
+                return await ctx.error(
+                    f"The position of {role.mention} is above your top role ({ctx.author.top_role.mention})"
+                )
+
+            if role.permissions > ctx.author.guild_permissions:
+                return await ctx.error(f"{role.mention} has higher permissions than you.")
+
+            if role.permissions.administrator:
+                return await ctx.error(f"{role.mention} has administrator permissions.")
+
+            return await fn(*args, **kwargs)
 
         return wrapper

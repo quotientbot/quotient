@@ -2,16 +2,19 @@ from __future__ import annotations
 
 from typing import Optional, Union, TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from core import Quotient
 
 
-from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal, role_checker
-from core import Cog, Context
+from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
+from core import Cog, Context, QuotientView, role_command_check
 from models import Lockdown
 from discord.ext import commands
 from .events import *
-from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser, human_timedelta
+from .views import *
+
+from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser, human_timedelta, plural
 from constants import LockType
 
 import discord
@@ -193,198 +196,290 @@ class Mod(Cog):
     @commands.group(invoke_without_command=True, aliases=["addrole", "giverole"])
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def role(self, ctx, role: discord.Role, members: commands.Greedy[discord.Member]):
+    @role_command_check()
+    async def role(self, ctx: Context, role: discord.Role, members: commands.Greedy[discord.Member]):
         """
         Add a role to one or multiple users.
         """
-        if await role_checker(ctx, role):
-            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-            failed = []
-            for m in members:
-                if not role in m.roles:
-                    try:
-                        await m.add_roles(role, reason=reason)
-                    except:
-                        failed.append(str(m))
-                        continue
 
-            if len(failed) > 0:
-                return await ctx.error(f"Unfortunately, I couldn't add roles to:\n{', '.join(failed)}")
-            await ctx.message.add_reaction(emote.check)
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        if not members:
+            members = ctx.guild.members
+
+            prompt = await ctx.prompt("No members were specified, do you want to add the role to all members?")
+            if not prompt:
+                return await ctx.simple(
+                    f"Alright, Aborting. If you wish to add the role to limited users, do:\n\n`{ctx.prefix}role @role @user1 @user2 @user3 ...`"
+                )
+
+        m = await ctx.simple(f"{emote.loading} Adding {role.mention} to {plural(members):member|members}.")
+
+        for member in members:
+            if role not in member.roles:
+                await member.add_roles(role, reason=reason)
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Added {role.mention} to {plural(members):member|members}.\n\n"
+            "```If you cannot see the role in any of the user's profile, just restart your discord app or check audit log.```",
+            view=_view,
+        )
 
     @role.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def role_humans(self, ctx, *, role: discord.Role):
+    @role_command_check()
+    async def role_humans(self, ctx: Context, role: discord.Role):
         """Add a role to all human users."""
-        if await role_checker(ctx, role):
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?",
-                message=f"{role.mention} will be added to all human users in the server.",
-            )
-            if prompt:
-                members = list(filter(lambda x: not x.bot and role not in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} humans..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.add_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+        members = [m for m in ctx.guild.members if all([not role in m.roles, not m.bot])]
+
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be added to all {plural(members):human|humans} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Adding {role.mention} to {plural(members):human|humans}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.add_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully added {role.mention} to {plural(success):human|humans}. (Failed: {failed})", view=_view
+        )
 
     @role.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def role_bots(self, ctx, *, role: discord.Role):
-        if await role_checker(ctx, role):
-            """Add a role to all bot users."""
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?", message=f"{role.mention} will be added to all bots in the server."
-            )
-            if prompt:
-                members = list(filter(lambda x: x.bot and role not in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} bots..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.add_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
+    @role_command_check()
+    async def role_bots(self, ctx: Context, role: discord.Role):
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} bots.")
-                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} bots.")
+        """Add a role to all bot users."""
+        members = [m for m in ctx.guild.members if all([not role in m.roles, m.bot])]
+
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be added to all {plural(members):bot|bots} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Adding {role.mention} to {plural(members):bot|bots}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.add_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully added {role.mention} to {plural(success):bot|bots}. (Failed: {failed})", view=_view
+        )
 
     @role.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def role_all(self, ctx, *, role: discord.Role):
+    @role_command_check()
+    async def role_all(self, ctx: Context, role: discord.Role):
         """Add a role to everyone on the server"""
-        if await role_checker(ctx, role):
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?", message=f"{role.mention} will be added to everyone in the server."
-            )
-            if prompt:
-                members = list(filter(lambda x: role not in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Adding role to {len(members)} members..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.add_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't add roles to {failed} members.")
-                await ctx.send(f"{emote.check} | Successfully added role to {len(members)} members.")
+        members = [m for m in ctx.guild.members if not role in m.roles]
+
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be added to all {plural(members):user|users} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Adding {role.mention} to {plural(members):user|users}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.add_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully added {role.mention} to {plural(success):user|users}. (Failed: {failed})", view=_view
+        )
 
     @commands.group(invoke_without_command=True, aliases=["removerole", "takerole"])
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def rrole(self, ctx, role: discord.Role, members: commands.Greedy[discord.Member]):
+    @role_command_check()
+    async def rrole(self, ctx: Context, role: discord.Role, members: commands.Greedy[discord.Member]):
         """Remove a role from one or multiple users."""
-        if await role_checker(ctx, role):
-            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-            failed = []
-            for m in members:
-                if role in m.roles:
-                    try:
-                        await m.remove_roles(role, reason=reason)
-                    except:
-                        failed.append(str(m))
-                        continue
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
-            if len(failed) > 0:
-                return await ctx.error(f"Unfortunately, I couldn't remove roles from:\n{', '.join(failed)}")
-            await ctx.message.add_reaction(emote.check)
+        if not members:
+            members = ctx.guild.members
+
+            prompt = await ctx.prompt("No members were specified, do you want to remove the role from all members?")
+            if not prompt:
+                return await ctx.simple(
+                    f"Alright, Aborting. If you wish to remove the role from limited users, do:\n\n`{ctx.prefix}rrole @role @user1 @user2 @user3 ...`"
+                )
+
+        m = await ctx.simple(f"{emote.loading} Removing {role.mention} from {plural(members):member|members}.")
+
+        for member in members:
+            if role not in member.roles:
+                await member.remove_roles(role, reason=reason)
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members, take_role=False))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Removed {role.mention} from {plural(members):member|members}.",
+            view=_view,
+        )
 
     @rrole.command(name="humans")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def rrole_humans(self, ctx, *, role: discord.Role):
+    @role_command_check()
+    async def rrole_humans(self, ctx: Context, role: discord.Role):
         """Remove a role from all human users."""
-        if await role_checker(ctx, role):
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?",
-                message=f"{role.mention} will be removed from all human users in the server.",
-            )
-            if prompt:
-                members = list(filter(lambda x: not x.bot and role in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} humans..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.remove_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+        members = [m for m in ctx.guild.members if all([role in m.roles, not m.bot])]
+
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be removed from all {plural(members):human|humans} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Remove {role.mention} from {plural(members):human|humans}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.remove_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members, take_role=False))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully removed {role.mention} from {plural(success):human|humans}. (Failed: {failed})", view=_view
+        )
 
     @rrole.command(name="bots")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def rrole_bots(self, ctx, *, role: discord.Role):
+    @role_command_check()
+    async def rrole_bots(self, ctx: Context, role: discord.Role):
         """Remove a role from all the bots."""
-        if await role_checker(ctx, role):
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?",
-                message=f"{role.mention} will be removed from all bot users in the server.",
-            )
-            if prompt:
-                members = list(filter(lambda x: x.bot and role in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} bots..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.remove_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
+        members = [m for m in ctx.guild.members if all([role in m.roles, m.bot])]
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} bots.")
-                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} bots.")
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be removed from all {plural(members):bot|bots} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Remove {role.mention} from {plural(members):bot|bots}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.remove_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members, take_role=False))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully removed {role.mention} from {plural(success):bot|bots}. (Failed: {failed})", view=_view
+        )
 
     @rrole.command(name="all")
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
-    async def rrole_all(self, ctx, *, role: discord.Role):
+    @role_command_check()
+    async def rrole_all(self, ctx: Context, role: discord.Role):
         """Remove a role from everyone on the server."""
-        if await role_checker(ctx, role):
-            prompt = await ctx.prompt(
-                title="Are you sure want to do this?",
-                message=f"{role.mention} will be removed from everyone in the server.",
-            )
-            if prompt:
-                members = list(filter(lambda x: role in x.roles, ctx.guild.members))
-                await ctx.send(embed=self.bot.embed(ctx, description=f"Removing role from {len(members)} members..."))
-                reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
-                failed = 0
-                for m in members:
-                    try:
-                        await m.remove_roles(role, reason=reason)
-                    except:
-                        failed += 1
-                        continue
+        members = [m for m in ctx.guild.members if role in m.roles]
 
-                if failed > 0:
-                    return await ctx.error(f"Unfortunately, I couldn't remove roles from {failed} members.")
-                await ctx.send(f"{emote.check} | Successfully removed role from {len(members)} members.")
+        prompt = await ctx.prompt(
+            title="Are you sure you want to continue?",
+            message=f"{role.mention} will be removed from all {plural(members):user|users} in the server.",
+        )
+
+        if not prompt:
+            return await ctx.success("Alright, Aborting.")
+
+        reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+        m = await ctx.simple(f"{emote.loading} Removing {role.mention} from {plural(members):user|users}.")
+
+        success, failed = 0, 0
+
+        for member in members:
+            try:
+                await member.remove_roles(role, reason=reason)
+                success += 1
+            except discord.HTTPException:
+                failed += 1
+
+        _view = QuotientView(ctx)
+        _view.add_item(RoleRevertButton(ctx, role=role, members=members, take_role=False))
+
+        await ctx.safe_delete(m)
+        _view.message = await ctx.success(
+            f"Successfully removed {role.mention} from {plural(success):user|users}. (Failed: {failed})", view=_view
+        )
 
     @commands.group(invoke_without_command=True, aliases=("lockdown",))
     async def lock(self, ctx: Context, channel: Optional[discord.TextChannel], duration: Optional[FutureTime]):
