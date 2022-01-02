@@ -76,11 +76,11 @@ class Errors(Cog):
             return await ctx.send(f"You are in cooldown.\n\nTry again in `{err.retry_after:.2f}` seconds.")
 
         elif isinstance(err, commands.MissingPermissions):
-            permissions = ", ".join([f"{permission}" for permission in err.missing_permissions])
+            permissions = ", ".join([f"{permission.replace('_', ' ').replace('guild', 'server').title()}" for permission in err.missing_permissions])
             await ctx.error(f"You lack **`{permissions}`** permissions to run this command.")
 
         elif isinstance(err, commands.BotMissingPermissions):
-            permissions = ", ".join([f"{permission}" for permission in err.missing_permissions])
+            permissions = ", ".join([f"{permission.replace('_', ' ').replace('guild', 'server').title()}" for permission in err.missing_permissions])
             message = f"Unfortunately I am missing **`{permissions}`** permissions to run the command `{ctx.command}`.\nThis can be fixed by going to server settings > roles > Quotient and granting Quotient role **`{permissions}`** there."
             try:
                 await ctx.send(message)
