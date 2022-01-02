@@ -63,8 +63,22 @@ class HelpCommand(commands.HelpCommand):
         embed.description = f"> {_help}\n\n**Subcommands**\n{_cmds}"
 
         embed.set_footer(text=f'Use "{prefix}help <command>" for more information.')
+
         if group.aliases:
             embed.add_field(name="Aliases", value=", ".join(f"`{aliases}`" for aliases in group.aliases), inline=False)
+
+        examples = []
+        if group.extras:
+            if _gif := group.extras.get("gif"):
+                embed.set_image(url=_gif)
+
+            if _ex := group.extras.get("examples"):
+                examples = [f"{self.context.prefix}{i}" for i in _ex]
+
+        if examples:
+            examples = "\n".join(examples)
+            embed.add_field(name="Examples", value=f"```{examples}```")
+
         await self.context.send(embed=embed, embed_perms=True)
 
     async def send_cog_help(self, cog: Cog):
@@ -81,16 +95,30 @@ class HelpCommand(commands.HelpCommand):
 
     async def send_command_help(self, cmd: commands.Command):
         embed = discord.Embed(color=self.color)
-        embed.title = cmd.qualified_name
-        embed.description = cmd.help or "No help found..."
+        embed.title = "Command: " + cmd.qualified_name
 
-        embed.add_field(name="**Usage** ", value=f"`{self.get_command_signature(cmd)}`")
-        if cmd.aliases:
-            embed.add_field(name="Aliases", value=", ".join((f"`{alias}`" for alias in cmd.aliases)))
+        examples = []
+
+        alias = ",".join((f"`{alias}`" for alias in cmd.aliases)) if cmd.aliases else "No aliases"
+        _text = (
+            f"**Description:** {cmd.help or 'No help found...'}\n"
+            f"**Usage:** `{self.get_command_signature(cmd)}`\n"
+            f"**Aliases:** {alias}\n"
+            f"**Examples:**"
+        )
 
         if cmd.extras:
             if _gif := cmd.extras.get("gif"):
                 embed.set_image(url=_gif)
+
+            if _ex := cmd.extras.get("examples"):
+                examples = [f"{self.context.prefix}{i}" for i in _ex]
+
+        examples = "\n".join(examples) if examples else "Command has no examples"
+
+        _text += f"```{examples}```"
+
+        embed.description = _text
 
         await self.context.send(embed=embed, embed_perms=True)
 

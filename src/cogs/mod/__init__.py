@@ -193,7 +193,11 @@ class Mod(Cog):
         else:
             await ctx.success(f"Unbanned {member.user} (ID: {member.user.id}).")
 
-    @commands.group(invoke_without_command=True, aliases=["addrole", "giverole"])
+    @commands.group(
+        invoke_without_command=True,
+        aliases=["addrole", "giverole"],
+        extras={"examples": ["role @role @user1 @user2 @user3 ..."]},
+    )
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
@@ -229,7 +233,7 @@ class Mod(Cog):
             view=_view,
         )
 
-    @role.command(name="humans")
+    @role.command(name="humans", extras={"examples": ["role humans @role", "role humans role_id"]})
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
@@ -266,7 +270,7 @@ class Mod(Cog):
             f"Successfully added {role.mention} to {plural(success):human|humans}. (Failed: {failed})", view=_view
         )
 
-    @role.command(name="bots")
+    @role.command(name="bots", extras={"examples": ["role bots @role", "role bots role_id"]})
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
@@ -303,7 +307,7 @@ class Mod(Cog):
             f"Successfully added {role.mention} to {plural(success):bot|bots}. (Failed: {failed})", view=_view
         )
 
-    @role.command(name="all")
+    @role.command(name="all", extras={"examples": ["role all @role", "role all role_id"]})
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
