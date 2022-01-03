@@ -23,6 +23,7 @@ class ScrimsSlotManager(BaseDbModel):
 
     toggle = fields.BooleanField(default=True)
     allow_reminders = fields.BooleanField(default=True)
+    multiple_slots = fields.BooleanField(default=False)
 
     scrim_ids = ArrayField(fields.BigIntField(), default=list)
 
@@ -58,3 +59,12 @@ class ScrimsSlotManager(BaseDbModel):
                 _m = await channel.fetch_message(self.message_id)
 
             return _m
+
+
+class SlotReminder(BaseDbModel):
+    class Meta:
+        table = "scrims_slot_reminders"
+
+    id = fields.IntField(pk=True)
+    user_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now=True)
