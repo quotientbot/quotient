@@ -4,7 +4,6 @@ import typing
 
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
-    import config as cfg
 
 
 from discord import AllowedMentions, Intents
@@ -19,7 +18,8 @@ from async_property import async_property
 from datetime import datetime
 
 import aiohttp, asyncio, os
-import config
+import config as cfg
+
 import itertools
 import traceback
 import discord
@@ -47,7 +47,7 @@ print(Fore.RED + "-----------------------------------------------------")
 
 
 class Quotient(commands.AutoShardedBot):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(
             command_prefix=self.get_prefix,
             intents=intents,
@@ -103,7 +103,7 @@ class Quotient(commands.AutoShardedBot):
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
-        await Tortoise.init(config.TORTOISE)
+        await Tortoise.init(cfg.TORTOISE)
         await Tortoise.generate_schemas(safe=True)
 
         self.cache = CacheManager(self)
@@ -126,7 +126,7 @@ class Quotient(commands.AutoShardedBot):
                 prefix = guild["prefix"]
 
             else:
-                self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": config.FOOTER}
+                self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": cfg.FOOTER}
                 prefix = "q"
 
         if prefix is None:
@@ -210,7 +210,7 @@ class Quotient(commands.AutoShardedBot):
         if await super().is_owner(user):
             return True
 
-        return user.id in config.DEVS
+        return user.id in cfg.DEVS
 
     async def get_or_fetch_member(self, guild: discord.Guild, member_id: int):
         """Looks up a member in cache or fetches if not found."""

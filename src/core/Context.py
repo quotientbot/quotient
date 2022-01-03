@@ -48,12 +48,7 @@ class Context(commands.Context):
             return ref.resolved.to_reference()
         return None
 
-    async def prompt(
-        self,
-        message,
-        title=None,
-        delete_after=True,
-    ):
+    async def prompt(self, message, title=None, delete_after=True):
         """
         An interactive reaction confirmation dialog.
         """
