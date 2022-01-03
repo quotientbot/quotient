@@ -60,6 +60,10 @@ class ScrimsSlotManager(BaseDbModel):
 
             return _m
 
+    @staticmethod
+    async def from_guild(guild: discord.Guild):
+        return await ScrimsSlotManager.filter(guild_id=guild.id)
+
 
 class SlotReminder(BaseDbModel):
     class Meta:
