@@ -3,11 +3,11 @@ import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
-
-from .app import init_application
 from core import Cog
 
 from socketio import AsyncClient
+
+from .app import sio
 
 
 class SocketConnection(Cog):
@@ -22,13 +22,14 @@ class SocketConnection(Cog):
         self.bot.loop.create_task(self.__close_connection())
 
     async def __make_connection(self):
-        self.sio = await init_application()
+        await sio.connect("http://1ba6-203-187-194-194.ngrok.io/api/", auth={"token": self.bot.config.SOCKET_AUTH})
+
         self.connected = True
 
     async def __close_connection(self):
         if self.connected:
             print("Closing Server")
-            await self.sio.disconnect()
+            await sio.disconnect()
 
             self.task.cancel()
 

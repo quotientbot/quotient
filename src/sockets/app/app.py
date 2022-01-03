@@ -1,8 +1,6 @@
 import socketio
 
-from bot import bot
-
-sio = socketio.AsyncClient()
+sio = socketio.AsyncClient(logger=True, engineio_logger=True)
 
 
 @sio.event()
