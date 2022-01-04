@@ -12,6 +12,8 @@ from models.esports.slotm import ScrimsSlotManager
 
 import discord
 
+from utils import channel_input
+
 
 __all__ = ("ScrimsSlotManagerSetup",)
 
@@ -25,8 +27,14 @@ class ScrimSlotManagerSetup(EsportsBaseView):
 
     @staticmethod
     async def initial_message(guild: discord.Guild):
-        _e = discord.Embed()
+        records = await ScrimsSlotManager.filter(guild_id=guild.id)
+        _to_show = [_.__str__() for _ in records]
 
+        _sm = "\n".join(_to_show) if _to_show else "```No scrims slot managers found.```"
+
+        _e = discord.Embed(color=0x00FFB3, title=f"Scrims Slot-Manager Setup")
+
+        _e.description = f"Current slot-manager channels:\n{_sm}"
         return _e
 
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc")
@@ -36,3 +44,4 @@ class ScrimSlotManagerSetup(EsportsBaseView):
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_addc")
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
         ...
+

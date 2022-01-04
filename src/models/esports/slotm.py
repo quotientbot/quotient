@@ -8,6 +8,9 @@ from typing import List
 import discord
 
 from contextlib import suppress
+from utils import plural
+
+__all__ = ("ScrimsSlotManager",)
 
 
 class ScrimsSlotManager(BaseDbModel):
@@ -26,6 +29,9 @@ class ScrimsSlotManager(BaseDbModel):
     multiple_slots = fields.BooleanField(default=False)
 
     scrim_ids = ArrayField(fields.BigIntField(), default=list)
+
+    def __str__(self):
+        return f"{getattr(self.main_channel,'mention','not-found')} - ({plural(self.scrim_ids):scrim|scrims})"
 
     @classmethod
     async def convert(self, ctx, argument: str) -> "ScrimsSlotManager":
