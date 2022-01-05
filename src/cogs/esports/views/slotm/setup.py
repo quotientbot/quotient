@@ -9,7 +9,7 @@ from ...views.base import EsportsBaseView
 from core import Context
 
 from models.esports.slotm import ScrimsSlotManager
-
+from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
 from utils import channel_input
@@ -39,9 +39,17 @@ class ScrimSlotManagerSetup(EsportsBaseView):
 
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc")
     async def add_channel(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        available_scrims = await ScrimsSlotManager.available_scrims(self.ctx.guild)
+        if not available_scrims:
+            return await self.error_embed(
+                f"There are no scrims available for a new slotmanager channel.\n\n"
+                "If you have other slot-m channel, first remove the scrims from that channel to add them to new slot-m."
+            )
+        
+        _view = ScrimSelectorView(interaction.user, available_scrims)
+        
+
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_addc")
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
         ...
-

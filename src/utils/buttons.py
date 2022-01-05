@@ -44,6 +44,8 @@ class Prompt(discord.ui.View):
 
 
 class BaseSelector(discord.ui.View):
+    message: discord.Message
+
     def __init__(self, author_id, selector: discord.ui.Select, **kwargs):
         self.author_id = author_id
         self.custom_id = None

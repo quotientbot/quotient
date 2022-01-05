@@ -70,6 +70,14 @@ class ScrimsSlotManager(BaseDbModel):
     async def from_guild(guild: discord.Guild):
         return await ScrimsSlotManager.filter(guild_id=guild.id)
 
+    @staticmethod
+    async def unavailable_scrims(guild: discord.Guild) -> List[int]:
+        return [scrim for record in await ScrimsSlotManager.filter(guild_id=guild.id) for scrim in record.scrim_ids]
+
+    @staticmethod
+    async def available_scrims(guild: discord.Guild) -> List[Scrim]:
+        return await Scrim.filter(pk__not_in=await ScrimsSlotManager.unavailable_scrims(guild))
+
 
 class SlotReminder(BaseDbModel):
     class Meta:
