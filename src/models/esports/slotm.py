@@ -20,7 +20,6 @@ class ScrimsSlotManager(BaseDbModel):
     id = fields.IntField(pk=True)
     guild_id = fields.BigIntField()
     main_channel_id = fields.BigIntField()
-    updates_channel_id = fields.BigIntField()
 
     message_id = fields.BigIntField()
 
@@ -77,6 +76,9 @@ class ScrimsSlotManager(BaseDbModel):
     @staticmethod
     async def available_scrims(guild: discord.Guild) -> List[Scrim]:
         return await Scrim.filter(pk__not_in=await ScrimsSlotManager.unavailable_scrims(guild))
+
+    async def full_delete(self):
+        ...
 
 
 class SlotReminder(BaseDbModel):

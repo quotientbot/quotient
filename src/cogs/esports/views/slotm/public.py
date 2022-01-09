@@ -20,7 +20,7 @@ class ScrimSlotmPublicView(discord.ui.View):
 
     @staticmethod
     async def initial_embed(record: ScrimsSlotManager):
-        _e = discord.Embed()
+        _e = discord.Embed(color=0x00FFB3)
         return _e
 
     @discord.ui.button(style=discord.ButtonStyle.danger, custom_id="scrims_slot_cancel", label="Cancel Slot")

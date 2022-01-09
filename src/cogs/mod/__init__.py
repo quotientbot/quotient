@@ -353,7 +353,7 @@ class Mod(Cog):
         reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
 
         if not members:
-            members = ctx.guild.members
+            members = [m for m in ctx.guild.members if role in m.roles]
 
             prompt = await ctx.prompt("No members were specified, do you want to remove the role from all members?")
             if not prompt:
@@ -364,8 +364,7 @@ class Mod(Cog):
         m = await ctx.simple(f"{emote.loading} Removing {role.mention} from {plural(members):member|members}.")
 
         for member in members:
-            if role not in member.roles:
-                await member.remove_roles(role, reason=reason)
+            await member.remove_roles(role, reason=reason)
 
         _view = QuotientView(ctx)
         _view.add_item(RoleRevertButton(ctx, role=role, members=members, take_role=False))
