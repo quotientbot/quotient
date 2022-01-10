@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from core import Quotient
@@ -12,7 +12,8 @@ from models.esports.slotm import ScrimsSlotManager
 from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
-from utils import channel_input
+
+from utils import emote
 
 
 __all__ = ("ScrimsSlotManagerSetup",)
@@ -45,11 +46,30 @@ class ScrimSlotManagerSetup(EsportsBaseView):
                 f"There are no scrims available for a new slotmanager channel.\n\n"
                 "If you have other slot-m channel, first remove the scrims from that channel to add them to new slot-m."
             )
-        
-        _view = ScrimSelectorView(interaction.user, available_scrims)
-        
 
+        _view = ScrimSelectorView(interaction.user, available_scrims)
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_addc")
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        records = await ScrimsSlotManager.filter(guild_id=self.ctx.guild.id)
+        if not records:
+            return await self.ctx.error(
+                "You haven't added any slot-manager channel yet.\n\nClick `Add Channel` to add a new slot-m channel.", 2
+            )
+
+        
+    class ScrimsSlotmSelector(discord.ui.Select):
+        def __init__(self, records: List[ScrimsSlotManager]):
+
+            _o = []
+            for record in records:
+                _o.append(
+                    discord.SelectOption(
+                        label=getattr(record.main_channel, "name", "channel-not-found"),  # type: ignore
+                        value=record.id,
+                        description=f"Scrims: {', '.join(str(_) for _ in record.scrim_ids)}",
+                        emoji=emote.TextChannel,
+                    )
+                )
+
+            super().__init__(placeholder="Select a slot-manager channel ...", options=_o)

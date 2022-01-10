@@ -25,10 +25,12 @@ class TCancelSlotSelector(discord.ui.Select):
         _options = []
         for slot in slots:
             slot.members.append(slot.leader_id)
+
+            description = f"Team: {', '.join((str(m) for m in map(bot.get_user, set(slot.members))))}"
             _options.append(
                 discord.SelectOption(
                     label=f"Number {slot.num} ─ {slot.team_name.title()}",
-                    description=f"Team: {', '.join((str(m) for m in map(bot.get_user, set(slot.members))))}",
+                    description=truncate_string(description, 100),
                     value=slot.id,
                     emoji="<:text:815827264679706624>",
                 )
