@@ -19,6 +19,8 @@ from utils import plural, regional_indicator as ri
 from string import ascii_uppercase
 import discord
 
+__all__ = ("ScrimsSlotmEditor",)
+
 
 class ScrimsSlotmEditor(EsportsBaseView):
     def __init__(self, ctx: Context, *, record: ScrimsSlotManager):

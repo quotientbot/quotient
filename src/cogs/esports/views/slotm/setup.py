@@ -13,7 +13,7 @@ from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
 from models import Scrim
-from utils import emote
+from utils import emote, Prompt
 
 
 __all__ = ("ScrimsSlotManagerSetup",)
@@ -50,9 +50,25 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         _view = ScrimSelectorView(
             interaction.user, available_scrims, placeholder="Select scrims to add to slot-manager ..."
         )
-        await self.ctx.send("Choose 1 or multiple scrims that you want to add to new slot-manager.", view=_view)
+        await interaction.followup.send(
+            "Choose 1 or multiple scrims that you want to add to new slot-manager."
+            "\n\n`If a scrim isn't in the dropdown that means it has been addded to another slotm.`",
+            view=_view,
+            ephemeral=True,
+        )
         await _view.wait()
-        print(_view.custom_id)
+
+        prompt = Prompt(interaction.user.id)
+        await interaction.followup.send(
+            "A new channel will be created for the selected scrims slot manager.\n\n`Do you want to continue?`",
+            view=prompt,
+            ephemeral=True,
+        )
+        await prompt.wait()
+
+        if not prompt.value:
+            return await interaction.followup.send("Alright, Aborting.")
+
         # await Scrim.filter(pk__in=view.custom_id).order_by("id")
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc")
@@ -62,6 +78,10 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             return await self.ctx.error(
                 "You haven't added any slot-manager channel yet.\n\nClick `Add Channel` to add a new slot-m channel.", 2
             )
+
+    @discord.ui.button(emoji="🔒", label="Match Time", custom_id="scrims_slotm_matcht")
+    async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
+        ...
 
     class ScrimsSlotmSelector(discord.ui.Select):
         def __init__(self, records: List[ScrimsSlotManager]):

@@ -62,9 +62,12 @@ class Scrim(BaseDbModel):
     close_message = fields.JSONField(default=dict)
     banlog_channel_id = fields.BigIntField(null=True)
 
+    match_time = fields.DatetimeField(null=True)
+
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
+    slot_reminders: fields.ManyToManyRelation["ScrimsSlotReminder"] = fields.ManyToManyField("models.ScrimsSlotReminder")
 
     def __str__(self):
         return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Scrim: {self.id})"
@@ -280,7 +283,7 @@ class BannedTeam(BaseSlot):
     expires = fields.DatetimeField(null=True)
 
 
-class BanLog(models.Model):
+class BanLog(BaseDbModel):
     class Meta:
         table = "esports_bans"
 
@@ -291,3 +294,12 @@ class BanLog(models.Model):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
+
+
+class ScrimsSlotReminder(BaseDbModel):
+    class Meta:
+        table = "scrims_slot_reminders"
+
+    id = fields.IntField(pk=True)
+    user_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now=True)
