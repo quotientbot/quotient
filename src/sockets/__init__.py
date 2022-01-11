@@ -22,8 +22,9 @@ class SocketConnection(Cog):
         self.bot.loop.create_task(self.__close_connection())
 
     async def __make_connection(self):
-        await sio.connect("http://1ba6-203-187-194-194.ngrok.io/api/", auth={"token": self.bot.config.SOCKET_AUTH})
+        await sio.connect("http://f8d2-123-201-95-119.ngrok.io/api/", auth={"token": self.bot.config.SOCKET_AUTH})
 
+        sio.bot = self.bot
         self.connected = True
 
     async def __close_connection(self):

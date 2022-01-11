@@ -57,7 +57,6 @@ class ScrimSlotManagerSetup(EsportsBaseView):
                 "You haven't added any slot-manager channel yet.\n\nClick `Add Channel` to add a new slot-m channel.", 2
             )
 
-        
     class ScrimsSlotmSelector(discord.ui.Select):
         def __init__(self, records: List[ScrimsSlotManager]):
 
