@@ -12,14 +12,14 @@ from models.esports.slotm import ScrimsSlotManager
 from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
-
+from models import Scrim
 from utils import emote
 
 
 __all__ = ("ScrimsSlotManagerSetup",)
 
 
-class ScrimSlotManagerSetup(EsportsBaseView):
+class ScrimsSlotManagerSetup(EsportsBaseView):
     def __init__(self, ctx: Context):
         super().__init__(ctx, timeout=60, title="Scrims Slot Manager")
 
@@ -47,9 +47,15 @@ class ScrimSlotManagerSetup(EsportsBaseView):
                 "If you have other slot-m channel, first remove the scrims from that channel to add them to new slot-m."
             )
 
-        _view = ScrimSelectorView(interaction.user, available_scrims)
+        _view = ScrimSelectorView(
+            interaction.user, available_scrims, placeholder="Select scrims to add to slot-manager ..."
+        )
+        await self.ctx.send("Choose 1 or multiple scrims that you want to add to new slot-manager.", view=_view)
+        await _view.wait()
+        print(_view.custom_id)
+        # await Scrim.filter(pk__in=view.custom_id).order_by("id")
 
-    @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_addc")
+    @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc")
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
         records = await ScrimsSlotManager.filter(guild_id=self.ctx.guild.id)
         if not records:

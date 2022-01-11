@@ -69,6 +69,7 @@ class Quotient(commands.AutoShardedBot):
         self.binclient = mystbin.Client()
         self.lockdown = False
         self.persistent_views_added = False
+        self.sio = None
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 

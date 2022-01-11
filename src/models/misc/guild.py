@@ -6,7 +6,7 @@ import config
 import discord
 
 
-_dict = {"view": None, "embed": None, "scrims": None, "idp": None, "ptable": None, "tourney": None, "slotm": None}
+_dict = {"embed": [], "scrims": [], "tourney": [], "slotm": []}
 
 
 class Guild(BaseDbModel):

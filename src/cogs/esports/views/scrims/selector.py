@@ -46,6 +46,8 @@ class ScrimSelectorView(discord.ui.View):
 
         super().__init__(timeout=timeout)
 
+        scrims = scrims[:25]
+
         self.add_item(ScrimSelector(placeholder, scrims, max_values))
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -61,16 +63,16 @@ class ScrimSelectorView(discord.ui.View):
                 await self.message.delete()
 
 
-async def scrim_selector(
-    channel: discord.TextChannel,
-    user: Union[discord.Member, discord.User],
-    scrims: List[Scrim],
-    **kwargs,
-):
-    
+# async def scrim_selector(
+#     channel: discord.TextChannel,
+#     user: Union[discord.Member, discord.User],
+#     scrims: List[Scrim],
+#     **kwargs,
+# ):
 
-    if len(scrims) <= 25:
-        view = ScrimSelectorView(user, scrims, **kwargs)
-        view.message = await channel.send("Kindly use the dropdown below to select scrims.", view=view)
-        await view.wait()
-        return await Scrim.filter(pk__in=view.custom_id).order_by("id")
+
+#     if len(scrims) <= 25:
+#         view = ScrimSelectorView(user, scrims, **kwargs)
+#         view.message = await channel.send("Kindly use the dropdown below to select scrims.", view=view)
+#         await view.wait()
+#         return await Scrim.filter(pk__in=view.custom_id).order_by("id")

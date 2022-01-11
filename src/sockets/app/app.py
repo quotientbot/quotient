@@ -31,6 +31,7 @@ sio = QuoSocket(logger=True, engineio_logger=True)
 
 @sio.on("*")
 async def catch_all(event, data):
+    print(event, data)
     data = QuoSocket.int_parse(data)
-
+    print(f"{event} {data}")
     sio.bot.dispatch(event, data)
