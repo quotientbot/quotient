@@ -1,3 +1,5 @@
+import asyncio
+from inspect import Attribute
 from models import BaseDbModel
 
 from tortoise import fields
@@ -8,7 +10,7 @@ from typing import List, Tuple
 import discord
 
 from contextlib import suppress
-from utils import plural, aenumerate
+from utils import plural, aenumerate, truncate_string
 
 __all__ = ("ScrimsSlotManager",)
 
@@ -125,3 +127,24 @@ class ScrimsSlotManager(BaseDbModel):
 
         with suppress(discord.HTTPException):
             return await m.edit(embed=_embed, view=_view)
+
+    async def get_team_name(self, interaction: discord.Interaction) -> str:
+        _c = interaction.channel
+
+        await _c.set_permissions(interaction.user, send_messages=True)
+        _m = None
+        with suppress(asyncio.TimeoutError):
+            _m: discord.Message = await self.bot.wait_for(
+                "message",
+                check=lambda msg: msg.author.id == interaction.user.id and msg.channel.id == _c.id,
+                timeout=30,
+            )
+
+        if not _m:
+            await interaction.followup.send("Timed out. Please try again.")
+
+        await _c.set_permissions(interaction.user, overwrite=None)
+
+        with suppress(AttributeError):
+            await _m.delete()
+            return truncate_string(_m.content, 22)

@@ -17,9 +17,11 @@ import discord
 class AutoPurgeEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.bot.loop.create_task(self.delete_older_snipes())
 
-    async def delete_older_snipes(self):  # we delete snipes that are older than 15 days
-        await Snipe.filter(delete_time__lte=(datetime.now(tz=IST) - timedelta(days=15))).delete()
+    async def delete_older_snipes(self):  # we delete snipes that are older than 10 days
+        await self.bot.wait_until_ready()
+        await Snipe.filter(delete_time__lte=(datetime.now(tz=IST) - timedelta(days=10))).delete()
 
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):

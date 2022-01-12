@@ -1,3 +1,4 @@
+from contextlib import suppress
 from models import BaseDbModel
 
 from tortoise import fields, models
@@ -205,6 +206,22 @@ class Scrim(BaseDbModel):
 
         channel = self.slotlist_channel
         return embed, channel
+
+    async def refresh_slotlist_message(self):
+        embed, channel = await self.create_slotlist()
+
+        with suppress(discord.HTTPException, AttributeError):
+            msg = await channel.fetch_message(self.slotlist_message_id)
+            await msg.edit(embed=embed)
+
+    async def dispatch_reminders(self, slot: "AssignedSlot"):
+        async for reminder in self.slot_reminders.all():
+            user = self.bot.get_user(reminder.user_id)
+
+            with suppress(discord.HTTPException, AttributeError):
+                await user.send("reminder bro")  #!!fix this message
+
+            await ScrimsSlotReminder.filter(pk=reminder.pk).delete()
 
     async def create_slotlist_img(self):
         """
