@@ -31,8 +31,9 @@ class PremiumView(discord.ui.View):
             "- Unlimited tagcheck and easytag channels.\n"
             "- Custom footer and color of all embeds bot sends.\n"
             "- Custom reactions for tourney and scrims.\n"
-            "- Unlimited ssverification and media partner channels.\n"
-            "- Premium role in our server and 10+ other benefits..."
+            "- Unlimited ssverification channels. (`youtube/insta`)\n"
+            "- Unlimited media partner channels.\n"
+            "- Premium role in our server and other benefits..."
         )
         _e.set_image(url="https://cdn.discordapp.com/attachments/829938693707399178/924018654973157406/new-prices.png")
         # _e.set_footer(text="Buy Premium and I'll love you even more - deadshot#7999")
