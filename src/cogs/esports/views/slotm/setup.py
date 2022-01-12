@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from core import Quotient
 
 from ...views.base import EsportsBaseView
-from core import Context
+from core import Context, QuotientView
 
 from models.esports.slotm import ScrimsSlotManager
 from cogs.esports.views.scrims import ScrimSelectorView
@@ -14,6 +14,8 @@ import discord
 
 from models import Scrim
 from utils import emote, Prompt
+
+from .time import MatchTimeEditor
 
 
 __all__ = ("ScrimsSlotManagerSetup",)
@@ -40,6 +42,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
 
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc")
     async def add_channel(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
         available_scrims = await ScrimsSlotManager.available_scrims(self.ctx.guild)
         if not available_scrims:
             return await self.error_embed(
@@ -73,6 +76,8 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc")
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
         records = await ScrimsSlotManager.filter(guild_id=self.ctx.guild.id)
         if not records:
             return await self.ctx.error(
@@ -81,30 +86,38 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
 
     @discord.ui.button(emoji="🔒", label="Match Time", custom_id="scrims_slotm_matcht")
     async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
         scrims = await Scrim.filter(guild_id=self.ctx.guild.id)
         _to_show = [
-            f"{getattr(_.registration_channel,'name','deleted-channel').ljust(8)}"
-            f" {_.match_time.strftime('%I:%M %p') if _.match_time else 'Not-Set'}"
-            for _ in scrims
+            f"{idx}) {getattr(_.registration_channel,'name','deleted-channel').ljust(18)}"
+            f"   {_.match_time.strftime('%I:%M %p') if _.match_time else 'Not-Set'}"
+            for idx, _ in enumerate(scrims, start=1)
         ]
+        _to_show.insert(0, f"   {'Scrims'.ljust(18)}   Match Time\n")
 
         _e = discord.Embed()
         _to_show = "\n".join(_to_show)
-        _e.description = f"``` {_to_show}```"
-        await self.ctx.send(embed=_e)
+        _e.description = f"```{_to_show}```"
 
-    class ScrimsSlotmSelector(discord.ui.Select):
-        def __init__(self, records: List[ScrimsSlotManager]):
+        _view = QuotientView(self.ctx)
+        _view.add_item(MatchTimeEditor(interaction.guild))
 
-            _o = []
-            for record in records:
-                _o.append(
-                    discord.SelectOption(
-                        label=getattr(record.main_channel, "name", "channel-not-found"),  # type: ignore
-                        value=record.id,
-                        description=f"Scrims: {', '.join(str(_) for _ in record.scrim_ids)}",
-                        emoji=emote.TextChannel,
-                    )
+        _view.message = await self.ctx.send(embed=_e, embed_perms=True, view=_view)
+
+
+class ScrimsSlotmSelector(discord.ui.Select):
+    def __init__(self, records: List[ScrimsSlotManager]):
+
+        _o = []
+        for record in records:
+            _o.append(
+                discord.SelectOption(
+                    label=getattr(record.main_channel, "name", "channel-not-found"),  # type: ignore
+                    value=record.id,
+                    description=f"Scrims: {', '.join(str(_) for _ in record.scrim_ids)}",
+                    emoji=emote.TextChannel,
                 )
+            )
 
-            super().__init__(placeholder="Select a slot-manager channel ...", options=_o)
+        super().__init__(placeholder="Select a slot-manager channel ...", options=_o)
