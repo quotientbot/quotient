@@ -141,6 +141,7 @@ class Quomisc(Cog, name="quomisc"):
         return "\n".join(self.format_commit(c) for c in commits)
 
     @commands.command(aliases=("stats",))
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx: Context):
         """Statistics of Quotient."""
         version = pkg_resources.get_distribution("discord.py").version
