@@ -1595,8 +1595,7 @@ class ScrimManager(Cog, name="Esports"):
         """
 
         if not await ctx.is_premium_guild():
-            if await SSVerify.filter(guild_id=ctx.guild.id).count() >= 1:
-                return await ctx.premium_mango("You need Quotient Prime to setup more than 1 ssverification channel.")
+            return await ctx.premium_mango("You need Quotient Prime to setup ssverification channel.")
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
