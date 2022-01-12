@@ -16,7 +16,6 @@ from ..helpers import (
     check_scrim_requirements,
     available_to_reserve,
     toggle_channel,
-    lock_for_registration,
     scrim_work_role,
     registration_open_embed,
     should_open_scrim,
@@ -208,7 +207,6 @@ class ScrimEvents(Cog):
 
         await toggle_channel(registration_channel, open_role, True)
         self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
-        self.bot.loop.create_task(lock_for_registration(guild.id, scrim.id, self.bot))
 
     @Cog.listener()
     async def on_autoclean_timer_complete(self, timer: Timer):

@@ -17,7 +17,7 @@ __all__ = ("ScrimsSlotManager",)
 
 class ScrimsSlotManager(BaseDbModel):
     class Meta:
-        table = "scrims_slotmanager"
+        table = "slot_manager"
 
     id = fields.IntField(pk=True)
     guild_id = fields.BigIntField()

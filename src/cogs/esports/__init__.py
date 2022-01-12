@@ -15,9 +15,6 @@ from .helpers import (
     tourney_work_role,
     registration_close_embed,
     registration_open_embed,
-    setup_slotmanager,
-    update_main_message,
-    delete_slotmanager,
     t_ask_embed,
     MultiScrimConverter,
     csv_tourney_data,
@@ -46,7 +43,7 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 
 from tortoise.query_utils import Q
-from .events import ScrimEvents, TourneyEvents, TagEvents, SlotManagerEvents, Ssverification
+from .events import ScrimEvents, TourneyEvents, TagEvents, Ssverification
 from .errors import ScrimError, SMError, TourneyError, PointsError
 
 import discord
@@ -1540,160 +1537,15 @@ class ScrimManager(Cog, name="Esports"):
         embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
         await ctx.send(embed=embed, embed_perms=True)
 
-    @commands.group(invoke_without_command=True, aliases=("slotm",))
+    @commands.command(aliases=("slotm",))
     async def slotmanager(self, ctx: Context):
         """
         SlotManager helps people to setup scrims-slots cancel and claim manager.
         Users can easily claim and cancel their slots anytime without bothering mods.
         """
-        await ctx.send_help(ctx.command)
-
-    @slotmanager.command(name="setup")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_guild_permissions(manage_channels=True)
-    async def _slotmanager_setup(self, ctx: Context):
-        """Setup Slot-Manager in the server"""
-
-        check = await SlotManager.filter(guild_id=ctx.guild.id)
-        if check:
-            return await ctx.error(
-                "It seems that you have an existing slotmanager setup in your server."
-                f"\nKindly use `{ctx.prefix}slotmanager delete` if you think there's something wrong."
-            )
-
-        check = await Scrim.filter(guild_id=ctx.guild.id)
-        if not check:
-            return await ctx.error(
-                "It seems that you don't have any scrims setup in your server. "
-                "\nYou need to use Quotient's scrims manager to use slotmanager."
-            )
-
-        def check(message: discord.Message):
-            if message.content.strip().lower() == "cancel":
-                raise ScrimError("Alright, reverting all process.")
-
-            return message.author == ctx.author and ctx.channel == message.channel
-
-        await ctx.simple(
-            "In which channel do you want me to post available slots?\n"
-            "As soon as any slot becomes vacant, I will post a message in the channel you select now.\n\n"
-            "`Please mention a public channel to receive updates.`"
-        )
-        channel = await inputs.channel_input(ctx, check)
-        perms = channel.permissions_for(ctx.me)
-        if not all((perms.send_messages, perms.embed_links)):
-            return await ctx.error(
-                f"I don't have permission to send messages in **{channel}**.\n"
-                "Please give me permission to send messages and embed links in this channel."
-            )
-
-        prompt = await ctx.prompt(
-            "A new channel will be created for slot-manager in your scrims category.\n\nAre you sure you want to continue?"
-        )
-        if not prompt:
-            return await ctx.simple("Alright, aborting.")
-
-        sm = await setup_slotmanager(ctx, channel)
-        if isinstance(sm, SlotManager):
-            await ctx.success(
-                f"Slot-Manager setup complete ({sm.main_channel.mention})"
-                f"\n\nKindly use `{ctx.prefix}slotmanager lock` command and set autolock time\n"
-                "for each of your scrims."
-            )
-
-    @slotmanager.command(name="delete")
-    @checks.can_use_sm()
-    async def _slotmanager_delete(self, ctx: Context):
-        """Delete slot manager"""
-        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
-        if not sm:
-            return await ctx.error(
-                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
-            )
-
-        prompt = await ctx.prompt("Are you sure you want to delete your SlotManager setup?")
-        if not prompt:
-            return await ctx.success("Alright, Aborting.")
-
-        await delete_slotmanager(sm, ctx.bot)
-        await ctx.success(f"Slotmanager Setup deleted.")
-
-    @slotmanager.command(name="lock")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def _slotmanager_lock(self, ctx: Context, scrim: Scrim, *, time: BetterFutureTime = None):
-        """Lock slot management of any scrim"""
-
-        time = time or datetime.now(tz=IST)
-
-        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
-        if not sm:
-            return await ctx.error(
-                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
-            )
-
-        lock = await sm.locks.filter(id=scrim.id).first()
-        if lock and lock.locked:
-            return await ctx.error(
-                f"This scrim is already locked.\n\nYou can use `{ctx.prefix}slotmanager unlock {scrim.id}` to unlock it."
-            )
-
-        await SlotLocks.update_or_create(id=scrim.id, defaults={"lock_at": time})
-        slot = await SlotLocks.get(pk=scrim.id)
-        await sm.locks.add(slot)
-
-        await ctx.success(
-            f"SlotManager for {scrim.name}(ID: {scrim.id}) will everyday lock at: `{time.strftime('%I:%M %p')}`"
-        )
-        await self.bot.reminders.create_timer(time, "scrim_lock", scrim_id=scrim.id)
-        await update_main_message(ctx.guild.id, self.bot)
-
-    @slotmanager.command(name="unlock")
-    @checks.can_use_sm()
-    async def _slotmanager_unlock(self, ctx: Context, scrim: Scrim):
-        """Unlock slot management for any scrim"""
-        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
-        if not sm:
-            return await ctx.error(
-                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
-            )
-
-        lock = await sm.locks.filter(id=scrim.id).first()
-        if not lock or not lock.locked:
-            return await ctx.error(f"This scrim is already unlocked.")
-
-        await SlotLocks.filter(pk=scrim.id).update(locked=False)
-        await ctx.success(
-            f"SlotManager for {scrim.name}(ID: {scrim.id}) is now unlocked.\n\n"
-            f"I will automatically lock it when the registration starts and will unlock it after it ends."
-        )
-        await update_main_message(ctx.guild.id, self.bot)
-
-    @slotmanager.command(name="info")
-    @checks.can_use_sm()
-    async def _slotmanager_info(self, ctx: Context):
-        """Slot-Manager info for all scrims."""
-        sm = await SlotManager.get_or_none(guild_id=ctx.guild.id)
-        if not sm:
-            return await ctx.error(
-                f"You haven't done slotmanager setup yet.\n\nPlease use `{ctx.prefix}slotmanager setup` once."
-            )
-
-        embed = ctx.bot.embed(ctx, title="SlotManager Info", description="**Scrim Autolock:**\n")
-        embed.add_field(name="Main Channel", value=getattr(sm.main_channel, "mention", "deleted-channel"))
-        embed.add_field(name="Updates Channel", value=getattr(sm.updates_channel, "mention", "deleted-channel"))
-
-        async for lock in sm.locks.all():
-            scrim = await Scrim.get_or_none(pk=lock.id)
-            if scrim:
-                time = "Not Set!"
-                if lock.lock_at:
-                    time = lock.lock_at.strftime("%I:%M %p")
-
-                embed.description += f"{getattr(scrim.registration_channel,'mention','deleted-channel')}-  `{time}`  (Locked: {lock.locked})\n"
-
-        await ctx.send(embed=embed, embed_perms=True)
+        _view = ScrimsSlotManagerSetup(ctx)
+        _e = await _view.initial_message(ctx.guild)
+        _view.message = await ctx.send(embed=_e, view=_view)
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
@@ -1809,7 +1661,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(
             f"Successfully setup ssverification in {channel.mention}.\n\n"
             f"Kindly use `{ctx.prefix}ss edit #{channel.name}` to edit settings or add a success message."
-            )
+        )
 
     @ssverify.command(name="edit")
     @checks.can_use_tm()
@@ -1886,5 +1738,4 @@ def setup(bot):
     bot.add_cog(ScrimEvents(bot))
     bot.add_cog(TourneyEvents(bot))
     bot.add_cog(TagEvents(bot))
-    bot.add_cog(SlotManagerEvents(bot))
     bot.add_cog(Ssverification(bot))

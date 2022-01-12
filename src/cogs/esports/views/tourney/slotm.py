@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from core import Quotient
 
 from ...helpers import update_confirmed_message
-from cogs.esports.helpers.views import update_channel_for
+
 from tortoise.query_utils import Q
 
 import config
@@ -53,6 +53,12 @@ class TourneySlotManager(discord.ui.View):
 
     def red_embed(self, description: str) -> discord.Embed:
         return discord.Embed(color=discord.Color.red(), title=self.title, description=description)
+
+    async def update_channel_for(self, channel: discord.TextChannel, user, allow=True):
+        if allow:
+            return await channel.set_permissions(user, send_messages=True)
+
+        return await channel.set_permissions(user, overwrite=None)
 
     @staticmethod
     def initial_embed(tourney: Tourney) -> discord.Embed:
@@ -163,7 +169,7 @@ class TourneySlotManager(discord.ui.View):
         if _id := cancel_view.custom_id:
             await interaction.followup.send("Enter the new name for your team.", ephemeral=True)
 
-            await update_channel_for(interaction.channel, interaction.user)
+            await self.update_channel_for(interaction.channel, interaction.user)
 
             try:
                 team_name: discord.Message = await self.bot.wait_for(
@@ -172,11 +178,11 @@ class TourneySlotManager(discord.ui.View):
                     timeout=30,
                 )
             except asyncio.TimeoutError:
-                await update_channel_for(interaction.channel, interaction.user, False)
+                await self.update_channel_for(interaction.channel, interaction.user, False)
                 return await interaction.followup.send("Timed out. Please try again later.", ephemeral=True)
 
             await team_name.delete()
-            await update_channel_for(interaction.channel, interaction.user, False)
+            await self.update_channel_for(interaction.channel, interaction.user, False)
 
             await TMSlot.filter(pk=_id).update(team_name=truncate_string(team_name.content, 30))
             return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)

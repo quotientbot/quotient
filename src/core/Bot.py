@@ -170,12 +170,12 @@ class Quotient(commands.AutoShardedBot):
         print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
 
         if not self.persistent_views_added:  # add persistent views
-            from cogs.esports.views import SlotManagerView, TourneySlotManager
-            from models import SlotManager, Tourney, Guild
+            from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager
+            from models import ScrimsSlotManager, Tourney, Guild
 
             # Persistent views
-            async for record in SlotManager.filter(toggle=True):
-                self.add_view(SlotManagerView(self), message_id=record.message_id)
+            async for record in ScrimsSlotManager.filter(toggle=True):
+                self.add_view(ScrimsSlotmPublicView(self,record=record), message_id=record.message_id)
 
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
                 self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)

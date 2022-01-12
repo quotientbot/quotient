@@ -81,7 +81,17 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
 
     @discord.ui.button(emoji="🔒", label="Match Time", custom_id="scrims_slotm_matcht")
     async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        scrims = await Scrim.filter(guild_id=self.ctx.guild.id)
+        _to_show = [
+            f"{getattr(_.registration_channel,'name','deleted-channel').ljust(8)}"
+            f" {_.match_time.strftime('%I:%M %p') if _.match_time else 'Not-Set'}"
+            for _ in scrims
+        ]
+
+        _e = discord.Embed()
+        _to_show = "\n".join(_to_show)
+        _e.description = f"``` {_to_show}```"
+        await self.ctx.send(embed=_e)
 
     class ScrimsSlotmSelector(discord.ui.Select):
         def __init__(self, records: List[ScrimsSlotManager]):

@@ -1,5 +1,4 @@
 from __future__ import annotations
-from _typeshed import OpenTextMode
 
 from typing import TYPE_CHECKING
 
