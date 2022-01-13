@@ -31,16 +31,21 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
     @staticmethod
     async def initial_message(guild: discord.Guild):
         records = await ScrimsSlotManager.filter(guild_id=guild.id)
-        _to_show = [_.__str__() for _ in records]
+        _to_show = [f"`{idx}.` {_.__str__()}" for idx, _ in enumerate(records, start=1)]
 
         _sm = "\n".join(_to_show) if _to_show else "```No scrims slot managers found.```"
 
         _e = discord.Embed(color=0x00FFB3, title=f"Scrims Slot-Manager Setup")
 
-        _e.description = f"Current slot-manager channels:\n{_sm}"
+        _e.description = (
+            "Slot-Manager is a way to ease-up scrims slot management process. With Quotient's slotm users can - "
+            "cancel their slot, claim an empty slot and also set reminder for vacant slots, All without bugging any mod.\n\n"
+            f"**Current slot-manager channels:**\n{_sm}\n\nDon't forget to set the match times :)"
+        )
+        # _e.set_thumbnail(url=guild.me.avatar.url)
         return _e
 
-    @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc")
+    @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc", emoji=emote.TextChannel)
     async def add_channel(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
         available_scrims = await ScrimsSlotManager.available_scrims(self.ctx.guild)
@@ -74,7 +79,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
 
         # await Scrim.filter(pk__in=view.custom_id).order_by("id")
 
-    @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc")
+    @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc", emoji=emote.edit)
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -96,14 +101,20 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         ]
         _to_show.insert(0, f"   {'Scrims'.ljust(18)}   Match Time\n")
 
-        _e = discord.Embed()
+        _e = discord.Embed(color=self.ctx.bot.color, title="Scrims-Match time", url=self.bot.config.SERVER_LINK)
+
         _to_show = "\n".join(_to_show)
-        _e.description = f"```{_to_show}```"
+        _e.description = (
+            f"Match time means the time when `ID/Pass` \nof that particular scrim is shared.\n```{_to_show}```"
+        )
+
+        _e.set_footer(text="Users cannot cancel/claim slots after this time.", icon_url=self.ctx.guild.me.avatar.url)
 
         _view = QuotientView(self.ctx)
-        _view.add_item(MatchTimeEditor(interaction.guild))
+        _view.add_item(MatchTimeEditor(self.ctx))
+        _view.add_item(QuotientView.tricky_invite_button())
 
-        _view.message = await self.ctx.send(embed=_e, embed_perms=True, view=_view)
+        _view.message = await interaction.followup.send(embed=_e, view=_view, ephemeral=True)
 
 
 class ScrimsSlotmSelector(discord.ui.Select):

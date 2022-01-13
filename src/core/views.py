@@ -1,6 +1,11 @@
 from contextlib import suppress
 import discord
 from core import Context
+from utils import emote
+
+import config
+
+__all__ = ("QuotientView",)
 
 
 class QuotientView(discord.ui.View):
@@ -26,3 +31,10 @@ class QuotientView(discord.ui.View):
 
             with suppress(discord.HTTPException):
                 await self.message.edit(embed=self.message.embeds[0], view=self)
+
+    async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
+        self.ctx.bot.dispatch("command_error", self.ctx, error)
+
+    @staticmethod
+    def tricky_invite_button():  # yes lmao
+        return discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK)

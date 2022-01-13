@@ -4,7 +4,7 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context
+from core import Cog, Context, QuotientView
 from contextlib import suppress
 from .helpers import (
     delete_denied_message,
@@ -25,12 +25,10 @@ from utils import (
     checks,
     FutureTime,
     human_timedelta,
-    get_chunks,
     QuoRole,
     QuoTextChannel,
     QuoUser,
     QuoPaginator,
-    BetterFutureTime,
     LinkType,
     LinkButton,
     discord_timestamp,
@@ -1538,6 +1536,8 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("slotm",))
+    @commands.bot_has_guild_permissions(embed_links=True,manage_messages=True,manage_channels=True)
+    @checks.has_done_setup()
     async def slotmanager(self, ctx: Context):
         """
         SlotManager helps people to setup scrims-slots cancel and claim manager.
@@ -1545,7 +1545,8 @@ class ScrimManager(Cog, name="Esports"):
         """
         _view = ScrimsSlotManagerSetup(ctx)
         _e = await _view.initial_message(ctx.guild)
-        _view.message = await ctx.send(embed=_e, view=_view)
+        _view.add_item(QuotientView.tricky_invite_button())
+        _view.message = await ctx.send(embed=_e, view=_view,embed_perms=True)
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
