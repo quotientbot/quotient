@@ -43,6 +43,8 @@ intents.members = True
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
+os.environ["OMP_THREAD_LIMIT"] = "1"
+
 print(Fore.RED + "-----------------------------------------------------")
 
 
@@ -175,7 +177,7 @@ class Quotient(commands.AutoShardedBot):
 
             # Persistent views
             async for record in ScrimsSlotManager.filter(toggle=True):
-                self.add_view(ScrimsSlotmPublicView(self,record=record), message_id=record.message_id)
+                self.add_view(ScrimsSlotmPublicView(self, record=record), message_id=record.message_id)
 
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
                 self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)

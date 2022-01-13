@@ -349,11 +349,11 @@ class ScrimManager(Cog, name="Esports"):
     @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_config(self, ctx):
+    async def s_config(self, ctx:Context):
         """
         Get config of all the scrims you have setup.
         """
-        allscrims = await Scrim.filter(guild_id=ctx.guild.id).all().order_by("id")
+        allscrims = await Scrim.filter(guild_id=ctx.guild.id).order_by("open_time")
 
         if not allscrims:
             return await ctx.send(
