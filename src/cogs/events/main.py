@@ -19,15 +19,6 @@ import config
 class MainEvents(Cog, name="Main Events"):
     def __init__(self, bot: Quotient):
         self.bot = bot
-        self.bot.loop.create_task(self.super_important_job())
-
-    async def super_important_job(self):
-        await self.bot.wait_until_ready()
-        guild = await self.bot.getch(self.bot.get_guild, self.bot.fetch_guild, config.SERVER_ID)
-        if not guild.chunked:
-            self.bot.loop.create_task(guild.chunk())
-        with suppress(AttributeError, discord.ClientException):
-            await guild.get_channel(844178791735885824).connect()
 
     # incomplete?, I know
     @Cog.listener()
