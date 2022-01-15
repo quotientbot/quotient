@@ -34,16 +34,18 @@ class ScrimsSlotmEditor(EsportsBaseView):
 
         fields = {
             "Main Channel": getattr(self.record.main_channel, "mention", "Not-Found"),
-            "Status": f"{'Enabled' if self.record.toggle else 'Disabled'}",
-            "Allow Reminders": f"{'Enabled' if self.record.allow_reminders else 'Disabled'}",
-            "Allow Multi-Claim": f"{'Enabled' if self.record.multiple_slots else 'Disabled'}",
+            "Slot-m Status": f"{'Enabled' if self.record.toggle else 'Disabled'}",
+            "Reminders button": f"{'Enabled' if self.record.allow_reminders else 'Disabled'}",
+            "Multi Slot-Claim": f"{'Enabled' if self.record.multiple_slots else 'Disabled'}",
             "Scrims": f"{plural(self.record.scrim_ids):scrim|scrims} (`Click to edit`)",
         }
+
         for idx, (name, value) in enumerate(fields.items()):
             _e.add_field(
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
+        _e.add_field(name=f"🟥 Delete Slot-M", value=f"`Click to delete`")
         return _e
 
     async def __update_record(self, **kwargs):
@@ -52,7 +54,7 @@ class ScrimsSlotmEditor(EsportsBaseView):
 
     async def __refresh_embed(self):
         await self.record.refresh_from_db()
-        embed = await self.initial_embed()
+        embed = self.initial_embed()
 
         try:
             self.message = await self.message.edit(embed=embed, view=self)
@@ -82,15 +84,16 @@ class ScrimsSlotmEditor(EsportsBaseView):
     async def edit_slotm_scrims(self, button: discord.Button, interaction: discord.Interaction):
         ...
 
-    @discord.ui.button(custom_id="delete_slotm", label="Delete Slot-M", style=discord.ButtonStyle.red)
+    @discord.ui.button(custom_id="delete_slotm", label="Delete Slot-Manager", style=discord.ButtonStyle.red)
     async def delete_slotm(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
         prompt = Prompt(self.ctx.author.id)
-        await interaction.followup.send("Are you sure you want to delete this Slot-Manager?", view=prompt)
+        await interaction.followup.send("Are you sure you want to delete this Slot-Manager?", view=prompt, ephemeral=True)
         await prompt.wait()
         if not prompt.value:
             return await self.ctx.simple("Alright, Aborting.", 2)
 
         await self.record.full_delete()
-        return await self.ctx.success("Slot-M Deleted.", 2)
+        await self.ctx.success("Slot-M Deleted.", 2)
+        await self.on_timeout()
