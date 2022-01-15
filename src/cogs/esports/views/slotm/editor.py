@@ -23,22 +23,21 @@ __all__ = ("ScrimsSlotmEditor",)
 
 class ScrimsSlotmEditor(EsportsBaseView):
     def __init__(self, ctx: Context, *, record: ScrimsSlotManager):
-        super().__init__(ctx, timeout=60, title="Slot-M Editor")
+        super().__init__(ctx, timeout=30, title="Slot-M Editor")
 
         self.ctx = ctx
         self.bot: Quotient = ctx.bot
         self.record = record
 
-    @classmethod
-    async def initial_embed(cls: ScrimsSlotmEditor):
+    def initial_embed(self):
         _e = discord.Embed(color=0x00FFB3, title="Slot-M Editor")
 
         fields = {
-            "Main Channel": getattr(cls.record.main_channel, "mention", "Not-Found"),
-            "Status": f"{'Enabled' if cls.record.toggle else 'Disabled'}",
-            "Allow Reminders": f"{'Enabled' if cls.record.allow_reminders else 'Disabled'}",
-            "Allow Multi-Claim": f"{'Enabled' if cls.record.multiple_slots else 'Disabled'}",
-            "Scrims": f"{plural(cls.record.scrim_ids):scrim|scrims} (`Click to edit`)",
+            "Main Channel": getattr(self.record.main_channel, "mention", "Not-Found"),
+            "Status": f"{'Enabled' if self.record.toggle else 'Disabled'}",
+            "Allow Reminders": f"{'Enabled' if self.record.allow_reminders else 'Disabled'}",
+            "Allow Multi-Claim": f"{'Enabled' if self.record.multiple_slots else 'Disabled'}",
+            "Scrims": f"{plural(self.record.scrim_ids):scrim|scrims} (`Click to edit`)",
         }
         for idx, (name, value) in enumerate(fields.items()):
             _e.add_field(

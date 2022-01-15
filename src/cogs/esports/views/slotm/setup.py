@@ -1,6 +1,8 @@
 from __future__ import annotations
+from code import interact
 
 from typing import TYPE_CHECKING, List
+
 
 if TYPE_CHECKING:
     from core import Quotient
@@ -13,12 +15,36 @@ from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
 from models import Scrim
-from utils import emote, Prompt
+from utils import emote, Prompt, truncate_string
 
 from .time import MatchTimeEditor
 
+from .editor import ScrimsSlotmEditor
+
 
 __all__ = ("ScrimsSlotManagerSetup",)
+
+
+class ScrimsSlotmSelector(discord.ui.Select):
+    def __init__(self, records: List[ScrimsSlotManager]):
+
+        _o = []
+        for record in records:
+            _o.append(
+                discord.SelectOption(
+                    label=getattr(record.main_channel, "name", "channel-not-found"),  # type: ignore
+                    value=record.id,
+                    description=truncate_string(f"Scrims: {', '.join(str(_) for _ in record.scrim_ids)}", 100),
+                    emoji=emote.TextChannel,
+                )
+            )
+
+        super().__init__(placeholder="Select a slot-manager channel ...", options=_o)
+
+    async def callback(self, interaction: discord.Interaction):
+        self.view.custom_id = self.values[0]
+
+        self.view.stop()
 
 
 class ScrimsSlotManagerSetup(EsportsBaseView):
@@ -89,6 +115,21 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
                 "You haven't added any slot-manager channel yet.\n\nClick `Add Channel` to add a new slot-m channel.", 2
             )
 
+        _view = QuotientView(self.ctx)
+        _view.add_item(ScrimsSlotmSelector(records))
+        # _view.add_item(QuotientView.tricky_invite_button())
+        await interaction.followup.send("Kindly choose a slot-manager channel to edit.", view=_view, ephemeral=True)
+        await _view.wait()
+
+        if _view.custom_id:
+            __record = await ScrimsSlotManager.get(pk=_view.custom_id)
+
+            __editor_view = ScrimsSlotmEditor(self.ctx, record=__record)
+
+            __editor_view.message = await interaction.followup.send(
+                embed=__editor_view.initial_embed(), view=__editor_view
+            )
+
     @discord.ui.button(emoji="🔒", label="Match Time", custom_id="scrims_slotm_matcht")
     async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -115,20 +156,3 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         _view.add_item(QuotientView.tricky_invite_button())
 
         _view.message = await interaction.followup.send(embed=_e, view=_view, ephemeral=True)
-
-
-class ScrimsSlotmSelector(discord.ui.Select):
-    def __init__(self, records: List[ScrimsSlotManager]):
-
-        _o = []
-        for record in records:
-            _o.append(
-                discord.SelectOption(
-                    label=getattr(record.main_channel, "name", "channel-not-found"),  # type: ignore
-                    value=record.id,
-                    description=f"Scrims: {', '.join(str(_) for _ in record.scrim_ids)}",
-                    emoji=emote.TextChannel,
-                )
-            )
-
-        super().__init__(placeholder="Select a slot-manager channel ...", options=_o)

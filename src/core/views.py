@@ -10,6 +10,7 @@ __all__ = ("QuotientView",)
 
 class QuotientView(discord.ui.View):
     message: discord.Message
+    custom_id = None
 
     def __init__(self, ctx: Context, *, timeout=30):
         super().__init__(timeout=timeout)
@@ -30,7 +31,7 @@ class QuotientView(discord.ui.View):
                     b.style, b.disabled = discord.ButtonStyle.grey, True
 
             with suppress(discord.HTTPException):
-                await self.message.edit(embed=self.message.embeds[0], view=self)
+                return await self.message.edit(embed=self.message.embeds[0], view=self)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         self.ctx.bot.dispatch("command_error", self.ctx, error)
