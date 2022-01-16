@@ -1,5 +1,5 @@
 import asyncio
-from inspect import Attribute
+
 from models import BaseDbModel
 
 from tortoise import fields
@@ -72,9 +72,26 @@ class ScrimsSlotManager(BaseDbModel):
         return await Scrim.filter(pk__not_in=await ScrimsSlotManager.unavailable_scrims(guild))
 
     async def full_delete(self):
-        ...
+        """
+        Delete a slotm record.
+        """
+        message = await self.message()
+
+        if message:
+            _embed, _view = await self.public_message()
+            for b in _view.children:
+                if isinstance(b, discord.ui.Button):
+                    b.disabled = True
+
+            await message.edit(embed=_embed, view=_view)
+
+        await self.delete()
 
     async def claimable_slots(self) -> List[str]:
+        """
+        Returns a list of slots that can be claimed
+        """
+
         scrims = Scrim.filter(
             pk__in=self.scrim_ids,
             closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -93,13 +110,18 @@ class ScrimsSlotManager(BaseDbModel):
         return _list
 
     async def public_message(self) -> Tuple[discord.Embed, discord.ui.View]:
+        """
+        Generate public message & view for slot manager.
+        """
 
         from cogs.esports.views.slotm import ScrimsSlotmPublicView
 
         _claimable = await self.claimable_slots()
 
         _claimable = (
-            "\n" + "\n".join(_claimable) or "``` No Slots Available at the time.\nPress 🔔 to set a reminder.```" ""
+            ("\n" + "\n".join(_claimable))
+            if _claimable
+            else "```No Slots Available at the time.\nPress 🔔 to set a reminder.```" ""
         )
 
         _e = discord.Embed(color=0x00FFB3)
@@ -119,6 +141,9 @@ class ScrimsSlotManager(BaseDbModel):
         return _e, view
 
     async def refresh_public_message(self) -> discord.Message:
+        """
+        Edit public slotm message to reflect current state.
+        """
         m = await self.message()
         if not m:
             return await self.full_delete()
@@ -129,6 +154,9 @@ class ScrimsSlotManager(BaseDbModel):
             return await m.edit(embed=_embed, view=_view)
 
     async def get_team_name(self, interaction: discord.Interaction) -> str:
+        """
+        Get team name of user when they claim slot.
+        """
         _c = interaction.channel
 
         await _c.set_permissions(interaction.user, send_messages=True)
@@ -148,3 +176,35 @@ class ScrimsSlotManager(BaseDbModel):
         with suppress(AttributeError):
             await _m.delete()
             return truncate_string(_m.content, 22)
+
+    async def setup(self, guild: discord.Guild, user: discord.Member):
+        """
+        Creates a new channel and setup slot-m.
+        """
+
+        reason = f"Created for Scrims Slot Management by {user}"
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(
+                read_messages=True, send_messages=False, read_message_history=True
+            ),
+            guild.me: discord.PermissionOverwrite(
+                read_messages=True,
+                send_messages=True,
+                manage_channels=True,
+                manage_messages=True,
+                read_message_history=True,
+                embed_links=True,
+            ),
+        }
+
+        __channel = await guild.create_text_channel(name="cancel-claim-slot", overwrites=overwrites, reason=reason)
+
+        self.main_channel_id = __channel.id
+
+        _embed, _view = await self.public_message()
+        m = await __channel.send(embed=_embed, view=_view)
+
+        self.message_id = m.id
+        await self.save()
+        return self

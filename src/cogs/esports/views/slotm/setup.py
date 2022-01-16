@@ -101,9 +101,15 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         await prompt.wait()
 
         if not prompt.value:
-            return await interaction.followup.send("Alright, Aborting.")
+            return await interaction.followup.send("Alright, Aborting.", ephemeral=True)
 
-        # await Scrim.filter(pk__in=view.custom_id).order_by("id")
+        slotm = ScrimsSlotManager(scrim_ids=_view.custom_id, guild_id=interaction.guild_id)
+        self.record = await slotm.setup(self.ctx.guild, interaction.user)
+        await self.ctx.success(
+            f"Successfully setup slotm for selected scrims in {self.record.main_channel.mention}.\n\n"
+            "`You can rename this channel if you want to.`",
+            10,
+        )
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc", emoji=emote.edit)
     async def edit_config(self, button: discord.Button, interaction: discord.Interaction):

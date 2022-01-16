@@ -565,7 +565,7 @@ class ScrimManager(Cog, name="Esports"):
         """
         expire_time = time.dt + timedelta(seconds=10) if time else None
 
-        if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids():
+        if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids(): #!!fix error if trying to ban again
             return await ctx.send(
                 f"**{str(user)}** is already banned from the scrims.\n\n"
                 f"Use `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
