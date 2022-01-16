@@ -51,6 +51,7 @@ class ScrimsSlotmEditor(EsportsBaseView):
     async def __update_record(self, **kwargs):
         await ScrimsSlotManager.filter(pk=self.record.pk).update(**kwargs)
         await self.__refresh_embed()
+        await self.record.refresh_public_message()
 
     async def __refresh_embed(self):
         await self.record.refresh_from_db()
@@ -63,7 +64,8 @@ class ScrimsSlotmEditor(EsportsBaseView):
 
     @discord.ui.button(custom_id="edit_main_slotm_channel", emoji=ri("A"))
     async def edit_main_slotm_channel(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+        return await interaction.followup.send("Main Channel can't be edited. Sorry 🥲", ephemeral=True)
 
     @discord.ui.button(custom_id="edit_slotm_status", emoji=ri("B"))
     async def edit_slotm_status(self, button: discord.Button, interaction: discord.Interaction):

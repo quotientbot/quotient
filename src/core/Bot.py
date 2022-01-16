@@ -176,7 +176,7 @@ class Quotient(commands.AutoShardedBot):
             from models import ScrimsSlotManager, Tourney, Guild
 
             # Persistent views
-            async for record in ScrimsSlotManager.filter(toggle=True):
+            async for record in ScrimsSlotManager.all():
                 self.add_view(ScrimsSlotmPublicView(self, record=record), message_id=record.message_id)
 
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
