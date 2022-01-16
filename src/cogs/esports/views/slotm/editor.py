@@ -17,6 +17,7 @@ from utils import plural, regional_indicator as ri
 
 from string import ascii_uppercase
 import discord
+from .scrimsedit import SlotmScrimsEditor
 
 __all__ = ("ScrimsSlotmEditor",)
 
@@ -84,7 +85,10 @@ class ScrimsSlotmEditor(EsportsBaseView):
 
     @discord.ui.button(custom_id="edit_slotm_scrims", emoji=ri("E"))
     async def edit_slotm_scrims(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+
+        _view = SlotmScrimsEditor(self.ctx, self.record)
+        await interaction.followup.send(embed=_view.initial_embed(), view=_view, ephemeral=True)
 
     @discord.ui.button(custom_id="delete_slotm", label="Delete Slot-Manager", style=discord.ButtonStyle.red)
     async def delete_slotm(self, button: discord.Button, interaction: discord.Interaction):

@@ -11,6 +11,8 @@ import discord
 
 
 class EsportsBaseView(discord.ui.View):
+    message: discord.Message
+
     def __init__(self, ctx: Context, **kwargs):
         super().__init__(timeout=kwargs.get("timeout", 60))
 
@@ -18,7 +20,6 @@ class EsportsBaseView(discord.ui.View):
         self.title = kwargs.get("title", "")
         self.bot: Quotient = ctx.bot
         self.check = lambda msg: msg.channel == self.ctx.channel and msg.author == self.ctx.author
-        self.message: discord.Message = None
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.ctx.author.id:
