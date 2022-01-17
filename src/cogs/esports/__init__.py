@@ -1272,7 +1272,7 @@ class ScrimManager(Cog, name="Esports"):
 
         view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
 
-    @commands.command()
+    @commands.command(extras={"examples": ["quickidp 1234 pass Miramar", "quickidp 1234 pass Sanhok @role"]})
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
     @commands.cooldown(7, 1, type=commands.BucketType.guild)
@@ -1428,7 +1428,7 @@ class ScrimManager(Cog, name="Esports"):
         """
         await ctx.send_help(ctx.command)
 
-    @tagcheck.command(name="set")
+    @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
     @checks.has_done_setup()
     async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int):
