@@ -215,15 +215,20 @@ class Scrim(BaseDbModel):
             msg = await channel.fetch_message(self.slotlist_message_id)
             await msg.edit(embed=embed)
 
-    async def dispatch_reminders(self, slot: "AssignedSlot"):
+    async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
         async for reminder in self.slot_reminders.all():
             user = self.bot.get_user(reminder.user_id)
 
             with suppress(discord.HTTPException, AttributeError):
-                await user.send("reminder bro")  #!!fix this message
+                _e = discord.Embed(color=0x00FFB3, title="Slot Available to Claim", url=link)
+                _e.description = (
+                    f"A slot of {self} is available to claim in {channel.mention}!" "\nClaim it before anyone else do."
+                )
+
+                await user.send(embed=_e)
 
             await ScrimsSlotReminder.filter(pk=reminder.pk).delete()
-        
+
     async def ensure_match_timer(self):
 
         _time = self.match_time
@@ -238,8 +243,6 @@ class Scrim(BaseDbModel):
         ).exists()
         if not check:
             await self.bot.reminders.create_timer(_time, "scrim_match", scrim_id=self.pk)
-
-        print(_time)
 
     async def create_slotlist_img(self):
         """
