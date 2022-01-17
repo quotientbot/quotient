@@ -74,6 +74,11 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc", emoji=emote.TextChannel)
     async def add_channel(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        if not await self.ctx.is_premium_guild():
+            if await ScrimsSlotManager.filter(guild_id=self.ctx.guild.id).count() >= 1:
+                return await self.ctx.premium_mango("You need Quotient Premium to add more than 1 Slot-Manager channel.")
+
         available_scrims = await ScrimsSlotManager.available_scrims(self.ctx.guild)
         if not available_scrims:
             return await self.error_embed(

@@ -28,6 +28,7 @@ class PremiumView(discord.ui.View):
         _e.description += (
             f"\n`{self.text}`\n\n**Quotient Premium includes:**\n"
             "- Host Unlimited Scrims and Tournaments.\n"
+            "- Add unlimited slot-manager channels. (`cancel-claim`)\n"
             "- Unlimited tagcheck and easytag channels.\n"
             "- Custom footer and color of all embeds bot sends.\n"
             "- Custom reactions for tourney and scrims.\n"

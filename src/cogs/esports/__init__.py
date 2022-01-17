@@ -783,7 +783,7 @@ class ScrimManager(Cog, name="Esports"):
         db_guild = await Guild.get(guild_id=ctx.guild.id)
 
         if count >= 2 and not db_guild.is_premium:
-            raise TourneyError("You can't have more than 1 tournaments concurrently.")
+            return await ctx.premium_mango("You need Quotient Prime to setup more than 1 tourney.")
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":

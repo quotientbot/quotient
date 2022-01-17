@@ -93,7 +93,7 @@ class PremiumCog(Cog, name="Premium"):
     @commands.bot_has_permissions(embed_links=True)
     async def perks(self, ctx: Context):
         """Get a list of all available perks you get when You purchase quotient premium."""
-        return await ctx.premium_mango("*I love you, Buy Premium and I'll love you even more*\n*~ deadshot#7999*")
+        return await ctx.premium_mango("Yes, Quotient Prime is cheaper than a 2L coke.")
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):

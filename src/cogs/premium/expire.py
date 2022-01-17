@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from contextlib import suppress
-from models import Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag
+from models import Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag, SSVerify
 import discord
 import config
 from utils import discord_timestamp, plural
@@ -27,6 +27,11 @@ async def deactivate_premium(guild_id: int):
     await EasyTag.filter(id__in=(e.pk for e in _ez)).delete()
 
     await Tourney.filter(guild_id=guild_id).update(emojis={})
+
+    ssverify = await SSVerify.filter(guild_id=guild_id)
+    for _ in ssverify:
+        await _.full_delete()
+        
     return
 
 
@@ -52,6 +57,11 @@ async def extra_guild_perks(guild_id: int):
     if (_ez := await EasyTag.filter(guild_id=guild_id).order_by("id"))[1:]:
         _list.append(
             f"- {len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})"
+        )
+
+    if _ss := await SSVerify.filter(guild_id=guild_id).order_by("id"):
+        _list.append(
+            f"- {len(_ss)} SSVerify setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ss))})"
         )
 
     return _list
