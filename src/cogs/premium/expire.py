@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 from contextlib import suppress
-from models import Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag, SSVerify
+from models import Tourney, Guild, User, Guild, TagCheck, Scrim, EasyTag, SSVerify, ScrimsSlotManager
 import discord
 import config
 from utils import discord_timestamp, plural
@@ -31,7 +31,11 @@ async def deactivate_premium(guild_id: int):
     ssverify = await SSVerify.filter(guild_id=guild_id)
     for _ in ssverify:
         await _.full_delete()
-        
+
+    _slotm = (await ScrimsSlotManager.filter(guild_id=guild_id).order_by("id"))[1:]
+    for _ in _slotm:
+        await _.full_delete()
+
     return
 
 
@@ -51,12 +55,17 @@ async def extra_guild_perks(guild_id: int):
 
     if (_tc := await TagCheck.filter(guild_id=guild_id).order_by("id"))[1:]:
         _list.append(
-            f"- {len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _tc))})"
+            f"- {len(_tc)} tagcheck setup will be removed. (Channels: {', '.join((str(ch.channel) for ch in _tc))})"
         )
 
     if (_ez := await EasyTag.filter(guild_id=guild_id).order_by("id"))[1:]:
         _list.append(
-            f"- {len(_ez)} easytag setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ez))})"
+            f"- {len(_ez)} easytag setup will be removed. (Channels: {', '.join((str(ch.channel) for ch in _ez))})"
+        )
+
+    if (_slotm := await ScrimsSlotManager.filter(guild_id=guild_id).order_by("id"))[1:]:
+        _list.append(
+            f"- {len(_slotm)} scrims slot manager setup will be removed. (Channels: {', '.join((str(ch.main_channel) for ch in _slotm))})"
         )
 
     if _ss := await SSVerify.filter(guild_id=guild_id).order_by("id"):
