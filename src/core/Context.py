@@ -67,10 +67,11 @@ class Context(commands.Context):
         finally:
             return view.value
 
-    async def error(self, message, delete_after=None):
+    async def error(self, message, delete_after=None, **kwargs):
         return await self.reply(
             embed=discord.Embed(description=message, color=discord.Color.red()),
             delete_after=delete_after,
+            **kwargs,
         )
 
     async def safe_delete(self, msg: discord.Message, sleep_for: int = 0):
@@ -90,13 +91,14 @@ class Context(commands.Context):
             **kwargs,
         )
 
-    async def simple(self, message, delete_after=None):
+    async def simple(self, message, delete_after=None, **kwargs):
         return await self.reply(
             embed=discord.Embed(
                 description=message,
                 color=self.bot.color,
             ),
             delete_after=delete_after,
+            **kwargs,
         )
 
     async def is_premium_guild(self):

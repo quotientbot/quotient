@@ -11,7 +11,7 @@ if typing.TYPE_CHECKING:
 from constants import IST
 from utils import emote
 from contextlib import suppress
-from core import Context
+from core import Context, QuotientView
 import discord
 
 
@@ -91,3 +91,18 @@ class MoneyButton(BaseView):
             "Credited Quotient Prime for 1 Month to your account,\n\n"
             "Use `qboost` in any server to upgrade it with Prime."
         )
+
+
+class SetupButtonView(QuotientView):
+    def __init__(self, ctx: Context):
+        super().__init__(ctx, timeout=None)
+        self.ctx = ctx
+
+    @discord.ui.button(label="setup scrims", custom_id="setup_scrims_button")
+    async def setup_scrims_button(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}sm setup` to setup a scrim.")
+
+    @discord.ui.button(label="setup tourney", custom_id="setup_tourney_button")
+    async def setup_tourney_button(self, button: discord.Button, interaction: discord.Interaction):
+        return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament.")

@@ -17,7 +17,7 @@ from collections import Counter
 
 import inspect, time
 
-from .views import MoneyButton, VoteButton
+from .views import MoneyButton, VoteButton, SetupButtonView
 
 from .dev import *
 import discord
@@ -115,11 +115,13 @@ class Quomisc(Cog, name="quomisc"):
         Quotient requires manage channels and manage wehooks permissions for this to work.
         You must have manage server permission.
         """
+
+        _view = SetupButtonView(ctx)
         record = await Guild.get(guild_id=ctx.guild.id)
         if record.private_ch is not None:
-            return await ctx.error(f"You already have a private channel ({record.private_ch.mention})")
+            return await ctx.error(f"You already have a private channel ({record.private_ch.mention})", view=_view)
         channel = await self.make_private_channel(ctx)
-        await ctx.success(f"Created {channel.mention}")
+        await ctx.success(f"Created {channel.mention}", view=_view)
 
     def get_bot_uptime(self, *, brief=False):
         return human_timedelta(self.bot.start_time, accuracy=None, brief=brief, suffix=False)
