@@ -89,6 +89,7 @@ class ScrimsSlotmEditor(EsportsBaseView):
 
         _view = SlotmScrimsEditor(self.ctx, self.record)
         await interaction.followup.send(embed=_view.initial_embed(), view=_view, ephemeral=True)
+        await self.on_timeout()
 
     @discord.ui.button(custom_id="delete_slotm", label="Delete Slot-Manager", style=discord.ButtonStyle.red)
     async def delete_slotm(self, button: discord.Button, interaction: discord.Interaction):

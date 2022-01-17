@@ -15,7 +15,7 @@ __all__ = ("SlotmScrimsEditor",)
 
 class SlotmScrimsEditor(EsportsBaseView):
     def __init__(self, ctx: Context, record: ScrimsSlotManager):
-        super().__init__(ctx, timeout=30, title="Slot-M Editor")
+        super().__init__(ctx, timeout=100, title="Slot-M Editor")
 
         self.ctx = ctx
         self.record = record
@@ -60,10 +60,11 @@ class SlotmScrimsEditor(EsportsBaseView):
         _view = ScrimSelectorView(
             interaction.user, scrims, placeholder="Select scrims to remove from this slot-manager ..."
         )
-        await _view.wait()
+
         await interaction.followup.send(
             "Choose the scrims you want to remove from this slotm.", view=_view, ephemeral=True
         )
+        await _view.wait()
         if _view.custom_id:
             _q = "UPDATE slot_manager SET scrim_ids = $1 WHERE id = $2"
             await self.ctx.bot.db.execute(
