@@ -189,7 +189,8 @@ class ScrimEvents(Cog):
             slotlist_message_id=None,
         )
 
-        await scrim.ensure_match_timer()
+        self.bot.loop.create_task(scrim.ensure_match_timer())
+
         await asyncio.sleep(0.2)
 
         # Opening Channel for Normal Janta

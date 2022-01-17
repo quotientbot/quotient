@@ -231,6 +231,8 @@ class Scrim(BaseDbModel):
 
     async def ensure_match_timer(self):
 
+        from .slotm import ScrimsSlotManager
+
         _time = self.match_time
         while _time < self.bot.current_time:
             _time = _time + timedelta(hours=24)
@@ -243,6 +245,10 @@ class Scrim(BaseDbModel):
         ).exists()
         if not check:
             await self.bot.reminders.create_timer(_time, "scrim_match", scrim_id=self.pk)
+
+        slotm = await ScrimsSlotManager.filter(scrim_ids__contains=self.pk).first()
+        if slotm:
+            await slotm.refresh_public_message()
 
     async def create_slotlist_img(self):
         """
