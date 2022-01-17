@@ -9,7 +9,7 @@ if typing.TYPE_CHECKING:
 from datetime import datetime, timedelta, timezone
 from cogs.quomisc.helper import format_relative
 from utils import get_ipm, human_timedelta, checks, LinkButton, LinkType
-from core import Cog, Context
+from core import Cog, Context, QuotientView
 from models import Guild, Votes, User, Commands
 from discord.ext import commands
 from utils import QuoColor, LinkType, LinkButton, truncate_string
@@ -117,7 +117,9 @@ class Quomisc(Cog, name="quomisc"):
         """
 
         _view = SetupButtonView(ctx)
+        _view.add_item(QuotientView.tricky_invite_button())
         record = await Guild.get(guild_id=ctx.guild.id)
+
         if record.private_ch is not None:
             return await ctx.error(f"You already have a private channel ({record.private_ch.mention})", view=_view)
         channel = await self.make_private_channel(ctx)
