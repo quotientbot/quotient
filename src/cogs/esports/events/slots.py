@@ -1,71 +1,47 @@
-# from __future__ import annotations
-# import typing
+from __future__ import annotations
+import typing
 
-# if typing.TYPE_CHECKING:
-#     from core import Quotient
+if typing.TYPE_CHECKING:
+    from core import Quotient
 
-# import discord
-# from core import Cog
-# from models import Scrim, Timer, SlotManager, SlotLocks
-
-# from datetime import datetime, timedelta
-# from constants import IST
-# from ..helpers import update_main_message, delete_slotmanager, send_sm_logs, SlotLogType
+import discord
+from core import Cog
+from models import Scrim, Timer, ScrimsSlotManager
 
 
-# class SlotManagerEvents(Cog):
-#     def __init__(self, bot: Quotient):
-#         self.bot = bot
+class SlotManagerEvents(Cog):
+    def __init__(self, bot: Quotient):
+        self.bot = bot
 
-#     @Cog.listener()
-#     async def on_scrim_lock_timer_complete(self, timer: Timer):
-#         scrim_id = timer.kwargs["scrim_id"]
-#         scrim = await Scrim.get_or_none(pk=scrim_id)
-#         if not scrim:
-#             return
+    @Cog.listener()
+    async def on_scrim_match_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
 
-#         if (guild := scrim.guild) is None:
-#             return
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if not scrim:
+            return
 
-#         sm = await SlotManager.get_or_none(guild_id=guild.id)
-#         if not sm:
-#             return
+        if not scrim.match_time == timer.expires:
+            return
 
-#         lock = await sm.locks.filter(pk=scrim.id).first()
-#         if lock.lock_at != timer.expires:
-#             return
+        record = await ScrimsSlotManager.get_or_none(scrim_ids__contains=scrim.id)
+        if record:
+            await record.refresh_public_message()
 
-#         new_time = datetime.now(tz=IST) + timedelta(hours=24)
-#         await self.bot.reminders.create_timer(new_time, "scrim_lock", scrim_id=scrim.id)
+    @Cog.listener()
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
+        record = await ScrimsSlotManager.get_or_none(main_channel_id=channel.id)
+        if not record:
+            return
+        await record.full_delete()
 
-#         await SlotLocks.filter(pk=scrim.id).update(locked=True, lock_at=new_time)
-#         await update_main_message(guild.id, self.bot)
+    @Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        if not payload.guild_id:
+            return
 
-#         await send_sm_logs(
-#             sm,
-#             SlotLogType.private,
-#             f"SlotManager for Scrim {scrim.id} ({scrim.registration_channel.mention}) has been locked.\n\n"
-#             "The slots of this scrim can neither be claimed nor cancelled now.\n",
-#         )
+        record = await ScrimsSlotManager.get_or_none(message_id=payload.message_id)
+        if not record:
+            return
 
-#     @Cog.listener()
-#     async def on_guild_channel_delete(self, channel):
-#         if not isinstance(channel, discord.TextChannel):
-#             return
-
-#         record = await SlotManager.get_or_none(main_channel_id=channel.id)
-#         if not record:
-#             return
-
-#         await delete_slotmanager(record, self.bot)
-
-#     @Cog.listener()
-#     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
-#         if not payload.guild_id:
-#             return
-
-#         record = await SlotManager.get_or_none(message_id=payload.message_id)
-#         if not record:
-#             return
-
-#         await delete_slotmanager(record, self.bot)
+        await record.full_delete()

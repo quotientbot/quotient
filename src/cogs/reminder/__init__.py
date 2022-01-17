@@ -68,7 +68,7 @@ class Reminders(Cog):
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
 
-    async def short_timer_optimisation(self, seconds, timer):
+    async def short_timer_optimisation(self, seconds, timer: Timer):
         await asyncio.sleep(seconds)
         event_name = f"{timer.event}_timer_complete"
         self.bot.dispatch(event_name, timer)

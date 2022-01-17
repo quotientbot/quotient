@@ -61,6 +61,9 @@ class MatchTimeEditor(discord.ui.Button):
                 if not all((_c, parsed, parsed > self.ctx.bot.current_time)):
                     continue
 
-                await Scrim.filter(registration_channel_id=_c.id, guild_id=self.ctx.guild.id).update(match_time=parsed)
+                scrim = await Scrim.get_or_none(guild_id=self.ctx.guild.id, registration_channel_id=_c.id)
+                if scrim:
+                    await self.ctx.bot.reminders.create_timer(parsed, "scrim_match", scrim_id=scrim.id)
+                    await Scrim.filter(pk=scrim.pk).update(match_time=parsed)
 
         await interaction.followup.send(f"{emote.check} Done, click Match-Time button to see changes.", ephemeral=True)

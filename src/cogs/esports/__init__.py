@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing
+from cogs.esports.events.slots import SlotManagerEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -349,7 +350,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_config(self, ctx:Context):
+    async def s_config(self, ctx: Context):
         """
         Get config of all the scrims you have setup.
         """
@@ -565,7 +566,7 @@ class ScrimManager(Cog, name="Esports"):
         """
         expire_time = time.dt + timedelta(seconds=10) if time else None
 
-        if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids(): #!!fix error if trying to ban again
+        if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids():  #!!fix error if trying to ban again
             return await ctx.send(
                 f"**{str(user)}** is already banned from the scrims.\n\n"
                 f"Use `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
@@ -1536,7 +1537,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("slotm",))
-    @commands.bot_has_guild_permissions(embed_links=True,manage_messages=True,manage_channels=True)
+    @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
     @checks.has_done_setup()
     async def slotmanager(self, ctx: Context):
         """
@@ -1546,7 +1547,7 @@ class ScrimManager(Cog, name="Esports"):
         _view = ScrimsSlotManagerSetup(ctx)
         _e = await _view.initial_message(ctx.guild)
         _view.add_item(QuotientView.tricky_invite_button())
-        _view.message = await ctx.send(embed=_e, view=_view,embed_perms=True)
+        _view.message = await ctx.send(embed=_e, view=_view, embed_perms=True)
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
@@ -1739,3 +1740,4 @@ def setup(bot):
     bot.add_cog(TourneyEvents(bot))
     bot.add_cog(TagEvents(bot))
     bot.add_cog(Ssverification(bot))
+    bot.add_cog(SlotManagerEvents(bot))

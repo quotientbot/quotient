@@ -50,7 +50,7 @@ class CancelSlotSelector(discord.ui.Select):
 
             _options.append(
                 discord.SelectOption(
-                    label=f"Slot {slot.num} ─ {getattr(scrim.registration_channel,'name','deleted-channel')}",
+                    label=f"Slot {slot.num} ─ #{getattr(scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{slot.team_name} (ID: {scrim.id})",
                     value=f"{scrim.id}:{slot.id}",
                     emoji="📇",
@@ -73,7 +73,7 @@ class ClaimSlotSelector(discord.ui.Select):
 
             _options.append(
                 discord.SelectOption(
-                    label=f"Slot {slots[0]} ─ {getattr(scrim.registration_channel,'name','deleted-channel')}",
+                    label=f"Slot {slots[0]} ─ #{getattr(scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{scrim.name} (ID: {scrim.id})",
                     value=f"{scrim.id}:{slots[0]}",
                     emoji="📇",
@@ -108,13 +108,13 @@ class ScrimsSlotmPublicView(discord.ui.View):
 
         async for scrim in scrims:
             async for slot in scrim.assigned_slots.filter(user_id=interaction.user.id).order_by("num"):
-                _user_slots.append(slot, scrim)
+                _user_slots.append((slot, scrim))
 
         if not _user_slots:
             return await interaction.followup.send("You don't have any slot to cancel.", ephemeral=True)
 
         _user_slots = _user_slots[:25]
-        cancel_view = BaseSelector(interaction.user.id, CancelSlotSelector, slots=_user_slots)
+        cancel_view = BaseSelector(interaction.user.id, CancelSlotSelector, records=_user_slots)
         await interaction.followup.send("Choose a slot to cancel", view=cancel_view, ephemeral=True)
         await cancel_view.wait()
 
@@ -168,7 +168,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 if await scrim.assigned_slots.filter(user_id=interaction.user.id).exists():
                     scrims.remove(scrim)
 
-            if await scrim.banned_teams(user_id=interaction.user.id).exists():
+            if await scrim.banned_teams.filter(user_id=interaction.user.id).exists():
                 with suppress(ValueError):
                     scrims.remove(scrim)
 
@@ -181,13 +181,14 @@ class ScrimsSlotmPublicView(discord.ui.View):
             )
 
         scrims = scrims[:25]
-        claim_view = BaseSelector(interaction.user, ClaimSlotSelector, scrims=scrims)
+        claim_view = BaseSelector(interaction.user.id, ClaimSlotSelector, scrims=scrims)
         await interaction.followup.send("Choose a scrim to claim slot from the dropdown", view=claim_view, ephemeral=True)
         await claim_view.wait()
-
         if c_id := claim_view.custom_id:
             scrim_id, num = c_id.split(":")
-            scrim = [_ for _ in scrims if _.id == scrim_id][0]
+            num = int(num)
+
+            scrim = await Scrim.get(pk=scrim_id)
 
             await interaction.followup.send(
                 "What is your team's name?\n\n`Kindly enter your team name only, full format is not required.`",
@@ -235,7 +236,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 if await scrim.assigned_slots.filter(user_id=interaction.user.id).exists():
                     scrims.remove(scrim)
 
-            if await scrim.banned_teams(user_id=interaction.user.id).exists():
+            if await scrim.banned_teams.filter(user_id=interaction.user.id).exists():
                 with suppress(ValueError):
                     scrims.remove(scrim)
 
@@ -248,7 +249,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 "**No scrim available due one of the following reasons:**\n"
                 "\n- You already have a slot in the scrim."
                 "\n- You are banned from of the scrim."
-                "\n- You already have a slot reminder set.",
+                "\n- You already have a slot reminder set of that scrim.",
                 ephemeral=True,
             )
 
@@ -256,8 +257,8 @@ class ScrimsSlotmPublicView(discord.ui.View):
         _view = ScrimSelectorView(interaction.user, scrims, placeholder="Select scrims to add slot reminder")
 
         await interaction.followup.send(
-            "Select 1 or multiple scrims to set reminder\n\n*By choosing scrims, you confirm that Quotient can "
-            "DM you when any slot is available to claim any of the selected scrims.*",
+            "Select 1 or multiple scrims to set reminder\n\n*By selecting scrims, you confirm that Quotient can "
+            "DM you when any slot is available of the selected scrims.*",
             view=_view,
             ephemeral=True,
         )

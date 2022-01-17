@@ -131,6 +131,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             __record = await ScrimsSlotManager.get(pk=_view.custom_id)
 
             __editor_view = ScrimsSlotmEditor(self.ctx, record=__record)
+            __editor_view.add_item(QuotientView.tricky_invite_button())
 
             __editor_view.message = await interaction.followup.send(
                 embed=__editor_view.initial_embed(), view=__editor_view
@@ -140,7 +141,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
     async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        scrims = await Scrim.filter(guild_id=self.ctx.guild.id)
+        scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time")
         _to_show = [
             f"{idx}) {getattr(_.registration_channel,'name','deleted-channel').ljust(18)}"
             f"   {_.match_time.strftime('%I:%M %p') if _.match_time else 'Not-Set'}"

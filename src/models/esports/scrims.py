@@ -1,5 +1,6 @@
 from contextlib import suppress
-from models import BaseDbModel
+from datetime import timedelta
+from models import BaseDbModel, Timer
 
 from tortoise import fields, models
 from models.helpers import *
@@ -222,6 +223,23 @@ class Scrim(BaseDbModel):
                 await user.send("reminder bro")  #!!fix this message
 
             await ScrimsSlotReminder.filter(pk=reminder.pk).delete()
+        
+    async def ensure_match_timer(self):
+
+        _time = self.match_time
+        while _time < self.bot.current_time:
+            _time = _time + timedelta(hours=24)
+
+        if self.match_time != _time:
+            await Scrim.filter(pk=self.pk).update(match_time=_time)
+
+        check = await Timer.filter(
+            event="scrim_match", expires=_time, extra={"args": [], "kwargs": {"scrim_id": self.pk}}
+        ).exists()
+        if not check:
+            await self.bot.reminders.create_timer(_time, "scrim_match", scrim_id=self.pk)
+
+        print(_time)
 
     async def create_slotlist_img(self):
         """

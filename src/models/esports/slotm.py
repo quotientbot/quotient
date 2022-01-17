@@ -69,7 +69,7 @@ class ScrimsSlotManager(BaseDbModel):
 
     @staticmethod
     async def available_scrims(guild: discord.Guild) -> List[Scrim]:
-        return await Scrim.filter(pk__not_in=await ScrimsSlotManager.unavailable_scrims(guild))
+        return await Scrim.filter(pk__not_in=await ScrimsSlotManager.unavailable_scrims(guild), guild_id=guild.id)
 
     async def full_delete(self):
         """
@@ -104,7 +104,7 @@ class ScrimsSlotManager(BaseDbModel):
 
         async for idx, _ in aenumerate(scrims, start=1):
             _list.append(
-                f"`{idx}` {getattr(_.registration_channel,'mention','deleted-channel')} ─ {plural(_.available_slots):Slot|Slots}"
+                f"`{idx}` {getattr(_.registration_channel,'mention','deleted-channel')}  ─  {plural(_.available_slots):Slot|Slots}"
             )
 
         return _list
@@ -118,21 +118,22 @@ class ScrimsSlotManager(BaseDbModel):
 
         _claimable = await self.claimable_slots()
 
-        _claimable = (
+        _claimable_slots = (
             ("\n" + "\n".join(_claimable))
             if _claimable
             else "```No Slots Available at the time.\nPress 🔔 to set a reminder.```" ""
         )
 
         _e = discord.Embed(color=0x00FFB3)
-        _e.description = f"● Press `cancel-slot` to cancel your slot.\n\n● Available Slots: {_claimable}"
+        _e.description = f"● Press `cancel-slot` to cancel your slot.\n\n● Available Slots: {_claimable_slots}"
 
         view = ScrimsSlotmPublicView(self.bot, record=self)
+
         if not _claimable:
             view.children[1].disabled = True
 
         if not self.allow_reminders:
-            view.children[3].disabled = True
+            view.children[2].disabled = True
 
         if not self.toggle:
             for _ in view.children:
