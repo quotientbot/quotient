@@ -1,4 +1,4 @@
-from models import Scrim, AssignedSlot, ArrayAppend
+from models import Scrim, AssignedSlot, ArrayAppend, ScrimsSlotManager
 from utils import integer_input, string_input, QuoMember, truncate_string
 
 from async_property import async_property
@@ -155,3 +155,7 @@ class SlotlistEditor(discord.ui.View):
         await AssignedSlot.filter(pk=slot.id).delete()
 
         await self.refresh_embed()
+
+        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.scrim.id)
+        if slotm:
+            await slotm.refresh_public_message()
