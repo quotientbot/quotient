@@ -132,9 +132,7 @@ class ScrimManager(Cog, name="Esports"):
         guild = await Guild.get(guild_id=ctx.guild.id)
 
         if count >= 3 and not guild.is_premium:
-            raise ScrimError(
-                f"You need to upgrade to Quotient Premium to host more than 3 scrims.\n[Click Me]({self.bot.prime_link})"
-            )
+            return await ctx.premium_mango("Quotient Prime is required to create more than 3 scrims.")
 
         def check(message: discord.Message):
             if message.content.strip().lower() == "cancel":
@@ -774,7 +772,9 @@ class ScrimManager(Cog, name="Esports"):
     @tourney.command(name="create", aliases=("setup",))
     @checks.can_use_tm()
     @checks.has_done_setup()
-    @commands.bot_has_guild_permissions(embed_links=True, add_reactions=True, manage_channels=True, manage_roles=True)
+    @commands.max_concurrency(1, BucketType.guild)
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
     async def t_create(self, ctx: Context):
         """
         Create or setup tournaments
