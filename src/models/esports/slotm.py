@@ -124,7 +124,7 @@ class ScrimsSlotManager(BaseDbModel):
             else "```No Slots Available at the time.\nPress 🔔 to set a reminder.```" ""
         )
 
-        _e = discord.Embed(color=0x00FFB3)
+        _e = discord.Embed(color=0x00FFB3, title="Scrims Slot Management", url=self.bot.config.SERVER_LINK)
         _e.description = f"● Press `cancel-slot` to cancel your slot.\n\n● Available Slots: {_claimable_slots}"
 
         view = ScrimsSlotmPublicView(self.bot, record=self)

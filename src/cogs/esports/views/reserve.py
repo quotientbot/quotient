@@ -1,5 +1,4 @@
 from utils import string_input, truncate_string, QuoMember, BetterFutureTime
-from ..helpers import available_to_reserve
 from async_property import async_property
 from models import Scrim, ReservedSlot
 from core import Context

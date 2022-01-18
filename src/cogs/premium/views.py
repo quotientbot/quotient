@@ -22,22 +22,22 @@ class PremiumView(discord.ui.View):
     @property
     def premium_embed(self) -> discord.Embed:
         _e = discord.Embed(
-            color=discord.Color.gold(), description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
+            color=0x00FFB3, description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
         )
 
-        _e.description += (
-            f"\n`{self.text}`\n\n**Quotient Premium includes:**\n"
-            "- Host Unlimited Scrims and Tournaments.\n"
-            "- Add unlimited slot-manager channels. (`cancel-claim`)\n"
-            "- Unlimited tagcheck and easytag channels.\n"
-            "- Custom footer and color of all embeds bot sends.\n"
-            "- Custom reactions for tourney and scrims.\n"
-            "- Unlimited ssverification channels. (`youtube/insta`)\n"
-            "- Unlimited media partner channels.\n"
-            "- Premium role in our server and other benefits..."
+        _e.description += f"\n`{self.text}`"  # `\n\n**Quotient Premium includes:**\n"
+        #     "- Host Unlimited Scrims and Tournaments.\n"
+        #     "- Add unlimited slot-manager channels. (`cancel-claim`)\n"
+        #     "- Unlimited tagcheck and easytag channels.\n"
+        #     "- Custom footer and color of all embeds bot sends.\n"
+        #     "- Custom reactions for tourney and scrims.\n"
+        #     "- Unlimited ssverification channels. (`youtube/insta`)\n"
+        #     "- Unlimited media partner channels.\n"
+        #     "- Premium role in our server and other benefits..."
+        #
+        _e.set_image(
+            url="https://cdn.discordapp.com/attachments/782161513825042462/933027639013289984/QUOTIENT-PERKS.png"
         )
-        _e.set_image(url="https://cdn.discordapp.com/attachments/829938693707399178/924018654973157406/new-prices.png")
-        # _e.set_footer(text="Buy Premium and I'll love you even more - deadshot#7999")
         return _e
 
 
