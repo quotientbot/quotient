@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import typing
 
+import asyncio
+
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -99,6 +101,7 @@ class PremiumCog(Cog, name="Premium"):
     async def remind_peeps_to_pay(self):
         await self.bot.wait_until_ready()
 
+        await asyncio.sleep(900)
         async for user in User.filter(
             is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
         ):
