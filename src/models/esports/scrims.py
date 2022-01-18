@@ -233,6 +233,9 @@ class Scrim(BaseDbModel):
 
         from .slotm import ScrimsSlotManager
 
+        if not self.match_time:
+            self.match_time = self.bot.current_time.replace(hour=0, minute=0, microsecond=0, second=0)
+
         _time = self.match_time
         while _time < self.bot.current_time:
             _time = _time + timedelta(hours=24)
