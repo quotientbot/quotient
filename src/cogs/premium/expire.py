@@ -70,7 +70,7 @@ async def extra_guild_perks(guild_id: int):
 
     if _ss := await SSVerify.filter(guild_id=guild_id).order_by("id"):
         _list.append(
-            f"- {len(_ss)} SSVerify setup will be removed. (Channels: {', '.join((ch.channel.name for ch in _ss))})"
+            f"- {len(_ss)} SSVerify setup will be removed. (Channels: {', '.join((str(ch.channel) for ch in _ss))})"
         )
 
     return _list
