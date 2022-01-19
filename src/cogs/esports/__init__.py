@@ -782,7 +782,7 @@ class ScrimManager(Cog, name="Esports"):
         count = await Tourney.filter(guild_id=ctx.guild.id).count()
         db_guild = await Guild.get(guild_id=ctx.guild.id)
 
-        if count >= 2 and not db_guild.is_premium:
+        if count >= 1 and not db_guild.is_premium:
             return await ctx.premium_mango("You need Quotient Prime to setup more than 1 tourney.")
 
         def check(message: discord.Message):
