@@ -144,7 +144,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
             await interaction.followup.send("Alright, Cancelled your slot.", ephemeral=True)
 
             link = f"https://discord.com/channels/{self.record.guild_id}/{self.record.main_channel_id}/{self.record.message_id}"
-            await scrim.dispatch_reminders(slot,interaction.channel,link)
+            await scrim.dispatch_reminders(slot, interaction.channel, link)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="scrims_slot_claim", label="Claim Slot")
     @scrimsslotmdefer()
@@ -264,6 +264,9 @@ class ScrimsSlotmPublicView(discord.ui.View):
             ephemeral=True,
         )
         await _view.wait()
+        if not _view.custom_id:
+            return
+
         scrims = await Scrim.filter(pk__in=_view.custom_id)
 
         for _ in scrims:
