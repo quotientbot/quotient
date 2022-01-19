@@ -234,7 +234,7 @@ class ScrimManager(Cog, name="Esports"):
             f"Role: {scrim.role.mention}",
             f"Minimum Mentions: {scrim.required_mentions}",
             f"Slots: {scrim.total_slots}",
-            f"Open Time: {time(scrim.open_time)}",
+            f"Open Time: {discord_timestamp(scrim.open_time,'t')}",
         )
 
         title = "Are these correct?"
