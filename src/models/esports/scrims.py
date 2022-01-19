@@ -220,7 +220,7 @@ class Scrim(BaseDbModel):
             user = self.bot.get_user(reminder.user_id)
 
             with suppress(discord.HTTPException, AttributeError):
-                _e = discord.Embed(color=0x00FFB3, title="Slot Available to Claim", url=link)
+                _e = discord.Embed(color=0x00FFB3, title=f"Slot Available to Claim - {channel.guild.name}", url=link)
                 _e.description = (
                     f"A slot of {self} is available to claim in {channel.mention}!" "\nClaim it before anyone else do."
                 )
