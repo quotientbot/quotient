@@ -170,7 +170,7 @@ class ScrimsSlotManager(BaseDbModel):
             )
 
         if not _m:
-            await interaction.followup.send("Timed out. Please try again.")
+            await interaction.followup.send("Timed out. Please try again.", ephemeral=True)
 
         await _c.set_permissions(interaction.user, overwrite=None)
 
