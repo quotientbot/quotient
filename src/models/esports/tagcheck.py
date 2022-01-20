@@ -1,3 +1,4 @@
+from models import BaseDbModel
 from tortoise import fields, models
 from typing import Optional
 from models.helpers import *
@@ -5,7 +6,7 @@ from models.helpers import *
 import discord
 
 
-class TagCheck(models.Model):
+class TagCheck(BaseDbModel):
     class Meta:
         table = "tagcheck"
 
@@ -28,8 +29,11 @@ class TagCheck(models.Model):
         if not self._guild is None:
             return discord.utils.get(self._guild.roles, name="quotient-tag-ignore")
 
+    def __str__(self):
+        return f"{getattr(self.channel,'mention','channel-not-found')} (Mentions: `{self.required_mentions}`)"
 
-class EasyTag(models.Model):
+
+class EasyTag(BaseDbModel):
     class Meta:
         table = "easytags"
 
