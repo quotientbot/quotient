@@ -86,6 +86,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
                 "If you have other slot-m channel, first remove the scrims from that channel to add them to new slot-m."
             )
 
+        available_scrims = available_scrims[:25]
         _view = ScrimSelectorView(
             interaction.user, available_scrims, placeholder="Select scrims to add to slot-manager ..."
         )

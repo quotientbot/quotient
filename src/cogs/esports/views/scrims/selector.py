@@ -46,7 +46,7 @@ class ScrimSelectorView(discord.ui.View):
 
         super().__init__(timeout=timeout)
 
-        scrims = scrims[:25]
+        # scrims = scrims[:25]
 
         self.add_item(ScrimSelector(placeholder, scrims, max_values))
 

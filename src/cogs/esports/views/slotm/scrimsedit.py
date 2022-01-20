@@ -38,6 +38,7 @@ class SlotmScrimsEditor(EsportsBaseView):
         if not scrims:
             return await self.ctx.error("All scrims are already added to this or another slot-m.", 3)
 
+        scrims = scrims[:25]
         _view = ScrimSelectorView(interaction.user, scrims, placeholder="Select scrims to add to this slot-manager ...")
         await interaction.followup.send("Choose the scrims you want to add to this slotm.", view=_view, ephemeral=True)
 
@@ -56,7 +57,7 @@ class SlotmScrimsEditor(EsportsBaseView):
         if not self.record.scrim_ids:
             return await self.ctx.error("There are no scrims added to this slot-m.", 3)
 
-        scrims = await Scrim.filter(pk__in=self.record.scrim_ids)
+        scrims = await Scrim.filter(pk__in=self.record.scrim_ids).limit(25)
         _view = ScrimSelectorView(
             interaction.user, scrims, placeholder="Select scrims to remove from this slot-manager ..."
         )
