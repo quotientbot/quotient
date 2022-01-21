@@ -494,21 +494,21 @@ class ScrimManager(Cog, name="Esports"):
         view = SlotlistFormatter(ctx, scrim=scrim)
         view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
 
-    @s_slotlist.command(name="image")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(10, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    async def s_slotlist_image(self, ctx, scrim: Scrim):
-        """
-        Get image version of a slotlist.
-        """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
+    # @s_slotlist.command(name="image")
+    # @checks.can_use_sm()
+    # @checks.has_done_setup()
+    # @commands.cooldown(10, 1, type=commands.BucketType.user)
+    # @commands.bot_has_permissions(embed_links=True, attach_files=True)
+    # async def s_slotlist_image(self, ctx, scrim: Scrim):
+    #     """
+    #     Get image version of a slotlist.
+    #     """
+    #     if not await scrim.teams_registered.count():
+    #         return await ctx.error("Nobody registered yet!")
 
-        files = await scrim.create_slotlist_img()
-        for file in files:
-            await ctx.send(file=file)
+    #     files = await scrim.create_slotlist_img()
+    #     for file in files:
+    #         await ctx.send(file=file)
 
     @smanager.command(name="start")
     @checks.can_use_sm()
