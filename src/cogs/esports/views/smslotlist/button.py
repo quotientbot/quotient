@@ -38,7 +38,7 @@ class SlotlistEditButton(discord.ui.View):
 
         return True
 
-    @discord.ui.button(label="Edit", emote=emote.edit, style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Edit", emoji="📝", style=discord.ButtonStyle.green)
     async def edit_slotlist(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -49,4 +49,4 @@ class SlotlistEditButton(discord.ui.View):
 
         _view = ScrimsSlotlistEditor(self.ctx, self.scrim)
         embed = _view.initial_embed()
-        await interaction.followup.send(embed=embed, view=_view, ephemeral=True)
+        _view.message = await interaction.followup.send(embed=embed, view=_view, ephemeral=True)

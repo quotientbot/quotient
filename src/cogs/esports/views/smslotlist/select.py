@@ -21,7 +21,7 @@ class ScrimSlotSelector(discord.ui.Select):
                 )
             )
 
-        super().__init__(timeout=60)
+        super().__init__(options=_options)
 
     async def callback(self, interaction: discord.Interaction):
         self.view.stop()
@@ -29,4 +29,13 @@ class ScrimSlotSelector(discord.ui.Select):
 
 
 async def prompt_slot_selection(slots: List[AssignedSlot], placeholder: str):
-    ...
+    first, rest = slots[:25], slots[25:]
+
+    _view = discord.ui.View(timeout=60)
+
+    _view.add_item(ScrimSlotSelector(first, placeholder=placeholder))
+
+    if rest:
+        _view.add_item(ScrimSlotSelector(rest, placeholder=placeholder))
+
+    return _view

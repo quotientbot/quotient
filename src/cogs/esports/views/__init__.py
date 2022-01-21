@@ -6,3 +6,5 @@ from .slotlist_formatter import *
 from .tourney import *
 
 from .slotm import *
+
+from .smslotlist import *

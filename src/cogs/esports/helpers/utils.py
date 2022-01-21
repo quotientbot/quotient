@@ -14,7 +14,6 @@ import config
 import asyncio
 import re
 
-
 from core import Context
 from constants import ScrimBanType, IST
 
@@ -131,10 +130,14 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
 
     if scrim.autoslotlist and await scrim.teams_registered:
+        from ..views import SlotlistEditButton
+
         await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
+
+        _v = SlotlistEditButton(ctx, scrim)
         with suppress(AttributeError, discord.Forbidden):
-            slotmsg = await channel.send(embed=embed)
+            slotmsg = await channel.send(embed=embed, view=_v)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
 
     if scrim.autodelete_extras:
