@@ -208,11 +208,13 @@ class Scrim(BaseDbModel):
         channel = self.slotlist_channel
         return embed, channel
 
-    async def refresh_slotlist_message(self):
+    async def refresh_slotlist_message(self, msg: discord.Message = None):
         embed, channel = await self.create_slotlist()
 
         with suppress(discord.HTTPException, AttributeError):
-            msg = await channel.fetch_message(self.slotlist_message_id)
+            if not msg:
+                msg = await channel.fetch_message(self.slotlist_message_id)
+
             await msg.edit(embed=embed)
 
     async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):

@@ -16,6 +16,8 @@ __all__ = ("SlotlistEditButton",)
 
 
 class SlotlistEditButton(discord.ui.View):
+    message: discord.Message
+
     def __init__(self, ctx: Context, scrim: Scrim):
         super().__init__(timeout=None)
 
@@ -47,6 +49,6 @@ class SlotlistEditButton(discord.ui.View):
         except OperationalError:
             await interaction.followup.send("This scrim has been deleted.", ephemeral=True)
 
-        _view = ScrimsSlotlistEditor(self.ctx, self.scrim)
+        _view = ScrimsSlotlistEditor(self.ctx, self.scrim, self.message)
         embed = _view.initial_embed()
         _view.message = await interaction.followup.send(embed=embed, view=_view, ephemeral=True)
