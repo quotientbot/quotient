@@ -476,13 +476,14 @@ class ScrimManager(Cog, name="Esports"):
         """
         Edit a slotlist
         """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
+        msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
+        if not msg:
+            return await ctx.error("Slotlist Message not found.")
+        
+        _view = ScrimsSlotlistEditor(ctx, scrim, msg)
+        embed = _view.initial_embed()
+        _view.message = await ctx.send(embed=embed,view=_view)
 
-        embed, channel = await scrim.create_slotlist()
-
-        view = SlotlistEditor(ctx, scrim)
-        view.message = await ctx.send(embed=embed, view=view)
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()

@@ -6,7 +6,7 @@ from contextlib import suppress
 from core import Context
 import discord
 
-from models import Scrim, ArrayAppend, ScrimsSlotManager, AssignedSlot
+from models import Scrim, ArrayAppend, ScrimsSlotManager, AssignedSlot, ArrayRemove
 
 from .select import prompt_slot_selection
 
@@ -176,6 +176,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
 
             _slot = await AssignedSlot.create(num=slot_id, team_name=team_name, user_id=user_id)
             await self.scrim.assigned_slots.add(_slot)
+            await self.scrim.make_changes(available_slots=ArrayRemove("available_slots", slot_id))
 
             await self.scrim.refresh_slotlist_message(self.slotlist_message)
 
