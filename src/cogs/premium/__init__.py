@@ -102,9 +102,7 @@ class PremiumCog(Cog, name="Premium"):
         await self.bot.wait_until_ready()
 
         await asyncio.sleep(900)
-        async for user in User.filter(
-            is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=10)
-        ):
+        async for user in User.filter(is_premium=True, premium_expire_time__lte=datetime.now(tz=IST) + timedelta(days=4)):
             _u = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user.pk)
             if _u:
                 if not await self.ensure_reminders(user.pk, user.premium_expire_time):
@@ -112,7 +110,7 @@ class PremiumCog(Cog, name="Premium"):
 
                 await remind_user_to_pay(_u, user)
 
-        async for guild in Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST) + timedelta(days=10)):
+        async for guild in Guild.filter(is_premium=True, premium_end_time__lte=datetime.now(IST) + timedelta(days=4)):
             _g = self.bot.get_guild(guild.pk)
 
             if not await self.ensure_reminders(guild.pk, guild.premium_end_time):
