@@ -31,7 +31,7 @@ class SlotlistEditButton(discord.ui.View):
                 "scrim-mod" in (_.name.strip().lower() for _ in interaction.user.roles),
             )
         ):
-            return await interaction.followup.send(
+            return await interaction.response.send_message(
                 embed=discord.Embed(
                     color=discord.Color.red(),
                     description=("You need `manage server` permissions or `scrim-mod` role to edit this slotlist."),
