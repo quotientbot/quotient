@@ -35,7 +35,8 @@ class SlotlistEditButton(discord.ui.View):
                 embed=discord.Embed(
                     color=discord.Color.red(),
                     description=("You need `manage server` permissions or `scrim-mod` role to edit this slotlist."),
-                )
+                ),
+                ephemeral=True,
             )
 
         return True
