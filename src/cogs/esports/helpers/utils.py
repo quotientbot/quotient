@@ -137,8 +137,8 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
 
         _v = SlotlistEditButton(ctx, scrim)
         with suppress(AttributeError, discord.Forbidden):
-            slotmsg = await channel.send(embed=embed, view=_v)
-            await Scrim.filter(pk=scrim.id).update(slotlist_message_id=slotmsg.id)
+            _v.message = await channel.send(embed=embed, view=_v)
+            await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)
 
     if scrim.autodelete_extras:
         msg_ids = (i.message_id for i in await scrim.assigned_slots.all())

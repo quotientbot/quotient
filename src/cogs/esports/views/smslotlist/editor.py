@@ -20,12 +20,12 @@ __all__ = ("ScrimsSlotlistEditor",)
 class ScrimsSlotlistEditor(discord.ui.View):
     message: discord.Message
 
-    def __init__(self, ctx: Context, scrim: Scrim, message: discord.Message):
+    def __init__(self, ctx: Context, scrim: Scrim, slotlist_message: discord.Message):
         super().__init__(timeout=30)
 
         self.ctx = ctx
         self.scrim = scrim
-        self.message = message
+        self.slotlist_message = slotlist_message
 
     async def on_timeout(self) -> None:
         if not hasattr(self, "message"):
@@ -93,7 +93,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
 
             _e.description = "Slotlist updated successfully."
             await interaction.followup.send(embed=_e, ephemeral=True)
-            return await self.scrim.refresh_slotlist_message(self.message)
+            return await self.scrim.refresh_slotlist_message(self.slotlist_message)
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Remove Team", custom_id="smslot_remove_team")
     async def remove_team_name(self, button: discord.Button, interaction: discord.Interaction):
