@@ -45,9 +45,10 @@ class ScrimsSlotlistEditor(discord.ui.View):
     async def change_team_name(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        _v = await prompt_slot_selection(
-            await self.scrim.assigned_slots.all().order_by("num"), placeholder="Select the slot to change..."
-        )
+        __slots = await self.scrim.assigned_slots.all().order_by("num")
+        if not __slots:
+            return await interaction.followup.send("No slot available to replace.", ephemeral=True)
+        _v = await prompt_slot_selection(__slots, placeholder="Select the slot to change...")
 
         _e = discord.Embed(color=0x00FFB3, description="Kindly choose a slot from the dropdown.")
 
@@ -98,9 +99,12 @@ class ScrimsSlotlistEditor(discord.ui.View):
     @discord.ui.button(style=discord.ButtonStyle.red, label="Remove Team", custom_id="smslot_remove_team")
     async def remove_team_name(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
-        _v = await prompt_slot_selection(
-            await self.scrim.assigned_slots.all().order_by("num"), placeholder="Select the slot to remove..."
-        )
+
+        __slots = await self.scrim.assigned_slots.all().order_by("num")
+        if not __slots:
+            return await interaction.followup.send("No slot available to remove.", ephemeral=True)
+
+        _v = await prompt_slot_selection(__slots, placeholder="Select the slot to remove...")
         await interaction.followup.send("Kindly choose a slot from the dropdown.", view=_v, ephemeral=True)
 
         await _v.wait()
