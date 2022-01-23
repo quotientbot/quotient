@@ -211,7 +211,7 @@ class PremiumCog(Cog, name="Premium"):
             url=self.bot.config.SERVER_LINK,
             description=(
                 f"{random_greeting()} {member.mention},\n"
-                "Thanks for purchasing Quotient Premium. **Upgrade any server with premium perks for 30 days with "
+                "Thanks for purchasing Quotient Premium. **Upgrade any server with premium perks for 28 days with "
                 "`qboost` command** or select a server from Select Menu provided below."
             ),
         )

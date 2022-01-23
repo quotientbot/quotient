@@ -255,6 +255,10 @@ class Scrim(BaseDbModel):
         if slotm:
             await slotm.refresh_public_message()
 
+    
+    async def make_changes(self,**kwargs):
+        return await Scrim.filter(pk=self.pk).update(**kwargs)
+
     async def create_slotlist_img(self):
         """
         This is done! Now do whatever you can : )
