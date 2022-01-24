@@ -12,8 +12,10 @@ class ScrimsCommands(EsportsBaseView):
 
         self.ctx = ctx
 
-    async def initial_message(self):
-        ...
+    async def initial_message(self) -> discord.Embed:
+        _e = discord.Embed(color=0x00ffb3)
+        return _e
+
 
     @discord.ui.button(label="Create New", style=discord.ButtonStyle.blurple, custom_id="c_new_scrim")
     async def create_new_scrim(self, button: discord.Button, interaction: discord.Interaction):
@@ -27,7 +29,7 @@ class ScrimsCommands(EsportsBaseView):
     async def slotlist_settings(self, button: discord.Button, interaction: discord.Interaction):
         ...
 
-    @discord.ui.button(label="Scrim Settings", style=discord.ButtonStyle.blurple, custom_id="c_scrim_settings")
+    @discord.ui.button(label="Scrim Info", style=discord.ButtonStyle.blurple, custom_id="c_scrim_info")
     async def scrim_settings(self, button: discord.Button, interaction: discord.Interaction):
         ...
 
