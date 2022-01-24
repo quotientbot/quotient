@@ -28,7 +28,7 @@ class SlotlistEditButton(discord.ui.View):
         if not any(
             (
                 interaction.user.guild_permissions.manage_guild,
-                "scrim-mod" in (_.name.strip().lower() for _ in interaction.user.roles),
+                "scrims-mod" in (_.name.strip().lower() for _ in interaction.user.roles),
             )
         ):
             return await interaction.response.send_message(
