@@ -255,7 +255,7 @@ class Quotient(commands.AutoShardedBot):
     @async_property
     async def db_latency(self):
         t1 = time.perf_counter()
-        await self.db.execute("SELECT 1;")
+        await self.db.fetchval("SELECT 1;")
         t2 = time.perf_counter() - t1
         return f"{t2*1000:.2f} ms"
 
