@@ -52,6 +52,10 @@ class VerifyImageError(Enum):
 class SSType(Enum):
     yt = "youtube"
     insta = "instagram"
+    rooter = "rooter"
+    loco = "loco"
+    gforms = "gforms"
+    anyss = "anyss"
 
 
 class EsportsLog(Enum):
