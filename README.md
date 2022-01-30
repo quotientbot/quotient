@@ -4,7 +4,7 @@
 <br />
 <p align="center">
   <a href="https://quotientbot.xyz/">
-    <img src="https://images-ext-2.discordapp.net/external/kyAZe_dSdtyWkGpY2gj3bQ5QmlZ2FXIGn1sMLu7E0ks/%3Fsize%3D1024/https/cdn.discordapp.com/avatars/746348747918934096/d6d9b5c3476078f542a56699bf5d391a.png?width=656&height=656" alt="Logo" width="80" height="80">
+    <img src="https://cdn.discordapp.com/attachments/782161513825042462/937419510447751249/quotient.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Quotient Bot</h3>
