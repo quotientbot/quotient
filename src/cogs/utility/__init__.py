@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from discord.utils import escape_markdown
+from discord.utils import escape_markdown, escape_mentions
 import typing
 from cogs.utility.events import AutoPurgeEvents, ReminderEvents
 
@@ -269,6 +269,21 @@ class Utility(Cog, name="utility"):
             return await ctx.error("Tag doesn't have any content")
         await ctx.send(name.content, reference=ctx.replied_reference)
         await increment_usage(ctx, name.name)
+
+    @tag.command(name="raw")
+    @commands.bot_has_permissions(attach_files=True)
+    async def raw_tag_content(self, ctx: Context, *, name: TagConverter):
+        """Get the raw content of the tag"""
+        if name.is_nsfw and not ctx.channel.is_nsfw():
+            return await ctx.error("This tag can only be used in NSFW channels.")
+        if not name.content:
+            return await ctx.error("Tag does not have any content")
+        temp = escape_markdown(name.content).replace('<', '\\<')  # why not!?
+        main = escape_mentions(temp)
+        if len(main) > 1990:  # for some reason exact `2000` do not work...
+            file_obj = BytesIO(main.encode())
+            return await ctx.send(file=discord.File(file_obj, filename="message_too_long.txt"))
+        await ctx.send(main, allowed_mentions=discord.AllowedMentions.none())
 
     @tag.command(name="all", aliases=("list",))
     async def all_tags(self, ctx: Context, member: QuoMember = None):
