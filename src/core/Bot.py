@@ -47,6 +47,8 @@ os.environ["OMP_THREAD_LIMIT"] = "1"
 
 print(Fore.RED + "-----------------------------------------------------")
 
+__all__ = ("Quotient", "bot")
+
 
 class Quotient(commands.AutoShardedBot):
     def __init__(self, **kwargs):
@@ -294,3 +296,12 @@ class Quotient(commands.AutoShardedBot):
 
         with suppress(discord.HTTPException):
             await guild.owner.send(embed=_e, view=view)
+
+
+bot = Quotient()
+
+
+@bot.before_invoke
+async def bot_before_invoke(ctx: Context):
+    if (_g := ctx.guild) != None and not _g.chunked:
+        bot.loop.create_task(_g.chunk())
