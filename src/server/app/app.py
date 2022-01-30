@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import APIKeyHeader
+import config
 
-
-api_scheme = APIKeyHeader(name="apikey")
+api_scheme = APIKeyHeader(name="authorization")
 
 
 async def verify_key(key: str = Depends(api_scheme)):
-    if key != "myconfigkey":
+    if key != config.NEW_SERVER_KEY:
         raise HTTPException(status_code=403)
 
 
