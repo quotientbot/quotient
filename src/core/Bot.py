@@ -7,7 +7,6 @@ if typing.TYPE_CHECKING:
 
 
 from discord import AllowedMentions, Intents
-from colorama import Fore, init
 from discord.ext import commands
 from tortoise import Tortoise
 
@@ -34,8 +33,6 @@ from .Help import HelpCommand
 from .HttpHandler import QuoHttpHandler
 from .cache import CacheManager
 
-
-init(autoreset=True)
 intents = Intents.default()
 intents.members = True
 
@@ -45,9 +42,10 @@ os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 os.environ["OMP_THREAD_LIMIT"] = "1"
 
-print(Fore.RED + "-----------------------------------------------------")
-
 __all__ = ("Quotient", "bot")
+
+
+on_startup: typing.List[typing.Callable[["Quotient"], typing.Coroutine]] = []
 
 
 class Quotient(commands.AutoShardedBot):
@@ -77,15 +75,21 @@ class Quotient(commands.AutoShardedBot):
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
+        for coro_func in on_startup:
+            self.loop.create_task(coro_func(self))
+
+    @on_startup.append
+    async def __load_extensions(self):
         for ext in self.config.EXTENSIONS:
-            try:
-                self.load_extension(ext)
-                print(Fore.GREEN + f"[EXTENSION] {ext} was loaded successfully!")
-            except Exception as e:
-                tb = traceback.format_exception(type(e), e, e.__traceback__)
-                tbe = "".join(tb) + ""
-                print(Fore.RED + f"[WARNING] Could not load extension {ext}: {tbe}")
-        print(Fore.RED + "-----------------------------------------------------")
+            self.load_extension(ext)
+
+        print("All Extensions Loaded ...")
+
+    @on_startup.append
+    async def __load_webserver(self):
+        await self.wait_until_ready()
+        if self.user.id == self.config.MAIN_BOT:
+            self.load_extension("server")
 
     @property
     def config(self) -> cfg:
@@ -123,19 +127,14 @@ class Quotient(commands.AutoShardedBot):
         if not message.guild:
             return
 
-        # if self.user.id == 765159200204128266:  # its the beta bot
-        #     prefix = ""
+        guild = self.cache.guild_data.get(message.guild.id)
+        if guild:
+            prefix = guild.get("prefix")
+
         else:
-            guild = self.cache.guild_data.get(message.guild.id)
-            if guild:
-                prefix = guild["prefix"]
+            self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": cfg.FOOTER}
 
-            else:
-                self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": cfg.FOOTER}
-                prefix = "q"
-
-        if prefix is None:
-            prefix = "q"
+        prefix = prefix or "q"
 
         return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
 
@@ -169,9 +168,8 @@ class Quotient(commands.AutoShardedBot):
         await csts.show_tip(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
-    async def on_ready(self) -> NoReturn:  # yes we love colors and colorama
-        print(Fore.RED + "------------------------------------------------------")
-        print(Fore.BLUE + f"[Quotient] Logged in as {self.user.name}({self.user.id})")
+    async def on_ready(self) -> NoReturn:
+        print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
 
         if not self.persistent_views_added:  # add persistent views
             from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager
