@@ -136,7 +136,9 @@ class Quotient(commands.AutoShardedBot):
 
         prefix = prefix or "q"
 
-        return tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+        return commands.when_mentioned_or(
+            *tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+        )(self, message)
 
     async def close(self) -> NoReturn:
         await super().close()

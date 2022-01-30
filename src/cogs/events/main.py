@@ -40,7 +40,7 @@ class MainEvents(Cog, name="Main Events"):
 
     @Cog.listener()
     async def on_mention(self, ctx: Context):
-        prefix = self.bot.cache.guild_data[ctx.guild.id]["prefix"] or "q"
+        prefix = self.bot.cache.guild_data[ctx.guild.id].get("prefix", "q")
         await ctx.send(
             f"{random_greeting()} You seem lost. Are you?\n"
             f"Current prefix for this server is: `{prefix}`.\n\nUse it like: `{prefix}help`"

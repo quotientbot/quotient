@@ -218,7 +218,7 @@ class Commands(models.Model):
     user_id = fields.BigIntField(index=True)
     cmd = fields.CharField(max_length=100, index=True)
     used_at = fields.DatetimeField(auto_now=True)
-    prefix = fields.CharField(max_length=20)
+    prefix = fields.CharField(max_length=100)
     failed = fields.BooleanField(default=False)
 
 

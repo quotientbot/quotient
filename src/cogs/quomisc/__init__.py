@@ -228,8 +228,13 @@ class Quomisc(Cog, name="quomisc"):
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx: Context, *, new_prefix: str):
+    async def prefix(self, ctx: Context, *, new_prefix: str=None):
         """Change your server's prefix"""
+
+        if not new_prefix:
+            prefix = self.bot.cache.guild_data[ctx.guild.id].get("prefix", "q")
+            return await ctx.simple(f"Prefix for this server is `{prefix}`")
+      
         if len(new_prefix) > 5:
             return await ctx.error(f"Prefix cannot contain more than 5 characters.")
 
