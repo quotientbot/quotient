@@ -42,7 +42,7 @@ async def deactivate_premium(guild_id: int):
 async def extra_guild_perks(guild_id: int):
 
     _list = [
-        "- No custom color and footer for embeds.",
+        "- Can't use Quotient Prime bot.",
         "- Tourney reactions emojis will be changed to default.",
         "- No more than 1 Media Partner Channel per tourney.",
     ]
@@ -83,17 +83,14 @@ async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
         )
 
         _e.description = (
-            f"This is to inform you that your subscription of **Quotient Prime** is ending {discord_timestamp(model.premium_end_time)}"
-            "\n\n*Wondering What you'll lose?*"
+            f"This is to inform you that your subscription of **Quotient Prime** is ending soon "
+            f"({discord_timestamp(model.premium_end_time,'D')})"
+            "\n\n*Kindly renew your subscription to continue using Quotient Premium features.*"
         )
-
-        _perks = "\n".join(await extra_guild_perks(guild.id))
 
         _roles = [
             role.mention for role in guild.roles if all((role.permissions.administrator, not role.managed, role.members))
         ]
-
-        _e.description += f"```diff\n{_perks}```"
 
         _view = PremiumView(label="Buy Quotient Prime")
         await _ch.send(
