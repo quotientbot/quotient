@@ -85,11 +85,11 @@ class Quotient(commands.AutoShardedBot):
 
         print("All Extensions Loaded ...")
 
-    @on_startup.append
-    async def __load_webserver(self):
-        await self.wait_until_ready()
-        if self.user.id == self.config.MAIN_BOT:
-            self.load_extension("server")
+    # @on_startup.append
+    # async def __load_webserver(self):
+    #     await self.wait_until_ready()
+    #     if self.user.id == self.config.MAIN_BOT:
+    #         self.load_extension("server")
 
     @property
     def config(self) -> cfg:
