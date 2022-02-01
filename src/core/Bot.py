@@ -127,6 +127,7 @@ class Quotient(commands.AutoShardedBot):
         if not message.guild:
             return
 
+        prefix = None
         guild = self.cache.guild_data.get(message.guild.id)
         if guild:
             prefix = guild.get("prefix")
