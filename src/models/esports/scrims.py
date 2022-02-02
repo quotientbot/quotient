@@ -10,7 +10,7 @@ from PIL import Image, ImageFont, ImageDraw
 from discord.ext.commands import BadArgument, TextChannelConverter, ChannelNotFound
 
 from ast import literal_eval as leval
-from typing import Optional, Union
+from typing import Optional, Union, List
 from pathlib import Path
 
 import discord
@@ -170,7 +170,7 @@ class Scrim(BaseDbModel):
 
     @property
     def teams_registered(self):  # This should be awaited
-        return self.assigned_slots.order_by("num").all()
+        return self.assigned_slots.order_by("num")
 
     async def reserved_user_ids(self):
         return (i.user_id for i in await self.reserved_slots.all())
@@ -178,14 +178,20 @@ class Scrim(BaseDbModel):
     async def banned_user_ids(self):
         return (i.user_id for i in await self.banned_teams.all())
 
-    async def create_slotlist(self):
-        slots = await self.teams_registered
-        ids = {slot.num for slot in slots}
-        fslots = []
-        for id in ids:
-            fslots.append([slot for slot in slots if slot.num == id][0])
+    async def cleaned_slots(self) -> List["AssignedSlot"]:
+        slots = await self.assigned_slots.order_by("num")
 
-        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in fslots)
+        _list = []
+        for _ in {slot.num for slot in slots}:
+            _list.append(next(i for i in slots if i.num == _))
+
+        return _list
+
+    async def create_slotlist(self):
+
+        _slots = await self.cleaned_slots()
+
+        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
 
         if self.slotlist_format is not None:
             format = leval(self.slotlist_format)
@@ -255,9 +261,17 @@ class Scrim(BaseDbModel):
         if slotm:
             await slotm.refresh_public_message()
 
-    
-    async def make_changes(self,**kwargs):
+    async def make_changes(self, **kwargs):
         return await Scrim.filter(pk=self.pk).update(**kwargs)
+
+    async def get_text_slotlist(self):
+        _text = f"{self} Slot details:\n\n"
+        _slots = await self.cleaned_slots()
+
+        for _ in _slots:
+            _text += f"{_.num}. {_.team_name} <@{_.user_id}>\n"
+
+        return _text
 
     async def create_slotlist_img(self):
         """

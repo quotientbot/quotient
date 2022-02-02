@@ -102,8 +102,6 @@ class ScrimEvents(Cog):
             await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
             self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
 
-            self.bot.dispatch("scrim_log", EsportsLog.success, scrim, message=ctx.message)
-
             if len(scrim.available_slots) == 1:
                 await scrim_end_process(ctx, scrim)
 

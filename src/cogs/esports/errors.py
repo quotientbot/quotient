@@ -16,7 +16,6 @@ from models import (
     EasyTag,
 )
 from .helpers import (
-    get_pretty_slotlist,
     delete_denied_message,
     scrim_work_role,
     tourney_work_role,
@@ -190,20 +189,19 @@ class SMError(Cog):
                 permission_updated = kwargs.get("permission_updated")
                 embed.description = f"Registration closed for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)\n\nUse `smanager slotlist edit {scrim.id}` to edit the slotlist."
 
-                slotlist = await get_pretty_slotlist(scrim)
-                await logschan.send(file=slotlist)
+                await logschan.send(await scrim.get_text_slotlist())
 
                 if not permission_updated:
                     important = True
                     embed.color = discord.Color.red()
                     embed.description += f"\nI couldn't close {registration_channel.mention}."
 
-            elif _type == EsportsLog.success:
+            # elif _type == EsportsLog.success:
 
-                message = kwargs.get("message")
+            #     message = kwargs.get("message")
 
-                embed.color = discord.Color.green()
-                embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
+            #     embed.color = discord.Color.green()
+            #     embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
 
             await logschan.send(
                 content=modrole.mention if modrole is not None and important is True else None,

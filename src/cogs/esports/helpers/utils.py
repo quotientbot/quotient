@@ -123,6 +123,9 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
+ 
+    await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
+
     _e = registration_close_embed(scrim)
 
     await registration_channel.send(embed=_e)
@@ -132,7 +135,6 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
     if scrim.autoslotlist and await scrim.teams_registered:
         from ..views import SlotlistEditButton
 
-        await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
         embed, channel = await scrim.create_slotlist()
 
         _v = SlotlistEditButton(ctx, scrim)
@@ -145,7 +147,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
         check = lambda x: all(
             (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
         )
-        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check))
+        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check,wait_for=20))
 
 
 async def purge_channel(channel):
@@ -269,18 +271,6 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
         return "@everyone"
     return getattr(role, "mention", "Role deleted!")
 
-
-async def get_pretty_slotlist(scrim: Scrim):
-    guild = scrim.guild
-
-    table = PrettyTable()
-    table.field_names = ["Slot", "Team Name", "Leader", "Jump URL"]
-    for i in await scrim.teams_registered:
-        member = guild.get_member(i.user_id)
-        table.add_row([i.num, i.team_name, str(member), i.jump_url])
-
-    fp = io.BytesIO(table.get_string().encode())
-    return discord.File(fp, filename="slotlist.txt")
 
 
 async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
