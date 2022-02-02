@@ -287,8 +287,14 @@ class ScrimManager(Cog, name="Esports"):
                 )
                 await note.pin()
 
+            scrim.autoclean_time = self.bot.current_time.replace(hour=4, minute=0, second=0, microsecond=0) + timedelta(
+                days=1
+            )
             await scrim.save()
             await self.reminders.create_timer(scrim.open_time, "scrim_open", scrim_id=scrim.id)
+
+            await self.bot.reminders.create_timer(scrim.autoclean_time, "autoclean", scrim_id=scrim.id)
+
             text = f"Scrims Management Setup Complete. (`Scrims ID: {scrim.id}`)"
             try:
                 await message.edit(content=text)
@@ -479,11 +485,10 @@ class ScrimManager(Cog, name="Esports"):
         msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
         if not msg:
             return await ctx.error("Slotlist Message not found.")
-        
+
         _view = ScrimsSlotlistEditor(ctx, scrim, msg)
         embed = _view.initial_embed()
-        _view.message = await ctx.send(embed=embed,view=_view)
-
+        _view.message = await ctx.send(embed=embed, view=_view)
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
