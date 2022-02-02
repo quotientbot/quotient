@@ -6,14 +6,16 @@ if TYPE_CHECKING:
     from core import Quotient
 
 from core import Context
-from ...views.base import EsportsBaseView
+from models import SSVerify
+
+# from ...views.base import EsportsBaseView
 from ...views.paginator import EsportsPaginator
 
 import discord
 
 
 class SSmodEditor(EsportsPaginator):
-    def __init__(self, ctx: Context, pages: List[discord.Embed]):
+    def __init__(self, ctx: Context, pages: List[discord.Embed], records: List[SSVerify]):
         super().__init__(ctx, pages=pages)
 
         self.ctx = ctx

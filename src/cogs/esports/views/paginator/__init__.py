@@ -24,7 +24,7 @@ class EsportsPaginator(QuotientView):
         if self.total_pages > 1:
             self.add_item(NextButton())
 
-        self.add_item(StopButton())
+        # self.add_item(StopButton())
 
         if self.cur_page > 1:
             self.add_item(PrevButton())
@@ -34,7 +34,7 @@ class NextButton(discord.ui.Button):
     view: "EsportsPaginator"
 
     def __init__(self):
-        super().__init__(emoji=emote.pnext)
+        super().__init__(emoji="<:double_right:878668437193359392>")
 
     async def callback(self, interaction: discord.Interaction):
         ...
@@ -44,17 +44,17 @@ class PrevButton(discord.ui.Button):
     view: "EsportsPaginator"
 
     def __init__(self):
-        super().__init__(emoji=emote.pprevious)
+        super().__init__(emoji="<:double_left:878668594530099220>")
 
     async def callback(self, interaction: discord.Interaction):
         ...
 
 
-class StopButton(discord.ui.Button):
-    view: "EsportsPaginator"
+# class StopButton(discord.ui.Button):
+#     view: "EsportsPaginator"
 
-    def __init__(self):
-        super().__init__(emoji=emote.pstop)
+#     def __init__(self):
+#         super().__init__(emoji="<:double_right:878668437193359392>")
 
-    async def callback(self, interaction: discord.Interaction):
-        ...
+#     async def callback(self, interaction: discord.Interaction):
+#         ...
