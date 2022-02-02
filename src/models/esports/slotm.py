@@ -175,7 +175,7 @@ class ScrimsSlotManager(BaseDbModel):
         await _c.set_permissions(interaction.user, overwrite=None)
 
         with suppress(AttributeError, discord.HTTPException):
-            await interaction.channel.purge(limit=5, check=lambda m: m.author == interaction.user)
+            await interaction.channel.purge(limit=5, check=lambda m: m.author == interaction.user and not m.pinned)
             return truncate_string(_m.content, 22)
 
     async def setup(self, guild: discord.Guild, user: discord.Member):
