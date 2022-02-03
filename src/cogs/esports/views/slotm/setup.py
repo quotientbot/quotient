@@ -59,7 +59,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         records = await ScrimsSlotManager.filter(guild_id=guild.id)
         _to_show = [f"`{idx}.` {_.__str__()}" for idx, _ in enumerate(records, start=1)]
 
-        _sm = "\n".join(_to_show) if _to_show else "```No scrims slot managers found.```"
+        _sm = "\n".join(_to_show) if _to_show else "```Click add-channel to set cancel-claim.```"
 
         _e = discord.Embed(color=0x00FFB3, title=f"Scrims Slot-Manager Setup")
 

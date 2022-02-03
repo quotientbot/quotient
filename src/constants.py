@@ -43,19 +43,13 @@ class AutocleanType(Enum):
     role = "role"
 
 
-class VerifyImageError(Enum):
-    Invalid = "InvalidScreenshot"
-    NotSame = "NotSame"
-    NoFollow = "NotFollowed"
-
-
 class SSType(Enum):
     yt = "youtube"
     insta = "instagram"
     rooter = "rooter"
     loco = "loco"
-    gforms = "gforms"
-    anyss = "anyss"
+    anyss = "Any SS"
+    custom = "custom"
 
 
 class EsportsLog(Enum):

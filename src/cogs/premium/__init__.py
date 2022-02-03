@@ -211,7 +211,7 @@ class PremiumCog(Cog, name="Premium"):
                 f"{random_greeting()} {member.mention},\n"
                 "Thanks for purchasing Quotient Premium. **Upgrade any server with premium perks for 28 days with "
                 "`qboost` command** or select a server from Select Menu provided below.\n\n"
-                "[Click me to Invite Quotient Prime bot to your server](https://discord.com/oauth2/authorize?client_id=902856923311919104&scope=applications.commands%20bot&permissions=21175985838)]"
+                "[Click me to Invite Quotient Prime bot to your server](https://discord.com/oauth2/authorize?client_id=902856923311919104&scope=applications.commands%20bot&permissions=21175985838)"
             ),
         )
 

@@ -20,7 +20,8 @@ async def safe_delete(message) -> bool:
         return True
 
 
-async def channel_input(ctx, check, timeout=120, delete_after=False):
+async def channel_input(ctx, check=None, timeout=120, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
@@ -43,7 +44,9 @@ async def channel_input(ctx, check, timeout=120, delete_after=False):
         return channel
 
 
-async def role_input(ctx, check, timeout=120, hierarchy=True, delete_after=False):
+async def role_input(ctx, check=None, timeout=120, hierarchy=True, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+
     try:
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         role = await RoleConverter().convert(ctx, message.content)
@@ -86,7 +89,9 @@ async def member_input(ctx, check, timeout=120, delete_after=False):
         return member
 
 
-async def integer_input(ctx, check, timeout=120, limits=(None, None), delete_after=False):
+async def integer_input(ctx, check=None, timeout=120, limits=(None, None), delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+
     def new_check(message):
         if not check(message):
             return False
@@ -151,7 +156,9 @@ async def time_input(ctx, check, timeout=120, delete_after=False):
             raise InputError("This isn't valid time format.")
 
 
-async def string_input(ctx, check, timeout=120, delete_after=False):
+async def string_input(ctx, check=None, timeout=120, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+
     try:
         message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:

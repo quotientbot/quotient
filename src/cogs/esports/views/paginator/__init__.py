@@ -1,60 +1,26 @@
 from __future__ import annotations
 
-from typing import List
-
-from core import QuotientView, Context
+from ...views.base import EsportsBaseView
 import discord
-
-from utils import emote
-
-
-class EsportsPaginator(QuotientView):
-    """
-    A pretty cool paginator + editor view
-    """
-
-    def __init__(self, ctx: Context, *, cur_page=1, pages: List[discord.Embed]):
-        super().__init__(ctx, timeout=90)
-
-        self.ctx = ctx
-        self.pages = pages
-        self.cur_page = cur_page
-        self.total_pages = len(self.pages)
-
-        if self.total_pages > 1:
-            self.add_item(NextButton())
-
-        # self.add_item(StopButton())
-
-        if self.cur_page > 1:
-            self.add_item(PrevButton())
 
 
 class NextButton(discord.ui.Button):
-    view: "EsportsPaginator"
+    view: "EsportsBaseView"
 
     def __init__(self):
         super().__init__(emoji="<:double_right:878668437193359392>")
 
     async def callback(self, interaction: discord.Interaction):
-        ...
+        self.view.current_page += 1
+        await self.view.refresh_view()
 
 
 class PrevButton(discord.ui.Button):
-    view: "EsportsPaginator"
+    view: "EsportsBaseView"
 
     def __init__(self):
         super().__init__(emoji="<:double_left:878668594530099220>")
 
     async def callback(self, interaction: discord.Interaction):
-        ...
-
-
-# class StopButton(discord.ui.Button):
-#     view: "EsportsPaginator"
-
-#     def __init__(self):
-#         super().__init__(emoji="<:double_right:878668437193359392>")
-
-#     async def callback(self, interaction: discord.Interaction):
-#         ...
+        self.view.current_page -= 1
+        await self.view.refresh_view()

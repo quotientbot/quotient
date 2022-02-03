@@ -6,6 +6,7 @@ from constants import SSType
 import imagehash
 
 from utils import emote
+import config
 
 from discord.ext.commands import TextChannelConverter, BadArgument
 
@@ -34,9 +35,11 @@ class SSVerify(BaseDbModel):
     channel_id = fields.BigIntField(index=True)
     guild_id = fields.BigIntField()
     role_id = fields.BigIntField()
-    required_ss = fields.IntField()
+    required_ss = fields.IntField(default=4)
     channel_name = fields.CharField(max_length=50)
-    channel_link = fields.CharField(max_length=150)
+    channel_link = fields.CharField(max_length=150, default=config.SERVER_LINK)
+
+    keywords = ArrayField(fields.CharField(max_length=50), default=list)
 
     ss_type = fields.CharEnumField(SSType)
 
@@ -74,6 +77,9 @@ class SSVerify(BaseDbModel):
 
     def emoji(self, _bool):
         return emote.check if _bool else "⚠️"
+
+    def __str__(self):
+        return f"{getattr(self.channel,'mention','deleted-channel')} - {self.ss_type.name.title()}"
 
     async def all_hashes(self, _bool=False):
         async for _ in self.data.all():
