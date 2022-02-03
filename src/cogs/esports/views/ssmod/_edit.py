@@ -49,6 +49,7 @@ class SSmodEditor(EsportsBaseView):
             "Screenshot Type": f"`{record.ss_type.value.title()}`",
             "Page Name": f"`{record.channel_name}`",
             "Page URL": f"[Click Here]({record.channel_link})",
+            "Allow Same SS": "`Yes`" if record.allow_same else "`No`",
         }
 
         for _idx, (name, value) in enumerate(fields.items(), start=1):
@@ -74,3 +75,4 @@ class SSmodEditor(EsportsBaseView):
         self.add_item(ScreenshotType(ctx))
         self.add_item(PageName(ctx))
         self.add_item(PageLink(ctx))
+        self.add_item(AllowSame())

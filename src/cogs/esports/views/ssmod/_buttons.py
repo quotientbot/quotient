@@ -78,6 +78,10 @@ class ScreenshotType(discord.ui.Button):
         if _v.custom_id:
             self.view.record.ss_type = SSType(_v.custom_id)
 
+            if not self.view.record.ss_type == SSType.yt:
+                if not await self.ctx.is_premium_guild():
+                    return await self.ctx.error("You need Quotient Prime to set this filter. (Use `qperks`)", 4)
+
             if _v.custom_id == "custom":
 
                 _m = await self.ctx.simple(
@@ -134,6 +138,16 @@ class PageLink(discord.ui.Button):
 
         await self.ctx.safe_delete(_m)
         self.view.record.channel_link = truncate_string(_name, 130)
+        await self.view.refresh_view()
+
+
+class AllowSame(discord.ui.Button):
+    def __init__(self):
+        super().__init__(emoji=kd(7))
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.view.record.allow_same = not self.view.record.allow_same
         await self.view.refresh_view()
 
 

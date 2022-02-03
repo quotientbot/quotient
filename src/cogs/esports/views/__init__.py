@@ -7,3 +7,4 @@ from .tourney import *
 from .slotm import *
 
 from .smslotlist import *
+from .ssmod import *

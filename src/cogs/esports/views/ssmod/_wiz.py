@@ -28,6 +28,7 @@ class SetupWizard(EsportsBaseView):
         self.add_item(ScreenshotType(ctx))
         self.add_item(PageName(ctx))
         self.add_item(PageLink(ctx))
+        self.add_item(AllowSame())
         self.add_item(DiscardButton())
         self.add_item(SaveButton())
 
@@ -44,8 +45,9 @@ class SetupWizard(EsportsBaseView):
             "Screenshot Type": "`Not-Set`" if not self.record.ss_type else f"`{self.record.ss_type.value.title()}`",
             "Page Name": f"`{self.record.channel_name or '`Not-Set`'}`",
             "Page URL": "`Not-Set (Not Required)`"
-            if not self.record.channel_link
+            if self.record.channel_link == config.SERVER_LINK
             else f"[Click Here]({self.record.channel_link})",
+            "Allow Same SS": "`Yes`" if self.record.allow_same else "`No`",
         }
 
         for _idx, (name, value) in enumerate(fields.items(), start=1):
@@ -68,7 +70,7 @@ class SetupWizard(EsportsBaseView):
                 self.record.channel_name,
             )
         ):
-            self.children[-1].enabled = True
+            self.children[-1].disabled = False
 
         try:
             self.message = await self.message.edit(embed=_e, view=self)

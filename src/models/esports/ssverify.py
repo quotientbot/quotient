@@ -40,6 +40,7 @@ class SSVerify(BaseDbModel):
     channel_link = fields.CharField(max_length=150, default=config.SERVER_LINK)
 
     keywords = ArrayField(fields.CharField(max_length=50), default=list)
+    allow_same = fields.BooleanField(default=False)
 
     ss_type = fields.CharEnumField(SSType)
 
