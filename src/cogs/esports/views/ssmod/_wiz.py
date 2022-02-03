@@ -30,7 +30,7 @@ class SetupWizard(EsportsBaseView):
         self.add_item(PageLink(ctx))
         self.add_item(AllowSame())
         self.add_item(DiscardButton())
-        self.add_item(SaveButton())
+        self.add_item(SaveButton(ctx))
 
     def initial_message(self):
         if not self.record:

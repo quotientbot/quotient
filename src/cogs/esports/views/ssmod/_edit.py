@@ -28,7 +28,7 @@ class SSmodEditor(EsportsBaseView):
 
     async def refresh_view(self):
         _e = await self.initial_embed(self.records[self.current_page])
-        await self.__add_buttons(self.ctx)
+        await self._add_buttons(self.ctx)
 
         try:
             self.message = await self.message.edit(embed=_e, view=self)
@@ -60,7 +60,7 @@ class SSmodEditor(EsportsBaseView):
 
         return _e
 
-    async def __add_buttons(self, ctx):
+    async def _add_buttons(self, ctx):
         self.children.clear()
 
         if self.current_page > 0:

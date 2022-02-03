@@ -54,5 +54,7 @@ class SsmodMainView(EsportsBaseView):
     async def edit_ssmod_config(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        _view = SSmodEditor(self.ctx, await SSVerify.filter(guild_id=self.ctx.guild.id).order_by("id"))
-        _view.message = await interaction.followup.send(embed=_view.initial_message(), view=_view)
+        records = await SSVerify.filter(guild_id=self.ctx.guild.id).order_by("id")
+        _view = SSmodEditor(self.ctx, records)
+        await _view._add_buttons(self.ctx)
+        _view.message = await interaction.followup.send(embed=await _view.initial_embed(records[0]), view=_view)

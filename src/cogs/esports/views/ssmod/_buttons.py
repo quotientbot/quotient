@@ -7,6 +7,7 @@ import discord
 from ._type import SStypeSelector
 
 from constants import SSType
+from models import SSVerify
 
 
 class SetChannel(discord.ui.Button):
@@ -22,6 +23,13 @@ class SetChannel(discord.ui.Button):
         channel = await inputs.channel_input(self.ctx, delete_after=True)
 
         await self.ctx.safe_delete(_m)
+
+        if await SSVerify.filter(pk=channel.id).exists():
+            return await self.ctx.error(f"{channel.mention} is already a ssverification channel.", 3)
+
+        if not channel.permissions_for(self.ctx.guild.me).embed_links:
+            return await self.ctx.error(f"I need `embed_links` permission in {channel.mention}", 3)
+
         self.view.record.channel_id = channel.id
 
         await self.view.refresh_view()
@@ -160,8 +168,12 @@ class DiscardButton(discord.ui.Button):
 
 
 class SaveButton(discord.ui.Button):
-    def __init__(self):
+    def __init__(self, ctx: Context):
+        self.ctx = ctx
         super().__init__(label="Save & Setup", style=discord.ButtonStyle.green, disabled=True)
 
     async def callback(self, interaction: discord.Interaction):
-        ...
+        await self.view.record.save()
+        self.ctx.bot.cache.ssverify_channels.add(self.view.record.channel_id)
+        await self.view.on_timeout()
+        await self.ctx.success(f"Successfully set ssverification in {self.view.record.channel.mention}.", 3)
