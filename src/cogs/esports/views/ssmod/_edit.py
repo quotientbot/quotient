@@ -52,6 +52,7 @@ class SSmodEditor(EsportsBaseView):
             "Page Name": f"`{record.channel_name}`",
             "Page URL": f"[Click Here]({record.channel_link})",
             "Allow Same SS": "`Yes`" if record.allow_same else "`No`",
+            "Success Message": "`Click to view or edit`",
         }
 
         for _idx, (name, value) in enumerate(fields.items(), start=1):
@@ -59,6 +60,7 @@ class SSmodEditor(EsportsBaseView):
                 name=f"{kd(_idx)} {name}:",
                 value=value,
             )
+        _e.add_field(name="\u200b", value="\u200b")
         _e.set_footer(text=f"Page {self.current_page}/{len(self.records)}")
 
         return _e
@@ -83,3 +85,4 @@ class SSmodEditor(EsportsBaseView):
         self.add_item(PageName(ctx))
         self.add_item(PageLink(ctx))
         self.add_item(AllowSame())
+        self.add_item(SuccessMessage(ctx))

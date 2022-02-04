@@ -159,6 +159,40 @@ class AllowSame(discord.ui.Button):
         await self.view.refresh_view()
 
 
+class SuccessMessage(discord.ui.Button):
+    def __init__(self, ctx):
+        super().__init__(emoji=kd(8))
+
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        m = await self.ctx.simple(
+            "What message do you want me to show for successful verification? This message will be sent to "
+            "DM of players who verify screenshots successfully.\n\n**Current Success Message:**"
+            f"```{self.view.record.success_message if self.view.record.success_message else 'Not Set Yet.'}```"
+            "\n`Kindly keep it under 500 characters. Enter none to remove it.`"
+        )
+
+        msg = await inputs.string_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        msg = truncate_string(msg, 500)
+        if msg.lower().strip() == "none":
+            msg = None
+            await self.ctx.success("Removed Success Message.", 3)
+
+        elif msg.lower().strip() == "cancel":
+            return
+
+        if msg != None:
+            await self.ctx.success("Success Message Updated.", 3)
+
+        self.view.record.success_message = msg
+        await self.view.refresh_view()
+
+
 class DiscardButton(discord.ui.Button):
     def __init__(self):
         super().__init__(label="Discard", style=discord.ButtonStyle.red)
