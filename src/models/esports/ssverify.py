@@ -8,8 +8,6 @@ import imagehash
 from utils import emote
 import config
 
-from discord.ext.commands import TextChannelConverter, BadArgument
-
 
 class SSData(BaseDbModel):
     class Meta:
@@ -48,21 +46,6 @@ class SSVerify(BaseDbModel):
 
     data: fields.ManyToManyRelation["SSData"] = fields.ManyToManyField("models.SSData", index=True)
 
-    @classmethod
-    async def convert(cls, ctx, argument: str):
-        try:
-            channel = await TextChannelConverter().convert(ctx, argument)
-        except:
-            pass
-
-        else:
-            try:
-                return await cls.get(channel_id=channel.id)
-            except exceptions.DoesNotExist:
-                pass
-
-        raise BadArgument(f"Kindly mention a valid ssverification channel or use `{ctx.prefix}ssverify list`")
-
     @property
     def _guild(self):
         return self.bot.get_guild(self.guild_id)
@@ -80,7 +63,11 @@ class SSVerify(BaseDbModel):
         return emote.check if _bool else "⚠️"
 
     def __str__(self):
-        return f"{getattr(self.channel,'mention','deleted-channel')} - {self.ss_type.name.title()}"
+        _f = self.ss_type.value.title()
+        if self.ss_type == SSType.custom:
+            _f += f"(`{self.keywords[0]}`)"
+
+        return f"{getattr(self.channel,'mention','deleted-channel')} - {_f}"
 
     async def all_hashes(self, _bool=False):
         async for _ in self.data.all():

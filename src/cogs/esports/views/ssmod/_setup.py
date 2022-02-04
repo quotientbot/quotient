@@ -33,9 +33,8 @@ class SsmodMainView(EsportsBaseView):
 
         _sm = "\n".join(_to_show) if _to_show else "```Click Setup button to set ssverify.```"
 
-        _e = discord.Embed(color=0x00FFB3, title=f"Screenshots Manager")
+        _e = discord.Embed(color=0x00FFB3, title=f"Advanced Screenshots Manager", url=self.ctx.config.SERVER_LINK)
         _e.description = _sm
-
         return _e
 
     @discord.ui.button(label="Setup ssverify", custom_id="setup_ssverify_button", emoji=emote.add)
