@@ -24,11 +24,15 @@ class SSmodEditor(EsportsBaseView):
 
         self.records = records
 
+        self.record = self.records[0]
+
         self.current_page = 1
 
     async def refresh_view(self):
 
-        _e = await self.initial_embed(self.records[self.current_page - 1])
+        self.record = self.records[self.current_page - 1]
+
+        _e = await self.initial_embed(self.record)
 
         await self._add_buttons(self.ctx)
 

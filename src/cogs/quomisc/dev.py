@@ -12,17 +12,11 @@ from discord.ext import commands
 
 from .helper import tabulate_query
 from time import perf_counter as pf
-from models import Commands, Partner, Guild
-from utils import get_ipm, QuoUser, LinkButton, LinkType
+from models import Commands, Guild
+from utils import get_ipm, LinkButton, LinkType, Prompt, emote
 
 import datetime
 import discord
-
-from contextlib import suppress
-from constants import PartnerRequest, IST, PremiumPurchase
-
-import secrets
-import io
 
 __all__ = ("Dev",)
 
@@ -31,93 +25,53 @@ class Dev(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
+        self.broadcast_channels = {
+            "broadcast": 779229802975723531,
+            "announcements": 829938693707399178,
+            "changelogs": 829938782069063680,
+            "status": 882510788215070720,
+        }
+        self.dead_id = 548163406537162782
+
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
-    @commands.command(hidden=True)
-    async def pgift(self, ctx: Context, user: QuoUser, _type: PremiumPurchase):
-        await ctx.send(_type)
+    @property
+    def dead(self):
+        return self.bot.get_user(self.dead_id)
 
-    @commands.command(hidden=True)
-    async def partner_approve(self, ctx: Context, message_id: int, author_id: int):
-        record = await Partner.get(message_id=message_id)
-        guild = self.bot.get_guild(record.guild_id)
+    @Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not message.author.id == self.dead_id:
+            return
 
-        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
+        if not message.channel or not message.channel.id in self.broadcast_channels.values():
+            return
 
-        embed = discord.Embed(
-            color=self.bot.color,
-            description=(
-                f"Dear {user} ({guild.name}),\n"
-                f"Congrats! Your request for Quotient Partnership Program has been approved,\n"
-                f"Kindly join the support server and talk to {ctx.author} to receive perks."
-                f"\n\nUse `qinvite` if you don't have the support server link."
-            ),
-        )
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
+        prompt = Prompt(self.dead_id, 60)
+        _m = await self.dead.send(f"Do you want to broadcast this message in {message.channel.mention}?", view=prompt)
+        await prompt.wait()
+        if not prompt.value:
+            return await _m.edit("timed out", view=None)
 
-        with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
-            await user.send(embed=embed)
-
-        await Partner.filter(message_id=message_id).update(
-            status=PartnerRequest.approved, review_time=datetime.datetime.now(tz=IST), mod=ctx.author.id
-        )
-        await ctx.success("done")
-
-    @commands.command(hidden=True)
-    async def partner_deny(self, ctx: Context, message_id: int, author_id: int, *, reason):
-        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, author_id)
-
-        embed = discord.Embed(color=discord.Color.red(), description=reason)
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
-
-        with suppress(discord.Forbidden, AttributeError, discord.HTTPException):
-            await user.send(embed=embed)
-
-        await Partner.filter(message_id=message_id).update(
-            status=PartnerRequest.denied, review_time=datetime.datetime.now(tz=IST), review_note=reason, mod=ctx.author.id
-        )
-        await ctx.success("done")
-
-    @commands.command(hidden=True)
-    async def broadcast(self, ctx: Context, *, msg):
-        msg = msg.strip().split("|")
-        content = f"{msg[0]}\n\n- {str(ctx.author)}, Team Quotient"
-
-        links = [LinkType("Support Server", ctx.config.SERVER_LINK)]
-        view = LinkButton(links)
-
-        await ctx.send("sending...")
+        await _m.edit("Sending...", view=None)
+        view = LinkButton([LinkType("More Info", self.bot.config.SERVER_LINK, emote.info)])
+        content = message.clean_content + "\n\n- deadshot#7999, Team Quotient"
 
         success, failed = 0, 0
-        start = pf()
 
-        records = await ctx.db.fetch("SELECT private_channel FROM guild_data WHERE private_channel IS NOT NULL")
-
-        for record in records:
-            channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, record["private_channel"])
-            if channel is None:
-                failed += 1
-                continue
-
-            _files = []
-            if len(msg) > 1:
-                links = msg[1].strip().split("\n")
-                for link in links:
-                    async with self.bot.session.get(link) as res:
-                        invert = io.BytesIO(await res.read())
-                        file = discord.File(invert, f"help_{str(secrets.token_urlsafe(5))}.png")
-                        _files.append(file)
+        _t1 = pf()
+        async for guild in Guild.filter(private_channel__isnull=False):
+            files = [await _.to_file(use_cached=True) for _ in message.attachments]
 
             try:
-                await channel.send(content=content, view=view, files=_files)
+                channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, guild.private_channel)
+                await channel.send(content, files=files, view=view)
                 success += 1
             except Exception as e:
                 failed += 1
-                continue
 
-        end = pf()
-        await ctx.send(f"Sent {success}: {failed} finished in {end - start:.3f}s.")
+        await _m.edit(f"{success}:{failed} Time taken - {pf() - _t1:.3f}s.")
 
     @commands.command(hidden=True)
     async def cmds(self, ctx):

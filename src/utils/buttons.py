@@ -11,16 +11,18 @@ class LinkType(NamedTuple):
 
 
 class LinkButton(discord.ui.View):
-    def __init__(self, links: List[LinkType]):
+    def __init__(self, links: Union[LinkType, List[LinkType]]):
         super().__init__()
+
+        links = links if isinstance(links, list) else [links]
 
         for link in links:
             self.add_item(discord.ui.Button(label=link.name, url=link.url, emoji=link.emoji))
 
 
 class Prompt(discord.ui.View):
-    def __init__(self, user_id):
-        super().__init__(timeout=30.0)
+    def __init__(self, user_id, timeout=30.0):
+        super().__init__(timeout=timeout)
         self.user_id = user_id
         self.value = None
 
