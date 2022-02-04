@@ -173,6 +173,8 @@ class SaveButton(discord.ui.Button):
         super().__init__(label="Save & Setup", style=discord.ButtonStyle.green, disabled=True)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
         await self.view.record.save()
         self.ctx.bot.cache.ssverify_channels.add(self.view.record.channel_id)
         await self.view.on_timeout()

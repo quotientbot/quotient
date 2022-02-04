@@ -9,7 +9,7 @@ from core import Context
 from models import SSVerify
 
 from ...views.base import EsportsBaseView
-from ..paginator import NextButton, PrevButton
+from ..paginator import NextButton, PrevButton, StopButton
 
 from ._buttons import *
 import config
@@ -24,10 +24,12 @@ class SSmodEditor(EsportsBaseView):
 
         self.records = records
 
-        self.current_page = 0
+        self.current_page = 1
 
     async def refresh_view(self):
-        _e = await self.initial_embed(self.records[self.current_page])
+
+        _e = await self.initial_embed(self.records[self.current_page - 1])
+
         await self._add_buttons(self.ctx)
 
         try:
@@ -57,17 +59,22 @@ class SSmodEditor(EsportsBaseView):
                 name=f"{kd(_idx)} {name}:",
                 value=value,
             )
+        _e.set_footer(text=f"Page {self.current_page}/{len(self.records)}")
 
         return _e
 
     async def _add_buttons(self, ctx):
-        self.children.clear()
+        self.clear_items()
 
-        if self.current_page > 0:
-            self.add_item(PrevButton(self))
+        cur_page = self.current_page - 1
 
-        if len(self.records) > 1 and self.current_page < len(self.records) - 1:
-            self.add_item(NextButton(self))
+        if cur_page > 0:
+            self.add_item(PrevButton())
+
+        self.add_item(StopButton())
+
+        if len(self.records) > 1 and cur_page < len(self.records) - 1:
+            self.add_item(NextButton())
 
         self.add_item(SetChannel(ctx))
         self.add_item(SetRole(ctx))
