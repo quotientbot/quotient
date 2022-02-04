@@ -31,6 +31,7 @@ class SetChannel(discord.ui.Button):
             return await self.ctx.error(f"I need `embed_links` permission in {channel.mention}", 3)
 
         self.view.record.channel_id = channel.id
+        self.ctx.bot.cache.ssverify_channels.add(channel.id)
 
         await self.view.refresh_view()
 
