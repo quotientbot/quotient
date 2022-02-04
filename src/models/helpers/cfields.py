@@ -1,7 +1,7 @@
 from tortoise.fields.base import Field
 from typing import Any
 
-# Those fields were redundant its time to use this.
+
 class ArrayField(Field, list):
     def __init__(self, field: Field, **kwargs) -> None:
         super().__init__(**kwargs)

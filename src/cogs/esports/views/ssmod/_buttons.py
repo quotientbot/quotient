@@ -110,6 +110,13 @@ class ScreenshotType(discord.ui.Button):
                 _keys = _keys.split(",")
                 self.view.record.keywords = [_name, *[truncate_string(i, 50).strip() for i in _keys]]
 
+                from ._edit import SSmodEditor
+
+                if isinstance(self.view, SSmodEditor):
+                    await self.ctx.bot.db.execute(
+                        "UPDATE ss_info SET keywords = $2 WHERE id = $1", self.view.record.id, self.view.record.keywords
+                    )
+
                 await self.ctx.success("Successfully set custom filter.", 3)
 
         await self.view.refresh_view()
@@ -160,8 +167,8 @@ class AllowSame(discord.ui.Button):
 
 
 class SuccessMessage(discord.ui.Button):
-    def __init__(self, ctx):
-        super().__init__(emoji=kd(8))
+    def __init__(self, ctx, **kwargs):
+        super().__init__(emoji=kd(8), **kwargs)
 
         self.ctx = ctx
 

@@ -76,6 +76,7 @@ class Dev(Cog):
                 except Exception as e:
                     failed += 1
 
+            await _m.edit(f"{success}:{failed} still counting..")
             await asyncio.sleep(100)
 
         await _m.edit(f"{success}:{failed} Time taken - {pf() - _t1:.3f}s.")

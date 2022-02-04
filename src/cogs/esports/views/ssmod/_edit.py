@@ -32,6 +32,13 @@ class SSmodEditor(EsportsBaseView):
 
         self.record = self.records[self.current_page - 1]
 
+        _d = dict(self.record)
+
+        del _d["id"]
+        del _d["keywords"]
+
+        await SSVerify.filter(pk=self.record.pk).update(**_d)
+
         _e = await self.initial_embed(self.record)
 
         await self._add_buttons(self.ctx)
@@ -56,7 +63,7 @@ class SSmodEditor(EsportsBaseView):
             "Page Name": f"`{record.channel_name}`",
             "Page URL": f"[Click Here]({record.channel_link})",
             "Allow Same SS": "`Yes`" if record.allow_same else "`No`",
-            "Success Message": "`Click to view or edit`",
+            f"Success Message {config.PRIME_EMOJI}": "`Click to view or edit`",
         }
 
         for _idx, (name, value) in enumerate(fields.items(), start=1):
@@ -89,4 +96,8 @@ class SSmodEditor(EsportsBaseView):
         self.add_item(PageName(ctx))
         self.add_item(PageLink(ctx))
         self.add_item(AllowSame())
+
         self.add_item(SuccessMessage(ctx))
+
+        if not await self.ctx.is_premium_guild():
+            self.children[-1].disabled = True
