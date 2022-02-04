@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 
 import typing
 
@@ -13,7 +14,7 @@ from discord.ext import commands
 from .helper import tabulate_query
 from time import perf_counter as pf
 from models import Commands, Guild
-from utils import get_ipm, LinkButton, LinkType, Prompt, emote
+from utils import get_ipm, LinkButton, LinkType, Prompt, emote, get_chunks
 
 import datetime
 import discord
@@ -48,7 +49,7 @@ class Dev(Cog):
         if not message.channel or not message.channel.id in self.broadcast_channels.values():
             return
 
-        prompt = Prompt(self.dead_id)
+        prompt = Prompt(self.dead_id, 60)
         _m = await self.dead.send(f"Do you want to broadcast this message in {message.channel.mention}?", view=prompt)
         await prompt.wait()
         if not prompt.value:
@@ -61,15 +62,21 @@ class Dev(Cog):
         success, failed = 0, 0
 
         _t1 = pf()
-        async for guild in Guild.filter(private_channel__isnull=False):
-            files = [await _.to_file(use_cached=True) for _ in message.attachments]
 
-            try:
-                channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, guild.private_channel)
-                await channel.send(content, files=files, view=view)
-                success += 1
-            except Exception as e:
-                failed += 1
+        records = await Guild.filter(private_channel__isnull=False)
+
+        for group in get_chunks(records, 300):
+            for guild in group:
+                files = [await _.to_file(use_cached=True) for _ in message.attachments]
+
+                try:
+                    channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, guild.private_channel)
+                    await channel.send(content, files=files, view=view)
+                    success += 1
+                except Exception as e:
+                    failed += 1
+
+            await asyncio.sleep(100)
 
         await _m.edit(f"{success}:{failed} Time taken - {pf() - _t1:.3f}s.")
 
