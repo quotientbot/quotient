@@ -48,7 +48,7 @@ class Dev(Cog):
         if not message.channel or not message.channel.id in self.broadcast_channels.values():
             return
 
-        prompt = Prompt(self.dead_id, 60)
+        prompt = Prompt(self.dead_id)
         _m = await self.dead.send(f"Do you want to broadcast this message in {message.channel.mention}?", view=prompt)
         await prompt.wait()
         if not prompt.value:
