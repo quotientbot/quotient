@@ -8,7 +8,7 @@ from ..helpers.image import get_image, get_image_hash, get_image_string
 router = APIRouter()
 
 
-@router.post("/ssverify", status_code=status.HTTP_200_OK, response_model=List[ImageResponse])
+@router.post("/ocr", status_code=status.HTTP_200_OK, response_model=List[ImageResponse])
 async def read_items(_shots: List[SS]):
 
     _result: List[ImageResponse] = []
