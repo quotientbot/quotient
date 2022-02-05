@@ -96,3 +96,6 @@ class SSVerify(BaseDbModel):
 
         await SSData.filter(pk__in=[d.id for d in data]).delete()
         await self.delete()
+
+    async def verify_any(self):
+        ...
