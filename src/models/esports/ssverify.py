@@ -17,7 +17,8 @@ class SSData(BaseDbModel):
     author_id = fields.BigIntField()
     channel_id = fields.BigIntField()
     message_id = fields.BigIntField()
-    hash = fields.CharField(max_length=50, null=True)
+    dhash = fields.CharField(max_length=1024, null=True)
+    phash = fields.CharField(max_length=1024, null=True)
     submitted_at = fields.DatetimeField(auto_now=True)
 
     @property
@@ -69,18 +70,8 @@ class SSVerify(BaseDbModel):
 
         return f"{getattr(self.channel,'mention','deleted-channel')} - {_f}"
 
-    async def all_hashes(self, _bool=False):
-        async for _ in self.data.all():
-            yield hash if not _bool else imagehash.hex_to_hash(_)
-
     async def find_hash(self, hash: str):
         return await self.data.filter(hash=hash).first()
-
-    async def find_similar_hash(self, hash: str, distance: int = 10):
-        a_hash = imagehash.hex_to_hash(hash)
-        async for _ in self.all_hashes(True):
-            if a_hash - _ in range(distance + 1):
-                return await SSData.get(hash=str(_))
 
     async def is_user_verified(self, user_id: int):
         return await self.data.filter(author_id=user_id).count() >= self.required_ss

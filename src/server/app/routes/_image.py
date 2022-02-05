@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 from typing import List
 
 from ..helpers._const import ImageResponse, SS
-from ..helpers.image import get_image, get_image_hash, get_image_string
+from ..helpers.image import get_image, get_image_dhash, get_image_phash, get_image_string
 
 
 router = APIRouter()
@@ -21,7 +21,8 @@ async def read_items(_shots: List[SS]):
         _result.append(
             ImageResponse(
                 url=_.url,
-                dhash=str(await get_image_hash(_image)),
+                dhash=str(await get_image_dhash(_image)),
+                phash=str(await get_image_phash(_image)),
                 text=await get_image_string(_image),
             )
         )

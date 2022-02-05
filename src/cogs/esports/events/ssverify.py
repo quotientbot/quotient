@@ -83,6 +83,7 @@ class Ssverification(Cog):
             if not _ocr:
                 return
 
+            return print(_ocr)
             embed = await self.__verify_screenshots(record, [ImageResponse(**_) for _ in _ocr])
             embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
 

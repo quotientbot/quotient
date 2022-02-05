@@ -46,5 +46,10 @@ def get_image_string(img):
 
 
 @to_async()
-def get_image_hash(img):
-    return imagehash.dhash(img)
+def get_image_dhash(img, size=64):
+    return imagehash.dhash(img, size)
+
+
+@to_async()
+def get_image_phash(img, size=64):
+    return imagehash.phash(img, size)
