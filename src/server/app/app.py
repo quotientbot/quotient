@@ -20,5 +20,7 @@ async def root():
 
 
 from .routes._bot import router as _bot_router
+from .routes._image import router as _image_router
 
 app.include_router(_bot_router)
+app.include_router(_image_router)

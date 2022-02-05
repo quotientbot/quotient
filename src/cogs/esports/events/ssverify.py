@@ -38,10 +38,10 @@ class Ssverification(Cog):
 
         with suppress(discord.HTTPException):
             if await record.is_user_verified(message.author.id):
-                return await ctx.reply("Your screenshots are already verified, kindly move onto next step.")
+                return await ctx.simple("**Your screenshots are already verified, kindly move onto next step.**")
 
             if not (attachments := valid_attachments(message)):
-                return await ctx.reply("Kindly send screenshots in `png/jpg/jpeg` format only.")
+                return await ctx.error("**Kindly send screenshots in `png/jpg/jpeg` format only.**")
 
             m = await message.reply(
                 embed=discord.Embed(
@@ -82,13 +82,7 @@ class Ssverification(Cog):
                 await message.reply(embed=_e)
 
                 if await record.is_user_verified(ctx.author.id):
-                    await message.reply(
-                        embed=discord.Embed(
-                            title="",
-                            description=f"{ctx.author.mention} Your screenshots are verified, Move to next step.",
-                            color=discord.Color.green(),
-                        )
-                    )
+                    await ctx.success(f"{ctx.author.mention} Your screenshots are verified, Move to next step.")
 
                     await message.author.add_roles(discord.Object(id=record.role_id))
                     await message.author.send(
