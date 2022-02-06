@@ -1,5 +1,5 @@
 from ._const import SS
-from PIL import Image
+
 
 import imagehash
 import pytesseract
@@ -8,6 +8,8 @@ from utils.converters import to_async
 from core import bot
 
 import io
+
+from PIL import Image
 
 
 async def get_image(attch: SS) -> Image:
@@ -18,20 +20,24 @@ async def get_image(attch: SS) -> Image:
         return Image.open(io.BytesIO(await resp.read()))
 
 
+def slice_image(img, height: int = 400):
+    _l = []
+    imgwidth, imgheight = img.size
+    for i in range(imgheight // height):
+        for j in range(imgwidth // imgwidth):
+            box = (j * imgwidth, i * height, (j + 1) * imgwidth, (i + 1) * height)
+            _l.append(img.crop(box))
+
+    return _l
+
+
 @to_async()
 def get_image_string(img):
 
     _img = img.convert("L")
-    w, h = _img.size
 
-    cropped = []
+    cropped = slice_image(_img)
     cropped.append(_img)
-
-    if h >= 1550:
-        cropped.append(_img.crop((0, 0, w, 1550)))
-
-    if h >= 800:
-        cropped.append(_img.crop((0, 0, w, 800)))
 
     text = ""
     config = "--oem 3 --psm 12"

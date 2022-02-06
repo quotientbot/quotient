@@ -28,7 +28,6 @@ class StartServer(Cog):
 
     async def close_application(self):
         if self.app_started:
-            print("Closing server")
             await self.webserver.stop()
             await self.app.shutdown()
             await self.app.cleanup()

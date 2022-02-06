@@ -1,29 +1,29 @@
 # from PIL import Image
 
 
-# def slice_image(filename, N):
+# # def slice_image(filename, N):
 
-#     i = Image.open(filename)
-
-
-#     width = i.width
-#     height = i.height
-
-#     global _l
-#     _l = []
-
-#     for x in range(N):
-
-#         for y in range(N):
-#             img = i.crop((x * width / N, y * height / N, x * width / N + width / N, y * height / N + height / N))
-
-#             _l.append(img)
+# #     i = Image.open(filename)
 
 
-# slice_image("ss3.jpg", 2)
+# #     width = i.width
+# #     height = i.height
 
-# for i in _l:
-#     i.show()
+# #     global _l
+# #     _l = []
+
+# #     for x in range(N):
+
+# #         for y in range(N):
+# #             img = i.crop((x * width / N, y * height / N, x * width / N + width / N, y * height / N + height / N))
+
+# #             _l.append(img)
+
+
+# # slice_image("ss3.jpg", 2)
+
+# # for i in _l:
+# #     i.show()
 # def crop(infile, height, width):
 
 #     global _l
@@ -38,7 +38,7 @@
 #     return _l
 
 
-# crop("ss1.png", 1400, 200)
+# crop("ss1.png", 400, 200)
 
 # for i in _l:
 #     i.show()

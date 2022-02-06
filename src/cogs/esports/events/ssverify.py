@@ -14,9 +14,9 @@ from contextlib import suppress
 from utils import emote, plural
 
 from core import Cog, Context
-from models import SSVerify
+from models import SSVerify, ImageResponse
 
-from server.app.helpers._const import ImageResponse
+
 import humanize
 
 

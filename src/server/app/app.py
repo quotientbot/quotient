@@ -11,12 +11,11 @@ async def verify_key(key: str = Depends(api_scheme)):
 
 
 app = FastAPI(dependencies=[Depends(verify_key)])
-from core import bot
 
 
 @app.get("/")
 async def root():
-    return {"ping": str(bot)}
+    return {"ping": "pong"}
 
 
 from .routes._bot import router as _bot_router

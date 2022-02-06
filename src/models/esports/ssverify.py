@@ -8,9 +8,15 @@ from core import Context
 from utils import emote
 import config
 
-from typing import List, Tuple
+from typing import Tuple
+from pydantic import BaseModel, HttpUrl
 
-from server.app.helpers._const import ImageResponse
+
+class ImageResponse(BaseModel):
+    url: HttpUrl
+    dhash: str
+    phash: str
+    text: str
 
 
 class SSData(BaseDbModel):
@@ -106,7 +112,7 @@ class SSVerify(BaseDbModel):
         )
         await self.data.add(data)
 
-    async def _match_for_duplicate(self, dhash: str, phash: str, author_id: int) -> Tuple(bool, str):
+    async def _match_for_duplicate(self, dhash: str, phash: str, author_id: int) -> Tuple[bool, str]:
         if await self.data.filter(dhash=dhash, phash=phash, author_id=author_id).exists():
             return True, f"{self.emoji(False)} | You've already submitted this screenshot once.\n"
 
