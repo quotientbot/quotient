@@ -118,7 +118,11 @@ class ScreenshotType(discord.ui.Button):
                         "UPDATE ss_info SET keywords = $2 WHERE id = $1", self.view.record.id, self.view.record.keywords
                     )
 
-                await self.ctx.success("Successfully set custom filter.", 3)
+                self.view.record.channel_name = _name
+
+                await self.ctx.success(
+                    f"Successfully set custom filter.\nKeywords: `{', '.join(self.view.record.keywords)}`", 4
+                )
 
         await self.view.refresh_view()
 

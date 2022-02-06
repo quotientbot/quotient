@@ -103,6 +103,14 @@ class SSVerify(BaseDbModel):
         await SSData.filter(pk__in=[d.id for d in data]).delete()
         await self.delete()
 
+    @property
+    def filtered_keywords(self):
+        _l = [self.channel_name.lower().replace(" ", "")]
+        for _ in self.keywords:
+            _l.append(_.lower().replace(" ", ""))
+
+        return _l
+
     async def _add_to_data(self, ctx: Context, img: ImageResponse):
         data = await SSData.create(
             author_id=ctx.author.id,
@@ -161,4 +169,10 @@ class SSVerify(BaseDbModel):
         ...
 
     async def verify_custom(self, ctx: Context, image: ImageResponse):
-        ...
+        lower_text = image.text.lower().replace(" ", "").replace("\n", "")
+
+        if not any(_ in lower_text for _ in self.filtered_keywords):
+            return f"{self.emoji()} | This is not a valid {self.keywords[0]} ss.\n"
+
+        await self._add_to_data(ctx, image)
+        return f"{self.emoji(True)} | Verified successfully."
