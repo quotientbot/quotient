@@ -34,6 +34,7 @@ class SsmodMainView(EsportsBaseView):
         _sm = "\n".join(_to_show) if _to_show else "```Click Setup button to set ssverify.```"
 
         _e = discord.Embed(color=0x00FFB3, title=f"Advanced Screenshots Manager", url=self.ctx.config.SERVER_LINK)
+        _e.set_thumbnail(url=self.bot.user.avatar.url)
         _e.description = _sm
         return _e
 
@@ -57,3 +58,16 @@ class SsmodMainView(EsportsBaseView):
         _view = SSmodEditor(self.ctx, records)
         await _view._add_buttons(self.ctx)
         _view.message = await interaction.followup.send(embed=await _view.initial_embed(records[0]), view=_view)
+
+    @discord.ui.button(emoji="❔", custom_id="info_ssmod_button")
+    async def stop_ssmod_button(self, button: discord.Button, interaction: discord.Interaction):
+        _e = discord.Embed(color=0x00FFB3, title="Screenshots Manager FAQ", url=self.ctx.config.SERVER_LINK)
+        _e.description = (
+            "**How to setup Quotient ssverification?**\n"
+            "> Click the `Setup ssverify` button to set up ssverify.\n\n"
+            "**What is Custom Filter?**\n"
+            "> Custom Filter allows you to set ssverification for any app or for any type of ss.\n\n"
+            "**My question isn't listed here. What should I do?**\n"
+            "> You can talk to us directly in the support server: {0}".format(self.ctx.config.SERVER_LINK)
+        )
+        return await interaction.response.send_message(embed=_e, ephemeral=True)
