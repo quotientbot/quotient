@@ -44,7 +44,7 @@ async def channel_input(ctx, check=None, timeout=120, delete_after=False):
         return channel
 
 
-async def role_input(ctx, check=None, timeout=120, hierarchy=True, delete_after=False):
+async def role_input(ctx, check=None, timeout=120, hierarchy=True, check_perms=True, delete_after=False):
     check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
 
     try:
@@ -56,7 +56,7 @@ async def role_input(ctx, check=None, timeout=120, hierarchy=True, delete_after=
     else:
         if role.managed:
             raise InputError(f"Role is an integrated role and cannot be added manually.")
-        if hierarchy is True:
+        if hierarchy:
             if role > ctx.me.top_role:
                 raise InputError(
                     f"The position of {role.mention} is above my top role. So I can't give it to anyone.\nKindly move {ctx.me.top_role.mention} above {role.mention} in Server Settings."
@@ -67,6 +67,19 @@ async def role_input(ctx, check=None, timeout=120, hierarchy=True, delete_after=
                     raise InputError(
                         f"The position of {role.mention} is above your top role {ctx.author.top_role.mention}."
                     )
+
+        if check_perms:
+            _perms = role.permissions
+            if any(
+                (
+                    _perms.administrator,
+                    _perms.manage_channels,
+                    _perms.manage_roles,
+                    _perms.kick_members,
+                    _perms.ban_members,
+                )
+            ):
+                raise InputError(f"{role.mention} has dangerous permissions.")
 
         if delete_after:
             await safe_delete(message)

@@ -1584,7 +1584,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_permissions(manage_channels=True, add_reactions=True, embed_links=True, manage_roles=True)
     async def ssverify(self, ctx: Context):
         """
-        Setup/Edit ssverification
+        Setup/Edit ssverification in your server
         """
         _view = SsmodMainView(ctx)
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
