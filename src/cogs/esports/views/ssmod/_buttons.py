@@ -87,9 +87,9 @@ class ScreenshotType(discord.ui.Button):
         if _v.custom_id:
             self.view.record.ss_type = SSType(_v.custom_id)
 
-            if not self.view.record.ss_type == SSType.yt:
-                if not await self.ctx.is_premium_guild():
-                    return await self.ctx.error("You need Quotient Prime to set this filter. (Use `qperks`)", 4)
+            # if not self.view.record.ss_type == SSType.yt:
+            #     if not await self.ctx.is_premium_guild():
+            #         return await self.ctx.error("You need Quotient Prime to set this filter. (Use `qperks`)", 4)
 
             if _v.custom_id == "custom":
 
