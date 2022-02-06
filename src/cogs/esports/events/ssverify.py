@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 
 from typing import List, TYPE_CHECKING
 
@@ -13,8 +14,7 @@ from contextlib import suppress
 from utils import emote, plural
 
 from core import Cog, Context
-from models import SSVerify, SSData
-from ..helpers.ssverify import valid_attachments, VerifyResult
+from models import SSVerify
 
 from server.app.helpers._const import ImageResponse
 import humanize
@@ -27,22 +27,7 @@ class Ssverification(Cog):
         self.request_url = self.bot.config.FASTAPI_URL + "/ocr"
         self.headers = {"authorization": self.bot.config.FASTAPI_KEY, "Content-Type": "application/json"}
 
-    #         async with self.__verify_lock:
-    #             _e = discord.Embed(title="", description="", color=self.color_bool([i.verified for i in _list]))
-
-    #             for _ in _list:
-    #                 _e.description += f"{record.emoji(_.verified)} | {_.reason}\n"
-
-    #                 if _.verified:
-    #                     data = await SSData.create(
-    #                         author_id=ctx.author.id, channel_id=ctx.channel.id, message_id=ctx.message.id, hash=_.hash
-    #                     )
-    #                     await record.data.add(data)
-
-    #             _e.set_footer(
-    #                 text=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
-    #                 icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
-    #             )
+        self.__verify_lock = asyncio.Lock()
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -65,7 +50,7 @@ class Ssverification(Cog):
                 _e.description = "**Your screenshots are already verified, kindly move onto next step.**"
                 return await ctx.reply(embed=_e)
 
-            if not (attachments := valid_attachments(message)):
+            if not (attachments := self.__valid_attachments(message)):
                 _e.description = "**Kindly send screenshots in `png/jpg/jpeg` format only.**"
                 return await ctx.reply(embed=_e)
 
@@ -83,14 +68,12 @@ class Ssverification(Cog):
             if not _ocr:
                 return
 
-            return print(_ocr)
-            embed = await self.__verify_screenshots(record, [ImageResponse(**_) for _ in _ocr])
-            embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
+            async with self.__verify_lock:
+                embed = await self.__verify_screenshots(ctx, record, [ImageResponse(**_) for _ in _ocr])
+                embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
 
-            try:
+            with suppress(discord.HTTPException):
                 await m.delete()
-            except discord.HTTPException:
-                pass
 
             await message.reply(embed=_e)
 
@@ -100,16 +83,44 @@ class Ssverification(Cog):
 
                 await message.author.add_roles(discord.Object(id=record.role_id))
 
-                await message.author.send(
-                    f"**Message from {message.guild.name} after ssverification**\n\n{record.success_message}"
-                )
+                _e.title = f"Message from {message.guild.name} after ssverification"
+                _e.url, _e.description = message.jump_url, record.success_message
+
+                await message.author.send(embed=_e)
 
     async def __verify_screenshots(self, ctx: Context, record: SSVerify, _ocr: List[ImageResponse]) -> discord.Embed:
         _e = discord.Embed(color=self.bot.color, description="")
 
         for _ in _ocr:
+            if not record.allow_same:
+                b, t = await record._match_for_duplicate(_.dhash, _.phash, ctx.author.id)
+                if b:
+                    _e.description += t
+                    continue
+
             if record.ss_type == SSType.anyss:
-                ...
+                _e.description += f"{record.emoji(True)} | Successfully Verified.\n"
+                await record._add_to_data(ctx, _)
+
+            elif record.ss_type == SSType.yt:
+                _e.description += await record.verify_yt(_)
+
+            elif record.ss_type == SSType.insta:
+                _e.description += await record.verify_insta(_)
+
+            elif record.ss_type == SSType.loco:
+                _e.description += await record.verify_loco(_)
+
+            elif record.ss_type == SSType.rooter:
+                _e.description += await record.verify_rooter(_)
+
+            elif record.ss_type == SSType.custom:
+                _e.description += await record.verify_custom(_)
+
+        return _e
+
+    def __valid_attachments(self, message: discord.Message):
+        return [_ for _ in message.attachments if _.content_type in ("image/png", "image/jpeg", "image/jpg")]
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):

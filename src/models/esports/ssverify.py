@@ -1,12 +1,16 @@
 from models import BaseDbModel
-from tortoise import fields, exceptions
+from tortoise import fields
 from models.helpers import *
 
 from constants import SSType
-import imagehash
+from core import Context
 
 from utils import emote
 import config
+
+from typing import List, Tuple
+
+from server.app.helpers._const import ImageResponse
 
 
 class SSData(BaseDbModel):
@@ -24,6 +28,10 @@ class SSData(BaseDbModel):
     @property
     def author(self):
         return self.bot.get_user(self.author_id)
+
+    @property
+    def jump_url(self):
+        return "https://discord.com/channels/{}/" + f"{self.channel_id}/{self.message_id}"
 
 
 class SSVerify(BaseDbModel):
@@ -60,7 +68,7 @@ class SSVerify(BaseDbModel):
         if g := self._guild:
             return g.get_role(self.role_id)
 
-    def emoji(self, _bool):
+    def emoji(self, _bool: bool = False):
         return emote.check if _bool else "⚠️"
 
     def __str__(self):
@@ -70,8 +78,8 @@ class SSVerify(BaseDbModel):
 
         return f"{getattr(self.channel,'mention','deleted-channel')} - {_f}"
 
-    async def find_hash(self, hash: str):
-        return await self.data.filter(hash=hash).first()
+    async def find_hash(self, dhash: str, phash: str):
+        return await self.data.filter(dhash=dhash, phash=phash).first()
 
     async def is_user_verified(self, user_id: int):
         return await self.data.filter(author_id=user_id).count() >= self.required_ss
@@ -88,5 +96,39 @@ class SSVerify(BaseDbModel):
         await SSData.filter(pk__in=[d.id for d in data]).delete()
         await self.delete()
 
-    async def verify_any(self):
+    async def _add_to_data(self, ctx: Context, img: ImageResponse):
+        data = await SSData.create(
+            author_id=ctx.author.id,
+            channel_id=ctx.channel.id,
+            message_id=ctx.message.id,
+            dhash=img.dhash,
+            phash=img.phash,
+        )
+        await self.data.add(data)
+
+    async def _match_for_duplicate(self, dhash: str, phash: str, author_id: int) -> Tuple(bool, str):
+        if await self.data.filter(dhash=dhash, phash=phash, author_id=author_id).exists():
+            return True, f"{self.emoji(False)} | You've already submitted this screenshot once.\n"
+
+        if r := await self.data.filter(dhash=dhash, phash=phash).first():
+            return (
+                True,
+                f"{self.emoji(False)} | <@{r.author_id}>, already submitted the [same ss]({r.jump_url.format(self.guild_id)}).\n",
+            )
+
+        return False, False
+
+    async def verify_yt(self, image: ImageResponse):
+        ...
+
+    async def verify_insta(self, image: ImageResponse):
+        ...
+
+    async def verify_loco(self, image: ImageResponse):
+        ...
+
+    async def verify_rooter(self, image: ImageResponse):
+        ...
+
+    async def verify_custom(self, image: ImageResponse):
         ...

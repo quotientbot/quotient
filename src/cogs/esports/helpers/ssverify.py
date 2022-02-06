@@ -1,27 +1,3 @@
-from PIL import Image
-import io
-
-import imagehash
-import discord
-import pytesseract
-from constants import SSType
-
-from models import SSVerify
-from utils import to_async
-
-from typing import NamedTuple, Tuple
-
-
-def valid_attachments(message: discord.Message):
-    return [_ for _ in message.attachments if _.content_type in ("image/png", "image/jpeg", "image/jpg")]
-
-
-class VerifyResult(NamedTuple):
-    reason: str
-    verified: bool = False
-    hash: str = None
-
-
 # async def verify_image(record: SSVerify, group: Tuple):
 
 #     img, cropped = group
