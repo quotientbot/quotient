@@ -27,7 +27,7 @@ class SsmodMainView(EsportsBaseView):
     async def initial_message(self):
         records = await SSVerify.filter(guild_id=self.ctx.guild.id).order_by("id")
         if not records:
-            self.children[-1].disabled = True
+            self.children[-2].disabled = True
 
         _to_show = [f"`{idx}.` {_.__str__()}" for idx, _ in enumerate(records, start=1)]
 
