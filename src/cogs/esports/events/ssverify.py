@@ -68,6 +68,7 @@ class Ssverification(Cog):
             if not _ocr:
                 return
 
+            print("clling verify")
             async with self.__verify_lock:
                 embed = await self.__verify_screenshots(ctx, record, [ImageResponse(**_) for _ in _ocr])
                 embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
@@ -75,7 +76,7 @@ class Ssverification(Cog):
             with suppress(discord.HTTPException):
                 await m.delete()
 
-            await message.reply(embed=_e)
+            await message.reply(embed=embed)
 
             if await record.is_user_verified(ctx.author.id):
                 _e.description = f"{ctx.author.mention} Your screenshots are verified, Move to next step."
@@ -83,10 +84,11 @@ class Ssverification(Cog):
 
                 await message.author.add_roles(discord.Object(id=record.role_id))
 
-                _e.title = f"Message from {message.guild.name} after ssverification"
-                _e.url, _e.description = message.jump_url, record.success_message
+                if record.success_message:
+                    _e.title = f"Message from {message.guild.name} after ssverification"
+                    _e.url, _e.description = message.jump_url, record.success_message
 
-                await message.author.send(embed=_e)
+                    await message.author.send(embed=_e)
 
     async def __verify_screenshots(self, ctx: Context, record: SSVerify, _ocr: List[ImageResponse]) -> discord.Embed:
         _e = discord.Embed(color=self.bot.color, description="")
@@ -103,19 +105,19 @@ class Ssverification(Cog):
                 await record._add_to_data(ctx, _)
 
             elif record.ss_type == SSType.yt:
-                _e.description += await record.verify_yt(_)
+                _e.description += await record.verify_yt(ctx, _)
 
             elif record.ss_type == SSType.insta:
-                _e.description += await record.verify_insta(_)
+                _e.description += await record.verify_insta(ctx, _)
 
             elif record.ss_type == SSType.loco:
-                _e.description += await record.verify_loco(_)
+                _e.description += await record.verify_loco(ctx, _)
 
             elif record.ss_type == SSType.rooter:
-                _e.description += await record.verify_rooter(_)
+                _e.description += await record.verify_rooter(ctx, _)
 
             elif record.ss_type == SSType.custom:
-                _e.description += await record.verify_custom(_)
+                _e.description += await record.verify_custom(ctx, _)
 
         return _e
 

@@ -10,6 +10,7 @@ import config
 
 from typing import Tuple
 from pydantic import BaseModel, HttpUrl
+from difflib import get_close_matches
 
 
 class ImageResponse(BaseModel):
@@ -124,17 +125,40 @@ class SSVerify(BaseDbModel):
 
         return False, False
 
-    async def verify_yt(self, image: ImageResponse):
+    async def verify_yt(self, ctx: Context, image: ImageResponse):
+        lower_text = image.text.lower().replace(" ", "").replace("\n", "")
+
+        if not any(_ in lower_text for _ in ("subscribe", "videos")):
+            return f"{self.emoji()} | This is not a valid youtube ss.\n"
+
+        elif not self.channel_name.lower().replace(" ", "") in lower_text:
+            return f"{self.emoji()} | Screenshot must belong to [`{self.channel_name}`]({self.channel_link}) channel.\n"
+
+        elif "SUBSCRIBE " in image.text:
+            return f"{self.emoji()} | You must subscribe [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
+
+        await self._add_to_data(ctx, image)
+        return f"{self.emoji(True)} | Verified successfully."
+
+    async def verify_insta(self, ctx: Context, image: ImageResponse):
+        lower_text = image.text.lower().replace(" ", "").replace("\n", "")
+        if not "followers" in lower_text:
+            return f"{self.emoji()} | This is not a valid instagram ss.\n"
+
+        elif not self.channel_name.lower().replace(" ", "") in lower_text:
+            return f"{self.emoji()} | Screenshot must belong to [`{self.channel_name}`]({self.channel_link}) page.\n"
+
+        elif "FOLLOW " in image.text:
+            return f"{self.emoji()} | You must follow [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
+
+        await self._add_to_data(ctx, image)
+        return f"{self.emoji(True)} | Verified successfully."
+
+    async def verify_loco(self, ctx: Context, image: ImageResponse):
         ...
 
-    async def verify_insta(self, image: ImageResponse):
+    async def verify_rooter(self, ctx: Context, image: ImageResponse):
         ...
 
-    async def verify_loco(self, image: ImageResponse):
-        ...
-
-    async def verify_rooter(self, image: ImageResponse):
-        ...
-
-    async def verify_custom(self, image: ImageResponse):
+    async def verify_custom(self, ctx: Context, image: ImageResponse):
         ...
