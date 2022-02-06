@@ -31,11 +31,12 @@ class SsmodMainView(EsportsBaseView):
 
         _to_show = [f"`{idx}.` {_.__str__()}" for idx, _ in enumerate(records, start=1)]
 
-        _sm = "\n".join(_to_show) if _to_show else "```Click Setup button to set ssverify.```"
+        _sm = "\n".join(_to_show) if _to_show else "```Click Setup button for new ssverify.```"
 
         _e = discord.Embed(color=0x00FFB3, title=f"Advanced Screenshots Manager", url=self.ctx.config.SERVER_LINK)
         _e.set_thumbnail(url=self.bot.user.avatar.url)
         _e.description = _sm
+        _e.set_footer(text="When in doubt, press '?' :)", icon_url=getattr(self.ctx.author, "url", discord.Embed.Empty))
         return _e
 
     @discord.ui.button(label="Setup ssverify", custom_id="setup_ssverify_button", emoji=emote.add)
