@@ -68,10 +68,13 @@ class Ssverification(Cog):
             if not _ocr:
                 return
 
-            print("clling verify")
             async with self.__verify_lock:
                 embed = await self.__verify_screenshots(ctx, record, [ImageResponse(**_) for _ in _ocr])
                 embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
+                embed.set_author(
+                    name=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
+                    icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
+                )
 
             with suppress(discord.HTTPException):
                 await m.delete()
