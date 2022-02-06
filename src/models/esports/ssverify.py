@@ -149,7 +149,7 @@ class SSVerify(BaseDbModel):
             return f"{self.emoji()} | You must subscribe [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
 
         await self._add_to_data(ctx, image)
-        return f"{self.emoji(True)} | Verified successfully."
+        return f"{self.emoji(True)} | Verified successfully.\n"
 
     async def verify_insta(self, ctx: Context, image: ImageResponse):
         if not "followers" in image.lower_text:
@@ -162,7 +162,7 @@ class SSVerify(BaseDbModel):
             return f"{self.emoji()} | You must follow [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
 
         await self._add_to_data(ctx, image)
-        return f"{self.emoji(True)} | Verified successfully."
+        return f"{self.emoji(True)} | Verified successfully.\n"
 
     async def verify_loco(self, ctx: Context, image: ImageResponse):
         if not self.channel_name.lower().replace(" ", "") in image.lower_text:
@@ -172,7 +172,7 @@ class SSVerify(BaseDbModel):
             return f"{self.emoji()} | You must follow [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
 
         await self._add_to_data(ctx, image)
-        return f"{self.emoji(True)} | Verified successfully."
+        return f"{self.emoji(True)} | Verified successfully.\n"
 
     async def verify_rooter(self, ctx: Context, image: ImageResponse):
         if not self.channel_name.lower().replace(" ", "") in image.lower_text:
@@ -182,7 +182,7 @@ class SSVerify(BaseDbModel):
             return f"{self.emoji()} | You must follow [`{self.channel_name}`]({self.channel_link}) to get verified.\n"
 
         await self._add_to_data(ctx, image)
-        return f"{self.emoji(True)} | Verified successfully."
+        return f"{self.emoji(True)} | Verified successfully.\n"
 
     async def verify_custom(self, ctx: Context, image: ImageResponse):
 
@@ -190,4 +190,4 @@ class SSVerify(BaseDbModel):
             return f"{self.emoji()} | This is not a valid {self.keywords[0]} ss.\n"
 
         await self._add_to_data(ctx, image)
-        return f"{self.emoji(True)} | Verified successfully."
+        return f"{self.emoji(True)} | Verified successfully.\n"
