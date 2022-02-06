@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from core import Context
 
-from utils import keycap_digit as kd, inputs, truncate_string, BaseSelector
+from utils import keycap_digit as kd, inputs, truncate_string, BaseSelector, Prompt
 import discord
 from ._type import SStypeSelector
 
@@ -203,6 +203,23 @@ class SuccessMessage(discord.ui.Button):
 
         self.view.record.success_message = msg
         await self.view.refresh_view()
+
+
+class DeleteButton(discord.ui.Button):
+    def __init__(self, ctx: Context, record: SSVerify):
+        super().__init__(label="Delete ssverify", style=discord.ButtonStyle.red)
+        self.ctx = ctx
+        self.record = record
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        prompt = await self.ctx.prompt("Are you sure you want to delete this ssverify?")
+        if not prompt:
+            return await self.ctx.simple("Okay, not deleting.", 3)
+
+        await self.record.full_delete()
+        await self.ctx.success("Successfully deleted ssverify.", 3)
+        return await self.view.on_timeout()
 
 
 class DiscardButton(discord.ui.Button):

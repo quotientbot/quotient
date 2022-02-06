@@ -98,6 +98,7 @@ class SSmodEditor(EsportsBaseView):
         self.add_item(AllowSame())
 
         self.add_item(SuccessMessage(ctx))
+        self.add_item(DeleteButton(ctx, self.record))
 
         if not await self.ctx.is_premium_guild():
-            self.children[-1].disabled = True
+            self.children[-2].disabled = True
