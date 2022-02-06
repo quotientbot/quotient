@@ -1,6 +1,6 @@
 from contextlib import suppress
 import io
-from typing import NoReturn, Optional, Union
+from typing import  Optional, Union
 
 from prettytable.prettytable import PrettyTable
 from ast import literal_eval
@@ -112,7 +112,7 @@ async def wait_and_purge(channel, *, limit=100, wait_for=15, check=lambda m: Tru
         await channel.purge(limit=limit, check=check)
 
 
-async def scrim_end_process(ctx: Context, scrim: Scrim) -> NoReturn:
+async def scrim_end_process(ctx: Context, scrim: Scrim):
     closed_at = datetime.now(tz=constants.IST)
 
     registration_channel = scrim.registration_channel
