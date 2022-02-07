@@ -10,7 +10,7 @@ import config
 
 from typing import Tuple
 from pydantic import BaseModel, HttpUrl
-from difflib import get_close_matches
+import imagehash
 
 
 class ImageResponse(BaseModel):
@@ -89,9 +89,6 @@ class SSVerify(BaseDbModel):
 
         return f"{getattr(self.channel,'mention','deleted-channel')} - {_f}"
 
-    async def find_hash(self, dhash: str, phash: str):
-        return await self.data.filter(dhash=dhash, phash=phash).first()
-
     async def is_user_verified(self, user_id: int):
         return await self.data.filter(author_id=user_id).count() >= self.required_ss
 
@@ -126,8 +123,11 @@ class SSVerify(BaseDbModel):
         await self.data.add(data)
 
     async def _match_for_duplicate(self, dhash: str, phash: str, author_id: int) -> Tuple[bool, str]:
-        if await self.data.filter(dhash=dhash, phash=phash, author_id=author_id).exists():
-            return True, f"{self.emoji(False)} | You've already submitted this screenshot once.\n"
+
+        _dhash = imagehash.hex_to_hash(dhash)
+        async for record in self.data.filter(author_id=author_id).order_by("submitted_at"):
+            if _dhash - imagehash.hex_to_hash(record.dhash) <= 7:
+                return True, f"{self.emoji(False)} | You've already submitted this screenshot once.\n"
 
         if r := await self.data.filter(dhash=dhash, phash=phash).first():
             return (
