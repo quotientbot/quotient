@@ -162,7 +162,7 @@ class Quomisc(Cog, name="quomisc"):
         total_command_uses = await Commands.all().count()
         user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
         server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
-        user_percentage = ({user_invokes}*100)/{total_command_uses}
+        user_percentage = (user_invokes*100)/total_command_uses
         percent_2dp = "{:.2f}".format(user_percentage)
 
         chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
