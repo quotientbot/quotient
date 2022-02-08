@@ -162,6 +162,8 @@ class Quomisc(Cog, name="quomisc"):
         total_command_uses = await Commands.all().count()
         user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
         server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
+        user_percentage = (user_invokes*100)/total_command_uses
+        percent_2dp = "{:.2f}".format(user_percentage)
 
         chnl_count = Counter(map(lambda ch: ch.type, self.bot.get_all_channels()))
 
@@ -192,7 +194,8 @@ class Quomisc(Cog, name="quomisc"):
             name="Stats",
             value=f"Ping: {round(self.bot.latency * 1000, 2)}ms\nDatabase: {db_latency}\nIPM: {round(get_ipm(ctx.bot), 2)}",
         )
-        embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used.")
+        embed.add_field(name="System", value=f"**RAM**: {used_memory}/{total_memory} MB\n**CPU:** {cpu_used}% used."),
+        embed.add_field(name="Your Stats", value=f"**Total commands run by you : {user_invokes},\n which is {percent_2dp}% of the total commands run.")
         embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
 
         links = [LinkType("Support Server", ctx.config.SERVER_LINK), LinkType("Invite Me", ctx.config.BOT_INVITE)]
