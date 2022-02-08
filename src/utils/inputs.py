@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from contextlib import suppress
 import aiohttp
 import asyncio
@@ -5,10 +7,13 @@ import dateparser
 from datetime import datetime, timedelta
 from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 
+
 from utils import keycap_digit
 from .exceptions import InputError
 from constants import IST
 import discord
+
+from discord.ext.commands import Context
 
 
 async def safe_delete(message) -> bool:
@@ -20,7 +25,7 @@ async def safe_delete(message) -> bool:
         return True
 
 
-async def channel_input(ctx, check=None, timeout=120, delete_after=False):
+async def channel_input(ctx: Context, check=None, timeout=120, delete_after=False, check_perms=True):
     check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
@@ -38,17 +43,32 @@ async def channel_input(ctx, check=None, timeout=120, delete_after=False):
                 "`read_messages`,`send_messages`,`embed_links`."
             )
 
+        if check_perms:
+            if not all(
+                (
+                    perms.manage_channels,
+                    perms.add_reactions,
+                    perms.use_external_emojis,
+                    perms.manage_permissions,
+                    perms.manage_messages,
+                )
+            ):
+                raise InputError(
+                    f"Please make sure I have the following perms in {channel.mention}:\n"
+                    "- `add reactions`\n- `use external emojis`\n- `manage channel`\n- `manage permissions`\n"
+                    "- `manage messages`"
+                )
         if delete_after:
             await safe_delete(message)
 
         return channel
 
 
-async def role_input(ctx, check=None, timeout=120, hierarchy=True, check_perms=True, delete_after=False):
+async def role_input(ctx: Context, check=None, timeout=120, hierarchy=True, check_perms=True, delete_after=False):
     check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
 
     try:
-        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         role = await RoleConverter().convert(ctx, message.content)
     except asyncio.TimeoutError:
         raise InputError("You failed to select a role in time. Try again!")
@@ -87,9 +107,9 @@ async def role_input(ctx, check=None, timeout=120, hierarchy=True, check_perms=T
         return role
 
 
-async def member_input(ctx, check, timeout=120, delete_after=False):
+async def member_input(ctx: Context, check, timeout=120, delete_after=False):
     try:
-        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         member = await MemberConverter().convert(ctx, message.content)
 
     except asyncio.TimeoutError:
@@ -102,10 +122,10 @@ async def member_input(ctx, check, timeout=120, delete_after=False):
         return member
 
 
-async def integer_input(ctx, check=None, timeout=120, limits=(None, None), delete_after=False):
+async def integer_input(ctx: Context, check=None, timeout=120, limits=(None, None), delete_after=False):
     check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
 
-    def new_check(message):
+    def new_check(message: discord.Message):
         if not check(message):
             return False
 
@@ -131,7 +151,7 @@ async def integer_input(ctx, check=None, timeout=120, limits=(None, None), delet
             return high <= digit
 
     try:
-        message = await ctx.bot.wait_for("message", check=new_check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=new_check, timeout=timeout)
     except asyncio.TimeoutError:
         raise InputError("You failed to select a number in time. Try again!")
     else:
@@ -141,9 +161,9 @@ async def integer_input(ctx, check=None, timeout=120, limits=(None, None), delet
         return int(message.content)
 
 
-async def time_input(ctx, check, timeout=120, delete_after=False):
+async def time_input(ctx: Context, check, timeout=120, delete_after=False):
     try:
-        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
         raise InputError("Timeout, You have't responsed in time. Try again!")
     else:
@@ -169,11 +189,11 @@ async def time_input(ctx, check, timeout=120, delete_after=False):
             raise InputError("This isn't valid time format.")
 
 
-async def string_input(ctx, check=None, timeout=120, delete_after=False):
+async def string_input(ctx: Context, check=None, timeout=120, delete_after=False):
     check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
 
     try:
-        message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
         raise InputError("Took too long. Good Bye.")  # This would sound cooler.
     else:
@@ -183,7 +203,7 @@ async def string_input(ctx, check=None, timeout=120, delete_after=False):
         return message.content
 
 
-async def image_input(ctx, check, timeout=120, delete_after=False):
+async def image_input(ctx: Context, check, timeout=120, delete_after=False):
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
@@ -210,7 +230,7 @@ async def image_input(ctx, check, timeout=120, delete_after=False):
         return result
 
 
-async def text_or_embed(ctx, check, timeout=120, delete_after=False):
+async def text_or_embed(ctx: Context, check, timeout=120, delete_after=False):
     reactions = (keycap_digit(1), keycap_digit(2))
 
     def react_check(reaction, user):

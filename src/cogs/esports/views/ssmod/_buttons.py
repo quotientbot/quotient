@@ -224,7 +224,7 @@ class DeleteButton(discord.ui.Button):
 
 class DiscardButton(discord.ui.Button):
     def __init__(self):
-        super().__init__(label="Discard", style=discord.ButtonStyle.red)
+        super().__init__(label="Cancel", style=discord.ButtonStyle.red)
 
     async def callback(self, interaction: discord.Interaction):
         return await self.view.on_timeout()

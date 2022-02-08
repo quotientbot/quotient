@@ -96,7 +96,7 @@ class Context(commands.Context):
             embed=discord.Embed(
                 description=message,
                 color=self.bot.color,
-            ),
+            ).set_image(url=kwargs.get("image", discord.Embed.Empty)),
             delete_after=delete_after,
             **kwargs,
         )
