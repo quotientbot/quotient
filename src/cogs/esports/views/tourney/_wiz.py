@@ -11,3 +11,5 @@ class TourneySetupWizard(EsportsBaseView):
 
         self.ctx = ctx
         self.record = None
+
+    

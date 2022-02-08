@@ -335,7 +335,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_sm()
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, manage_channels=True)
-    async def s_close(self, ctx:Context, scrim: Scrim):
+    async def s_close(self, ctx: Context, scrim: Scrim):
         """
         Close a scrim immediately, even if the slots aren't full.
         """
@@ -344,7 +344,7 @@ class ScrimManager(Cog, name="Esports"):
         prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
         if not prompt:
             await ctx.success("Ok, Aborting!")
-        
+
         await scrim_end_process(ctx, scrim)
         await ctx.message.add_reaction(emote.check)
 
@@ -352,9 +352,6 @@ class ScrimManager(Cog, name="Esports"):
         if slotm:
             await slotm.refresh_public_message()
 
-
-
-        
     @smanager.command(name="config")
     @checks.can_use_sm()
     @checks.has_done_setup()
@@ -459,25 +456,32 @@ class ScrimManager(Cog, name="Esports"):
     @s_slotlist.command(name="send")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_slotlist_send(self, ctx, scrim: Scrim, channel: QuoTextChannel = None):
+    async def s_slotlist_send(self, ctx: Context, scrim: Scrim, channel: discord.TextChannel = None):
         """
         Send slotlist of a scrim.
         """
         if not await scrim.teams_registered.count():
             return await ctx.error("Nobody registered yet!")
+
         embed, schannel = await scrim.create_slotlist()
         channel = channel or schannel
 
         await ctx.send(embed=embed)
         prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
-        if prompt:
-            if channel is not None and channel.permissions_for(ctx.me).send_messages:
-                await channel.send(embed=embed)
-                await ctx.success("Slotlist sent successfully!")
-            else:
-                await ctx.error(f"I can't send messages in {channel}")
+        if not prompt:
+            return await ctx.error("Ok, Aborting.")
+
+        if channel is not None and channel.permissions_for(ctx.me).embed_links:
+            _v = SlotlistEditButton(ctx, scrim)
+
+            _v.message = await channel.send(embed=embed, view=_v)
+            await ctx.success("Slotlist sent successfully!")
+
+            if channel == schannel:
+                await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)
+
         else:
-            await ctx.success("Ok!")
+            await ctx.error(f"I can't send messages in {channel}")
 
     @s_slotlist.command(name="edit")
     @checks.can_use_sm()
@@ -488,7 +492,9 @@ class ScrimManager(Cog, name="Esports"):
         """
         Edit a slotlist
         """
-        msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
+        msg = None
+        with suppress(discord.HTTPException):
+            msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
         if not msg:
             return await ctx.error("Slotlist Message not found.")
 
@@ -1583,7 +1589,6 @@ class ScrimManager(Cog, name="Esports"):
         await BanLog.update_or_create(guild_id=ctx.guild.id, defaults={"channel_id": channel.id})
         await ctx.success(f"Successfully set {channel.mention} as esports ban/unban log channel.")
 
-
     @commands.group(invoke_without_command=True, aliases=("ss",))
     @checks.can_use_tm()
     @checks.has_done_setup()
@@ -1594,7 +1599,6 @@ class ScrimManager(Cog, name="Esports"):
         """
         _view = SsmodMainView(ctx)
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
-
 
 
 def setup(bot):
