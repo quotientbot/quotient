@@ -238,6 +238,10 @@ class SaveButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
+        if not await self.ctx.is_premium_guild():
+            if await SSVerify.filter(guild_id=self.ctx.guild.id).exists():
+                return await self.ctx.premium_mango("You need Quotient Premium to setup more than 1 ssverify.")
+
         await self.view.record.save()
         self.ctx.bot.cache.ssverify_channels.add(self.view.record.channel_id)
         await self.view.on_timeout()
