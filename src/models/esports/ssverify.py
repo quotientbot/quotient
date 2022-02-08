@@ -127,7 +127,10 @@ class SSVerify(BaseDbModel):
         _dhash = imagehash.hex_to_hash(dhash)
         async for record in self.data.filter(author_id=author_id).order_by("submitted_at"):
             if _dhash - imagehash.hex_to_hash(record.dhash) <= 7:
-                return True, f"{self.emoji(False)} | You've already submitted this screenshot once.\n"
+                return (
+                    True,
+                    f"{self.emoji(False)} | You've already submitted this screenshot [here]({record.jump_url.format(self.guild_id)}).\n",
+                )
 
         if r := await self.data.filter(dhash=dhash, phash=phash).first():
             return (
