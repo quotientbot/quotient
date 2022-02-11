@@ -17,7 +17,7 @@ from .helpers import (
     registration_close_embed,
     registration_open_embed,
     t_ask_embed,
-    MultiScrimConverter
+    MultiScrimConverter,
 )
 
 from utils import (
@@ -1014,12 +1014,14 @@ class ScrimManager(Cog, name="Esports"):
     @checks.has_done_setup()
     @commands.bot_has_permissions(embed_links=True, attach_files=True)
     @commands.cooldown(10, 1, type=commands.BucketType.member)
-    async def tourney_data(self, ctx, tourney: Tourney):
+    async def tourney_data(self, ctx: Context, tourney: Tourney):
         """Get all the data that Quotient collected for a tourney."""
 
         if not await tourney.assigned_slots.all().count():
             raise TourneyError(f"There is no data to show as nobody registered yet!")
 
+        _m = await ctx.simple(f"Crunching the data for you....")
+        await asyncio.sleep(1)
         e = self.bot.embed(
             ctx,
             description=(
@@ -1038,7 +1040,8 @@ class ScrimManager(Cog, name="Esports"):
         ]
         _view = LinkButton(_list)
 
-        await ctx.send(embed=e, view=_view)
+        with suppress(discord.HTTPException):
+            await _m.edit(embed=e, view=_view)
 
     @tourney.command(name="list", aliases=("all",))
     @checks.can_use_tm()
