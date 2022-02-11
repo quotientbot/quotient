@@ -68,11 +68,13 @@ class Context(commands.Context):
             return view.value
 
     async def error(self, message, delete_after=None, **kwargs):
-        return await self.reply(
-            embed=discord.Embed(description=message, color=discord.Color.red()),
-            delete_after=delete_after,
-            **kwargs,
-        )
+        with suppress(discord.HTTPException):
+
+            return await self.reply(
+                embed=discord.Embed(description=message, color=discord.Color.red()),
+                delete_after=delete_after,
+                **kwargs,
+            )
 
     async def safe_delete(self, msg: discord.Message, sleep_for: int = 0):
         if sleep_for:
@@ -82,24 +84,27 @@ class Context(commands.Context):
             await msg.delete()
 
     async def success(self, message, delete_after=None, **kwargs):
-        return await self.reply(
-            embed=discord.Embed(
-                description=f"{utils.check} | {message}",
-                color=self.bot.color,
-            ),
-            delete_after=delete_after,
-            **kwargs,
-        )
+        with suppress(discord.HTTPException):
+            return await self.reply(
+                embed=discord.Embed(
+                    description=f"{utils.check} | {message}",
+                    color=self.bot.color,
+                ),
+                delete_after=delete_after,
+                **kwargs,
+            )
 
     async def simple(self, message, delete_after=None, **kwargs):
-        return await self.reply(
-            embed=discord.Embed(
-                description=message,
-                color=self.bot.color,
-            ).set_image(url=kwargs.get("image", discord.Embed.Empty)),
-            delete_after=delete_after,
-            **kwargs,
-        )
+        with suppress(discord.HTTPException):
+
+            return await self.reply(
+                embed=discord.Embed(
+                    description=message,
+                    color=self.bot.color,
+                ).set_image(url=kwargs.get("image", discord.Embed.Empty)),
+                delete_after=delete_after,
+                **kwargs,
+            )
 
     async def is_premium_guild(self):
         from models import Guild
