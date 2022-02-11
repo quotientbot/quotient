@@ -25,8 +25,9 @@ class AutoPurgeEvents(Cog):
 
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):
-        if not message.guild:
+        if not message.guild or message.author.bot:
             return
+
         channel = message.channel
         content = message.content if message.content else "*[Content Unavailable]*"
 
