@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from core import Context
+
 from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
 
-from typing import List, TYPE_CHECKING, Optional
-
-from datetime import datetime
-
-import io
+from typing import List ,Optional
 
 import discord
 import re
@@ -103,30 +99,6 @@ async def update_confirmed_message(tourney: Tourney, link: str):
 
             await message.edit(embed=e)
 
-
-async def csv_tourney_data(tourney: Tourney):
-    guild = tourney.guild
-
-    guild_members = [m.id for m in guild.members]
-
-    def _slot_info(slot: TMSlot):
-        _team = " | ".join((f"{str(guild.get_member(m))} ({m})" for m in slot.members))
-
-        in_server = sum(1 for i in slot.members if i in guild_members)
-
-        return (
-            f"{slot.num},{slot.team_name},{str(guild.get_member(slot.leader_id))},"
-            f"'{slot.leader_id}',{_team},{in_server},{slot.jump_url}"
-        )
-
-    _x = "Reg Posi,Team Name,Leader,Leader ID,Teammates,Teammates in Server,Jump URL\n"
-
-    async for _slot in tourney.assigned_slots.all().order_by("num"):
-        _x += f"{_slot_info(_slot)}\n"
-
-    fp = io.BytesIO(_x.encode())
-
-    return discord.File(fp, filename=f"tourney_data_{tourney.id}_{datetime.now().timestamp()}.csv")
 
 
 async def get_tourney_from_channel(guild_id: int, channel_id: int) -> Optional[Tourney]:

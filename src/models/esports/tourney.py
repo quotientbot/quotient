@@ -1,4 +1,5 @@
 from contextlib import suppress
+import io
 from tortoise import fields, exceptions
 from discord.ext.commands import BadArgument
 
@@ -17,8 +18,7 @@ _dict = {
 }
 
 from core import Context
-from datetime import datetime
-from constants import IST, EsportsLog
+from constants import EsportsLog
 
 
 class Tourney(BaseDbModel):
@@ -181,7 +181,7 @@ class Tourney(BaseDbModel):
 
         from cogs.esports.helpers.utils import toggle_channel
 
-        closed_at = datetime.now(tz=IST)
+        closed_at = self.bot.current_time
 
         registration_channel = self.registration_channel
         open_role = self.open_role
@@ -207,6 +207,24 @@ class Tourney(BaseDbModel):
         }
         slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
         return await slotm_channel.send(embed=TourneySlotManager.initial_embed(self), view=_view)
+
+    async def get_csv(self):
+        guild = self.guild
+        member_ids = [_.id for _ in guild.members]
+
+        _x = "Reg Posi,Team Name,Leader,Leader ID,Teammates,Teammates in Server,Jump URL\n"
+
+        async for slot in self.assigned_slots.all().order_by("num"):
+            _team = " | ".join((f"{str(guild.get_member(m))} ({m})" for m in slot.members))
+
+            _x += (
+                f"{slot.num},{slot.team_name},{str(guild.get_member(slot.leader_id))},"
+                f"'{slot.leader_id}',{_team},{sum(1 for i in slot.members if i in member_ids)},{slot.jump_url}"
+            )
+
+        fp = io.BytesIO(_x.encode())
+
+        return discord.File(fp, filename=f"tourney_data_{self.id}_{self.bot.current_time.timestamp()}.csv")
 
 
 class TMSlot(BaseDbModel):
