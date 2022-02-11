@@ -107,10 +107,12 @@ async def update_confirmed_message(tourney: Tourney, link: str):
 async def csv_tourney_data(tourney: Tourney):
     guild = tourney.guild
 
+    guild_members = [m.id for m in guild.members]
+
     def _slot_info(slot: TMSlot):
         _team = " | ".join((f"{str(guild.get_member(m))} ({m})" for m in slot.members))
 
-        in_server = sum(1 for i in slot.members if i in (m.id for m in guild.members))
+        in_server = sum(1 for i in slot.members if i in guild_members)
 
         return (
             f"{slot.num},{slot.team_name},{str(guild.get_member(slot.leader_id))},"
