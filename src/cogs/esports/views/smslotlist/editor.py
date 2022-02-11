@@ -27,6 +27,8 @@ class ScrimsSlotlistEditor(discord.ui.View):
         self.scrim = scrim
         self.slotlist_message = slotlist_message
 
+        self.custom_id=None
+
     async def on_timeout(self) -> None:
         if not hasattr(self, "message"):
             return
