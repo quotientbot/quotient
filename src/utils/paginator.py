@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import NamedTuple, Optional
 from .default import get_chunks
 import discord
@@ -94,13 +95,15 @@ class QuoPaginator:
 
 
 class PaginatorView(discord.ui.View):
+    message: discord.Message
+
     def __init__(self, ctx, pages: Pages, embed, timeout, show_page_count):
 
         super().__init__(timeout=timeout)
 
         self.ctx = ctx
         self.pages = pages
-        self.embed = embed
+        self.embed: discord.Embed = embed
         self.show_page_count = show_page_count
 
         if self.pages.cur_page == 1:
@@ -146,7 +149,8 @@ class PaginatorView(discord.ui.View):
         for b in self.children:
             b.style, b.disabled = discord.ButtonStyle.grey, True
 
-        await self.message.edit(view=self)
+        with suppress(discord.HTTPException):
+            await self.message.edit(view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="first", emoji="<:double_left:878668594530099220>")
     async def first(self, button: discord.ui.Button, interaction: discord.Interaction):
