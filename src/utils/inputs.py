@@ -26,7 +26,7 @@ async def safe_delete(message) -> bool:
 
 
 async def channel_input(ctx: Context, check=None, timeout=120, delete_after=False, check_perms=True):
-    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
@@ -65,7 +65,7 @@ async def channel_input(ctx: Context, check=None, timeout=120, delete_after=Fals
 
 
 async def role_input(ctx: Context, check=None, timeout=120, hierarchy=True, check_perms=True, delete_after=False):
-    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
 
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
@@ -123,7 +123,7 @@ async def member_input(ctx: Context, check, timeout=120, delete_after=False):
 
 
 async def integer_input(ctx: Context, check=None, timeout=120, limits=(None, None), delete_after=False):
-    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
 
     def new_check(message: discord.Message):
         if not check(message):
@@ -190,7 +190,7 @@ async def time_input(ctx: Context, check, timeout=120, delete_after=False):
 
 
 async def string_input(ctx: Context, check=None, timeout=120, delete_after=False):
-    check = check or (lambda m: m.channel == ctx.channel or m.author == ctx.author)
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
 
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)

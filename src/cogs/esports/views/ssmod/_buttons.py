@@ -182,7 +182,7 @@ class SuccessMessage(discord.ui.Button):
 
         m = await self.ctx.simple(
             "What message do you want me to show for successful verification? This message will be sent to "
-            "DM of players who verify screenshots successfully.\n\n**Current Success Message:**"
+            "players who verify screenshots successfully.\n\n**Current Success Message:**"
             f"```{self.view.record.success_message if self.view.record.success_message else 'Not Set Yet.'}```"
             "\n`Kindly keep it under 500 characters. Enter none to remove it.`"
         )

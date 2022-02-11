@@ -82,16 +82,16 @@ class Ssverification(Cog):
             await message.reply(embed=embed)
 
             if await record.is_user_verified(ctx.author.id):
-                _e.description = f"{ctx.author.mention} Your screenshots are verified, Move to next step."
-                await message.reply(embed=_e)
-
                 await message.author.add_roles(discord.Object(id=record.role_id))
 
                 if record.success_message:
-                    _e.title = f"Message from {message.guild.name} after ssverification"
+                    _e.title = f"Screenshot Verification Complete"
                     _e.url, _e.description = message.jump_url, record.success_message
 
-                    await message.author.send(embed=_e)
+                    return await message.reply(embed=_e)
+
+                _e.description = f"{ctx.author.mention} Your screenshots are verified, Move to next step."
+                await message.reply(embed=_e)
 
     async def __verify_screenshots(self, ctx: Context, record: SSVerify, _ocr: List[ImageResponse]) -> discord.Embed:
         _e = discord.Embed(color=self.bot.color, description="")
