@@ -34,13 +34,15 @@ def tourney_work_role(tourney: Tourney, _type: EsportsRole):
     return getattr(role, "mention", "role-deleted")
 
 
-def before_registrations(message: discord.Message, role: discord.Role = None) -> bool:
+def before_registrations(message: discord.Message, role: discord.Role) -> bool:
     me = message.guild.me
     channel = message.channel
 
+    if not role:
+        return False
+
     if not all(
         (
-            role,
             me.guild_permissions.manage_roles,
             role > message.guild.me.top_role,
             channel.permissions_for(me).add_reactions,
