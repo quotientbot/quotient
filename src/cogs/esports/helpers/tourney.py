@@ -44,7 +44,7 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
     if not all(
         (
             me.guild_permissions.manage_roles,
-            role > message.guild.me.top_role,
+            role < message.guild.me.top_role,
             channel.permissions_for(me).add_reactions,
             channel.permissions_for(me).use_external_emojis,
         )
