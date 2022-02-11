@@ -308,7 +308,7 @@ class Quomisc(Cog, name="quomisc"):
             _view.children[0] = _b
 
         e.set_footer(
-            text=f"Your votes: {vote.total_votes}",
+            text=f"Your votes: {vote.total_votes if vote else 0}",
             icon_url=getattr(ctx.author.avatar, "url", self.bot.user.avatar.url),
         )
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
