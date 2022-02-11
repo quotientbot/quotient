@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ...views.base import EsportsBaseView
 
 from core import Context
 from models import Tourney
@@ -9,8 +8,10 @@ from ._buttons import *
 from string import ascii_uppercase
 from ..ssmod._buttons import DiscardButton
 
+from ._base import TourneyView
 
-class TourneySetupWizard(EsportsBaseView):
+
+class TourneySetupWizard(TourneyView):
     record: Tourney
 
     def __init__(self, ctx: Context):
@@ -24,13 +25,13 @@ class TourneySetupWizard(EsportsBaseView):
         self.add_item(SetRole(ctx, "c"))
         self.add_item(SetMentions(ctx, "d"))
         self.add_item(SetSlots(ctx, "e"))
-        self.add_item(SetEmojis(ctx,"f"))
+        self.add_item(SetEmojis(ctx, "f"))
         self.add_item(DiscardButton())
         self.add_item(SaveTourney(ctx))
 
     def initial_message(self):
         if not self.record:
-            self.record = Tourney(guild_id=self.ctx.guild.id)
+            self.record = Tourney(guild_id=self.ctx.guild.id, host_id=self.ctx.author.id)
 
         fields = {
             "Registration Channel": getattr(self.record.registration_channel, "mention", "`Not-Set`"),

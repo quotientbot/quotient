@@ -47,6 +47,8 @@ class RegChannel(TourneyButton):
             return await self.ctx.error(f"Another tourney is running in {channel.mention}.", 4)
         self.view.record.registration_channel_id = channel.id
 
+        self.ctx.bot.cache.tourney_channels.add(channel.id)
+
         await self.view.refresh_view()
 
 
@@ -291,3 +293,53 @@ class DeleteTourney(TourneyButton):
 class SaveTourney(TourneyButton):
     def __init__(self, ctx: Context):
         super().__init__(style=discord.ButtonStyle.green, label="Save", disabled=True)
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        _reason = "Created for tournament management."
+
+        if not (tourney_mod := self.view.record.modrole):
+            tourney_mod = await self.ctx.guild.create_role(name="tourney-mod", color=self.ctx.bot.color, reason=_reason)
+
+        overwrite = self.view.record.registration_channel.overwrites_for(self.ctx.guild.default_role)
+        overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
+        await self.view.record.registration_channel.set_permissions(tourney_mod, overwrite=overwrite)
+
+        guild = self.ctx.guild
+        if (tourney_log_channel := self.view.record.logschan) is None:
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                guild.me: discord.PermissionOverwrite(read_messages=True),
+                tourney_mod: discord.PermissionOverwrite(read_messages=True),
+            }
+            tourney_log_channel = await self.ctx.guild.create_text_channel(
+                name="quotient-tourney-logs",
+                overwrites=overwrites,
+                reason=_reason,
+                topic="**DO NOT RENAME THIS CHANNEL**",
+            )
+
+            note = await tourney_log_channel.send(
+                embed=discord.Embed(
+                    description=f"If events related to tournament i.e opening registrations or adding roles, "
+                    f"etc are triggered, then they will be logged in this channel. "
+                    f"Also I have created {tourney_mod.mention}, you can give that role to your "
+                    f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
+                    f"registration channels and they won't be considered as tourney-registration.\n\n"
+                    f"`Note`: **Do not rename this channel.**",
+                    color=discord.Color(self.ctx.config.COLOR),
+                )
+            )
+            await note.pin()
+
+        message = await self.view.record.setup_slotm()
+        self.view.record.slotm_channel_id = message.channel.id
+        self.view.record.slotm_message_id = message.id
+        await self.view.record.save()
+        self.view.stop()
+        await self.ctx.success("Successfully saved tourney.\n\n`Click start button to start registrations.`", 4)
+        from .main import TourneyManager
+
+        v = TourneyManager(self.ctx)
+        v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)

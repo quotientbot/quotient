@@ -31,7 +31,7 @@ class Tourney(BaseDbModel):
     registration_channel_id = fields.BigIntField(index=True)
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
-    required_mentions = fields.SmallIntField(default=4,validators=[ValueRangeValidator(range(0, 11))])
+    required_mentions = fields.SmallIntField(default=4, validators=[ValueRangeValidator(range(0, 11))])
     total_slots = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 10001))])
     banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
@@ -193,6 +193,20 @@ class Tourney(BaseDbModel):
         )
 
         self.bot.dispatch("tourney_log", EsportsLog.closed, self, permission_updated=channel_update)
+
+    async def setup_slotm(self):
+        from cogs.esports.views.tourney.slotm import TourneySlotManager
+
+        _view = TourneySlotManager(self.bot, tourney=self)
+        _category = self.registration_channel.category
+        overwrites = {
+            self.guild.default_role: discord.PermissionOverwrite(
+                read_messages=True, send_messages=False, read_message_history=True
+            ),
+            self.guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
+        }
+        slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
+        return await slotm_channel.send(embed=TourneySlotManager.initial_embed(self), view=_view)
 
 
 class TMSlot(BaseDbModel):

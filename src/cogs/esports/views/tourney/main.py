@@ -11,6 +11,7 @@ from ..base import EsportsBaseView
 from ._wiz import TourneySetupWizard
 import discord
 
+from ._editor import TourneyEditor
 from models import Tourney
 
 
@@ -37,11 +38,17 @@ class TourneyManager(EsportsBaseView):
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="create_tourney", label="Create Tournament")
     async def create_tournament(self, button: discord.Button, interaction: discord.Interaction):
-        await interaction.response.defer()
-
+        self.stop()
         _v = TourneySetupWizard(self.ctx)
-        _v.message = await self.ctx.send(embed=_v.initial_message(), view=_v)
+        _v.message = await self.message.edit(embed=_v.initial_message(), view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="edit_tourney", label="Edit Settings")
     async def edit_tournament(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        records = await Tourney.filter(guild_id=self.ctx.guild.id).order_by("id")
+
+        _v = TourneyEditor(self.ctx, records)
+        await _v._add_buttons(self.ctx)
+
+        _v.message = await self.message.edit(embed=await _v.initial_message(), view=_v)
