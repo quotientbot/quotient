@@ -6,7 +6,7 @@ from models import Tourney, TMSlot
 
 from constants import EsportsRole, RegDeny
 
-from typing import List ,Optional
+from typing import List, Optional
 
 import discord
 import re
@@ -34,15 +34,18 @@ def tourney_work_role(tourney: Tourney, _type: EsportsRole):
     return getattr(role, "mention", "role-deleted")
 
 
-def before_registrations(message: discord.Message, role: discord.Role) -> bool:
+def before_registrations(message: discord.Message, role: discord.Role = None) -> bool:
     me = message.guild.me
     channel = message.channel
 
-    if (
-        not me.guild_permissions.manage_roles
-        or role > message.guild.me.top_role
-        or not channel.permissions_for(me).add_reactions
-        or not channel.permissions_for(me).use_external_emojis
+    if not all(
+        (
+            role,
+            me.guild_permissions.manage_roles,
+            role > message.guild.me.top_role,
+            channel.permissions_for(me).add_reactions,
+            channel.permissions_for(me).use_external_emojis,
+        )
     ):
         return False
     return True
@@ -98,7 +101,6 @@ async def update_confirmed_message(tourney: Tourney, link: str):
             e.color = discord.Color.red()
 
             await message.edit(embed=e)
-
 
 
 async def get_tourney_from_channel(guild_id: int, channel_id: int) -> Optional[Tourney]:

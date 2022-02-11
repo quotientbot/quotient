@@ -1,6 +1,6 @@
 from contextlib import suppress
 import io
-from typing import  Optional, Union
+from typing import Optional, Union
 
 from prettytable.prettytable import PrettyTable
 from ast import literal_eval
@@ -76,6 +76,7 @@ async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, T
         )
         embed.description += (
             "\nPossible reasons are:\n"
+            "> Success Role of tourney has been deleted.\n"
             "> I don't have add reaction permission in the channel\n"
             "> I don't have manage_roles permission in the server\n"
             f"> My top role({message.guild.me.top_role.mention}) is below {obj.role.mention}\n"
@@ -123,7 +124,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim):
     await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
 
     channel_update = await toggle_channel(registration_channel, open_role, False)
- 
+
     await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
 
     _e = registration_close_embed(scrim)
@@ -147,7 +148,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim):
         check = lambda x: all(
             (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
         )
-        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check,wait_for=20))
+        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check, wait_for=20))
 
 
 async def purge_channel(channel):
@@ -270,7 +271,6 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
     if role == scrim.guild.default_role:
         return "@everyone"
     return getattr(role, "mention", "Role deleted!")
-
 
 
 async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
