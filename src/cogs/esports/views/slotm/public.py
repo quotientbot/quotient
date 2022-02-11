@@ -280,4 +280,4 @@ class ScrimsSlotmPublicView(discord.ui.View):
         await interaction.followup.send(embed=_e, ephemeral=True)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
-        print(error)
+        ...

@@ -219,7 +219,7 @@ class Tourney(BaseDbModel):
 
             _x += (
                 f"{slot.num},{slot.team_name},{str(guild.get_member(slot.leader_id))},"
-                f"'{slot.leader_id}',{_team},{sum(1 for i in slot.members if i in member_ids)},{slot.jump_url}"
+                f"'{slot.leader_id}',{_team},{sum(1 for i in slot.members if i in member_ids)},{slot.jump_url}\n"
             )
 
         fp = io.BytesIO(_x.encode())
