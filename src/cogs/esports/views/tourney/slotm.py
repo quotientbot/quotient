@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import suppress
 
 from models import Tourney, TMSlot
 
@@ -181,8 +182,10 @@ class TourneySlotManager(discord.ui.View):
                 await self.update_channel_for(interaction.channel, interaction.user, False)
                 return await interaction.followup.send("Timed out. Please try again later.", ephemeral=True)
 
-            await team_name.delete()
-            await self.update_channel_for(interaction.channel, interaction.user, False)
+            with suppress(discord.HTTPException):
+                await self.update_channel_for(interaction.channel, interaction.user, False)
 
-            await TMSlot.filter(pk=_id).update(team_name=truncate_string(team_name.content, 30))
-            return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
+                await team_name.delete()
+
+                await TMSlot.filter(pk=_id).update(team_name=truncate_string(team_name.content, 30))
+                return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
