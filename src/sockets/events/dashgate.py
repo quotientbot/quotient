@@ -16,7 +16,7 @@ class DashboardGate(Cog):
         self.bot = bot
 
     @Cog.listener()
-    async def on_request__guild_permissions(self, data):
+    async def on_request__guild_permissions(self, u, data):
 
         guild_ids = data["guild_ids"]
         user_id = data["user_id"]
@@ -59,4 +59,4 @@ class DashboardGate(Cog):
 
             result[guild_id] = perms
 
-        await self.bot.sio.emit("guild_permissions", result)
+        await self.bot.sio.emit(f"guild_permissions__{u}", result)

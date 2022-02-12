@@ -315,6 +315,44 @@ class Scrim(BaseDbModel):
             None, wrapper
         )  # As pillow is blocking, we will process image in executor
 
+    async def setup_logs(self):
+        _reason = "Created for scrims management."
+
+        guild = self.guild
+
+        if not (scrims_mod := self.modrole):
+            scrims_mod = await guild.create_role(name="scrims-mod", color=self.bot.color, reason=_reason)
+
+        overwrite = self.registration_channel.overwrites_for(guild.default_role)
+        overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
+        await self.registration_channel.set_permissions(scrims_mod, overwrite=overwrite)
+
+        if (scrims_log_channel := self.logschan) is None:
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                guild.me: discord.PermissionOverwrite(read_messages=True),
+                scrims_mod: discord.PermissionOverwrite(read_messages=True),
+            }
+            scrims_log_channel = await guild.create_text_channel(
+                name="quotient-scrims-logs",
+                overwrites=overwrites,
+                reason=_reason,
+                topic="**DO NOT RENAME THIS CHANNEL**",
+            )
+
+            note = await scrims_log_channel.send(
+                embed=discord.Embed(
+                    description=f"If events related to scrims i.e opening registrations or adding roles, "
+                    f"etc are triggered, then they will be logged in this channel. "
+                    f"Also I have created {scrims_mod.mention}, you can give that role to your "
+                    f"scrims-moderators. User with {scrims_mod.mention} can also send messages in "
+                    f"registration channels and they won't be considered as scrims-registration.\n\n"
+                    f"`Note`: **Do not rename this channel.**",
+                    color=0x00FFB3,
+                )
+            )
+            await note.pin()
+
 
 class BaseSlot(models.Model):
     class Meta:

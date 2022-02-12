@@ -15,6 +15,7 @@ class QuoSocket(socketio.AsyncClient):
 
     async def emit(self, event, data=None, namespace=None, callback=None):
         event = f"response__{event}"
+        print("sending", event, data)
         return await super().emit(event, data=data, namespace=namespace, callback=callback)
 
     @staticmethod
@@ -31,7 +32,9 @@ sio = QuoSocket(logger=True, engineio_logger=True)
 
 @sio.on("*")
 async def catch_all(event, data):
-    print(event, data)
     data = QuoSocket.int_parse(data)
-    print(f"{event} {data}")
-    sio.bot.dispatch(event, data)
+
+    r, e, u = event.split("__")
+    data["user__id"] = u
+    print(r + e)
+    sio.bot.dispatch(r + "__" + e, u, data)

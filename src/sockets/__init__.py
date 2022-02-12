@@ -8,7 +8,7 @@ from core import Cog
 from socketio import AsyncClient
 
 from .app import sio
-from .events import DashboardGate
+from .events import DashboardGate, SocketScrims
 
 
 class SocketConnection(Cog):
@@ -23,7 +23,7 @@ class SocketConnection(Cog):
         self.bot.loop.create_task(self.__close_connection())
 
     async def __make_connection(self):
-        await sio.connect("http://a180-219-91-220-73.ngrok.io/api/", auth={"token": self.bot.config.SOCKET_AUTH})
+        await sio.connect("http://2068-203-88-145-154.ngrok.io/api/", auth={"token": self.bot.config.SOCKET_AUTH})
 
         sio.bot, self.bot.sio = self.bot, sio
         self.connected = True
@@ -38,3 +38,4 @@ class SocketConnection(Cog):
 def setup(bot: Quotient):
     bot.add_cog(SocketConnection(bot))
     bot.add_cog(DashboardGate(bot))
+    bot.add_cog(SocketScrims(bot))
