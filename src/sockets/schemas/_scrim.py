@@ -140,7 +140,7 @@ class BaseScrim(BaseModel):
         await Scrim.filter(pk=self.id).update(**_d)
 
         _w = """UPDATE public."sm.scrims" SET autoclean = $1 , open_days = $2 WHERE id = $3"""
-        await bot.db.execute(_w, [_ for _ in self.autoclean], [_ for _ in self.open_days], self.id)
+        await bot.db.execute(_w, [_.value for _ in self.autoclean], [_.value for _ in self.open_days], self.id)
 
         bot.loop.create_task(scrim.setup_logs())
         return True, True

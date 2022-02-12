@@ -81,8 +81,7 @@ class Quotient(commands.AutoShardedBot):
     async def __load_extensions(self):
         for ext in self.config.EXTENSIONS:
             self.load_extension(ext)
-
-        print("All Extensions Loaded ...")
+            print(f"Loaded extension: {ext}")
 
     @on_startup.append
     async def __load_webserver(self):
