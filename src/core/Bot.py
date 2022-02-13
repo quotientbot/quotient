@@ -88,7 +88,8 @@ class Quotient(commands.AutoShardedBot):
         await self.wait_until_ready()
         if self.user.id == self.config.MAIN_BOT:
             self.load_extension("server")
-# 
+
+    #
     @property
     def config(self) -> cfg:
         """import and return config.py"""
@@ -142,6 +143,7 @@ class Quotient(commands.AutoShardedBot):
     async def close(self) -> NoReturn:
         await super().close()
         await self.session.close()
+        await Tortoise.close_connections()
 
     def get_message(self, message_id: int) -> discord.Message:
         """Gets the message from the cache"""
