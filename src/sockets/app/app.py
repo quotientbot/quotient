@@ -14,9 +14,7 @@ class QuoSocket(socketio.AsyncClient):
         super().__init__(**kwargs)
 
     async def emit(self, event, data=None, namespace=None, callback=None):
-        event = f"response__{event}"
-        print("sending", event, data)
-        return await super().emit(event, data=data, namespace=namespace, callback=callback)
+        return await super().emit("response__" + event, data=data, namespace=namespace, callback=callback)
 
     @staticmethod
     def int_parse(data: dict):
@@ -36,5 +34,4 @@ async def catch_all(event, data):
 
     r, e, u = event.split("__")
     data["user__id"] = u
-    print(r + e)
     sio.bot.dispatch(r + "__" + e, u, data)
