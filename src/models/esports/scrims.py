@@ -353,6 +353,23 @@ class Scrim(BaseDbModel):
             )
             await note.pin()
 
+    async def full_delete(self):
+        from .slotm import ScrimsSlotManager
+
+        _id = self.pk
+        self.bot.cache.scrim_channels.discard(self.registration_channel.id)
+
+        slotm = await ScrimsSlotManager.filter(scrim_ids__contains=self.pk)
+        await ScrimsSlotManager.filter(pk__in=[_.pk for _ in slotm]).update(scrim_ids=ArrayRemove("scrim_ids", _id))
+
+        _d = await self.assigned_slots.all()
+        await AssignedSlot.filter(pk__in=[_.pk for _ in _d]).delete()
+        _r = await self.slot_reminders.all()
+        await ScrimsSlotReminder.filter(pk__in=[_.pk for _ in _r]).delete()
+        _re = await self.reserved_slots.all()
+        await ReservedSlot.filter(pk__in=[_.pk for _ in _re]).delete()
+        await self.delete()
+
 
 class BaseSlot(models.Model):
     class Meta:
