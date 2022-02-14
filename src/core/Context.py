@@ -80,7 +80,7 @@ class Context(commands.Context):
         if sleep_for:
             await asyncio.sleep(sleep_for)
 
-        with suppress(discord.NotFound, discord.Forbidden):
+        with suppress(discord.HTTPException, AttributeError):
             await msg.delete()
 
     async def success(self, message, delete_after=None, **kwargs):
