@@ -8,7 +8,6 @@ from discord import Webhook
 from core import Cog
 
 from models import Votes, User, Timer
-from contextlib import suppress
 
 import constants
 import discord
@@ -30,26 +29,6 @@ class VotesCog(Cog):
 
         if await User.get(pk=member.id, is_premium=True).exists():
             await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE))
-
-    @Cog.listener()
-    async def on_vote(self, record: Votes):
-        await Votes.get(user_id=record.pk).update(notified=True)
-        await self.bot.reminders.create_timer(record.expire_time, "vote", user_id=record.user_id)
-
-        member = self.bot.server.get_member(record.user_id)
-        if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config.VOTER_ROLE), reason="They voted for me.")
-
-        else:
-            member = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.pk)
-
-        with suppress(discord.HTTPException, AttributeError):
-            await record.refresh_from_db()
-
-            embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
-            embed.set_image(url=constants.random_thanks())
-            embed.set_footer(text=f"Your total votes: {record.total_votes}")
-            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar.url)
 
     @Cog.listener()
     async def on_vote_timer_complete(self, timer: Timer):
