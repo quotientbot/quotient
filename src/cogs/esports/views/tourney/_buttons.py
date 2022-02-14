@@ -8,7 +8,6 @@ from utils import regional_indicator as ri, inputs, truncate_string, emote
 from ._base import TourneyButton
 from models import Tourney
 
-#! create tourney.full_delete() method
 #! increase success message limit to 500
 #! fake tags maybe
 #! disable tourney slotm in delete
