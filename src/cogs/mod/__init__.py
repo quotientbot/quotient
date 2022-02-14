@@ -56,13 +56,13 @@ class Mod(Cog):
         An all in one purge command.
         Choice can be a Member or a number
         """
-        await ctx.message.delete()
-
         if isinstance(Choice, discord.Member):
-            return await do_removal(ctx, amount, lambda e: e.author == Choice)
+            await do_removal(ctx, amount, lambda e: e.author == Choice)
 
-        if isinstance(Choice, int):
-            return await do_removal(ctx, Choice, lambda e: not e.pinned)
+        elif isinstance(Choice, int):
+            await do_removal(ctx, Choice, lambda e: not e.pinned)
+
+        await ctx.message.delete()
 
     @clear.command()
     @commands.has_permissions(manage_messages=True)

@@ -32,6 +32,7 @@ async def prompt_slot_selection(slots: List[AssignedSlot], placeholder: str):
     first, rest = slots[:25], slots[25:]
 
     _view = discord.ui.View(timeout=60)
+    _view.custom_id = None
 
     _view.add_item(ScrimSlotSelector(first, placeholder=placeholder))
 
