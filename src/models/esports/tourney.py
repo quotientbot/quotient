@@ -226,6 +226,16 @@ class Tourney(BaseDbModel):
 
         return discord.File(fp, filename=f"tourney_data_{self.id}_{self.bot.current_time.timestamp()}.csv")
 
+    async def full_delete(self) -> None:
+        self.bot.cache.tourney_channels.discard(self.registration_channel_id)
+        _data = await self.assigned_slots.all()
+        await TMSlot.filter(pk__in=[_.id for _ in _data]).delete()
+        await self.delete()
+
+        if self.slotm_channel_id:
+            with suppress(discord.HTTPException, AttributeError):
+                await self.slotm_channel.delete()
+
 
 class TMSlot(BaseDbModel):
     class Meta:
