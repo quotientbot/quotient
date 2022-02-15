@@ -38,4 +38,7 @@ class QuoPages:
     @property
     def embed(self) -> discord.Embed:
 
-        _e = discord.Embed(color=self.embed_color)
+        _e = discord.Embed(color=self.embed_color,title=self.title)
+        
+    async def start(self):
+        ...

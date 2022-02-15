@@ -31,31 +31,34 @@ class DashboardGate(Cog):
                 result[guild_id] = -1
                 continue
 
+            if not guild.chunked:
+                self.bot.loop.create_task(guild.chunk())
+
             member = await self.bot.get_or_fetch_member(guild, user_id)
+            if not member:
+                result[guild_id] = -1
+                continue
 
             perms = 1
 
-            further_checks = True
             if member.guild_permissions.manage_guild:
-                further_checks = False
-                perms = 2
+                result[guild_id] = 2
+                continue
 
-            if further_checks:
+            g_record = await Guild.get(pk=guild_id)
+            _roles = [str(_.id) for _ in member.roles]
 
-                g_record = await Guild.get(pk=guild_id)
-                _roles = [str(_.id) for _ in member.roles]
+            if any(i in g_record.dashboard_access["embed"] for i in _roles):
+                perms *= 3
 
-                if any(i in g_record.dashboard_access["embed"] for i in _roles):
-                    perms *= 3
+            if any(i in g_record.dashboard_access["scrims"] for i in _roles):
+                perms *= 5
 
-                if any(i in g_record.dashboard_access["scrims"] for i in _roles):
-                    perms *= 5
+            if any(i in g_record.dashboard_access["tourney"] for i in _roles):
+                perms *= 7
 
-                if any(i in g_record.dashboard_access["tourney"] for i in _roles):
-                    perms *= 7
-
-                if any(i in g_record.dashboard_access["slotm"] for i in _roles):
-                    perms *= 11
+            if any(i in g_record.dashboard_access["slotm"] for i in _roles):
+                perms *= 11
 
             result[guild_id] = perms
 
