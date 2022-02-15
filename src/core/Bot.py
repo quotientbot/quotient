@@ -29,7 +29,6 @@ import constants as csts
 
 from .Context import Context
 from .Help import HelpCommand
-from .HttpHandler import QuoHttpHandler
 from .cache import CacheManager
 
 intents = Intents.default()
@@ -71,6 +70,7 @@ class Quotient(commands.AutoShardedBot):
         self.lockdown = False
         self.persistent_views_added = False
         self.sio = None
+        self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
@@ -184,13 +184,6 @@ class Quotient(commands.AutoShardedBot):
 
             async for tourney in Tourney.filter(slotm_message_id__isnull=False):
                 self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
-
-            # HTTP server
-            if not self.user.id == self.config.PREMIUM_BOT:
-                self.http_client = QuoHttpHandler(self)
-                self.loop.create_task(self.http_client.handle())
-
-                self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
             # chunk only premium guilds
             async for g in Guild.filter(is_premium=True):

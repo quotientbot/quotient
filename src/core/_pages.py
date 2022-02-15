@@ -32,7 +32,7 @@ class QuoPages:
 
         self.cur_page = 1
 
-    def add_line(self, line: Tuple[str, Union[None, str]]):
+    def add_line(self, line: str):
         self.lines.append(line)
 
     @property
