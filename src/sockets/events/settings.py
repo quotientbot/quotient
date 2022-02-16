@@ -27,7 +27,8 @@ class SockSettings(Cog):
 
     @Cog.listener()
     async def on_request__new_vote(self, u, data: dict):
-        user_id = data.get("user_id")
+        print(data)
+        user_id = int(data.get("user_id"))
         record = await Votes.get(pk=user_id)
 
         await self.bot.reminders.create_timer(record.expire_time, "vote", user_id=record.user_id)

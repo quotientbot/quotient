@@ -17,7 +17,10 @@ class QuoSocket(socketio.AsyncClient):
         return await super().emit("response__" + event, data=data, namespace=namespace, callback=callback)
 
     @staticmethod
-    def int_parse(data: dict):
+    def int_parse(data):
+        if not isinstance(data, dict):
+            return data
+
         for x, y in data.items():
             if isinstance(y, str) and y.isdigit():
                 data[x] = int(y)
@@ -26,10 +29,14 @@ class QuoSocket(socketio.AsyncClient):
 
 
 sio = QuoSocket(logger=True, engineio_logger=True)
+ignored = ("update_total_votes", "update_votes_leaderboard")
 
 
 @sio.on("*")
 async def catch_all(event, data):
+    if event in ignored:
+        return
+
     data = QuoSocket.int_parse(data)
 
     r, e, u = event.split("__")
