@@ -13,11 +13,17 @@ if TYPE_CHECKING:
 from contextlib import suppress
 from utils import emote, plural
 
-from core import Cog, Context
+from core import Cog, Context, MemberRatelimiter
 from models import SSVerify, ImageResponse
 
-
 import humanize
+from collections import defaultdict
+
+
+class Limits(defaultdict):
+    def __missing__(self, key):
+        r = self[key] = MemberRatelimiter(1, 7)
+        return r
 
 
 class Ssverification(Cog):
@@ -27,7 +33,20 @@ class Ssverification(Cog):
         self.request_url = self.bot.config.FASTAPI_URL + "/ocr"
         self.headers = {"authorization": self.bot.config.FASTAPI_KEY, "Content-Type": "application/json"}
 
+        self.__ratelimiter = Limits(MemberRatelimiter)
         self.__verify_lock = asyncio.Lock()
+
+    async def __check_ratelimit(self, message: discord.Message):
+        if retry := self.__ratelimiter[message.author].is_ratelimited(message.author):
+            await message.reply(
+                embed=discord.Embed(
+                    color=discord.Color.red(),
+                    description=f"You are too fast. Kindly resend after `{retry:.2f}` seconds.",
+                )
+            )
+            return False
+
+        return True
 
     @Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -37,7 +56,7 @@ class Ssverification(Cog):
         record = await SSVerify.get_or_none(channel_id=message.channel.id)
         if not record:
             return self.bot.cache.ssverify_channels.discard(message.channel.id)
-
+        #
         if "tourney-mod" in (role.name.lower() for role in message.author.roles):
             return
 
@@ -52,6 +71,15 @@ class Ssverification(Cog):
 
             if not (attachments := self.__valid_attachments(message)):
                 _e.description = "**Kindly send screenshots in `png/jpg/jpeg` format only.**"
+                return await ctx.reply(embed=_e)
+
+            if not await self.__check_ratelimit(message):
+                return
+
+            if len(attachments) > record.required_ss:
+                _e.description = (
+                    f"**You only have to send `{record.required_ss}` screenshots but you sent `{len(attachments)}`**"
+                )
                 return await ctx.reply(embed=_e)
 
             _e.color = discord.Color.yellow()

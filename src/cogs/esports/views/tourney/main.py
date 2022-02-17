@@ -52,3 +52,6 @@ class TourneyManager(EsportsBaseView):
         await _v._add_buttons(self.ctx)
 
         _v.message = await self.message.edit(embed=await _v.initial_message(), view=_v)
+
+    # @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="fix_log_nd_role", label="Fix Logs/Mod-Role")
+    # async def

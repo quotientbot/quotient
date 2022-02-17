@@ -62,8 +62,8 @@ class RequiredSS(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        _m = await self.ctx.simple("How many screenshots do you need me to verify?")
-        _ss = await inputs.integer_input(self.ctx, delete_after=True)
+        _m = await self.ctx.simple("How many screenshots do you need me to verify? (`1-5`)")
+        _ss = await inputs.integer_input(self.ctx, delete_after=True, limits=(1, 5))
 
         await self.ctx.safe_delete(_m)
         self.view.record.required_ss = _ss
