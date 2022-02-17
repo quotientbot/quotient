@@ -17,7 +17,7 @@ async def deactivate_premium(guild_id: int):
     _s: typing.List[Scrim] = (await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]
     await Scrim.filter(id__in=(s.pk for s in _s)).delete()
 
-    _t: typing.List[Tourney] = (await Tourney.filter(guild_id=guild_id).order_by("id"))[2:]
+    _t: typing.List[Tourney] = (await Tourney.filter(guild_id=guild_id).order_by("id"))[1:]
     await Tourney.filter(id__in=(t.pk for t in _t)).delete()
 
     _tc: typing.List[TagCheck] = (await TagCheck.filter(guild_id=guild_id).order_by("id"))[1:]
@@ -50,7 +50,7 @@ async def extra_guild_perks(guild_id: int):
     if (_s := await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]:
         _list.append(f"- {plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})")
 
-    if (_t := await Tourney.filter(guild_id=guild_id).order_by("id"))[2:]:
+    if (_t := await Tourney.filter(guild_id=guild_id).order_by("id"))[1:]:
         _list.append(f"- {plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})")
 
     if (_tc := await TagCheck.filter(guild_id=guild_id).order_by("id"))[1:]:
