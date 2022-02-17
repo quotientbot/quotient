@@ -22,7 +22,7 @@ from collections import defaultdict
 
 class Limits(defaultdict):
     def __missing__(self, key):
-        r = self[key] = MemberRatelimiter(1, 7)
+        r = self[key] = MemberRatelimiter(1, 10)
         return r
 
 
