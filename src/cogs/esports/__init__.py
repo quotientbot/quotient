@@ -1593,8 +1593,9 @@ class ScrimManager(Cog, name="Esports"):
         """
         Setup/Edit ssverification in your server
         """
-        if not ctx.guild.member_count > 100 and not ctx.guild.id == 779229001986080779:
-            return await ctx.error("Your server must have atleast 100 members to setup ssverification.")
+        if not await ctx.is_premium_guild():
+            if not ctx.guild.member_count > 100 and not ctx.guild.id == 779229001986080779:
+                return await ctx.error("Your server must have atleast 100 members to setup ssverification.")
 
         _view = SsmodMainView(ctx)
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
