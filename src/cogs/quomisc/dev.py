@@ -1,9 +1,7 @@
 from __future__ import annotations
-import asyncio
+import typing as T
 
-import typing
-
-if typing.TYPE_CHECKING:
+if T.TYPE_CHECKING:
     from core import Quotient
 
 from prettytable import PrettyTable
@@ -12,12 +10,11 @@ from discord.ext import commands
 
 
 from .helper import tabulate_query
-from time import perf_counter as pf
-from models import Commands, Guild
-from utils import get_ipm, LinkButton, LinkType, Prompt, emote, get_chunks
+from models import Commands, User, Premium
+from utils import get_ipm
+
 
 import datetime
-import discord
 
 __all__ = ("Dev",)
 
@@ -26,63 +23,24 @@ class Dev(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-        self.broadcast_channels = {
-            "broadcast": 779229802975723531,
-            "announcements": 829938693707399178,
-            "changelogs": 829938782069063680,
-            "status": 882510788215070720,
-        }
-        self.dead_id = 548163406537162782
-
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
-    @property
-    def dead(self):
-        return self.bot.get_user(self.dead_id)
+    @commands.command(hidden=True)
+    async def gprime(self, ctx: Context, user: int, boosts: int = 1, days: int = 28):
+        u, b = await User.get_or_create(user_id=user)
+        end_time = (
+            u.premium_expire_time + datetime.timedelta(days=days)
+            if u.is_premium
+            else self.bot.current_time + datetime.timedelta(days=days)
+        )
 
-    @Cog.listener()
-    async def on_message(self, message: discord.Message):
-        if not message.author.id == self.dead_id:
-            return
-
-        if not message.channel or not message.channel.id in self.broadcast_channels.values():
-            return
-
-        prompt = Prompt(self.dead_id, 60)
-        _m = await self.dead.send(f"Do you want to broadcast this message in {message.channel.mention}?", view=prompt)
-        await prompt.wait()
-        if not prompt.value:
-            return await _m.edit("timed out", view=None)
-
-        await _m.edit("Sending...", view=None)
-        view = LinkButton([LinkType("More Info", self.bot.config.SERVER_LINK, emote.info)])
-        content = message.clean_content + "\n\n- deadshot#7999, Team Quotient"
-
-        success, failed = 0, 0
-
-        _t1 = pf()
-
-        records = await Guild.filter(private_channel__isnull=False)
-
-        for group in get_chunks(records, 300):
-            for guild in group:
-                files = [await _.to_file(use_cached=True) for _ in message.attachments]
-
-                try:
-                    channel = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, guild.private_channel)
-                    await channel.send(content, files=files, view=view)
-                    success += 1
-                except Exception as e:
-                    failed += 1
-
-            await _m.edit(f"{success}:{failed} still counting..")
-            await asyncio.sleep(100)
-
-        await _m.edit(f"{success}:{failed} Time taken - {pf() - _t1:.3f}s.")
+        await User.get(pk=user).update(premiums=boosts, is_premium=True, premium_expire_time=end_time)
+        self.bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=user))
+        return await ctx.success("Given {} boosts for {} days to {}".format(boosts, days, self.bot.get_user(user)))
 
     @commands.command(hidden=True)
-    async def cmds(self, ctx):
+    async def cmds(self, ctx: Context):
         total_uses = await Commands.all().count()
 
         records = await ctx.db.fetch(
@@ -122,7 +80,7 @@ class Dev(Cog):
         await tabulate_query(ctx, query)
 
     @command_history.command(name="for")
-    async def command_history_for(self, ctx, days: typing.Optional[int] = 7, *, command: str):
+    async def command_history_for(self, ctx, days: T.Optional[int] = 7, *, command: str):
         """Command history for a command."""
         query = """SELECT *, t.success + t.failed AS "total"
                    FROM (
@@ -177,7 +135,7 @@ class Dev(Cog):
         await tabulate_query(ctx, query, user_id)
 
     @command_history.command(name="cog")
-    async def command_history_cog(self, ctx, days: typing.Optional[int] = 7, *, cog: str = None):
+    async def command_history_cog(self, ctx, days: T.Optional[int] = 7, *, cog: str = None):
         """Command history for a cog or grouped by a cog."""
         interval = datetime.timedelta(days=days)
         if cog is not None:
