@@ -1539,17 +1539,17 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    @commands.group(aliases=("pt",), invoke_without_command=True)
-    async def ptable(self, ctx):
-        """Points tables commands"""
-        embed = discord.Embed(color=self.bot.color, title="Shifted to Dashboard", url=self.bot.config.WEBSITE)
-        embed.description = (
-            f"Points table command has been moved to the dashboard [here]({self.bot.config.WEBSITE}/dashboard) for ease of use."
-            f"\n\nTo create beautiful points tables, use the link above or use `{ctx.prefix}dashboard` command to get a direct link"
-            "to the dashboard"
-        )
-        embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
-        await ctx.send(embed=embed, embed_perms=True)
+    # @commands.group(aliases=("pt",), invoke_without_command=True)
+    # async def ptable(self, ctx):
+    #     """Points tables commands"""
+    #     embed = discord.Embed(color=self.bot.color, title="Shifted to Dashboard", url=self.bot.config.WEBSITE)
+    #     embed.description = (
+    #         f"Points table command has been moved to the dashboard [here]({self.bot.config.WEBSITE}/dashboard) for ease of use."
+    #         f"\n\nTo create beautiful points tables, use the link above or use `{ctx.prefix}dashboard` command to get a direct link"
+    #         "to the dashboard"
+    #     )
+    #     embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
+    #     await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("slotm",))
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
