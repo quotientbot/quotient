@@ -14,6 +14,8 @@ import discord
 from ._editor import TourneyEditor
 from models import Tourney
 
+from discord import ButtonStyle
+
 
 class TourneyManager(EsportsBaseView):
     def __init__(self, ctx: Context):
@@ -36,13 +38,13 @@ class TourneyManager(EsportsBaseView):
         )
         return _e
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="create_tourney", label="Create Tournament")
+    @discord.ui.button(style=ButtonStyle.blurple, custom_id="create_tourney", label="Create Tournament")
     async def create_tournament(self, button: discord.Button, interaction: discord.Interaction):
         self.stop()
         _v = TourneySetupWizard(self.ctx)
         _v.message = await self.message.edit(embed=_v.initial_message(), view=_v)
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="edit_tourney", label="Edit Settings")
+    @discord.ui.button(style=ButtonStyle.blurple, custom_id="edit_tourney", label="Edit Settings")
     async def edit_tournament(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -53,5 +55,6 @@ class TourneyManager(EsportsBaseView):
 
         _v.message = await self.message.edit(embed=await _v.initial_message(), view=_v)
 
-    # @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="fix_log_nd_role", label="Fix Logs/Mod-Role")
-    # async def
+    @discord.ui.button(style=ButtonStyle.blurple, custom_id="fix_tourny", label="Tourney not working :c Fix it Please!")
+    async def fix_my_tourney(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()

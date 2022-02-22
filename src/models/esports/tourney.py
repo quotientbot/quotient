@@ -236,6 +236,14 @@ class Tourney(BaseDbModel):
             with suppress(discord.HTTPException, AttributeError):
                 await self.slotm_channel.delete()
 
+    @staticmethod
+    async def prompt_selector(guild_id: int = None, tourneys: List["Tourney"] = None):
+
+        tourneys = tourneys or await Tourney.filter(guild_id=guild_id).order_by("id")
+
+        if not tourneys:
+            return None
+
 
 class TMSlot(BaseDbModel):
     class Meta:
