@@ -241,6 +241,6 @@ class TourneyEditor(EsportsBaseView):
             await self.ctx.success("Success Message Updated.", 3)
         await self.update_tourney(success_message=msg)
 
-    @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="tourney_stop_view", emoji=emote.trash, row=3)
+    @discord.ui.button(style=discord.ButtonStyle.grey, custom_id="tourney_stop_view", emoji="⏹️", row=3)
     async def stop_view(self, button: discord.Button, interaction: discord.Interaction):
         await self.on_timeout()
