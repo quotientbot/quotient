@@ -21,6 +21,16 @@ class CmdEvents(Cog):
             return True
 
         if self.bot.lockdown is True:
+            t = (
+                "**Quotient is getting new features** 🥳\n"
+                "Dear user, Quotient is updating and is not accepting any commands.\n"
+                "It will back within **2 minutes**.\n"
+            )
+
+            if self.bot.lockdown_msg:
+                t += f"\n\n**Message from developer:**\n{self.bot.lockdown_msg} ~ deadshot#7999"
+
+            await ctx.error(t)
             return False
 
         if not ctx.guild:

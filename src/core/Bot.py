@@ -67,11 +67,13 @@ class Quotient(commands.AutoShardedBot):
         self.cmd_invokes = 0
         self.seen_messages = 0
         self.binclient = mystbin.Client()
-        self.lockdown = False
+
         self.persistent_views_added = False
         self.sio = None
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
+        self.lockdown: bool = False
+        self.lockdown_msg: str = None
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         for coro_func in on_startup:
@@ -108,6 +110,9 @@ class Quotient(commands.AutoShardedBot):
     def color(self):
         return self.config.COLOR
 
+    def reboot(self):
+        return os.system("pm2 reload quotient")
+        
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)

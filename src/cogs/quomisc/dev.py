@@ -15,6 +15,7 @@ from utils import get_ipm
 
 
 import datetime
+import asyncio
 
 __all__ = ("Dev",)
 
@@ -25,6 +26,28 @@ class Dev(Cog):
 
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
+
+    @commands.group(hiddent=True,invoke_without_command=True)
+    async def botupdate(self, ctx: Context):
+        await ctx.send_help(ctx.command)
+
+    @botupdate.command(name="on")
+    async def botmaintenance_on(self, ctx: Context, *, msg: str = None):
+        self.bot.lockdown = True
+        self.bot.lockdown_msg = msg
+        await ctx.success("Now in maintenance mode")
+        await asyncio.sleep(120)
+
+        if not self.bot.lockdown:
+            return await ctx.error("Lockdown mode has been cancelled")
+
+        await ctx.success("Reloading...")
+        self.bot.reboot()
+
+    @botupdate.command(name="off")
+    async def botmaintenance_off(self, ctx: Context):
+        self.bot.lockdown, self.bot.lockdown_msg = False, None
+        await ctx.success("Okay, stopped reload.")
 
     @commands.command(hidden=True)
     async def gprime(self, ctx: Context, user: int, boosts: int = 1, days: int = 28):
