@@ -13,16 +13,22 @@ if TYPE_CHECKING:
 from contextlib import suppress
 from utils import emote, plural
 
-from core import Cog, Context, MemberRatelimiter
+from core import Cog, Context, QuotientRatelimiter
 from models import SSVerify, ImageResponse
 
 import humanize
 from collections import defaultdict
 
 
-class Limits(defaultdict):
+class MemberLimits(defaultdict):
     def __missing__(self, key):
-        r = self[key] = MemberRatelimiter(1, 10)
+        r = self[key] = QuotientRatelimiter(1, 15)
+        return r
+
+
+class GuildLimits(defaultdict):
+    def __missing__(self, key):
+        r = self[key] = QuotientRatelimiter(5, 60)
         return r
 
 
@@ -33,19 +39,28 @@ class Ssverification(Cog):
         self.request_url = self.bot.config.FASTAPI_URL + "/ocr"
         self.headers = {"authorization": self.bot.config.FASTAPI_KEY, "Content-Type": "application/json"}
 
-        self.__ratelimiter = Limits(MemberRatelimiter)
+        self.__mratelimiter = MemberLimits(QuotientRatelimiter)  # ss/15s by member
+        self.__gratelimiter = GuildLimits(QuotientRatelimiter)  # ss/minute by guild
         self.__verify_lock = asyncio.Lock()
 
     async def __check_ratelimit(self, message: discord.Message):
-        if retry := self.__ratelimiter[message.author].is_ratelimited(message.author):
+        if retry := self.__mratelimiter[message.author].is_ratelimited(message.author):
             await message.reply(
                 embed=discord.Embed(
                     color=discord.Color.red(),
-                    description=f"You are too fast. Kindly resend after `{retry:.2f}` seconds.",
+                    description=f"**You are too fast. Kindly resend after `{retry:.2f}` seconds.**",
                 )
             )
             return False
 
+        elif retry := self.__gratelimiter[message.guild].is_ratelimited(message.guild):
+            await message.reply(
+                embed=discord.Embed(
+                    color=discord.Color.red(),
+                    description=f"**Many users are submitting screenshots from this server at this time. Kindly retry after `{retry:.2f}` seconds.**",
+                )
+            )
+            return False
         return True
 
     @Cog.listener()

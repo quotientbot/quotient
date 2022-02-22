@@ -1566,7 +1566,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
-    async def _banlog(self, ctx: Context, *, channel: QuoTextChannel = None):
+    async def _banlog(self, ctx: Context, *, channel: discord.TextChannel = None):
         """
         Set a channel for all esports ban/unban logs
         """
@@ -1588,12 +1588,14 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.group(invoke_without_command=True, aliases=("ss",))
     @checks.can_use_tm()
-    @checks.has_done_setup()
     @commands.bot_has_permissions(manage_channels=True, add_reactions=True, embed_links=True, manage_roles=True)
     async def ssverify(self, ctx: Context):
         """
         Setup/Edit ssverification in your server
         """
+        if not ctx.guild.member_count > 100 and not ctx.guild.id == 779229001986080779:
+            return await ctx.error("Your server must have atleast 100 members to setup ssverification.")
+
         _view = SsmodMainView(ctx)
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
 
