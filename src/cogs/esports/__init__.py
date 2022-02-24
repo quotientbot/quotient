@@ -336,7 +336,7 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
         prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
         if not prompt:
-            await ctx.success("Ok, Aborting!")
+            return await ctx.success("Ok, Aborting!")
 
         await scrim_end_process(ctx, scrim)
         await ctx.message.add_reaction(emote.check)
