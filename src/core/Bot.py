@@ -12,7 +12,7 @@ from tortoise import Tortoise
 
 from datetime import datetime
 
-from typing import NoReturn, Optional
+from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union
 from async_property import async_property
 from datetime import datetime
 
@@ -43,7 +43,7 @@ os.environ["OMP_THREAD_LIMIT"] = "1"
 __all__ = ("Quotient", "bot")
 
 
-on_startup: typing.List[typing.Callable[["Quotient"], typing.Coroutine]] = []
+on_startup: List[Callable[["Quotient"], Coroutine]] = []
 
 
 class Quotient(commands.AutoShardedBot):
@@ -75,6 +75,9 @@ class Quotient(commands.AutoShardedBot):
         self.lockdown: bool = False
         self.lockdown_msg: str = None
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
+
+        self.message_cache: Dict[int, Any] = {}
+        # TODO: Use LRU caching
 
         for coro_func in on_startup:
             self.loop.create_task(coro_func(self))
@@ -210,13 +213,13 @@ class Quotient(commands.AutoShardedBot):
         embed.set_footer(text=embed_footer)
         return embed
 
-    async def is_owner(self, user: typing.Union[discord.Member, discord.User]) -> bool:
+    async def is_owner(self, user: Union[discord.Member, discord.User]) -> bool:
         if await super().is_owner(user):
             return True
 
         return user.id in cfg.DEVS
 
-    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int):
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
         """Looks up a member in cache or fetches if not found."""
         member = guild.get_member(member_id)
         if member is not None:
@@ -261,7 +264,7 @@ class Quotient(commands.AutoShardedBot):
         return f"{t2*1000:.2f} ms"
 
     @staticmethod
-    async def getch(get_method, fetch_method, _id):  # why does c have all the fun?
+    async def getch(get_method, fetch_method, _id) -> Any:  # why does c have all the fun?
         try:
             _result = get_method(_id) or await fetch_method(_id)
         except (discord.HTTPException, discord.NotFound):
@@ -269,11 +272,24 @@ class Quotient(commands.AutoShardedBot):
         else:
             return _result
 
+    async def get_or_fetch_message(self, channel: discord.Channel, message_id: int) -> Optional[discord.Message]:
+        # caching cause, due to rate limiting 50/1
+        try:
+            return self.message_cache[message_id]
+            # scripting is always fater than `.get()`
+        except KeyError:
+            before = discord.Object(message_id + 1)
+            after = discord.Object(message_id - 1)
+            async for msg in channel.history(limit = 1, before=before, after=after):
+                if msg:
+                    self.message_cache[msg.id] = msg
+                    return msg
+
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)
 
     async def convey_important_message(
-        self, guild: discord.Guild, text: str, *, view=None, title="⚠️__**IMPORTANT**__⚠️"
+        self, guild: discord.Guild, text: str, *, view=None, title="\N{WARNING SIGN}__**IMPORTANT**__\N{WARNING SIGN}"
     ):
         _e = discord.Embed(title=title, description=text)
 
