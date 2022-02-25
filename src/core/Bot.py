@@ -276,7 +276,7 @@ class Quotient(commands.AutoShardedBot):
         # caching cause, due to rate limiting 50/1
         try:
             return self.message_cache[message_id]
-            # scripting is always fater than `.get()`
+            # scripting is always faster than `.get()`
         except KeyError:
             before = discord.Object(message_id + 1)
             after = discord.Object(message_id - 1)
