@@ -148,7 +148,38 @@ class SetEmojis(TourneyButton):
         self.ctx = ctx
 
     async def callback(self, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error("You need Quotient Premium to set custom reactions.", 4)
+
+        e = discord.Embed(color=self.ctx.bot.color, title="Edit tourney emojis")
+        e.description = (
+            "Which emojis do you want to use for tick and cross in tournament registrations?\n\n"
+            "`Please enter two emojis and separate them with a comma`"
+        )
+        e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/888097255607906354/unknown.png")
+        e.set_footer(text="The first emoji must be the emoji for tick mark.")
+
+        m = await interaction.followup.send(embed=e)
+        emojis = await inputs.string_input(self.ctx, delete_after=True)
+
+        await self.ctx.safe_delete(m)
+
+        emojis = emojis.strip().split(",")
+        if not len(emojis) == 2:
+            return await interaction.followup.send("You didn't enter the correct format.", ephemeral=True)
+
+        check, cross = emojis
+
+        for emoji in emojis:
+            try:
+                await self.view.message.add_reaction(emoji.strip())
+                await self.view.message.clear_reactions()
+            except discord.HTTPException:
+                return await interaction.followup.send("One of the emojis you entered is invalid.", ephemeral=True)
+
+        self.view.record.emojis = {"tick": check.strip(), "cross": cross.strip()}
+        await self.view.refresh_view()
 
 
 class OpenRole(TourneyButton):
@@ -166,6 +197,22 @@ class OpenRole(TourneyButton):
 
         self.view.record.open_role_id = role
 
+        await self.view.refresh_view()
+
+
+class SetGroupSize(TourneyButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        m = await self.ctx.simple("How many teams will there be per group? (Max `25`)")
+        n = await inputs.integer_input(self.ctx, limits=(2, 25))
+        await self.ctx.safe_delete(m)
+        self.view.record.group_size = n
         await self.view.refresh_view()
 
 
@@ -289,6 +336,20 @@ class DeleteTourney(TourneyButton):
         return await self.view.on_timeout()
 
 
+class DiscardButton(TourneyButton):
+    def __init__(self, ctx: Context):
+        super().__init__(label="Cancel", style=discord.ButtonStyle.red)
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        from .main import TourneyManager as TM
+
+        v = TM(self.ctx)
+        v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)
+
+
 class SaveTourney(TourneyButton):
     def __init__(self, ctx: Context):
         super().__init__(style=discord.ButtonStyle.green, label="Save", disabled=True)
@@ -296,47 +357,16 @@ class SaveTourney(TourneyButton):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        _reason = "Created for tournament management."
-
-        if not (tourney_mod := self.view.record.modrole):
-            tourney_mod = await self.ctx.guild.create_role(name="tourney-mod", color=self.ctx.bot.color, reason=_reason)
-
-        overwrite = self.view.record.registration_channel.overwrites_for(self.ctx.guild.default_role)
-        overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
-        await self.view.record.registration_channel.set_permissions(tourney_mod, overwrite=overwrite)
-
-        guild = self.ctx.guild
-        if (tourney_log_channel := self.view.record.logschan) is None:
-            overwrites = {
-                guild.default_role: discord.PermissionOverwrite(read_messages=False),
-                guild.me: discord.PermissionOverwrite(read_messages=True),
-                tourney_mod: discord.PermissionOverwrite(read_messages=True),
-            }
-            tourney_log_channel = await self.ctx.guild.create_text_channel(
-                name="quotient-tourney-logs",
-                overwrites=overwrites,
-                reason=_reason,
-                topic="**DO NOT RENAME THIS CHANNEL**",
-            )
-
-            note = await tourney_log_channel.send(
-                embed=discord.Embed(
-                    description=f"If events related to tournament i.e opening registrations or adding roles, "
-                    f"etc are triggered, then they will be logged in this channel. "
-                    f"Also I have created {tourney_mod.mention}, you can give that role to your "
-                    f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
-                    f"registration channels and they won't be considered as tourney-registration.\n\n"
-                    f"`Note`: **Do not rename this channel.**",
-                    color=discord.Color(self.ctx.config.COLOR),
-                )
-            )
-            await note.pin()
 
         message = await self.view.record.setup_slotm()
         self.view.record.slotm_channel_id = message.channel.id
         self.view.record.slotm_message_id = message.id
+
         await self.view.record.save()
+        self.ctx.bot.loop.create_task(self.view.record.setup_logs())
+
         self.view.stop()
+
         await self.ctx.success("Successfully saved tourney.\n\n`Click start button to start registrations.`", 4)
         from .main import TourneyManager
 

@@ -6,8 +6,6 @@ from models import Tourney
 
 from ._buttons import *
 from string import ascii_uppercase
-from ..ssmod._buttons import DiscardButton
-
 from ._base import TourneyView
 
 
@@ -24,9 +22,10 @@ class TourneySetupWizard(TourneyView):
         self.add_item(ConfirmChannel(ctx, "b"))
         self.add_item(SetRole(ctx, "c"))
         self.add_item(SetMentions(ctx, "d"))
-        self.add_item(SetSlots(ctx, "e"))
-        self.add_item(SetEmojis(ctx, "f"))
-        self.add_item(DiscardButton())
+        self.add_item(SetGroupSize(ctx, "e"))
+        self.add_item(SetSlots(ctx, "f"))
+        self.add_item(SetEmojis(ctx, "g"))
+        self.add_item(DiscardButton(ctx))
         self.add_item(SaveTourney(ctx))
 
     def initial_message(self):
@@ -38,7 +37,8 @@ class TourneySetupWizard(TourneyView):
             "Confirm Channel": getattr(self.record.confirm_channel, "mention", "`Not-Set`"),
             "Success Role": getattr(self.record.role, "mention", "`Not-Set`"),
             "Mentions": f"`{self.record.required_mentions}`",
-            "Slots": f"`{self.record.total_slots or '`Not-Set`'}`",
+            "Teams per Group": f"`{self.record.group_size or 'Not-Set'}`",
+            "Slots": f"`{self.record.total_slots or 'Not-Set'}`",
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
         }
 
@@ -62,6 +62,7 @@ class TourneySetupWizard(TourneyView):
                 self.record.confirm_channel_id,
                 self.record.required_mentions,
                 self.record.total_slots,
+                self.record.group_size,
             )
         ):
             self.children[-1].disabled = False

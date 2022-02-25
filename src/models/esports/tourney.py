@@ -43,7 +43,9 @@ class Tourney(BaseDbModel):
 
     ping_role_id = fields.BigIntField(null=True)
     no_duplicate_name = fields.BooleanField(default=True)
-    autodelete_rejected = fields.BooleanField(default=True)
+    autodelete_rejected = fields.BooleanField(default=False)
+
+    group_size = fields.IntField(null=True)
 
     success_message = fields.CharField(max_length=500, null=True)
 
@@ -237,12 +239,117 @@ class Tourney(BaseDbModel):
                 await self.slotm_channel.delete()
 
     @staticmethod
-    async def prompt_selector(guild_id: int = None, tourneys: List["Tourney"] = None):
+    async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
 
-        tourneys = tourneys or await Tourney.filter(guild_id=guild_id).order_by("id")
+        placeholder = placeholder or "Choose a tourney to contine..."
+
+        from cogs.esports.views.tourney._select import TourneySelector, QuotientView
+
+        tourneys = tourneys or await Tourney.filter(guild_id=ctx.guild.id).order_by("id").limit(25)
 
         if not tourneys:
             return None
+
+        view = QuotientView(ctx)
+        view.add_item(TourneySelector(placeholder, tourneys))
+
+        view.message = await ctx.send("Choose a tourney from the dropdown below...", view=view)
+        await view.wait()
+        if view.custom_id:
+            await view.message.delete()
+            return await Tourney.get_or_none(id=view.custom_id)
+
+    async def setup_logs(self):
+        _reason = "Created for tournament management."
+        _g = self.guild
+
+        if not (tourney_mod := self.modrole):
+            tourney_mod = await self.guild.create_role(name="tourney-mod", color=self.bot.color, reason=_reason)
+
+        overwrite = self.registration_channel.overwrites_for(_g.default_role)
+        overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
+        await self.registration_channel.set_permissions(tourney_mod, overwrite=overwrite)
+
+        if (tourney_log_channel := self.logschan) is None:
+            overwrites = {
+                _g.default_role: discord.PermissionOverwrite(read_messages=False),
+                _g.me: discord.PermissionOverwrite(read_messages=True),
+                tourney_mod: discord.PermissionOverwrite(read_messages=True),
+            }
+            tourney_log_channel = await _g.create_text_channel(
+                name="quotient-tourney-logs",
+                overwrites=overwrites,
+                reason=_reason,
+                topic="**DO NOT RENAME THIS CHANNEL**",
+            )
+
+            note = await tourney_log_channel.send(
+                embed=discord.Embed(
+                    description=f"If events related to tournament i.e opening registrations or adding roles, "
+                    f"etc are triggered, then they will be logged in this channel. "
+                    f"Also I have created {tourney_mod.mention}, you can give that role to your "
+                    f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
+                    f"registration channels and they won't be considered as tourney-registration.\n\n"
+                    f"`Note`: **Do not rename this channel.**",
+                    color=discord.Color(self.bot.color),
+                )
+            )
+            await note.pin()
+
+    async def toggle_registrations(self):
+        channel, open_role = self.registration_channel, self.open_role
+        if not channel:
+            return False, f"I cannot find the registration channel. ({self.registration_channel_id})"
+
+        if not channel.permissions_for(self.guild.me).manage_permissions:
+            return False, f"I don't have permission to manage channel permissions. ({channel.id})"
+
+        if not open_role:
+            return False, f"I cannot find the open role. ({self.open_role_id})"
+
+        if self.started_at:
+            return await self.__stop_registrations()
+
+        return await self.__start_registrations()
+
+    async def __start_registrations(self):
+        registration_channel = self.registration_channel
+
+        if self.total_slots <= await self.assigned_slots.all().count():
+            return False, "Slots are already full, Increase slots to start again."
+
+        await Tourney.filter(pk=self.id).update(started_at=self.bot.current_time, closed_at=None)
+        self.bot.cache.tourney_channels.add(self.registration_channel_id)
+
+        _e = discord.Embed(color=self.bot.color, title=f"{self.name} Registration is Open")
+        _e.description = (
+            f"📣 **`{self.required_mentions}`** mentions required.\n"
+            f"📣 Total slots: **`{self.total_slots}`** [`{self.total_slots - await self.assigned_slots.all().count()}` slots left]"
+        )
+        _e.set_thumbnail(url=self.bot.user.avatar.url)
+        _ping = None
+        if p := self.ping_role:
+            if p == self.guild.default_role:
+                _ping = "@everyone"
+
+            else:
+                _ping = p.mention
+
+        await registration_channel.send(
+            _ping, embed=_e, allowed_mentions=discord.AllowedMentions(roles=True, everyone=True)
+        )
+        await registration_channel.set_permissions(self.open_role, send_messages=True)
+        return True, True
+
+    async def __stop_registrations(self):
+        registration_channel = self.registration_channel
+
+        await registration_channel.set_permissions(self.open_role, send_messages=False)
+        await registration_channel.send(
+            embed=discord.Embed(color=self.bot.color, description=f"**{self.name} registration paused.**")
+        )
+        await Tourney.filter(pk=self.id).update(started_at=None, closed_at=self.bot.current_time)
+        return True, True
 
 
 class TMSlot(BaseDbModel):

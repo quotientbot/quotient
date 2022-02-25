@@ -30,8 +30,11 @@ class QuotientView(discord.ui.View):
                 if isinstance(b, discord.ui.Button) and not b.style == discord.ButtonStyle.link:
                     b.style, b.disabled = discord.ButtonStyle.grey, True
 
+                elif isinstance(b, discord.ui.Select):
+                    b.disabled = True
+
             with suppress(discord.HTTPException):
-                return await self.message.edit(embed=self.message.embeds[0], view=self)
+                return await self.message.edit(view=self)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         self.ctx.bot.dispatch("command_error", self.ctx, error)

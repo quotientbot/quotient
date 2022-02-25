@@ -26,6 +26,8 @@ from ._buttons import (
     AutodeleteRejected,
     SuccessMessage,
     DeleteTourney,
+    SetGroupSize,
+    DiscardButton,
 )
 
 from ._base import TourneyView
@@ -35,14 +37,14 @@ class TourneyEditor(TourneyView):
 
     record: Tourney
 
-    def __init__(self, ctx: Context, records=List[Tourney]):
+    def __init__(self, ctx: Context, records):
         super().__init__(ctx, timeout=60, name="Tourney Editor")
 
         self.ctx = ctx
 
         self.records: List[Tourney] = records
 
-        self.record = self.records[0]
+        self.record = records[0]
 
         self.current_page = 1
 
@@ -85,6 +87,7 @@ class TourneyEditor(TourneyView):
             "Duplicate Team Name": ("`Not allowed!`", "`Allowed`")[tourney.no_duplicate_name],
             "Autodelete Rejected": ("`No!`", "`Yes!`")[tourney.autodelete_rejected],
             "Success Message": f"`Click to view / edit`",
+            "Teams per Group": f"`{self.record.group_size or 'Not set'}`",
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -92,7 +95,6 @@ class TourneyEditor(TourneyView):
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
-        _e.add_field(name="\u200b", value="\u200b")
         _e.set_footer(text=f"Page {self.current_page}/{len(self.records)}")
         return _e
 
@@ -123,7 +125,8 @@ class TourneyEditor(TourneyView):
         self.add_item(DuplicateTeamName(ctx, "l"))
         self.add_item(AutodeleteRejected(ctx, "m"))
         self.add_item(SuccessMessage(ctx, "n"))
+        self.add_item(SetGroupSize(ctx, "o"))
         self.add_item(DeleteTourney(ctx))
-
+        self.add_item(DiscardButton(ctx))
         if not await ctx.is_premium_guild():
-            self.children[-9].disabled = True
+            self.children[-10].disabled = True
