@@ -40,6 +40,11 @@ class TourneyManager(EsportsBaseView):
             text="Quotient Prime allows unlimited tournaments.",
             icon_url=getattr(self.ctx.author.avatar, "url", discord.Embed.Empty),
         )
+
+        if not to_show:
+            for _ in self.children[1:]:
+                _.disabled = True
+
         return _e
 
     @discord.ui.button(style=ButtonStyle.blurple, custom_id="create_tourney", label="Create Tournament")
@@ -90,11 +95,43 @@ class TourneyManager(EsportsBaseView):
                     "message", check=lambda m: m.author == self.ctx.author and m.channel == self.ctx.channel, timeout=60
                 )
 
-            if not all((msg, msg.mentions)):
-                return await self.ctx.error("You need to mention at least one user.")
+            await m.delete()
 
+            if not msg or not msg.mentions:
+                return await self.ctx.error("You need to mention at least one user.", 4)
+
+            await msg.delete()
+            banned, unbanned = [], []
             for m in msg.mentions:
-                ...
+                if m.id in tourney.banned_users:
+                    await tourney.unban_user(m)
+                    unbanned.append(m.mention)
+
+                else:
+                    await tourney.ban_user(m)
+                    banned.append(m.mention)
+
+        await self.ctx.simple(
+            f"{emote.check} | Banned: {', '.join(banned) if banned else 'None'}\n"
+            f"{emote.check} | Unbanned: {', '.join(unbanned) if unbanned else 'None'}",
+            10,
+        )
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_groups_send", label="Send Groups")
+    async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_rm_slots", label="Cancel Slots")
+    async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_reserv_slots", label="Manually Add Slot")
+    async def reserve_user_slot(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_ch_slotm", label="Slot-Manager channel")
+    async def tourney_slotmanager(self, button: discord.Button, interaction: discord.Interaction):
+        ...
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="download_excel_data", label="MS Excel File")
     async def download_excel_data(self, button: discord.Button, interaction: discord.Interaction):

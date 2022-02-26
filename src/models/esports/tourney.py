@@ -351,6 +351,12 @@ class Tourney(BaseDbModel):
         await Tourney.filter(pk=self.id).update(started_at=None, closed_at=self.bot.current_time)
         return True, True
 
+    async def ban_user(self, user: Union[discord.Member, discord.User]):
+        await Tourney.filter(pk=self.id).update(banned_users=ArrayAppend("banned_users", user.id))
+
+    async def unban_user(self, user: Union[discord.Member, discord.User]):
+        await Tourney.filter(pk=self.id).update(banned_users=ArrayRemove("banned_users", user.id))
+
 
 class TMSlot(BaseDbModel):
     class Meta:

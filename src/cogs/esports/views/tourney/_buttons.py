@@ -8,6 +8,8 @@ from utils import regional_indicator as ri, inputs, truncate_string, emote
 from ._base import TourneyButton
 from models import Tourney
 
+from contextlib import suppress
+
 #! increase success message limit to 500
 #! fake tags maybe
 #! disable tourney slotm in delete
@@ -47,6 +49,18 @@ class RegChannel(TourneyButton):
         self.view.record.registration_channel_id = channel.id
 
         self.ctx.bot.cache.tourney_channels.add(channel.id)
+
+        if not self.view.record.confirm_channel_id:
+            with suppress(StopIteration):
+                self.view.record.confirm_channel_id = next(
+                    (c.id for c in channel.category.text_channels if "confirm" in c.name.lower())
+                )
+
+        if not self.view.record.role_id:
+            for r in channel.guild.roles:
+                if "confirm" in r.name and not await Tourney.get(role_id=r.id).exists():
+                    self.view.record.role_id = r.id
+                    break
 
         await self.view.refresh_view()
 
@@ -338,7 +352,7 @@ class DeleteTourney(TourneyButton):
 
 class DiscardButton(TourneyButton):
     def __init__(self, ctx: Context):
-        super().__init__(label="Cancel", style=discord.ButtonStyle.red)
+        super().__init__(label="Go Back", style=discord.ButtonStyle.red)
         self.ctx = ctx
 
     async def callback(self, interaction: discord.Interaction):

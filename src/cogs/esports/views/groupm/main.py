@@ -38,10 +38,6 @@ class TourneyGroupManager(EsportsBaseView):
         ...
 
     @discord.ui.button(label="")
-    async def group_size(self, button: discord.Button, interaction: discord.Interaction):
-        ...
-
-    @discord.ui.button(label="")
     async def ping_group_role(self, button: discord.Button, interaction: discord.Interaction):
         ...
 
