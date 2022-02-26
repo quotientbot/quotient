@@ -465,7 +465,7 @@ class ScrimManager(Cog, name="Esports"):
             return await ctx.error("Ok, Aborting.")
 
         if channel is not None and channel.permissions_for(ctx.me).embed_links:
-            _v = SlotlistEditButton(ctx, scrim)
+            _v = SlotlistEditButton(ctx.bot, scrim)
 
             _v.message = await channel.send(embed=embed, view=_v)
             await ctx.success("Slotlist sent successfully!")

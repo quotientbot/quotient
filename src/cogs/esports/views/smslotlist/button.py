@@ -3,9 +3,10 @@ from __future__ import annotations
 from models import Scrim
 import discord
 
-from core import Context
+import typing as T
 
-from utils import emote
+if T.TYPE_CHECKING:
+    from core import Quotient
 
 from .editor import *
 
@@ -18,10 +19,10 @@ __all__ = ("SlotlistEditButton",)
 class SlotlistEditButton(discord.ui.View):
     message: discord.Message
 
-    def __init__(self, ctx: Context, scrim: Scrim):
+    def __init__(self, bot: Quotient, scrim: Scrim):
         super().__init__(timeout=None)
 
-        self.ctx = ctx
+        self.bot = bot
         self.scrim = scrim
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -41,7 +42,7 @@ class SlotlistEditButton(discord.ui.View):
 
         return True
 
-    @discord.ui.button(label="Edit", emoji="📝", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Edit", emoji="📝", style=discord.ButtonStyle.green, custom_id="scrim_slotlist_edit_b")
     async def edit_slotlist(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -50,6 +51,8 @@ class SlotlistEditButton(discord.ui.View):
         except OperationalError:
             await interaction.followup.send("This scrim has been deleted.", ephemeral=True)
 
-        _view = ScrimsSlotlistEditor(self.ctx, self.scrim, self.message)
+        _view = ScrimsSlotlistEditor(
+            self.bot, self.scrim, await self.scrim.slotlist_channel.fetch_message(self.scrim.slotlist_message_id)
+        )
         embed = _view.initial_embed()
         _view.message = await interaction.followup.send(embed=embed, view=_view, ephemeral=True)

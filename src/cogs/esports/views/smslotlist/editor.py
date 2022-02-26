@@ -1,9 +1,7 @@
 from __future__ import annotations
-from code import interact
 from contextlib import suppress
 
 
-from core import Context
 import discord
 
 from models import Scrim, ArrayAppend, ScrimsSlotManager, AssignedSlot, ArrayRemove
@@ -14,20 +12,25 @@ import asyncio
 import re
 from utils import truncate_string, emote
 
+import typing as T
+
+if T.TYPE_CHECKING:
+    from core import Quotient
+
 __all__ = ("ScrimsSlotlistEditor",)
 
 
 class ScrimsSlotlistEditor(discord.ui.View):
     message: discord.Message
 
-    def __init__(self, ctx: Context, scrim: Scrim, slotlist_message: discord.Message):
+    def __init__(self, bot: Quotient, scrim: Scrim, slotlist_message: discord.Message):
         super().__init__(timeout=30)
 
-        self.ctx = ctx
+        self.bot = bot
         self.scrim = scrim
         self.slotlist_message = slotlist_message
 
-        self.custom_id=None
+        self.custom_id = None
 
     async def on_timeout(self) -> None:
         if not hasattr(self, "message"):
@@ -37,7 +40,8 @@ class ScrimsSlotlistEditor(discord.ui.View):
             if isinstance(_, discord.ui.Button):
                 _.disabled = True
 
-        return await self.message.edit(embed=self.message.embeds[0], view=self)
+        with suppress(discord.HTTPException):
+            return await self.message.edit(view=self)
 
     def initial_embed(self) -> discord.Embed:
         _e = discord.Embed(color=0x00FFB3, description="Choose an option below to edit the slotlist.")
@@ -64,7 +68,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
             await interaction.followup.send(embed=_e, ephemeral=True)
 
             try:
-                _ms: discord.Message = await self.ctx.bot.wait_for(
+                _ms: discord.Message = await self.bot.wait_for(
                     "message",
                     check=lambda m: m.author == interaction.user and m.channel == interaction.channel,
                     timeout=50,
@@ -90,7 +94,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
 
             if _slot and _slot.user_id:
                 if not await self.scrim.assigned_slots.filter(user_id=_slot.user_id).exists():
-                    member = self.ctx.guild.get_member(_slot.user_id)
+                    member = self.scrim.guild.get_member(_slot.user_id)
                     with suppress(discord.HTTPException):
                         await member.remove_roles(discord.Object(id=self.scrim.role_id))
 
@@ -119,7 +123,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
             if _slot.user_id:
                 if await self.scrim.assigned_slots.filter(user_id=_slot.user_id).count() == 1:
                     with suppress(discord.HTTPException, AttributeError):
-                        m = self.ctx.guild.get_member(_slot.user_id)
+                        m = self.scrim.guild.get_member(_slot.user_id)
                         await m.remove_roles(discord.Object(id=self.scrim.role_id))
 
             await self.scrim.make_changes(available_slots=ArrayAppend("available_slots", _slot.num))
@@ -158,7 +162,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
             )
 
             try:
-                _ms: discord.Message = await self.ctx.bot.wait_for(
+                _ms: discord.Message = await self.bot.wait_for(
                     "message",
                     check=lambda m: m.author == interaction.user and m.channel == interaction.channel,
                     timeout=50,

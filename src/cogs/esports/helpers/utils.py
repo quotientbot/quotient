@@ -138,7 +138,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim):
 
         embed, channel = await scrim.create_slotlist()
 
-        _v = SlotlistEditButton(ctx, scrim)
+        _v = SlotlistEditButton(ctx.bot, scrim)
         with suppress(AttributeError, discord.Forbidden):
             _v.message = await channel.send(embed=embed, view=_v)
             await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)

@@ -91,7 +91,32 @@ class Quotient(commands.AutoShardedBot):
         if self.user.id == self.config.MAIN_BOT:
             self.load_extension("server")
 
-    #
+    @on_startup.append
+    async def __load_presistent_views(self):
+
+        from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager, SlotlistEditButton
+        from models import ScrimsSlotManager, Tourney, Scrim
+
+        # Persistent views
+        async for record in ScrimsSlotManager.all():
+            self.add_view(ScrimsSlotmPublicView(self, record=record), message_id=record.message_id)
+
+        async for tourney in Tourney.filter(slotm_message_id__isnull=False):
+            self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
+
+        async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
+            self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
+
+        print("Persistent views: Loaded the f out of them")
+
+    @on_startup.append
+    async def __chunk_prime_guilds(self):
+        from models import Guild
+
+        async for g in Guild.filter(is_premium=True):
+            if (_guild := self.get_guild(g.pk)) and not _guild.chunked:
+                self.loop.create_task(_guild.chunk())
+
     @property
     def config(self) -> cfg:
         """import and return config.py"""
@@ -112,7 +137,7 @@ class Quotient(commands.AutoShardedBot):
 
     def reboot(self):
         return os.system("pm2 reload quotient")
-        
+
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -176,26 +201,8 @@ class Quotient(commands.AutoShardedBot):
         await csts.show_tip(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
-    async def on_ready(self) -> NoReturn:
+    async def on_ready(self):
         print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
-
-        if not self.persistent_views_added:  # add persistent views
-            from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager
-            from models import ScrimsSlotManager, Tourney, Guild
-
-            # Persistent views
-            async for record in ScrimsSlotManager.all():
-                self.add_view(ScrimsSlotmPublicView(self, record=record), message_id=record.message_id)
-
-            async for tourney in Tourney.filter(slotm_message_id__isnull=False):
-                self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
-
-            # chunk only premium guilds
-            async for g in Guild.filter(is_premium=True):
-                if (_guild := self.get_guild(g.pk)) and not _guild.chunked:
-                    self.loop.create_task(_guild.chunk())
-
-            self.persistent_views_added = True
 
     def embed(self, ctx: Context, **kwargs) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
