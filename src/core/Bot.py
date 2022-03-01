@@ -279,7 +279,7 @@ class Quotient(commands.AutoShardedBot):
         else:
             return _result
 
-    async def get_or_fetch_message(self, channel: discord.Channel, message_id: int) -> Optional[discord.Message]:
+    async def get_or_fetch_message(self, channel: discord.TextChannel, message_id: int) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
         try:
             return self.message_cache[message_id]
@@ -287,7 +287,7 @@ class Quotient(commands.AutoShardedBot):
         except KeyError:
             before = discord.Object(message_id + 1)
             after = discord.Object(message_id - 1)
-            async for msg in channel.history(limit = 1, before=before, after=after):
+            async for msg in channel.history(limit=1, before=before, after=after):
                 if msg:
                     self.message_cache[msg.id] = msg
                     return msg
