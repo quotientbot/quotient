@@ -19,6 +19,9 @@ import utils
 import io
 
 
+from utils import discord_timestamp, plural, truncate_string
+
+
 class Scrim(BaseDbModel):
     class Meta:
         table = "sm.scrims"
@@ -273,6 +276,42 @@ class Scrim(BaseDbModel):
 
         return _text
 
+    async def ban_slot(self, slot: "AssignedSlot", *, reason, mod: discord.Member, ban_type: str):
+        to_ban, scrims = [slot.user_id], [self]
+
+        if ban_type == "2":
+            to_ban = [_ for _ in slot.members]
+
+        elif ban_type == "3":
+            scrims = await Scrim.filter(guild_id=self.guild_id).order_by("open_time")
+
+        elif ban_type == "4":
+            to_ban = [_ for _ in slot.members]
+            scrims = await Scrim.filter(guild_id=self.guild_id).order_by("open_time")
+
+        for _ in to_ban:
+            for scrim in scrims:
+                if _ in await scrim.banned_user_ids():
+                    continue
+
+                b = await BannedTeam.create(user_id=_, expires=reason.dt, reason=reason.arg)
+                await scrim.banned_teams.add(b)
+
+            if banlog := await BanLog.get_or_none(guild_id=self.guild_id):
+                await banlog.log_ban(_, mod, scrims, reason)
+
+            if reason.dt:
+                await self.bot.reminders.create_timer(
+                    reason.dt,
+                    "scrim_ban",
+                    scrims=[scrim.id for scrim in scrims],
+                    user_id=_,
+                    mod=mod.id,
+                    reason=reason.arg,
+                )
+
+        return f"Banned {utils.plural(to_ban):player|players} from {utils.plural(scrims):scrim|scrims}."
+
     async def create_slotlist_img(self):
         """
         This is done! Now do whatever you can : )
@@ -416,6 +455,54 @@ class BanLog(BaseDbModel):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
+
+    def __format_scrims(self, scrims: List[Scrim]):
+
+        _scrims = []
+        for idx, _ in enumerate(scrims, start=1):
+            if idx < 4:
+                _scrims.append(getattr(_.registration_channel, "mention", "`deleted-channel`"))
+
+            elif idx == 4:
+                _scrims.append(f"**...{len(scrims) -  3} more**")
+
+        return ", ".join(_scrims)
+
+    async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason):
+
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+
+        _e = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(scrims):scrim|scrims}")
+        _e.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
+        _e.add_field(name="Moderator", value=mod)
+        _e.add_field(name="Effected Scrims", value=self.__format_scrims(scrims), inline=False)
+        _e.add_field(name="Reason", value=f"```{truncate_string(reason.arg,100) if reason.arg else 'No reason given'}```")
+
+        _e.set_footer(text=f"Expiring: {'Never' if not reason.dt else ''}")
+        if reason.dt:
+            _e.timestamp = reason.dt
+
+        if user:
+            _e.set_thumbnail(url=getattr(user.avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+
+        with suppress(discord.HTTPException, AttributeError):
+            await self.channel.send(getattr(user, "mention", ""), embed=_e)
+
+    async def log_unban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason: str = None):
+
+        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+        _e = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from {plural(scrims):Scrim|Scrims}")
+        _e.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
+        _e.add_field(name="Moderator", value=mod)
+        _e.add_field(name="Effected Scrims", value=self.__format_scrims(scrims), inline=False)
+        _e.add_field(name="Reason", value=reason or "```No Reason given..```", inline=False)
+        _e.timestamp = self.bot.current_time
+
+        if user:
+            _e.set_thumbnail(url=getattr(user.avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+
+        with suppress(discord.HTTPException, AttributeError):
+            await self.channel.send(getattr(user, "mention", ""), embed=_e)
 
 
 class ScrimsSlotReminder(BaseDbModel):

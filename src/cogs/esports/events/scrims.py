@@ -21,9 +21,8 @@ from ..helpers import (
     should_open_scrim,
     purge_channel,
     purge_role,
-    log_scrim_ban,
 )
-from constants import EsportsLog, IST, Day, EsportsRole, AutocleanType, ScrimBanType
+from constants import EsportsLog, IST, Day, EsportsRole, AutocleanType
 from contextlib import suppress
 from datetime import datetime, timedelta
 from unicodedata import normalize
@@ -89,12 +88,18 @@ class ScrimEvents(Cog):
             except IndexError:
                 return
 
+            _team = {message.author.id}
+            for _ in message.mentions:
+                if not _.bot:
+                    _team.add(_.id)
+
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=utils.truncate_string(teamname, 30),
                 num=slot_num,
                 jump_url=message.jump_url,
                 message_id=message.id,
+                members=_team,
             )
 
             await scrim.assigned_slots.add(slot)
@@ -252,12 +257,10 @@ class ScrimEvents(Cog):
     async def on_scrim_ban_timer_complete(self, timer: Timer):
         scrims = timer.kwargs["scrims"]
         user_id = timer.kwargs["user_id"]
-        mod = timer.kwargs["mod"]
+
         reason = timer.kwargs["reason"]
 
-        realreason = "[Auto-Unban] because ban time's up."
-        if reason:
-            reason += f"Banned for: {reason}"
+        new_reason = ("[Auto-Unban] because ban time's up.") + f"\nBanned for: {reason}" if reason else ""
 
         scrims = await Scrim.filter(pk__in=scrims)
         if not scrims:
@@ -267,20 +270,14 @@ class ScrimEvents(Cog):
         if not guild:
             return
 
-        banner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, mod)
-        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+        count = 0
         for scrim in scrims:
-            ban = await scrim.banned_teams.filter(user_id=user_id).first()
-            await BannedTeam.filter(pk=ban.id).delete()
+            bans = await scrim.banned_teams.filter(user_id=user_id)
+            c = await BannedTeam.filter(pk__in=[_.pk for _ in bans]).delete()
+            count += c
 
-            logschan = scrim.logschan
-            if logschan is not None and logschan.permissions_for(guild.me).embed_links:
-                embed = discord.Embed(
-                    color=discord.Color.green(),
-                    description=f"{user} ({user_id}) have been unbanned from Scrim (`{scrim.id}`).\nThey were banned by {banner} ({mod}).",
-                )
-                await logschan.send(embed=embed)
+        if not count:
+            return
 
-        banlog = await BanLog.get_or_none(guild_id=guild.id)
-        if banlog and banlog.channel:
-            await log_scrim_ban(banlog.channel, scrims, ScrimBanType.unban, user, reason=realreason, mod=self.bot.user)
+        if banlog := await BanLog.get_or_none(guild_id=guild.id):
+            await banlog.log_unban(user_id, guild.me, scrims, new_reason)

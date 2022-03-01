@@ -11,6 +11,8 @@ from constants import IST
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse, ParserError
 
+from core import Context
+
 units = pdt.pdtLocales["en_US"].units
 
 
@@ -351,6 +353,68 @@ class UserFriendlyTime(commands.Converter):
                 remaining = argument[:begin].strip()
 
             return await result.check_constraints(ctx, now, remaining)
+        except:
+            import traceback
+
+            traceback.print_exc()
+            raise
+
+
+class TimeText(commands.Converter):
+    def __init__(self, converter=None):
+        self.converter = converter
+
+    def __final_checks(self, dt, remaining=None):
+
+        self.arg = remaining
+        if remaining and remaining.strip() == "":
+            self.arg = None
+
+        self.dt = dt
+        if self.dt:
+            while self.dt < dtm.datetime.now():
+                self.dt += dtm.timedelta(days=1)
+
+            self.dt = IST.localize(self.dt)
+        return self
+
+    async def convert(self, ctx: Context, argument: str):
+        try:
+            calendar = HumanTime.calendar
+            regex = ShortTime.compiled
+            now = dtm.datetime.now()
+
+            match = regex.match(argument)
+            if match is not None and match.group(0):
+                data = {k: int(v) for k, v in match.groupdict(default=0).items()}
+                remaining = argument[match.end() :].strip()
+                dt = now + relativedelta(**data)
+
+                return self.__final_checks(dt, remaining)
+
+            elements = calendar.nlp(argument, sourceTime=now)
+            if elements is None or len(elements) == 0:
+                return self.__final_checks(None, argument)
+
+            dt, status, begin, end, dt_string = elements[0]
+
+            if begin in (0, 1):
+                if begin == 1:
+                    remaining = argument[end + 1 :].lstrip(" ,.!")
+                else:
+                    remaining = argument[end:].lstrip(" ,.!")
+
+            elif len(argument) == end:
+                remaining = argument[:begin].strip()
+
+            if not status.hasDateOrTime:
+                return self.__final_checks(None, remaining)
+
+            if status.accuracy == pdt.pdtContext.ACU_HALFDAY:
+                dt = dt.replace(day=now.day + 1)
+
+            return self.__final_checks(dt, remaining)
+
         except:
             import traceback
 

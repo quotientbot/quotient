@@ -17,7 +17,6 @@ from utils import (
     checks,
     QuoColor,
     QuoPaginator,
-    emote,
     strtime,
     plural,
     QuoRole,
@@ -33,16 +32,9 @@ from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, 
 from contextlib import suppress
 import discord
 from io import BytesIO
-import zipfile
 
 from humanize import precisedelta
 from datetime import timedelta
-from constants import IST
-
-import textwrap
-import asyncio
-import config
-import re
 
 
 class Utility(Cog, name="utility"):
@@ -278,7 +270,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error("This tag can only be used in NSFW channels.")
         if not name.content:
             return await ctx.error("Tag does not have any content")
-        temp = escape_markdown(name.content).replace('<', '\\<')  # why not!?
+        temp = escape_markdown(name.content).replace("<", "\\<")  # why not!?
         main = escape_mentions(temp)
         if len(main) > 1990:  # for some reason exact `2000` do not work...
             file_obj = BytesIO(main.encode())

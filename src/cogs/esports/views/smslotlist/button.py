@@ -1,6 +1,7 @@
 from __future__ import annotations
+from contextlib import suppress
 
-from models import Scrim
+from models import Scrim, AssignedSlot, BanLog
 import discord
 
 import typing as T
@@ -11,7 +12,11 @@ if T.TYPE_CHECKING:
 from .editor import *
 
 from tortoise.exceptions import OperationalError
+from .select import prompt_slot_selection, BanOptions
+from utils import TimeText, emote
 
+import asyncio
+import random
 
 __all__ = ("SlotlistEditButton",)
 
@@ -56,3 +61,68 @@ class SlotlistEditButton(discord.ui.View):
         )
         embed = _view.initial_embed()
         _view.message = await interaction.followup.send(embed=embed, view=_view, ephemeral=True)
+
+    @discord.ui.button(label="Punish", emoji="🛠️", style=discord.ButtonStyle.danger, custom_id="scrim_slotlist_ban_b")
+    async def ban_slot(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        __slots = await self.scrim.assigned_slots.all().order_by("num")
+        if not __slots:
+            return await interaction.followup.send("No slot in the scrim to ban.", ephemeral=True)
+
+        _v = await prompt_slot_selection(__slots, placeholder="Select the slots to ban the teams...", multiple=True)
+
+        _e = discord.Embed(color=0x00FFB3, description="Kindly choose slots from the dropdown.")
+
+        await interaction.followup.send(embed=_e, view=_v, ephemeral=True)
+
+        await _v.wait()
+        if slot_ids := _v.custom_id:
+            _slots = await AssignedSlot.filter(pk__in=slot_ids)
+            _e.description = "Enter the time & reason to ban the teams. (Time is optional)\n\nExamples:"
+            _e.set_image(url="https://cdn.discordapp.com/attachments/782161513825042462/947436682800685056/banreason.gif")
+            await interaction.followup.send(embed=_e, ephemeral=True)
+
+            try:
+                message: discord.Message = await self.bot.wait_for(
+                    "message",
+                    check=lambda x: x.author == interaction.user and x.channel == interaction.channel,
+                    timeout=60,
+                )
+
+            except asyncio.TimeoutError:
+                return await interaction.followup.send("Timed out", ephemeral=True)
+
+            await message.delete()
+            reason = await TimeText().convert(await self.bot.get_context(message), message.content)
+
+            _v = BanOptions()
+            await interaction.followup.send(embed=_v.initial_embed(), view=_v, ephemeral=True)
+            await _v.wait()
+            if _v.value:
+                _e.title = "Banning teams..."
+                _e.description = ""
+                _e.set_image(url=discord.Embed.Empty)
+
+                m = await interaction.followup.send(embed=_e, ephemeral=True)
+
+                for idx, _ in enumerate(_slots, start=1):
+                    _e.description += f"`{idx}`: {emote.check} {await self.scrim.ban_slot(_,mod=interaction.user,reason=reason,ban_type=_v.value)}\n"
+                    with suppress(discord.HTTPException):
+                        await m.edit(embed=_e)
+                        await asyncio.sleep(0.5)
+
+                _e.title = "Banning Complete!"
+                with suppress(discord.HTTPException):
+                    await m.edit(embed=_e)
+
+                if not await BanLog.get(guild_id=interaction.guild_id).exists():
+                    if random.randint(1, 50) == 1:
+                        _e = discord.Embed(
+                            color=0x00FFB3,
+                            description=(
+                                "I see You don't have a public banlog channel in your server.\n\n"
+                                "You can set it up with `qbanlog #channel`."
+                            ),
+                        )
+                        return await interaction.followup.send(embed=_e, ephermeral=True)

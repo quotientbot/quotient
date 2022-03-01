@@ -568,63 +568,11 @@ class ScrimManager(Cog, name="Esports"):
     @smanager.command(name="ban")
     @checks.can_use_sm()
     @checks.has_done_setup()
-    async def s_ban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, time: FutureTime = None):
+    async def s_ban(self, ctx: Context):
         """
         Ban someone from the scrims temporarily or permanently.
-        Time argument is optional, use `all` in place of scrim id if you want to ban from all scrims.
         """
-        expire_time = time.dt + timedelta(seconds=10) if time else None
-
-        if len(scrim) == 1 and user.id in await scrim[0].banned_user_ids():  #!!fix error if trying to ban again
-            return await ctx.send(
-                f"**{str(user)}** is already banned from the scrims.\n\n"
-                f"Use `{ctx.prefix}smanager unban {scrim.id} {str(user)}` to unban them."
-            )
-
-        prompt = await ctx.prompt("Do you want to give a reason for the ban?")
-        reason = None
-        if prompt:
-            await ctx.send("Enter reason:")
-            reason = await inputs.string_input(ctx, lambda msg: msg.author == ctx.author and msg.channel == ctx.channel)
-
-        scrims = []
-        for s in scrim:
-            if not user.id in await s.banned_user_ids():
-                ban = await BannedTeam.create(user_id=user.id, expires=expire_time, reason=reason)
-                await s.banned_teams.add(ban)
-                scrims.append(s)
-
-        if not scrims:
-            return await ctx.send(
-                f"**{str(user)}** is already banned from all scrims.\n\n"
-                f"Use `{ctx.prefix}smanager unban all {str(user)}` to unban them."
-            )
-
-        if time is not None:
-            await self.reminders.create_timer(
-                expire_time,
-                "scrim_ban",
-                scrims=[scrim.id for scrim in scrims],
-                user_id=user.id,
-                mod=ctx.author.id,
-                reason=reason,
-            )
-
-        format = "\n".join(
-            (
-                f"✅ Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
-                for scrim in scrims
-            )
-        )
-        await ctx.success(
-            f"**{user}** has been successfully banned {'for ' if time else ''}{human_timedelta(expire_time) if time else '' } "
-            f"from:\n{format}"
-        )
-
-        if logs := await ctx.banlog_channel:
-            return await log_scrim_ban(
-                logs, scrims, ScrimBanType.ban, user, reason=reason, mod=ctx.author, expire_time=expire_time
-            )
+        await ctx.simple("Use 'Punish' button from the slotlist message. ")
 
     @smanager.command(name="unban")
     @checks.can_use_sm()
@@ -635,34 +583,30 @@ class ScrimManager(Cog, name="Esports"):
         Use `all` to unban from all scrims.
         """
         if len(scrim) == 1 and not user.id in await scrim[0].banned_user_ids():
-            return await ctx.send(
-                f"**{str(user)}** is not banned.\n\nUse `{ctx.prefix}smanager ban all {str(user)}` to ban them."
-            )
+            return await ctx.send(f"**{str(user)}** is not banned.")
 
         scrims = []
         for s in scrim:
-            ban = await s.banned_teams.filter(user_id=user.id).first()
-            if ban:
-                await BannedTeam.filter(id=ban.id).delete()
+            bans = await s.banned_teams.filter(user_id=user.id)
+            if bans:
+                await BannedTeam.filter(id__in=[_.pk for _ in bans]).delete()
                 scrims.append(s)
 
         if not scrims:
-            return await ctx.send(
-                f"**{str(user)}** is not banned from scrims.\n\n"
-                f"Use `{ctx.prefix}smanager ban all {str(user)}` to ban them."
-            )
+            return await ctx.send(f"**{str(user)}** is not banned from scrims.")
 
         format = "\n".join(
             (
-                f"✅ Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
+                f"{emote.check} Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
                 for scrim in scrims
             )
         )
 
-        await ctx.success(f"Successfully unbanned {str(user)} from \n" f"{format}")
+        await ctx.simple(f"Successfully unbanned {str(user)} from \n" f"{format}")
 
-        if logs := await ctx.banlog_channel:
-            return await log_scrim_ban(logs, scrims, ScrimBanType.unban, user, mod=ctx.author, reason=reason)
+        if banlog := await BanLog.get_or_none(guild_id=ctx.guild.id):
+            await banlog.log_unban(user.id, ctx.author, scrims,reason or "```No reason given```")
+
 
     @smanager.group(name="reserve", invoke_without_command=True)
     @commands.max_concurrency(1, BucketType.guild)
@@ -1568,7 +1512,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.can_use_sm()
     async def _banlog(self, ctx: Context, *, channel: discord.TextChannel = None):
         """
-        Set a channel for all esports ban/unban logs
+        Set a channel for all scrims ban/unban logs
         """
         if not channel:
             record = await BanLog.get_or_none(guild_id=ctx.guild.id)
