@@ -234,24 +234,8 @@ class ScrimEvents(Cog):
         if AutocleanType.channel in scrim.autoclean:
             self.bot.loop.create_task(purge_channel(scrim.registration_channel))
 
-            with suppress(discord.Forbidden, AttributeError):
-                await scrim.logschan.send(
-                    embed=discord.Embed(
-                        color=discord.Color.green(),
-                        description=f"{utils.emote.check} | Channel Purge (Scrims Autoclean) executed successfully: {scrim.id}",
-                    )
-                )
-
         if AutocleanType.role in scrim.autoclean:
             self.bot.loop.create_task(purge_role(scrim.role))
-
-            with suppress(discord.Forbidden, AttributeError):
-                await scrim.logschan.send(
-                    embed=discord.Embed(
-                        color=discord.Color.green(),
-                        description=f"{utils.emote.check} | Role Purge (Scrims Autoclean) executed successfully: {scrim.id}",
-                    )
-                )
 
     @Cog.listener()
     async def on_scrim_ban_timer_complete(self, timer: Timer):
