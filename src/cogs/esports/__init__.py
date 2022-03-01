@@ -487,7 +487,8 @@ class ScrimManager(Cog, name="Esports"):
         """
         msg = None
         with suppress(discord.HTTPException):
-            msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
+            msg = await self.bot.get_or_fetch_message(scrim.slotlist_channel, scrim.slotlist_message_id)
+            # msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
         if not msg:
             return await ctx.error("Slotlist Message not found.")
 
@@ -1009,12 +1010,11 @@ class ScrimManager(Cog, name="Esports"):
         """Get info about current slotmanager or create new one"""
 
         if _channel := tourney.slotm_channel:
-            try:
-                await _channel.fetch_message(tourney.slotm_message_id)
+            msg = await self.bot.get_or_fetch_message(_channel, tourney.slotm_message_id)
+            # await _channel.fetch_message(tourney.slotm_message_id)
+            if msg:
                 return await ctx.simple(f"Current slotmanager channel for {tourney} is {_channel.mention}.")
-            except discord.NotFound:
-                pass
-
+            
         _view = TourneySlotManager(self.bot, tourney=tourney)
 
         _category = tourney.registration_channel.category

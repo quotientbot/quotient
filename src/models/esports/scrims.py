@@ -222,7 +222,8 @@ class Scrim(BaseDbModel):
 
         with suppress(discord.HTTPException, AttributeError):
             if not msg:
-                msg = await channel.fetch_message(self.slotlist_message_id)
+                msg = await self.bot.get_or_fetch_message(channel, self.slotlist_message_id)
+                # msg = await channel.fetch_message(self.slotlist_message_id)
 
             await msg.edit(embed=embed)
 

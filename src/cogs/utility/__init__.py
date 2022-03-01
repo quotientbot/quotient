@@ -388,7 +388,7 @@ class Utility(Cog, name="utility"):
         paginator = QuoPaginator(ctx, title=f"Tags you own: {len(tags)}", per_page=12)
 
         for idx, tag in enumerate(tags, start=1):
-            paginator.add_line(f"`{idx:02}` {tag.name} (ID: {tag.id})")
+            paginator.add_line(f"`{idx:02}` {escape_markdown(tag.name)} (ID: {tag.id})")
 
         await paginator.start()
 
