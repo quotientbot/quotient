@@ -55,7 +55,7 @@ class ScrimsSlotManager(BaseDbModel):
         if channel:
             _m = None
             with suppress(discord.HTTPException):
-                _m = self.bot.get_or_fetch_message(channel, self.message_id)
+                _m = await self.bot.get_or_fetch_message(channel, self.message_id)
                 # _m = await channel.fetch_message(self.message_id)
 
             return _m
