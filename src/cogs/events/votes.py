@@ -1,6 +1,7 @@
 from __future__ import annotations
 import typing
 
+
 if typing.TYPE_CHECKING:
     from core import Quotient
 
@@ -21,7 +22,8 @@ class VotesCog(Cog):
     @Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """we grant users voter, premium role if they join later."""
-        if not member.guild or not member.guild.id == self.bot.server.id:
+
+        if not member.guild or not member.guild.id == self.bot.config.SERVER_ID:
             return
 
         if await Votes.get(user_id=member.id, is_voter=True).exists():
