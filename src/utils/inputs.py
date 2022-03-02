@@ -107,7 +107,9 @@ async def role_input(ctx: Context, check=None, timeout=120, hierarchy=True, chec
         return role
 
 
-async def member_input(ctx: Context, check, timeout=120, delete_after=False):
+async def member_input(ctx: Context, check=None, timeout=120, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
+
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
         member = await MemberConverter().convert(ctx, message.content)

@@ -357,6 +357,32 @@ class Tourney(BaseDbModel):
     async def unban_user(self, user: Union[discord.Member, discord.User]):
         await Tourney.filter(pk=self.id).update(banned_users=ArrayRemove("banned_users", user.id))
 
+    async def remove_slot(self, slot: "TMSlot"):
+        if slot.confirm_jump_url:
+            self.bot.loop.create_task(self.update_confirmed_message(slot.confirm_jump_url))
+
+        await slot.delete()
+
+        if not await self.assigned_slots.filter(leader_id=slot.leader_id).exists():
+            m = self.guild.get_member(slot.leader_id)
+            if m:
+                await m.remove_roles(discord.Object(id=self.role_id))
+
+    async def update_confirmed_message(self, link: str):
+        _ids = [int(i) for i in link.split("/")[5:]]
+
+        with suppress(discord.HTTPException, IndexError):
+            message = await self.guild.get_channel(_ids[0]).fetch_message(_ids[1])
+
+            if message:
+                e = message.embeds[0]
+
+                e.description = "~~" + e.description.strip() + "~~"
+                e.title = "Cancelled Slot"
+                e.color = discord.Color.red()
+
+                await message.edit(embed=e)
+
 
 class TMSlot(BaseDbModel):
     class Meta:
