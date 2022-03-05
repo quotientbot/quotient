@@ -9,7 +9,7 @@ import asyncio
 router = APIRouter()
 
 
-sem: asyncio.Semaphore = asyncio.Semaphore(3)
+sem: asyncio.Semaphore = asyncio.Semaphore(2)
 
 
 @router.post("/ocr", status_code=status.HTTP_200_OK, response_model=List[ImageResponse])
