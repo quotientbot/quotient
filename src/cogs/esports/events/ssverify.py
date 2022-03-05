@@ -2,6 +2,7 @@ from __future__ import annotations
 import asyncio
 
 from typing import List, TYPE_CHECKING
+import aiohttp
 
 import discord
 
@@ -103,21 +104,27 @@ class Ssverification(Cog):
 
             _data = [{"url": _.proxy_url} for _ in attachments]
 
-            _ocr, start_at = None, self.bot.current_time
-            async with self.bot.session.post(self.request_url, json=_data, headers=self.headers) as resp:
-                complete_at = self.bot.current_time
-                _ocr = await resp.json()
-
-            if not _ocr:
-                return
+            start_at = self.bot.current_time
 
             async with self.__verify_lock:
-                embed = await self.__verify_screenshots(ctx, record, [ImageResponse(**_) for _ in _ocr])
-                embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
-                embed.set_author(
-                    name=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
-                    icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
-                )
+                async with self.bot.session.post(self.request_url, json=_data, headers=self.headers) as resp:
+                    complete_at = self.bot.current_time
+
+                    try:
+                        _ocr = await resp.json()
+                    except aiohttp.ContentTypeError:
+                        _e.color, _e.description = (
+                            discord.Color.red(),
+                            "**Failed to process your screenshots. Try again later.**",
+                        )
+                        return await message.reply(embed=_e)
+
+            embed = await self.__verify_screenshots(ctx, record, [ImageResponse(**_) for _ in _ocr])
+            embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
+            embed.set_author(
+                name=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
+                icon_url=getattr(ctx.author.avatar, "url", discord.Embed.Empty),
+            )
 
             with suppress(discord.HTTPException):
                 await m.delete()

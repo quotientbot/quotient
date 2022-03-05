@@ -151,7 +151,7 @@ class TourneyManager(EsportsBaseView):
 
         _v = QuotientView(self.ctx)
         _v.add_item(TourneySlotSelec(_slots))
-        _v.message = await interaction.followup.send("select the slots you want to cancel", view=_v,ephemeral=True)
+        _v.message = await interaction.followup.send("select the slots you want to cancel", view=_v, ephemeral=True)
 
         await _v.wait()
 
@@ -165,7 +165,7 @@ class TourneyManager(EsportsBaseView):
 
             c = 0
             for _ in _v.custom_id:
-                slot_id,tourney_id = _.split(":")
+                slot_id, tourney_id = _.split(":")
                 tourney = await Tourney.get_or_none(id=tourney_id)
                 slot = await TMSlot.get_or_none(id=slot_id)
 
