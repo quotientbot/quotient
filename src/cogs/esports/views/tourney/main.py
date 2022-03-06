@@ -21,10 +21,11 @@ import asyncio
 
 from utils import emote
 from contextlib import suppress
-from utils import member_input, plural
+from utils import member_input, plural, truncate_string
 
 from ._select import TourneySlotSelec
 from tortoise.query_utils import Q
+import re
 
 
 class TourneyManager(EsportsBaseView):
@@ -181,6 +182,54 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Manually Add Slot")
     async def reserve_user_slot(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+        m = await self.ctx.simple("Mention the team leader and Enter the team name.")
+
+        try:
+            msg: discord.Message = await self.bot.wait_for(
+                "message", check=lambda x: x.author == self.ctx.author and x.channel == interaction.channel, timeout=100
+            )
+
+        except asyncio.TimeoutError:
+            await self.ctx.safe_delete(m)
+            return await self.ctx.error("You didn't reply in time.", 3)
+
+        await self.ctx.safe_delete(m)
+        await self.ctx.safe_delete(msg)
+
+        if not msg.mentions:
+            return await self.ctx.error("You need to mention team leader.", 4)
+
+        leader = msg.mentions[0]
+
+        team_name = truncate_string(re.sub(r"<@*!*&*\d+>", "", msg.content), 22)
+        if not team_name:
+            return await self.ctx.error("You need to enter a team name.", 4)
+
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to add slot.")
+        if tourney:
+            last_slot = await tourney.assigned_slots.order_by("-num").first()
+            slot = TMSlot(leader_id=leader.id, team_name=team_name, num=last_slot.num + 1 if last_slot else 1)
+
+            _e = discord.Embed(color=0x00FFB3)
+            _e.description = f"**{slot.num}) NAME: [{slot.team_name.upper()}]({slot.jump_url})**\n"
+
+            _e.set_footer(
+                text="Added by: {}".format(self.ctx.author),
+                icon_url=getattr(self.ctx.author.avatar, "url", discord.Embed.Empty),
+            )
+
+            m = await tourney.confirm_channel.send(leader.mention, embed=_e)
+            slot.confirm_jump_url = m.jump_url
+
+            await slot.save()
+            await tourney.assigned_slots.add(slot)
+
+            await leader.add_roles(tourney.role)
+
+            await self.ctx.success(f"Added slot successfully, [Click Here]({m.jump_url}) ", 4)
+
+            if tourney.total_slots <= await tourney.assigned_slots.all().count():
+                await tourney.end_process()
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Slot-Manager channel")
     async def tourney_slotmanager(self, button: discord.Button, interaction: discord.Interaction):
