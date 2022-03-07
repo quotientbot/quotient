@@ -36,6 +36,7 @@ python-socketio = {extras = ["asyncio_client"], version = "^5.5.0"}
 aiohttp-asgi = "^0.4.0"
 fastapi = "^0.73.0"
 python-multipart = "^0.0.5"
+lru-dict = "^1.1.7"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^21.5b1", allow-prereleases = true}

@@ -356,7 +356,7 @@ python-versions = ">=3.5.3"
 
 [[package]]
 name = "discord.py"
-version = "2.0.0a3575+g45d498c1"
+version = "2.0.0a3762+gaa6fb54e"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -367,15 +367,16 @@ develop = false
 aiohttp = ">=3.6.0,<3.8.0"
 
 [package.extras]
-docs = ["sphinx (==4.0.2)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport"]
+docs = ["sphinx (==4.4.0)", "sphinxcontrib-trio (==1.1.2)", "sphinxcontrib-websupport", "typing-extensions"]
 speed = ["orjson (>=3.5.4)"]
+test = ["coverage", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock"]
 voice = ["PyNaCl (>=1.3.0,<1.5)"]
 
 [package.source]
 type = "git"
 url = "https://github.com/Rapptz/discord.py.git"
 reference = "master"
-resolved_reference = "45d498c1b76deaf3b394d17ccf56112fa691d160"
+resolved_reference = "aa6fb54e993d40230759a0443d0481c7bca26d73"
 
 [[package]]
 name = "fastapi"
@@ -559,6 +560,14 @@ procinfo = ["psutil"]
 publish = ["jinja2"]
 test = ["click", "coverage", "flake8", "isort", "pylint", "pytest", "pytest-cov", "pytest-mock"]
 voice = ["youtube-dl"]
+
+[[package]]
+name = "lru-dict"
+version = "1.1.7"
+description = "An Dict like LRU container."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "markupsafe"
@@ -799,7 +808,7 @@ six = ">=1.4.0"
 
 [[package]]
 name = "python-socketio"
-version = "5.5.1"
+version = "5.5.2"
 description = "Socket.IO server and client for Python"
 category = "main"
 optional = false
@@ -1079,7 +1088,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1d2ef40d589316b6efec7c860af8c3d7b8891ce9832f0dbbaa926ef770510a1f"
+content-hash = "e38f5007894da3fc015aa2690a241ab8e3b5848575c2ee01f7d348619725272d"
 
 [metadata.files]
 aerich = [
@@ -1369,6 +1378,9 @@ jishaku = [
     {file = "jishaku-2.3.2-py3.8.egg", hash = "sha256:3019932367384ea5a07d51b70ffa699fa530f16d10413d50880475dff08217e3"},
     {file = "jishaku-2.3.2-py3.9.egg", hash = "sha256:c3da7e69dd8c08df93cd75df28d0e41e3ab626b4b12b42649c11f867902f10c8"},
     {file = "jishaku-2.3.2.tar.gz", hash = "sha256:9bbc973ebb8070091b801d0af4fc94e40a3904539bef2dadd0eb7fda755c91b6"},
+]
+lru-dict = [
+    {file = "lru-dict-1.1.7.tar.gz", hash = "sha256:45b81f67d75341d4433abade799a47e9c42a9e22a118531dcb5e549864032d7c"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.0.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:f9081981fe268bd86831e5c75f7de206ef275defcb82bc70740ae6dc507aee51"},
@@ -1750,8 +1762,8 @@ python-multipart = [
     {file = "python-multipart-0.0.5.tar.gz", hash = "sha256:f7bb5f611fc600d15fa47b3974c8aa16e93724513b49b5f95c81e6624c83fa43"},
 ]
 python-socketio = [
-    {file = "python-socketio-5.5.1.tar.gz", hash = "sha256:ac8e64d59a15d1c31a4fe8434f4ff16d0f640c824ba517dce7ca99e95f0cd36a"},
-    {file = "python_socketio-5.5.1-py3-none-any.whl", hash = "sha256:d0b98474064ac239a618649ca67f5288827705d36bd5f7615a473b37965baf61"},
+    {file = "python-socketio-5.5.2.tar.gz", hash = "sha256:6213f7dfbb87e554472d11151f96bae9059854aa88e4a1e0fa6e97cca1c3fcf4"},
+    {file = "python_socketio-5.5.2-py3-none-any.whl", hash = "sha256:5a1b173a4c3471bed363c502a93b36a02e2a29847645c5557237b3359d49caf0"},
 ]
 pytz = [
     {file = "pytz-2021.3-py2.py3-none-any.whl", hash = "sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c"},
