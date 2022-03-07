@@ -202,7 +202,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
-        await ctx.send(f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Databse: `{await self.bot.db_latency}`")
+        await ctx.send(f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Database: `{await self.bot.db_latency}`")
 
     @commands.command()
     async def voteremind(self, ctx: Context):
