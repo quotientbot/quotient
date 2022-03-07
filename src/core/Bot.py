@@ -33,6 +33,7 @@ from .cache import CacheManager
 
 intents = Intents.default()
 intents.members = True
+intents.message_content = True
 
 
 os.environ["JISHAKU_HIDE"] = "True"
@@ -88,7 +89,6 @@ class Quotient(commands.AutoShardedBot):
             self.load_extension(ext)
             print(f"Loaded extension: {ext}")
 
-
     @on_startup.append
     async def __load_presistent_views(self):
 
@@ -105,7 +105,7 @@ class Quotient(commands.AutoShardedBot):
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
 
-        print("Persistent views: Loaded the f out of them")
+        print("Persistent views: Loaded them too ")
 
     @on_startup.append
     async def __chunk_prime_guilds(self):
