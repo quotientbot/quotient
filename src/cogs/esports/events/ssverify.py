@@ -23,13 +23,13 @@ from collections import defaultdict
 
 class MemberLimits(defaultdict):
     def __missing__(self, key):
-        r = self[key] = QuotientRatelimiter(1, 15)
+        r = self[key] = QuotientRatelimiter(1, 7)
         return r
 
 
 class GuildLimits(defaultdict):
     def __missing__(self, key):
-        r = self[key] = QuotientRatelimiter(5, 60)
+        r = self[key] = QuotientRatelimiter(10, 60)
         return r
 
 
