@@ -31,6 +31,8 @@ from .Context import Context
 from .Help import HelpCommand
 from .cache import CacheManager
 
+from lru import LRU
+
 intents = Intents.default()
 intents.members = True
 intents.message_content = True
@@ -77,8 +79,7 @@ class Quotient(commands.AutoShardedBot):
         self.lockdown_msg: str = None
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
-        self.message_cache: Dict[int, Any] = {}
-        # TODO: Use LRU caching
+        self.message_cache: Dict[int, Any] = LRU(1000)
 
         for coro_func in on_startup:
             self.loop.create_task(coro_func(self))
