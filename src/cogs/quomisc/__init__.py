@@ -148,6 +148,8 @@ class Quomisc(Cog, name="quomisc"):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def about(self, ctx: Context):
         """Statistics of Quotient."""
+        db_latency = await self.bot.db_latency
+
         version = pkg_resources.get_distribution("discord.py").version
         revision = self.get_last_commits()
 
@@ -158,7 +160,6 @@ class Quomisc(Cog, name="quomisc"):
         total_members = sum(g.member_count for g in self.bot.guilds)
         cached_members = len(self.bot.users)
 
-        db_latency = await self.bot.db_latency
         total_command_uses = await Commands.all().count()
         user_invokes = await Commands.filter(user_id=ctx.author.id, guild_id=ctx.guild.id).count() or 0
         server_invokes = await Commands.filter(guild_id=ctx.guild.id).count() or 0
