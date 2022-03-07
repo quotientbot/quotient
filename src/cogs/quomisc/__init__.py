@@ -15,7 +15,7 @@ from discord.ext import commands
 from utils import QuoColor, LinkType, LinkButton, truncate_string
 from collections import Counter
 
-import inspect, time
+import inspect
 
 from .views import MoneyButton, VoteButton, SetupButtonView
 
@@ -201,19 +201,7 @@ class Quomisc(Cog, name="quomisc"):
     @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
-        ping_at = time.monotonic()
-        message = await ctx.send("Pinging...")
-        diff = "%.2f" % (1000 * (time.monotonic() - ping_at))
-
-        emb = ctx.bot.embed(ctx)
-        emb.add_field(name="<a:typing:878492334222884924> | typing", value=f"`{diff} ms`")
-        emb.add_field(
-            name="<:prime:878493632720699392> | websocket",
-            value=f"`{round(self.bot.latency*1000, 2)} ms`",
-        )
-        emb.add_field(name="<:postgresql:878492440066129920> | database", value=f"`{await self.bot.db_latency}`")
-
-        await message.edit(content=None, embed=emb)
+        await ctx.send(f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Databse: `{await self.bot.db_latency}`")
 
     @commands.command()
     async def voteremind(self, ctx: Context):
@@ -228,13 +216,13 @@ class Quomisc(Cog, name="quomisc"):
 
     @commands.command()
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx: Context, *, new_prefix: str=None):
+    async def prefix(self, ctx: Context, *, new_prefix: str = None):
         """Change your server's prefix"""
 
         if not new_prefix:
             prefix = self.bot.cache.guild_data[ctx.guild.id].get("prefix", "q")
             return await ctx.simple(f"Prefix for this server is `{prefix}`")
-      
+
         if len(new_prefix) > 5:
             return await ctx.error(f"Prefix cannot contain more than 5 characters.")
 
