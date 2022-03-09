@@ -24,6 +24,7 @@ from contextlib import suppress
 from utils import member_input, plural, truncate_string
 
 from ._select import TourneySlotSelec
+from .slotm import TourneySlotManager
 from tortoise.query_utils import Q
 import re
 
@@ -234,6 +235,31 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Slot-Manager channel")
     async def tourney_slotmanager(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to add cancel-claim...")
+        if tourney:
+            if _channel := tourney.slotm_channel:
+                await tourney.refresh_slotlm()
+                return await self.ctx.simple(f"Current slotmanager channel for {tourney} is {_channel.mention}.", 7)
+
+        _view = TourneySlotManager(self.bot, tourney=tourney)
+
+        _category = tourney.registration_channel.category
+        overwrites = {
+            self.ctx.guild.default_role: discord.PermissionOverwrite(
+                read_messages=True, send_messages=False, read_message_history=True
+            ),
+            self.ctx.guild.me: discord.PermissionOverwrite(
+                manage_channels=True, manage_permissions=True, manage_messages=True
+            ),
+        }
+        slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
+
+        _e = TourneySlotManager.initial_embed(tourney)
+        slotm_message = await slotm_channel.send(embed=_e, view=_view)
+
+        await Tourney.get(pk=tourney.id).update(slotm_channel_id=slotm_channel.id, slotm_message_id=slotm_message.id)
+        await self.ctx.success(f"Slotmanager channel for {tourney} created successfully. ({slotm_channel.mention})", 7)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="MS Excel File")
     async def download_excel_data(self, button: discord.Button, interaction: discord.Interaction):

@@ -383,6 +383,25 @@ class Tourney(BaseDbModel):
 
                 await message.edit(embed=e)
 
+    async def make_changes(self, **kwargs):
+        return await Tourney.filter(pk=self.id).update(**kwargs)
+
+    async def refresh_slotlm(self):
+        from cogs.esports.views.tourney import TourneySlotManager
+
+        msg = await self.bot.get_or_fetch_message(self.slotm_channel, self.slotm_message_id)
+        _view = TourneySlotManager(self.bot, tourney=self)
+        _e = TourneySlotManager.initial_embed(self)
+
+        try:
+            await msg.edit(embed=_e, view=_view)
+        except discord.HTTPException:
+            msg = await self.slotm_channel.send(embed=_e, view=_view)
+            await self.make_changes(slotm_message_id=msg.id)
+
+        finally:
+            return True
+
 
 class TMSlot(BaseDbModel):
     class Meta:
