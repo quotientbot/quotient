@@ -28,6 +28,7 @@ from .slotm import TourneySlotManager
 from tortoise.query_utils import Q
 import re
 
+from ._buttons import DiscardButton
 from ..groupm import TourneyGroupManager
 
 
@@ -132,7 +133,8 @@ class TourneyManager(EsportsBaseView):
         await interaction.response.defer()
 
         _v = TourneyGroupManager(self.ctx, timeout=100)
-        _v.message = await interaction.edit_original_message(embed=_v.initial_embed, view=_v)
+        _v.add_item(DiscardButton(self.ctx))
+        _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Cancel Slots")
     async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
@@ -177,7 +179,6 @@ class TourneyManager(EsportsBaseView):
                 slot = await TMSlot.get_or_none(id=slot_id)
 
                 if not tourney or not slot:
-                    print(tourney, slot)
                     continue
 
                 await tourney.remove_slot(slot)
