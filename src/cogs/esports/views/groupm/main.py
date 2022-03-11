@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import suppress
 
 import typing as T
 
@@ -11,13 +12,13 @@ from core import Context
 
 from models import Tourney
 
-from utils import keycap_digit
+from utils import keycap_digit, inputs
 
 __all__ = ("TourneyGroupManager",)
 
 
 class TourneyGroupManager(EsportsBaseView):
-    def __init__(self, ctx: Context, **kwargs):
+    def __init__(self, ctx: Context, tourney: Tourney, **kwargs):
         super().__init__(ctx, **kwargs)
 
         self.ping_role = True
@@ -34,13 +35,25 @@ class TourneyGroupManager(EsportsBaseView):
         _e.add_field(name=f"{keycap_digit(2)} Ping Group Role", value=("`No!`", "`Yes!`")[self.ping_role])
         return _e
 
+    async def __refresh_msg(self):
+        with suppress(discord.HTTPException):
+            self.message = await self.message.edit(embed=self.initial_embed)
+
     @discord.ui.button(emoji=keycap_digit(1))
-    async def slotlist_start(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+    async def change_slotlist_start(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        m = await self.ctx.simple("Enter the slot number to start group/slotlist. (Max `20`)")
+        self.start_from = await inputs.integer_input(self.ctx, limits=(1, 20), delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        await self.__refresh_msg()
 
     @discord.ui.button(emoji=keycap_digit(2))
     async def ping_group_role(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+        self.ping_role = not self.ping_role
+        await self.__refresh_msg()
 
     @discord.ui.button(label="Create Channels & Roles")
     async def create_roles_channels(self, button: discord.Button, interaction: discord.Interaction):

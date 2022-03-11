@@ -132,9 +132,11 @@ class TourneyManager(EsportsBaseView):
     async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        _v = TourneyGroupManager(self.ctx, timeout=100)
-        _v.add_item(DiscardButton(self.ctx))
-        _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to ban/unban users.")
+        if tourney:
+            _v = TourneyGroupManager(self.ctx, tourney, timeout=100)
+            _v.add_item(DiscardButton(self.ctx))
+            _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Cancel Slots")
     async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
