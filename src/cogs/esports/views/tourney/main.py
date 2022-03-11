@@ -277,7 +277,7 @@ class TourneyManager(EsportsBaseView):
             await asyncio.sleep(1)
 
             _log_chan = await self.bot.getch(self.bot.get_channel, self.bot.fetch_channel, 899185364500099083)
-            m = await _log_chan.send(file=await tourney.get_csv())
+            m: discord.Message = await _log_chan.send(file=await tourney.get_csv())
 
             e = discord.Embed(
                 color=self.bot.color,
@@ -290,7 +290,3 @@ class TourneyManager(EsportsBaseView):
 
             with suppress(discord.HTTPException):
                 await _m.edit(embed=e, delete_after=15)
-
-    @discord.ui.button(style=ButtonStyle.blurple, label="Tourney not working :c Fix it Please!")
-    async def fix_my_tourney(self, button: discord.Button, interaction: discord.Interaction):
-        await interaction.response.defer()
