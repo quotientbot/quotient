@@ -45,6 +45,7 @@ class Tourney(BaseDbModel):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
+    slotlist_start = fields.IntField(default=2)
     group_size = fields.IntField(null=True)
 
     success_message = fields.CharField(max_length=500, null=True)
@@ -454,7 +455,6 @@ class TGroupList(BaseDbModel):
 
     message_id = fields.BigIntField(pk=True)
     channel_id = fields.BigIntField()
-    start_from = fields.IntField(default=1)
     refresh_at = fields.DatetimeField(auto_now=True)
 
     @property

@@ -21,8 +21,10 @@ class TourneyGroupManager(EsportsBaseView):
     def __init__(self, ctx: Context, tourney: Tourney, **kwargs):
         super().__init__(ctx, **kwargs)
 
+        self.tourney = tourney
         self.ping_role = True
-        self.start_from = 2
+
+        self.start_from = tourney.slotlist_start
 
     @property
     def initial_embed(self):
@@ -46,6 +48,8 @@ class TourneyGroupManager(EsportsBaseView):
         m = await self.ctx.simple("Enter the slot number to start group/slotlist. (Max `20`)")
         self.start_from = await inputs.integer_input(self.ctx, limits=(1, 20), delete_after=True)
         await self.ctx.safe_delete(m)
+
+        await self.tourney.make_changes(slotlist_start=self.start_from)
 
         await self.__refresh_msg()
 
