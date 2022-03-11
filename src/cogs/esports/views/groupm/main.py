@@ -28,7 +28,9 @@ class TourneyGroupManager(EsportsBaseView):
 
     @property
     def initial_embed(self):
-        _e = discord.Embed(color=self.ctx.bot.color)
+        _e = discord.Embed(
+            color=self.ctx.bot.color, title="Tourney Group Management", url=self.tourney.bot.config.SERVER_LINK
+        )
         _e.description = (
             f"Use `create channels & roles` to setup tourney groups.\n"
             "Use `Group List` to post group/slotlist in channels."
@@ -61,7 +63,14 @@ class TourneyGroupManager(EsportsBaseView):
 
     @discord.ui.button(label="Create Channels & Roles")
     async def create_roles_channels(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+
+        _e = discord.Embed(color=0x00FFB3)
+        _e.description = (
+            "Enter the format for group roles & channels creation.\n"
+            "*{0} will be replaced by the number of group or roles*\n\nExamples:"
+        )
+
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
