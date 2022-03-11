@@ -138,8 +138,15 @@ class Tourney(BaseDbModel):
     def is_ignorable(member: discord.Member) -> bool:
         return "tourney-mod" in (role.name.lower() for role in member.roles)
 
-    async def get_groups(self, size: int) -> List[List["TMSlot"]]:
-        return split_list(await self.assigned_slots.all().order_by("num"), size)
+    async def get_groups(self) -> List[List["TMSlot"]]:
+        return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
+
+    async def get_group(self, num: int) -> List["TMSlot"]:
+
+        _all = await self.get_groups()
+        for group in _all:
+            if _all.index(group) == num - 1:
+                return group
 
     async def get_group(self, num: int, size: int) -> Union[List["TMSlot"], None]:
         _list = await self.get_groups(size)
@@ -439,3 +446,22 @@ class PartnerSlot(BaseDbModel):
     message_id = fields.BigIntField()
     jump_url = fields.CharField(max_length=300, null=True)
     members = ArrayField(fields.BigIntField(), default=list)
+
+
+class TGroupList(BaseDbModel):
+    class Meta:
+        table = "tm.group_list"
+
+    message_id = fields.BigIntField(pk=True)
+    channel_id = fields.BigIntField()
+    start_from = fields.IntField(default=1)
+    refresh_at = fields.DatetimeField(auto_now=True)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+
+    @property
+    def jump_url(self):
+        if c := self.channel:
+            return f"https://discord.com/channels/{c.guild.id}/{self.channel_id}/{self.pk}"

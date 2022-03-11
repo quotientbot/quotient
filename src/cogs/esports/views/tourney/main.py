@@ -28,6 +28,8 @@ from .slotm import TourneySlotManager
 from tortoise.query_utils import Q
 import re
 
+from ..groupm import TourneyGroupManager
+
 
 class TourneyManager(EsportsBaseView):
     def __init__(self, ctx: Context):
@@ -128,6 +130,9 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_groups_send", label="Send Groups")
     async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        _v = TourneyGroupManager(self.ctx, timeout=100)
+        _v.message = await interaction.edit_original_message(embed=_v.initial_embed, view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Cancel Slots")
     async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
