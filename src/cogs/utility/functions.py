@@ -128,7 +128,7 @@ async def guild_tag_stats(ctx: Context):
 
 async def member_tag_stats(ctx: Context, member: QuoMember):
     e = ctx.bot.embed(ctx)
-    e.set_author(name=str(member), icon_url=member.avatar.url)
+    e.set_author(name=str(member), icon_url=member.display_avatar.url)
 
     e.set_footer(text="These statistics are server-specific.")
 
