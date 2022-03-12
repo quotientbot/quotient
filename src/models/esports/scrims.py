@@ -484,7 +484,7 @@ class BanLog(BaseDbModel):
             _e.timestamp = reason.dt
 
         if user:
-            _e.set_thumbnail(url=getattr(user.avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+            _e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
 
         with suppress(discord.HTTPException, AttributeError):
             await self.channel.send(getattr(user, "mention", ""), embed=_e)
@@ -500,7 +500,7 @@ class BanLog(BaseDbModel):
         _e.timestamp = self.bot.current_time
 
         if user:
-            _e.set_thumbnail(url=getattr(user.avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+            _e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
 
         with suppress(discord.HTTPException, AttributeError):
             await self.channel.send(getattr(user, "mention", ""), embed=_e)

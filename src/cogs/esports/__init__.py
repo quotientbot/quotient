@@ -1246,7 +1246,7 @@ class ScrimManager(Cog, name="Esports"):
         embed.add_field(name="Room ID", value=room_id)
         embed.add_field(name="Password", value=password)
         embed.add_field(name="Map", value=map)
-        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.avatar.url)
+        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url)
         msg = await ctx.send(
             content=role_to_ping.mention if role_to_ping else None,
             embed=embed,

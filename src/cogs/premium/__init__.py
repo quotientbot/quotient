@@ -88,7 +88,7 @@ class PremiumCog(Cog, name="Premium"):
         embed = self.bot.embed(ctx, title="Quotient Premium", url=f"{self.bot.config.WEBSITE}")
         embed.add_field(name="User", value=atext, inline=False)
         embed.add_field(name="Server", value=btext, inline=False)
-        embed.set_thumbnail(url=ctx.guild.me.avatar.url)
+        embed.set_thumbnail(url=ctx.guild.me.display_avatar.url)
         return await ctx.send(embed=embed)
 
     @commands.command()
