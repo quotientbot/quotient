@@ -139,12 +139,12 @@ class Tourney(BaseDbModel):
     def is_ignorable(member: discord.Member) -> bool:
         return "tourney-mod" in (role.name.lower() for role in member.roles)
 
-    async def __get_groups(self) -> List[List["TMSlot"]]:
+    async def _get_groups(self) -> List[List["TMSlot"]]:
         return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
 
     async def get_group(self, num: int) -> List["TMSlot"]:
 
-        _all = await self.__get_groups()
+        _all = await self._get_groups()
         for group in _all:
             if _all.index(group) == num - 1:
                 return group
