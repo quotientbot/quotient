@@ -27,7 +27,6 @@ class SockSettings(Cog):
 
     @Cog.listener()
     async def on_request__new_vote(self, u, data: dict):
-        print(data)
         user_id = int(data.get("user_id"))
         record = await Votes.get(pk=user_id)
 

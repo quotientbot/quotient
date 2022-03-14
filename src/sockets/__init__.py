@@ -8,7 +8,7 @@ from core import Cog
 from socketio import AsyncClient
 
 from .app import sio
-from .events import DashboardGate, SocketScrims, SockSettings
+from .events import DashboardGate, SocketScrims, SockSettings, SockPrime
 
 
 class SocketConnection(Cog):
@@ -39,3 +39,4 @@ def setup(bot: Quotient):
     bot.add_cog(DashboardGate(bot))
     bot.add_cog(SocketScrims(bot))
     bot.add_cog(SockSettings(bot))
+    bot.add_cog(SockPrime(bot))
