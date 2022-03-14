@@ -326,7 +326,7 @@ class Tourney(BaseDbModel):
             f"📣 **`{self.required_mentions}`** mentions required.\n"
             f"📣 Total slots: **`{self.total_slots}`** [`{self.total_slots - await self.assigned_slots.all().count()}` slots left]"
         )
-        _e.set_thumbnail(url=self.bot.user.avatar.url)
+        _e.set_thumbnail(url=self.bot.user.display_avatar.url)
         _ping = None
         if p := self.ping_role:
             if p == self.guild.default_role:

@@ -43,10 +43,10 @@ class TourneyManager(EsportsBaseView):
 
         _e = discord.Embed(color=self.bot.color, title="Smart Tournament Manager", url=self.bot.config.SERVER_LINK)
         _e.description = "\n".join(to_show) if to_show else "```Click Create button for new tourney.```"
-        _e.set_thumbnail(url=self.ctx.guild.me.avatar.url)
+        _e.set_thumbnail(url=self.ctx.guild.me.display_avatar.url)
         _e.set_footer(
             text="Quotient Prime allows unlimited tournaments.",
-            icon_url=getattr(self.ctx.author.avatar, "url", discord.Embed.Empty),
+            icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
         )
 
         if not to_show:
@@ -216,7 +216,7 @@ class TourneyManager(EsportsBaseView):
 
             _e.set_footer(
                 text="Added by: {}".format(self.ctx.author),
-                icon_url=getattr(self.ctx.author.avatar, "url", discord.Embed.Empty),
+                icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
             )
 
             m = await tourney.confirm_channel.send(leader.mention, embed=_e)

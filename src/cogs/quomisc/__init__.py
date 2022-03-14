@@ -174,7 +174,7 @@ class Quomisc(Cog, name="quomisc"):
         embed.title = "Quotient Official Support Server"
         embed.url = ctx.config.SERVER_LINK
         embed.colour = self.bot.color
-        embed.set_author(name=str(owner), icon_url=owner.avatar.url)
+        embed.set_author(name=str(owner), icon_url=owner.display_avatar.url)
 
         guild_value = len(self.bot.guilds)
 
@@ -259,7 +259,7 @@ class Quomisc(Cog, name="quomisc"):
         user = await User.get(user_id=ctx.author.id)
 
         e = self.bot.embed(ctx, title="Your Quo Coins")
-        e.set_thumbnail(url=self.bot.user.avatar.url)
+        e.set_thumbnail(url=self.bot.user.display_avatar.url)
 
         e.description = (
             f"💰 | You have a total of `{user.money} Quo Coins`.\n"
@@ -282,7 +282,7 @@ class Quomisc(Cog, name="quomisc"):
             "<a:roocool:917297222989795339> Voter Role `12 hrs`\n"
             f"{self.bot.config.PRIME_EMOJI} Quo Coin `x1`"
         )
-        e.set_thumbnail(url=self.bot.user.avatar.url)
+        e.set_thumbnail(url=self.bot.user.display_avatar.url)
 
         _view = VoteButton(ctx)
 
@@ -298,7 +298,7 @@ class Quomisc(Cog, name="quomisc"):
 
         e.set_footer(
             text=f"Your votes: {vote.total_votes if vote else 0}",
-            icon_url=getattr(ctx.author.avatar, "url", self.bot.user.avatar.url),
+            icon_url=getattr(ctx.author.display_avatar, "url", self.bot.user.display_avatar.url),
         )
         _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
