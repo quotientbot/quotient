@@ -22,7 +22,6 @@ class TourneyGroupManager(EsportsBaseView):
         super().__init__(ctx, **kwargs)
 
         self.tourney = tourney
-        self.ping_role = True
 
         self.start_from = tourney.slotlist_start
 
@@ -55,12 +54,6 @@ class TourneyGroupManager(EsportsBaseView):
 
         await self.__refresh_msg()
 
-    @discord.ui.button(emoji=keycap_digit(2))
-    async def ping_group_role(self, button: discord.Button, interaction: discord.Interaction):
-        await interaction.response.defer()
-        self.ping_role = not self.ping_role
-        await self.__refresh_msg()
-
     @discord.ui.button(label="Create Channels & Roles")
     async def create_roles_channels(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -70,7 +63,6 @@ class TourneyGroupManager(EsportsBaseView):
             "Enter the format for group roles & channels creation.\n"
             "*{0} will be replaced by the number of group or roles*\n\nExamples:"
         )
-
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
