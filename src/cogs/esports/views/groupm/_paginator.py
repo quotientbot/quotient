@@ -1,5 +1,5 @@
 from __future__ import annotations
-import enum
+
 import typing as T
 
 from models.esports.tourney import Tourney, TMSlot
@@ -17,11 +17,13 @@ class GroupPages(EsportsBaseView):
         self.tourney = tourney
         self.current_page = 1
 
+        self.records: T.List[T.List["TMSlot"]] = None
+        self.record: T.List[TMSlot] = None
+
         self.category: discord.CategoryChannel = category
 
     async def render(self):
-        self.records = await self.tourney._get_groups()
-        self.record = self.records[0]
+        ...
 
     # async def refresh_view(self):
     #     _e = await self.__get_current_page()
@@ -44,7 +46,8 @@ class GroupPages(EsportsBaseView):
         if self.last_role:
             return ...
 
-    async def initial_embed(self):
+    @property
+    def initial_embed(self):
         current_page = self.records.index(self.record) + 1
         _e = discord.Embed(color=0x00FFB3, title=f"{self.tourney} - Group {current_page}")
         _e.set_thumbnail(url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))

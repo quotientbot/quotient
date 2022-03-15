@@ -10,6 +10,7 @@ import discord
 from ..base import EsportsBaseView
 from core import Context
 
+from ._paginator import GroupPages
 from models import Tourney
 
 from utils import keycap_digit, inputs
@@ -22,6 +23,7 @@ class TourneyGroupManager(EsportsBaseView):
         super().__init__(ctx, **kwargs)
 
         self.tourney = tourney
+        self.category = None
 
         self.start_from = tourney.slotlist_start
 
@@ -35,7 +37,6 @@ class TourneyGroupManager(EsportsBaseView):
             "Use `Group List` to post group/slotlist in channels."
         )
         _e.add_field(name=f"{keycap_digit(1)} Slotlist Start from", value=f"`Slot {self.start_from}`")
-        _e.add_field(name=f"{keycap_digit(2)} Ping Group Role", value=("`No!`", "`Yes!`")[self.ping_role])
         return _e
 
     async def __refresh_msg(self):
@@ -63,7 +64,34 @@ class TourneyGroupManager(EsportsBaseView):
             "Enter the format for group roles & channels creation.\n"
             "*{0} will be replaced by the number of group or roles*\n\nExamples:"
         )
+        _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/953163516481777684/unknown.png")
+
+        m = await interaction.followup.send(embed=_e)
+        _format = await inputs.string_input(self.ctx, delete_after=True)
+
+        await self.ctx.safe_delete(m)
+        if len(_format) > 35:
+            return await self.ctx.error("Name too long. Max 35 characters.", 4)
+
+        if not "{0}" in _format:
+            return await self.ctx.error("No `{0}` found in input.", 4)
+
+        p = await self.ctx.prompt(
+            f"Group Roles/channels will look like this: `{_format.replace('{0}','1')}`,`{_format.replace('{0}','2')}`",
+            title="Is this correct?",
+        )
+
+        if not p:
+            return await self.ctx.error("Cancelled.", 4)
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+
+        if not await self.tourney.assigned_slots.all():
+            return await self.ctx.error("Noboby registered yet.", 4)
+
+        _v = GroupPages(self.ctx, self.tourney, category=self.category)
+        _v.records = await self.tourney._get_groups()
+        _v.record = _v.records[0]
+        await interaction.edit_original_message(embed=_v.initial_embed, view=_v)

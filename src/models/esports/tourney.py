@@ -45,8 +45,8 @@ class Tourney(BaseDbModel):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
-    slotlist_start = fields.IntField(default=2)
-    group_size = fields.IntField(null=True)
+    slotlist_start = fields.SmallIntField(default=2)
+    group_size = fields.SmallIntField(null=True)
 
     success_message = fields.CharField(max_length=500, null=True)
 
