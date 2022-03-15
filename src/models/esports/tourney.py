@@ -445,10 +445,12 @@ class PartnerSlot(BaseDbModel):
 
 class TGroupList(BaseDbModel):
     class Meta:
-        table = "tm.group_list"
+        table = "tourney_groups"
 
     message_id = fields.BigIntField(pk=True)
+    tourney_id = fields.IntField()
     channel_id = fields.BigIntField()
+    group_number = fields.SmallIntField()
     refresh_at = fields.DatetimeField(auto_now=True)
 
     @property

@@ -25,6 +25,8 @@ class TourneyGroupManager(EsportsBaseView):
         self.tourney = tourney
         self.category = None
 
+        self.ping_all = True
+
         self.start_from = tourney.slotlist_start
 
     @property
@@ -37,6 +39,7 @@ class TourneyGroupManager(EsportsBaseView):
             "Use `Group List` to post group/slotlist in channels."
         )
         _e.add_field(name=f"{keycap_digit(1)} Slotlist Start from", value=f"`Slot {self.start_from}`")
+        _e.add_field(name=f"{keycap_digit(2)} Ping @everyone", value=("`No`", "`Yes`")[self.ping_all])
         return _e
 
     async def __refresh_msg(self):
@@ -52,7 +55,14 @@ class TourneyGroupManager(EsportsBaseView):
         await self.ctx.safe_delete(m)
 
         await self.tourney.make_changes(slotlist_start=self.start_from)
+        await self.tourney.refresh_from_db()
 
+        await self.__refresh_msg()
+
+    @discord.ui.button(emoji=keycap_digit(2))
+    async def toggle_ping_all(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.ping_all = not self.ping_all
         await self.__refresh_msg()
 
     @discord.ui.button(label="Create Channels & Roles")
@@ -99,5 +109,5 @@ class TourneyGroupManager(EsportsBaseView):
             return await self.ctx.error("Noboby registered yet.", 4)
 
         self.stop()
-        _v = GroupPages(self.ctx, self.tourney, category=self.category)
+        _v = GroupPages(self.ctx, self.tourney, ping_all=self.ping_all, category=self.category)
         await _v.rendor(self.message)

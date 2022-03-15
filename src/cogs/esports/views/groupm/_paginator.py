@@ -2,26 +2,28 @@ from __future__ import annotations
 
 import typing as T
 
-from models.esports.tourney import Tourney, TMSlot
+from models.esports.tourney import Tourney, TMSlot, TGroupList
 
 from ..base import EsportsBaseView
 from core import Context
 import discord
 
 from utils import inputs
+from ._refresh import GroupRefresh
 
 
 class GroupPages(EsportsBaseView):
-    def __init__(self, ctx: Context, tourney: Tourney, *, category=None):
+    def __init__(self, ctx: Context, tourney: Tourney, *, ping_all: bool = True, category=None):
         super().__init__(ctx)
 
-        self.last_role: discord.Role = None
+        self.ping_all = ping_all
         self.tourney = tourney
 
         self.records: T.List[T.List["TMSlot"]] = None
         self.record: T.List[TMSlot] = None
 
         self.category: discord.CategoryChannel = category
+        self.send_to = None
 
     async def rendor(self, msg: discord.Message):
         self.records = await self.tourney._get_groups()
@@ -36,18 +38,11 @@ class GroupPages(EsportsBaseView):
         except discord.HTTPException:
             await self.on_timeout()
 
-    # async def __get_current_page(self):
-    #     self.records
-
     @property
     def send_channel(self):
+        index = self.records.index(self.record) + 1
         if self.category:
-            return ...
-
-    @property
-    def ping_role(self):
-        if self.last_role:
-            return ...
+            return next(c for c in self.category.text_channels if str(index) in c.name)
 
     @property
     def initial_embed(self):
@@ -66,8 +61,13 @@ class GroupPages(EsportsBaseView):
             + "```"
         )
 
-        _e.add_field(name="Send to", value=getattr(self.send_channel, "mention", "`Not-Set`"))
-        _e.add_field(name="Ping Role", value=getattr(self.ping_role, "mention", "`Not-Set`"))
+        if s_t := self.send_to:
+            _e.add_field(name="Send to", value=getattr(s_t, "mention", "`Not-Set`"))
+
+        else:
+            _e.add_field(name="Send to", value=getattr(self.send_channel, "mention", "`Not-Set`"))
+
+        _e.add_field(name="Ping @everyone", value=("`No`", "`Yes`")[self.ping_all])
         _e.set_footer(text="Page {}/{}".format(current_page, len(self.records)))
         return _e
 
@@ -113,8 +113,46 @@ class GroupPages(EsportsBaseView):
 
     @discord.ui.button(label="Send to")
     async def send_channl(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+
+        m = await self.ctx.simple("Mention the channel where you want to send this grouplist.")
+        channel = await inputs.channel_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        self.send_to = channel
+        self.category = channel.category
+
+        await self.refresh_view()
 
     @discord.ui.button(label="Send", style=discord.ButtonStyle.green)
     async def send_now(self, button: discord.Button, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+
+        c = self.send_to if self.send_to else self.send_channel
+        if not c:
+            return await self.ctx.error("You need to set a channel first.", 3)
+
+        self.send_to = None
+
+        embed = self.initial_embed
+        embed.clear_fields()
+        embed.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
+        try:
+            m = await c.send(
+                "@everyone" if self.ping_all else "",
+                embed=embed,
+                view=GroupRefresh(),
+                allowed_mentions=discord.AllowedMentions(everyone=True),
+            )
+
+            await TGroupList.update_or_create(
+                group_number=self.records.index(self.record) + 1,
+                tourney_id=self.tourney.id,
+                defaults={"message_id": m.id, "channel_id": c.id},
+            )
+
+        except Exception as e:
+            await self.ctx.error(e)
+
+        await self.ctx.success("GroupList published.", 3)
+        await self.refresh_view()
