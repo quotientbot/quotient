@@ -34,10 +34,10 @@ class SockPrime(Cog):
 
     @Cog.listener()
     async def on_request__new_premium(self, u, data: dict):
+        await self.bot.sio.emit("new_premium__{0}".format(u), {})
+
         if not data.get("is_verified"):
             return await self.__transaction_failed(int(u))
-
-        await self.bot.sio.emit("new_premium__{0}".format(u), {})
 
         user_id = int(u)
         invoice = data["invoice_link"]
