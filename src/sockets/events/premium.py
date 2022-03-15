@@ -16,6 +16,7 @@ __all__ = ("SockPrime",)
 class SockPrime(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
+        self.hook = discord.Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
 
     @Cog.listener()
     async def on_request__perks(self, u, data):
@@ -62,6 +63,12 @@ class SockPrime(Cog):
 
         with suppress(discord.HTTPException, AttributeError):
             await member.send(embed=_e)
+
+        _e = discord.Embed(
+            color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
+        )
+        _e.set_image(url=random_thanks())
+        await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
 
     async def __transaction_failed(self, user_id: int):
         # user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
