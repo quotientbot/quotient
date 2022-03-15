@@ -224,7 +224,7 @@ class SetGroupSize(TourneyButton):
         await interaction.response.defer()
 
         m = await self.ctx.simple("How many teams will there be per group? (Max `25`)")
-        n = await inputs.integer_input(self.ctx, limits=(2, 25))
+        n = await inputs.integer_input(self.ctx, limits=(2, 25),delete_after=True)
         await self.ctx.safe_delete(m)
         self.view.record.group_size = n
         await self.view.refresh_view()

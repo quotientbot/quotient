@@ -40,11 +40,13 @@ class TourneyManager(EsportsBaseView):
 
     async def initial_embed(self) -> discord.Embed:
         to_show = [
-            f"`{idx}.` {str(_r)}"
+            f"`{idx}.` {str(_r)} — Slots: `{await _r.assigned_slots.all().count()}/{_r.total_slots}`"
             for idx, _r in enumerate(await Tourney.filter(guild_id=self.ctx.guild.id).order_by("id"), start=1)
         ]
 
-        _e = discord.Embed(color=self.bot.color, title="Smart Tournament Manager", url=self.bot.config.SERVER_LINK)
+        _e = discord.Embed(
+            color=self.bot.color, title="Quotient Smart Tournament Manager", url=self.bot.config.SERVER_LINK
+        )
         _e.description = "\n".join(to_show) if to_show else "```Click Create button for new tourney.```"
         _e.set_thumbnail(url=self.ctx.guild.me.avatar.url)
         _e.set_footer(
@@ -132,8 +134,9 @@ class TourneyManager(EsportsBaseView):
     async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to ban/unban users.")
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to manage groups.")
         if tourney:
+            self.stop()
             _v = TourneyGroupManager(self.ctx, tourney, timeout=100)
             _v.add_item(DiscardButton(self.ctx))
             _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)

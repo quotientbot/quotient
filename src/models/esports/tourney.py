@@ -59,7 +59,7 @@ class Tourney(BaseDbModel):
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 
     def __str__(self):
-        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Tourney: {self.id})"
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} [ID: `{self.id}`]"
 
     @classmethod
     async def convert(cls, ctx, argument: str):

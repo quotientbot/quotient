@@ -88,10 +88,16 @@ class TourneyGroupManager(EsportsBaseView):
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
+        if not self.tourney.group_size:
+            return await self.ctx.error(
+                "**Group size/Teams Per Group is not set.**\n\n"
+                "Please press `Go Back` and click on Edit Settings to set Group Size.",
+                6,
+            )
+
         if not await self.tourney.assigned_slots.all():
             return await self.ctx.error("Noboby registered yet.", 4)
 
+        self.stop()
         _v = GroupPages(self.ctx, self.tourney, category=self.category)
-        _v.records = await self.tourney._get_groups()
-        _v.record = _v.records[0]
-        await interaction.edit_original_message(embed=_v.initial_embed, view=_v)
+        await _v.rendor(self.message)
