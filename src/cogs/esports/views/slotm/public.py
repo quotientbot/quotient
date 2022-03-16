@@ -192,7 +192,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
             scrim = await Scrim.get(pk=scrim_id)
 
             await interaction.followup.send(
-                "What is your team's name?\n\n`Kindly enter your team name only, full format is not required.`",
+                "What is your team's name?\n\n`Kindly enter your team name or full format.`",
                 ephemeral=True,
             )
 

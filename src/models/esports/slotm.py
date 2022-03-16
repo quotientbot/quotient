@@ -11,6 +11,7 @@ import discord
 
 from contextlib import suppress
 from utils import plural, aenumerate, truncate_string
+import re
 
 __all__ = ("ScrimsSlotManager",)
 
@@ -177,7 +178,17 @@ class ScrimsSlotManager(BaseDbModel):
 
         with suppress(AttributeError, discord.HTTPException):
             await interaction.channel.purge(limit=5, check=lambda m: m.author == interaction.user and not m.pinned)
-            return truncate_string(_m.content, 22)
+
+            teamname = re.search(r"team.*", _m.content)
+            if teamname:
+                teamname = re.sub(r"<@*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
+
+                teamname = f"Team {teamname.title()}" if teamname else truncate_string(_m.content, 22)
+
+            else:
+                teamname = truncate_string(_m.content, 22)
+
+            return teamname
 
     async def setup(self, guild: discord.Guild, user: discord.Member):
         """
