@@ -193,3 +193,8 @@ class TourneySlotManager(discord.ui.View):
     @discord.ui.button(emoji="🔁", label="Swap Groups", custom_id="tourney-swap-groups")
     async def tourney_group_swap(self, button: discord.Button, inter: discord.Interaction):
         await inter.response.defer()
+
+        if not inter.user.guild_permissions.manage_guild and not Tourney.is_ignorable(inter.user):
+            return await inter.followup.send(
+                "You need either `@tourney-mod` role or `manage-server` permissions to swap groups.", ephemeral=True
+            )
