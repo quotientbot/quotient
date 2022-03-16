@@ -4,13 +4,11 @@ from contextlib import suppress
 import typing
 from cogs.esports.helpers.tourney import get_tourney_from_channel
 
-from models.esports.tourney import MediaPartner, PartnerSlot
-
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 from core import Cog
-from models import Tourney, TMSlot
+from models import Tourney, TMSlot, MediaPartner, PartnerSlot, TGroupList
 
 from ..helpers import (
     before_registrations,
@@ -259,6 +257,8 @@ class TourneyEvents(Cog):
                         self.bot.loop.create_task(m.remove_roles(tourney.role))
 
                 await TMSlot.filter(pk=slot.pk).delete()
+
+        await TGroupList.filter(message_id=message_id).delete()
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):

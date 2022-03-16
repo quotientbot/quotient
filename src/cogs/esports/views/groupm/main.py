@@ -25,7 +25,7 @@ class TourneyGroupManager(EsportsBaseView):
         self.tourney = tourney
         self.category = None
 
-        self.ping_all = True
+        self.ping_all = False
 
         self.start_from = tourney.slotlist_start
 

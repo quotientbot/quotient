@@ -145,12 +145,16 @@ class GroupPages(EsportsBaseView):
                 allowed_mentions=discord.AllowedMentions(everyone=True),
             )
 
-            await TGroupList.update_or_create(
-                group_number=self.records.index(self.record) + 1,
-                tourney_id=self.tourney.id,
-                defaults={"message_id": m.id, "channel_id": c.id},
-            )
+            # I am 100% sure there is a better way to do this but as long as this works, i am good.
 
+            await TGroupList.filter(tourney_id=self.tourney.id, group_number=self.records.index(self.record) + 1).delete()
+
+            await TGroupList.create(
+                message_id=m.id,
+                channel_id=c.id,
+                tourney_id=self.tourney.id,
+                group_number=self.records.index(self.record) + 1,
+            )
         except Exception as e:
             await self.ctx.error(e)
 
