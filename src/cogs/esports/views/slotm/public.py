@@ -211,7 +211,8 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 if not (role := scrim.role) in interaction.user.roles:
                     await interaction.user.add_roles(role)
 
-            _slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
+            user_id = interaction.user.id
+            _slot = await AssignedSlot.create(num=num, user_id=user_id,members=[user_id], team_name=team_name)
             await scrim.assigned_slots.add(_slot)
 
             await scrim.refresh_slotlist_message()
