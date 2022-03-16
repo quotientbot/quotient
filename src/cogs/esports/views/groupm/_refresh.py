@@ -4,6 +4,8 @@ import typing as T
 from models import Tourney, TGroupList
 import discord
 
+__all__ = ("GroupRefresh",)
+
 
 class GroupRefresh(discord.ui.View):
     def __init__(self):
@@ -25,5 +27,5 @@ class GroupRefresh(discord.ui.View):
 
         if (record.bot.current_time - record.refresh_at).total_seconds() < 120:
             return await interaction.followup.send("You can only refresh every 2 minutes.", ephemeral=True)
-        
-        await interaction.followup.send("Grouplist message was refresh successfully.", ephemeral=True)
+
+        await interaction.followup.send("Grouplist message was refreshed successfully.", ephemeral=True)
