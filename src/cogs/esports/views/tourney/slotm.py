@@ -198,3 +198,29 @@ class TourneySlotManager(discord.ui.View):
             return await inter.followup.send(
                 "You need either `@tourney-mod` role or `manage-server` permissions to swap groups.", ephemeral=True
             )
+
+        m = await inter.followup.send("Mention first user.", ephemeral=True)
+        try:
+            first_msg: discord.Message = await self.bot.wait_for(
+                "message", check=lambda msg: msg.author.id == inter.user.id, timeout=30
+            )
+            await first_msg.delete()
+
+        except asyncio.TimeoutError:
+            await m.edit("Timed out. Please try again later.", ephemeral=True)
+
+        if not first_msg.mentions:
+            await m.edit("You didn't mention first user.")
+
+        first_user: discord.User = first_msg.mentions[0]
+
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=first_user.id) | Q(members__contains=first_user.id)
+        ).order_by("num")
+
+        if not _slots:
+            return await inter.followup.send(
+                f"{first_user.mention} don't have any slot in {self.tourney}.", ephemeral=True
+            )
+
+        
