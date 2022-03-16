@@ -203,7 +203,10 @@ class Scrim(BaseDbModel):
 
             description = embed.description.replace("\n" * 3, "") if embed.description else ""
 
-            embed.description = f"```{desc}```\n{description}"
+            embed.description = f"""
+            ```{desc}```
+            {description}
+            """
 
         else:
             embed = discord.Embed(title=self.name + " Slotlist", description=f"```{desc}```", color=self.bot.color)
