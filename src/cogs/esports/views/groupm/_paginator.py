@@ -144,7 +144,7 @@ class GroupPages(EsportsBaseView):
                 f"Done, Given {role.mention} to group {self.records.index(self.record) + 1}.", delete_after=6
             )
 
-    @discord.ui.button(label="Send to", row=2,style=discord.ButtonStyle.blurple)
+    @discord.ui.button(label="Send to", row=2, style=discord.ButtonStyle.blurple)
     async def send_channl(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
