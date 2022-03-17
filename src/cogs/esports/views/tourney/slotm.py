@@ -223,4 +223,83 @@ class TourneySlotManager(discord.ui.View):
                 f"{first_user.mention} don't have any slot in {self.tourney}.", ephemeral=True
             )
 
-        
+        first_slot = None
+        if len(_slots) == 1:
+            first_slot = _slots[0]
+
+        else:
+            cancel_view = BaseSelector(
+                inter.user.id,
+                TCancelSlotSelector,
+                bot=self.bot,
+                slots=_slots,
+                placeholder=f"Select a slot of {str(first_user)}",
+            )
+
+            await inter.followup.send(
+                f"{first_user.mention} has the following slots in {self.tourney}:", view=cancel_view, ephemeral=True
+            )
+            await cancel_view.wait()
+
+            if cancel_view.custom_id:
+                first_slot = await TMSlot.get(pk=cancel_view.custom_id)
+
+        if not first_slot:
+            return
+
+        m = await inter.followup.send("Mention second user.", ephemeral=True)
+        try:
+            second_msg: discord.Message = await self.bot.wait_for(
+                "message", check=lambda msg: msg.author.id == inter.user.id, timeout=30
+            )
+            await second_msg.delete()
+
+        except asyncio.TimeoutError:
+            await m.edit("Timed out. Please try again later.", ephemeral=True)
+
+        if not second_msg.mentions:
+            await m.edit("You didn't mention second user.")
+
+        second_user: discord.User = second_msg.mentions[0]
+        if second_user == first_user:
+            return await inter.followup.send("You can't mention the same user twice.")
+
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=second_user.id) | Q(members__contains=second_user.id)
+        ).order_by("num")
+
+        if not _slots:
+            return await inter.followup.send(
+                f"{second_user.mention} don't have any slot in {self.tourney}.", ephemeral=True
+            )
+
+        second_slot = None
+        if len(_slots) == 1:
+            second_slot = _slots[0]
+
+        else:
+            cancel_view = BaseSelector(
+                inter.user.id,
+                TCancelSlotSelector,
+                bot=self.bot,
+                slots=_slots,
+                placeholder=f"Select a slot of {str(second_user)}",
+            )
+
+            await inter.followup.send(
+                f"{second_user.mention} has the following slots in {self.tourney}:", view=cancel_view, ephemeral=True
+            )
+            await cancel_view.wait()
+
+            if cancel_view.custom_id:
+                first_slot = await TMSlot.get(pk=cancel_view.custom_id)
+
+        if not second_slot:
+            return
+
+        await TMSlot.get(pk=first_slot.id).update(num=second_slot.num)
+        await TMSlot.get(pk=second_slot.id).update(num=first_slot.num)
+
+        await inter.followup.send(
+            f"{emote.check} | Groups were swapped. Press 'Refresh' button under grouplist.", ephemeral=True
+        )
