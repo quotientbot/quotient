@@ -34,7 +34,7 @@ class SockGuild(Cog):
             if not member:
                 continue
 
-            results.append(QGuild.from_guild(guild, await self.__guild_permissions(guild, member)))
+            results.append(await QGuild.from_guild(guild, await self.__guild_permissions(guild, member)))
 
         await self.bot.sio.emit("get_guilds__{0}".format(u), [_.dict() for _ in results])
 
