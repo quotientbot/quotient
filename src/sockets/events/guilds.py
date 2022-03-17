@@ -23,7 +23,7 @@ class SockGuild(Cog):
         guild_ids = data["guild_ids"]
         user_id = data["user_id"]
 
-        results: T.List[QGuild] = []
+        results: T.Dict[str, T.List[QGuild]] = {}
 
         for _id in guild_ids:
             guild = self.bot.get_guild(int(_id))
@@ -34,9 +34,9 @@ class SockGuild(Cog):
             if not member:
                 continue
 
-            results.append(await QGuild.from_guild(guild, await self.__guild_permissions(guild, member)))
+            results[str(_id)] = (await QGuild.from_guild(guild, await self.__guild_permissions(guild, member))).dict()
 
-        await self.bot.sio.emit("get_guilds__{0}".format(u), [_.dict() for _ in results])
+        await self.bot.sio.emit("get_guilds__{0}".format(u), results)
 
     async def __guild_permissions(self, guild: discord.Guild, user: discord.Member):
         perms = 1
