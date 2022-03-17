@@ -204,7 +204,7 @@ class Scrim(BaseDbModel):
             description = embed.description.replace("\n" * 3, "") if embed.description else ""
 
             embed.description = f"""
-            ```{desc}```
+            ```\n{desc}\n```
             {description}
             """
 
