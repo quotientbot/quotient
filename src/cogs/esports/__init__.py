@@ -728,22 +728,6 @@ class ScrimManager(Cog, name="Esports"):
         view.add_item(QuotientView.tricky_invite_button())
         view.message = await ctx.send(embed=await view.initial_embed(), view=view)
 
-    @tourney.command(name="groups")
-    @checks.can_use_tm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    async def tourney_group(self, ctx, tourney: Tourney, group_size: int):
-        """Get groups of the tournament."""
-        records = await tourney.assigned_slots.all().order_by("id")
-        if not records:
-            raise TourneyError(f"There is no data to show as nobody registered yet!")
-
-        _view = TourneyGroupManager(ctx, tourney=tourney, size=group_size)
-        e = TourneyGroupManager.initial_embed(tourney, group_size)
-
-        _view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
-
-        _view.message = await ctx.send(embed=e, view=_view, embed_perms=True)
 
     @tourney.group(name="mediapartner", aliases=("mp",), invoke_without_command=True)
     @checks.can_use_tm()
