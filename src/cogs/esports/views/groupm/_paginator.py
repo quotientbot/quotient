@@ -8,7 +8,7 @@ from ..base import EsportsBaseView
 from core import Context
 import discord
 
-from utils import inputs
+from utils import inputs, emote
 from ._refresh import GroupRefresh
 
 
@@ -111,7 +111,40 @@ class GroupPages(EsportsBaseView):
 
         await self.refresh_view()
 
-    @discord.ui.button(label="Send to")
+    @discord.ui.button(label="Give Roles")
+    async def give_roles(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        m = await self.ctx.simple(
+            f"Mention the role you want to give to Group {self.records.index(self.record) + 1} members."
+        )
+        role = await inputs.role_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        m = await self.ctx.simple(f"Ok, Please wait... {emote.loading}")
+
+        for slot in self.record:
+            member = await self.bot.get_or_fetch_member(self.ctx.guild, slot.leader_id)
+            if member and not role in member.roles:
+                try:
+                    await member.add_roles(role)
+                except Exception as e:
+                    await self.ctx.error(e)
+
+        try:
+            await m.edit(
+                embed=discord.Embed(
+                    color=self.ctx.bot.color,
+                    description=f"Done! Given {role.mention} to group {self.records.index(self.record) + 1}.",
+                ),
+                delete_after=6,
+            )
+        except discord.HTTPException:
+            await self.ctx.simple(
+                f"Done, Given {role.mention} to group {self.records.index(self.record) + 1}.", delete_after=6
+            )
+
+    @discord.ui.button(label="Send to", row=2,style=discord.ButtonStyle.blurple)
     async def send_channl(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -124,7 +157,7 @@ class GroupPages(EsportsBaseView):
 
         await self.refresh_view()
 
-    @discord.ui.button(label="Send", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Send", style=discord.ButtonStyle.green, row=2)
     async def send_now(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
