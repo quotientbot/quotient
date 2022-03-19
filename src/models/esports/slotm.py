@@ -179,14 +179,16 @@ class ScrimsSlotManager(BaseDbModel):
         with suppress(AttributeError, discord.HTTPException):
             await interaction.channel.purge(limit=5, check=lambda m: m.author == interaction.user and not m.pinned)
 
-            teamname = re.search(r"team.*", _m.content)
-            if teamname:
-                teamname = re.sub(r"<@*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
+            _content = _m.content.lower()
 
-                teamname = f"Team {teamname.title()}" if teamname else truncate_string(_m.content, 22)
+            teamname = re.search(r"team.*", _content)
+            if teamname:
+                teamname = re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
+
+                teamname = f"Team {teamname.title()}" if teamname else truncate_string(_content, 22)
 
             else:
-                teamname = truncate_string(_m.content, 22)
+                teamname = "Team " + truncate_string(re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", _content).title(), 22)
 
             return teamname
 

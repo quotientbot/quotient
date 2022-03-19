@@ -209,7 +209,7 @@ class Scrim(BaseDbModel):
             """
 
         else:
-            embed = discord.Embed(title=self.name + " Slotlist", description=f"```{desc}```", color=self.bot.color)
+            embed = discord.Embed(title=self.name + " Slotlist", description=f"```\n{desc}\n```", color=self.bot.color)
 
         if self.show_time_elapsed and self.time_elapsed:
             embed.set_footer(text=f"Registration took: {self.time_elapsed}")
