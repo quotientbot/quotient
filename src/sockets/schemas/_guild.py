@@ -39,7 +39,7 @@ class QGuild(BaseModel):
                 "id": str(getattr(booster, "id", 12345)),
                 "username": getattr(booster, "name", "Unknown User"),
                 "discriminator": getattr(booster, "discriminator", "#0000"),
-                "avatar": booster.display_avatar.url,
+                "avatar": booster.display_avatar.url if booster else "https://cdn.discordapp.com/embed/avatars/0.png",
             }
 
         return QGuild(**_d)
