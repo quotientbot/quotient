@@ -96,12 +96,13 @@ class Context(commands.Context):
 
     async def simple(self, message, delete_after=None, **kwargs):
         with suppress(discord.HTTPException):
+            image = kwargs.pop("image",discord.Embed.Empty)
 
             return await self.reply(
                 embed=discord.Embed(
                     description=message,
                     color=self.bot.color,
-                ).set_image(url=kwargs.get("image", discord.Embed.Empty)),
+                ).set_image(url=image),
                 delete_after=delete_after,
                 **kwargs,
             )

@@ -82,9 +82,9 @@ class TourneyEditor(TourneyView):
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{tourney.check_emoji},{tourney.cross_emoji}",
             "Ping Role": getattr(tourney.ping_role, "mention", "`Not-Set`"),
             "Open Role": getattr(tourney.open_role, "mention", "`role-deleted`"),
-            "Multi-Reg": ("`No`", "`Yes`")[tourney.multiregister],
+            "Multi-Reg": ("`Not allowed!`", "`Allowed`")[tourney.multiregister],
             "Team Compulsion": ("`No!`", "`Yes!`")[tourney.teamname_compulsion],
-            "Duplicate Team Name": ("`Not allowed!`", "`Allowed`")[tourney.no_duplicate_name],
+            "Duplicate Team Name": ("`Allowed`", "`Not allowed!`")[tourney.no_duplicate_name],
             "Autodelete Rejected": ("`No!`", "`Yes!`")[tourney.autodelete_rejected],
             "Success Message": f"`Click to view / edit`",
             "Teams per Group": f"`{self.record.group_size or 'Not set'}`",
@@ -128,5 +128,3 @@ class TourneyEditor(TourneyView):
         self.add_item(SetGroupSize(ctx, "o"))
         self.add_item(DeleteTourney(ctx))
         self.add_item(DiscardButton(ctx))
-        if not await ctx.is_premium_guild():
-            self.children[-10].disabled = True

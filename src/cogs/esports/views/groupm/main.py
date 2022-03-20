@@ -73,13 +73,13 @@ class TourneyGroupManager(EsportsBaseView):
 
         _e = discord.Embed(color=0x00FFB3)
         _e.description = (
-            "Enter the format for group roles & channels creation.\n"
-            "*{0} will be replaced by the number of group or roles*\n\nExamples:"
+            "**Enter the format for group roles & channels creation.**\n"
+            "*`{0}` will be replaced by the number of group or roles*\n\nExamples:"
         )
         _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/953163516481777684/unknown.png")
 
         m = await interaction.followup.send(embed=_e)
-        _format = await inputs.string_input(self.ctx, delete_after=True)
+        _format = await inputs.string_input(self.ctx, timeout=60, delete_after=True)
 
         await self.ctx.safe_delete(m)
         if len(_format) > 35:
@@ -129,10 +129,13 @@ class TourneyGroupManager(EsportsBaseView):
                 mention_everyone=True,
             )
 
-        category = await self.ctx.guild.create_category(name=cat_name, overwrites=overwrites)
+        await self.ctx.simple(f"Please wait ...", 5)
+        category = await self.ctx.guild.create_category(
+            name=cat_name, overwrites=overwrites, reason="for group management by {0}".format(self.ctx.author)
+        )
         self.category = category
         for i in range(x, y + 1):
-            role = await self.__get_or_create_role(_format.replace("{0}", i))
+            role = await self.__get_or_create_role(_format.replace("{0}", str(i)))
             if not isinstance(role, discord.Role):
                 return await self.ctx.error(role, 10)
 
@@ -141,9 +144,11 @@ class TourneyGroupManager(EsportsBaseView):
                 **overwrites,
             }
             try:
-                await self.category.create_text_channel(_format.replace("{0}", i), overwrites=_n)
+                await self.category.create_text_channel(_format.replace("{0}", str(i)), overwrites=_n)
             except Exception as e:
                 return await self.ctx.error(e)
+
+        await self.ctx.simple("Group channels and roles creation successfuly", 5)
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
@@ -164,4 +169,16 @@ class TourneyGroupManager(EsportsBaseView):
         await _v.rendor(self.message)
 
     async def __get_or_create_role(self, name: str) -> T.Union[discord.Role, str]:
-        ...
+        role = discord.utils.get(self.ctx.guild.roles, name=name)
+        if role:
+            return role
+
+        try:
+            role = await self.ctx.guild.create_role(
+                name=name, reason="created for group management by {0}".format(self.ctx.author)
+            )
+        except Exception as e:
+            return e
+
+        else:
+            return role

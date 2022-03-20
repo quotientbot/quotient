@@ -292,10 +292,11 @@ class Tourney(BaseDbModel):
                     f"Also I have created {tourney_mod.mention}, you can give that role to your "
                     f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
                     f"registration channels and they won't be considered as tourney-registration.\n\n"
-                    f"`Note`: **Do not rename this channel.**",
+                    f"`Note`: **Do not rename/delete this channel.**",
                     color=discord.Color(self.bot.color),
                 )
             )
+            await tourney_log_channel.send(f"<@{self.host_id}> **Read This Message 👆**")
             await note.pin()
 
     async def toggle_registrations(self):

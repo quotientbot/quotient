@@ -62,6 +62,15 @@ class TourneyManager(EsportsBaseView):
 
     @discord.ui.button(style=ButtonStyle.blurple, label="Create Tournament")
     async def create_tournament(self, button: discord.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        if not await self.ctx.is_premium_guild():
+            if await Tourney.filter(guild_id=self.ctx.guild.id).count() >= 1:
+                return await self.ctx.error(
+                    f"You need [Quotient Premium](https://quotientbot.xyz/premium) to create more than one tournament.\n"
+                    "\nBuy Prime for just ₹29 here: https://quotientbot.xyz/premium",
+                    7,
+                )
+
         self.stop()
         _v = TourneySetupWizard(self.ctx)
         _v.message = await self.message.edit(embed=_v.initial_message(), view=_v)
@@ -69,7 +78,7 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=ButtonStyle.blurple, label="Edit Settings")
     async def edit_tournament(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
-
+        self.stop()
         records = await Tourney.filter(guild_id=self.ctx.guild.id).order_by("id")
 
         _v = TourneyEditor(self.ctx, records)
@@ -77,7 +86,7 @@ class TourneyManager(EsportsBaseView):
 
         _v.message = await self.message.edit(embed=await _v.initial_message(), view=_v)
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Start/Pause Reg")
+    @discord.ui.button(style=discord.ButtonStyle.green, label="Start/Pause Reg")
     async def start_or_pause(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -95,7 +104,7 @@ class TourneyManager(EsportsBaseView):
 
             return await self.ctx.success(f"Done! Check {tourney.registration_channel.mention}", 4)
 
-    @discord.ui.button(style=ButtonStyle.blurple, label="Ban/Unban")
+    @discord.ui.button(style=ButtonStyle.red, label="Ban/Unban")
     async def ban_or_unban(self, btn: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to ban/unban users.")
@@ -130,7 +139,7 @@ class TourneyManager(EsportsBaseView):
             10,
         )
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney_groups_send", label="Send Groups")
+    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney_groups_send", label="Manage Groups")
     async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -141,7 +150,7 @@ class TourneyManager(EsportsBaseView):
             _v.add_item(DiscardButton(self.ctx))
             _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Cancel Slots")
+    @discord.ui.button(style=discord.ButtonStyle.red, label="Cancel Slots")
     async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -189,9 +198,9 @@ class TourneyManager(EsportsBaseView):
                 await tourney.remove_slot(slot)
                 c += 1
 
-            return await self.ctx.success(f"Done! {c} slot(s) of {member.mention} removed.", 4)
+            return await self.ctx.success(f"Done! {c} slot(s) of {member.mention} removed.", 6)
 
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Manually Add Slot")
+    @discord.ui.button(style=discord.ButtonStyle.green, label="Manually Add Slot")
     async def reserve_user_slot(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
         m = await self.ctx.simple("Mention the team leader and Enter the team name.")
@@ -275,12 +284,13 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="MS Excel File")
     async def download_excel_data(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
-        if not await self.ctx.is_premium_guild():
-            return await self.ctx.error(
-                "You need Quotient Premium to download Ms Excel file containing all the "
-                f"registration data of your tourneys. (Use `{self.ctx.prefix}perks` command)",
-                5,
-            )
+        # if not await self.ctx.is_premium_guild():
+        #     return await self.ctx.error(
+        #         "You need Quotient Premium to download Ms Excel file containing all the "
+        #         f"registration data of your tourneys.\n\n"
+        #         "Buy Premium for just ₹29 here: https://quotientbot.xyz/premium",
+        #         6,
+        #     )
 
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to download data...")
         if tourney:
