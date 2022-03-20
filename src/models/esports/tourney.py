@@ -32,7 +32,7 @@ class Tourney(BaseDbModel):
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
     required_mentions = fields.SmallIntField(default=4, validators=[ValueRangeValidator(range(0, 11))])
-    total_slots = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 10001))])
+    total_slots = fields.SmallIntField()
     banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
     multiregister = fields.BooleanField(default=False)
