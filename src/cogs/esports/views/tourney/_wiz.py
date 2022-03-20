@@ -38,7 +38,7 @@ class TourneySetupWizard(TourneyView):
             "Success Role": getattr(self.record.role, "mention", "`Not-Set`"),
             "Mentions": f"`{self.record.required_mentions}`",
             "Teams per Group": f"`{self.record.group_size or 'Not-Set'}`",
-            "Slots": f"`{self.record.total_slots or 'Not-Set'}`",
+            "Total Slots": f"`{self.record.total_slots or 'Not-Set'}`",
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
         }
 

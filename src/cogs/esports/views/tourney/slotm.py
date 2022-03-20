@@ -118,7 +118,7 @@ class TourneySlotManager(discord.ui.View):
             await TMSlot.filter(pk=slot.id).delete()
             return await interaction.followup.send(f"{emote.check} | Your slot was removed.", ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Slots")
+    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Groups")
     async def _slots_info(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -142,7 +142,7 @@ class TourneySlotManager(discord.ui.View):
 
         return await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot_name", label="Change Team Name")
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney-slot_name", label="Change Team Name")
     async def _change_slot_name(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -189,3 +189,117 @@ class TourneySlotManager(discord.ui.View):
 
                 await TMSlot.filter(pk=_id).update(team_name=truncate_string(team_name.content, 30))
                 return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
+
+    @discord.ui.button(emoji="<:swap:954022423542509598>", label="Swap Groups", custom_id="tourney-swap-groups")
+    async def tourney_group_swap(self, button: discord.Button, inter: discord.Interaction):
+        await inter.response.defer()
+
+        if not inter.user.guild_permissions.manage_guild and not Tourney.is_ignorable(inter.user):
+            return await inter.followup.send(
+                "You need either `@tourney-mod` role or `manage-server` permissions to swap groups.", ephemeral=True
+            )
+
+        m = await inter.followup.send("Mention first user.", ephemeral=True)
+        try:
+            first_msg: discord.Message = await self.bot.wait_for(
+                "message", check=lambda msg: msg.author.id == inter.user.id, timeout=30
+            )
+            await first_msg.delete()
+
+        except asyncio.TimeoutError:
+            await m.edit("Timed out. Please try again later.", ephemeral=True)
+
+        if not first_msg.mentions:
+            await m.edit("You didn't mention first user.")
+
+        first_user: discord.User = first_msg.mentions[0]
+
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=first_user.id) | Q(members__contains=first_user.id)
+        ).order_by("num")
+
+        if not _slots:
+            return await inter.followup.send(
+                f"{first_user.mention} don't have any slot in {self.tourney}.", ephemeral=True
+            )
+
+        first_slot = None
+        if len(_slots) == 1:
+            first_slot = _slots[0]
+
+        else:
+            cancel_view = BaseSelector(
+                inter.user.id,
+                TCancelSlotSelector,
+                bot=self.bot,
+                slots=_slots,
+                placeholder=f"Select a slot of {str(first_user)}",
+            )
+
+            await inter.followup.send(
+                f"{first_user.mention} has the following slots in {self.tourney}:", view=cancel_view, ephemeral=True
+            )
+            await cancel_view.wait()
+
+            if cancel_view.custom_id:
+                first_slot = await TMSlot.get(pk=cancel_view.custom_id)
+
+        if not first_slot:
+            return
+
+        m = await inter.followup.send("Mention second user.", ephemeral=True)
+        try:
+            second_msg: discord.Message = await self.bot.wait_for(
+                "message", check=lambda msg: msg.author.id == inter.user.id, timeout=30
+            )
+            await second_msg.delete()
+
+        except asyncio.TimeoutError:
+            await m.edit("Timed out. Please try again later.", ephemeral=True)
+
+        if not second_msg.mentions:
+            await m.edit("You didn't mention second user.")
+
+        second_user: discord.User = second_msg.mentions[0]
+        if second_user == first_user:
+            return await inter.followup.send("You can't mention the same user twice.")
+
+        _slots = await self.tourney.assigned_slots.filter(
+            Q(leader_id=second_user.id) | Q(members__contains=second_user.id)
+        ).order_by("num")
+
+        if not _slots:
+            return await inter.followup.send(
+                f"{second_user.mention} don't have any slot in {self.tourney}.", ephemeral=True
+            )
+
+        second_slot = None
+        if len(_slots) == 1:
+            second_slot = _slots[0]
+
+        else:
+            cancel_view = BaseSelector(
+                inter.user.id,
+                TCancelSlotSelector,
+                bot=self.bot,
+                slots=_slots,
+                placeholder=f"Select a slot of {str(second_user)}",
+            )
+
+            await inter.followup.send(
+                f"{second_user.mention} has the following slots in {self.tourney}:", view=cancel_view, ephemeral=True
+            )
+            await cancel_view.wait()
+
+            if cancel_view.custom_id:
+                first_slot = await TMSlot.get(pk=cancel_view.custom_id)
+
+        if not second_slot:
+            return
+
+        await TMSlot.get(pk=first_slot.id).update(num=second_slot.num)
+        await TMSlot.get(pk=second_slot.id).update(num=first_slot.num)
+
+        await inter.followup.send(
+            f"{emote.check} | Groups were swapped. Press 'Refresh' button under grouplist.", ephemeral=True
+        )

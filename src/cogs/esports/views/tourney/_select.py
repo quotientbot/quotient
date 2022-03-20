@@ -52,4 +52,4 @@ class TourneySlotSelec(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         self.view.stop()
-        self.view.custom_id = interaction.data["values"][0] if not self.max_values > 1 else interaction.data["values"]
+        self.view.custom_id  = interaction.data["values"]

@@ -32,7 +32,7 @@ class Tourney(BaseDbModel):
     confirm_channel_id = fields.BigIntField()
     role_id = fields.BigIntField()
     required_mentions = fields.SmallIntField(default=4, validators=[ValueRangeValidator(range(0, 11))])
-    total_slots = fields.SmallIntField(validators=[ValueRangeValidator(range(1, 10001))])
+    total_slots = fields.SmallIntField()
     banned_users = ArrayField(fields.BigIntField(), default=list)
     host_id = fields.BigIntField()
     multiregister = fields.BooleanField(default=False)
@@ -45,7 +45,8 @@ class Tourney(BaseDbModel):
     no_duplicate_name = fields.BooleanField(default=True)
     autodelete_rejected = fields.BooleanField(default=False)
 
-    group_size = fields.IntField(null=True)
+    slotlist_start = fields.SmallIntField(default=2)
+    group_size = fields.SmallIntField(null=True)
 
     success_message = fields.CharField(max_length=500, null=True)
 
@@ -58,7 +59,7 @@ class Tourney(BaseDbModel):
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 
     def __str__(self):
-        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Tourney: {self.id})"
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} [ID: `{self.id}`]"
 
     @classmethod
     async def convert(cls, ctx, argument: str):
@@ -138,14 +139,15 @@ class Tourney(BaseDbModel):
     def is_ignorable(member: discord.Member) -> bool:
         return "tourney-mod" in (role.name.lower() for role in member.roles)
 
-    async def get_groups(self, size: int) -> List[List["TMSlot"]]:
-        return split_list(await self.assigned_slots.all().order_by("num"), size)
+    async def _get_groups(self) -> List[List["TMSlot"]]:
+        return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
 
-    async def get_group(self, num: int, size: int) -> Union[List["TMSlot"], None]:
-        _list = await self.get_groups(size)
-        for _chunk in _list:
-            if _list.index(_chunk) == num - 1:
-                return _chunk
+    async def get_group(self, num: int) -> List["TMSlot"]:
+
+        _all = await self._get_groups()
+        for group in _all:
+            if _all.index(group) == num - 1:
+                return group
 
     async def add_assigned_slot(self, slot: "TMSlot", message: discord.Message):
         _e = discord.Embed(color=self.bot.color)
@@ -164,7 +166,7 @@ class Tourney(BaseDbModel):
             await slot.save()
             await self.assigned_slots.add(slot)
 
-    async def finalize_slot(self, ctx: Context):
+    async def finalize_slot(self, ctx: Context, slot: "TMSlot"):
         """
         Add role to user and reaction to the message
         """
@@ -176,7 +178,10 @@ class Tourney(BaseDbModel):
             await ctx.message.add_reaction(self.check_emoji)
 
             if self.success_message:
-                embed = ctx.bot.embed(ctx, title="Tournament Registration Successful", description=self.success_message)
+                embed = discord.Embed(color=self.bot.color, description=self.success_message)
+                embed.title = f"Message from {ctx.guild.name}"
+                embed.url = slot.jump_url
+
                 await ctx.author.send(embed=embed)
 
     async def end_process(self):
@@ -250,6 +255,9 @@ class Tourney(BaseDbModel):
         if not tourneys:
             return None
 
+        if len(tourneys) == 1:
+            return tourneys[0]
+
         view = QuotientView(ctx)
         view.add_item(TourneySelector(placeholder, tourneys))
 
@@ -290,10 +298,11 @@ class Tourney(BaseDbModel):
                     f"Also I have created {tourney_mod.mention}, you can give that role to your "
                     f"tourney-moderators. User with {tourney_mod.mention} can also send messages in "
                     f"registration channels and they won't be considered as tourney-registration.\n\n"
-                    f"`Note`: **Do not rename this channel.**",
+                    f"`Note`: **Do not rename/delete this channel.**",
                     color=discord.Color(self.bot.color),
                 )
             )
+            await tourney_log_channel.send(f"<@{self.host_id}> **Read This Message 👆**")
             await note.pin()
 
     async def toggle_registrations(self):
@@ -321,12 +330,16 @@ class Tourney(BaseDbModel):
         await Tourney.filter(pk=self.id).update(started_at=self.bot.current_time, closed_at=None)
         self.bot.cache.tourney_channels.add(self.registration_channel_id)
 
-        _e = discord.Embed(color=self.bot.color, title=f"{self.name} Registration is Open")
+        _e = discord.Embed(color=self.bot.color)
+
         _e.description = (
-            f"📣 **`{self.required_mentions}`** mentions required.\n"
-            f"📣 Total slots: **`{self.total_slots}`** [`{self.total_slots - await self.assigned_slots.all().count()}` slots left]"
+            f"**Registration Open for {self.name}**\n"
+            "```"
+            f"📣 {self.required_mentions} mentions required.\n"
+            f"📣 Total slots: {self.total_slots} [{self.total_slots - await self.assigned_slots.all().count()} slots left]"
+            "```"
         )
-        _e.set_thumbnail(url=self.bot.user.display_avatar.url)
+        _e.set_thumbnail(url=getattr(self.guild.icon, "url", self.bot.user.avatar.url)
         _ping = None
         if p := self.ping_role:
             if p == self.guild.default_role:
@@ -439,3 +452,23 @@ class PartnerSlot(BaseDbModel):
     message_id = fields.BigIntField()
     jump_url = fields.CharField(max_length=300, null=True)
     members = ArrayField(fields.BigIntField(), default=list)
+
+
+class TGroupList(BaseDbModel):
+    class Meta:
+        table = "tourney_groups"
+
+    message_id = fields.BigIntField(pk=True)
+    tourney_id = fields.IntField()
+    channel_id = fields.BigIntField()
+    group_number = fields.SmallIntField()
+    refresh_at = fields.DatetimeField(auto_now=True)
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+
+    @property
+    def jump_url(self):
+        if c := self.channel:
+            return f"https://discord.com/channels/{c.guild.id}/{self.channel_id}/{self.pk}"

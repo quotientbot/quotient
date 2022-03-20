@@ -164,7 +164,9 @@ class SetEmojis(TourneyButton):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
         if not await self.ctx.is_premium_guild():
-            return await self.ctx.error("You need Quotient Premium to set custom reactions.", 4)
+            return await self.ctx.error(
+                "[Quotient Premium](https://quotientbot.xyz/premium) is required to use this feature.", 4
+            )
 
         e = discord.Embed(color=self.ctx.bot.color, title="Edit tourney emojis")
         e.description = (
@@ -224,7 +226,7 @@ class SetGroupSize(TourneyButton):
         await interaction.response.defer()
 
         m = await self.ctx.simple("How many teams will there be per group? (Max `25`)")
-        n = await inputs.integer_input(self.ctx, limits=(2, 25))
+        n = await inputs.integer_input(self.ctx, limits=(2, 25), delete_after=True)
         await self.ctx.safe_delete(m)
         self.view.record.group_size = n
         await self.view.refresh_view()
@@ -347,7 +349,12 @@ class DeleteTourney(TourneyButton):
 
         await self.view.record.full_delete()
         await self.ctx.success("Successfully deleted tourney.", 3)
-        return await self.view.on_timeout()
+     
+        from .main import TourneyManager as TM
+
+        self.view.stop()
+        v = TM(self.ctx)
+        v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)
 
 
 class DiscardButton(TourneyButton):
@@ -360,6 +367,7 @@ class DiscardButton(TourneyButton):
 
         from .main import TourneyManager as TM
 
+        self.view.stop()
         v = TM(self.ctx)
         v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)
 

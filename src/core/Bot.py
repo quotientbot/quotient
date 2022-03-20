@@ -93,8 +93,8 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager, SlotlistEditButton
-        from models import ScrimsSlotManager, Tourney, Scrim
+        from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager, SlotlistEditButton, GroupRefresh
+        from models import ScrimsSlotManager, Tourney, Scrim, TGroupList
 
         # Persistent views
         async for record in ScrimsSlotManager.all():
@@ -105,6 +105,9 @@ class Quotient(commands.AutoShardedBot):
 
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
+
+        async for record in TGroupList.all():
+            self.add_view(GroupRefresh(), message_id=record.message_id)
 
         print("Persistent views: Loaded them too ")
 
