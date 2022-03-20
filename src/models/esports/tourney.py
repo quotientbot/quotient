@@ -166,7 +166,7 @@ class Tourney(BaseDbModel):
             await slot.save()
             await self.assigned_slots.add(slot)
 
-    async def finalize_slot(self, ctx: Context):
+    async def finalize_slot(self, ctx: Context, slot: "TMSlot"):
         """
         Add role to user and reaction to the message
         """
@@ -178,7 +178,10 @@ class Tourney(BaseDbModel):
             await ctx.message.add_reaction(self.check_emoji)
 
             if self.success_message:
-                embed = ctx.bot.embed(ctx, title="Tournament Registration Successful", description=self.success_message)
+                embed = discord.Embed(color=self.bot.color, description=self.success_message)
+                embed.title = f"Message from {ctx.guild.name}"
+                embed.url = slot.jump_url
+
                 await ctx.author.send(embed=embed)
 
     async def end_process(self):
@@ -335,8 +338,8 @@ class Tourney(BaseDbModel):
             f"📣 {self.required_mentions} mentions required.\n"
             f"📣 Total slots: {self.total_slots} [{self.total_slots - await self.assigned_slots.all().count()} slots left]"
             "```"
-        )   
-        _e.set_thumbnail(url=getattr(self.guild.icon,"url",self.bot.user.avatar.url))
+        )
+        _e.set_thumbnail(url=getattr(self.guild.icon, "url", self.bot.user.avatar.url))
         _ping = None
         if p := self.ping_role:
             if p == self.guild.default_role:

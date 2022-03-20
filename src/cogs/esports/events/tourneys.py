@@ -86,7 +86,7 @@ class TourneyEvents(Cog):
 
         await tourney.add_assigned_slot(slot, ctx.message)
 
-        self.bot.loop.create_task(tourney.finalize_slot(ctx))
+        self.bot.loop.create_task(tourney.finalize_slot(ctx, slot))
 
         self.bot.dispatch(
             "tourney_log",
