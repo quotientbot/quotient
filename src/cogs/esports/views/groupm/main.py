@@ -68,6 +68,8 @@ class TourneyGroupManager(EsportsBaseView):
     @discord.ui.button(label="Create Channels & Roles")
     async def create_roles_channels(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer()
+        if len(self.ctx.guild.channels) >= 490:
+            return await self.ctx.error("Too many channels in server. Please delete some first.", 4)
 
         _e = discord.Embed(color=0x00FFB3)
         _e.description = (
@@ -93,6 +95,55 @@ class TourneyGroupManager(EsportsBaseView):
 
         if not p:
             return await self.ctx.error("Cancelled.", 4)
+        _e.description = (
+            "Enter the range of group numbers to create channels & setup roles.\n"
+            "For example:\n"
+            "`1-5` will create channels for group 1 to 5 and setup roles."
+        )
+        _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/955013587049525278/unknown.png")
+        m = await interaction.followup.send(embed=_e)
+        _range = await inputs.string_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+        _range = _range.strip().split("-")
+        if not len(_range) == 2:
+            return await self.ctx.error("Invalid format provided.", 4)
+        try:
+            x, y = tuple(map(int, _range))
+        except ValueError:
+            return await self.ctx.error("Invalid format provided.", 4)
+
+        if x == y:
+            return await self.ctx.error("Invalid range provided.", 4)
+
+        cat_name = _format.replace("{0}", "") + f" {x}-{y}"
+
+        overwrites = {
+            self.ctx.guild.default_role: discord.PermissionOverwrite(read_messages=False),
+        }
+        if mod := self.tourney.modrole:
+            overwrites[mod] = discord.PermissionOverwrite(
+                read_messages=True,
+                send_messages=True,
+                read_message_history=True,
+                manage_channels=True,
+                mention_everyone=True,
+            )
+
+        category = await self.ctx.guild.create_category(name=cat_name, overwrites=overwrites)
+        self.category = category
+        for i in range(x, y + 1):
+            role = await self.__get_or_create_role(_format.replace("{0}", i))
+            if not isinstance(role, discord.Role):
+                return await self.ctx.error(role, 10)
+
+            _n = {
+                role: discord.PermissionOverwrite(read_messages=True, send_messages=False, read_message_history=True),
+                **overwrites,
+            }
+            try:
+                await self.category.create_text_channel(_format.replace("{0}", i), overwrites=_n)
+            except Exception as e:
+                return await self.ctx.error(e)
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
     async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
@@ -111,3 +162,6 @@ class TourneyGroupManager(EsportsBaseView):
         self.stop()
         _v = GroupPages(self.ctx, self.tourney, ping_all=self.ping_all, category=self.category)
         await _v.rendor(self.message)
+
+    async def __get_or_create_role(self, name: str) -> T.Union[discord.Role, str]:
+        ...
