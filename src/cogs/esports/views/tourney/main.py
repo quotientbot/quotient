@@ -31,6 +31,8 @@ import re
 from ._buttons import DiscardButton
 from ..groupm import TourneyGroupManager
 
+from ._partner import MediaPartnerView
+
 
 class TourneyManager(EsportsBaseView):
     def __init__(self, ctx: Context):
@@ -280,6 +282,16 @@ class TourneyManager(EsportsBaseView):
 
         await Tourney.get(pk=tourney.id).update(slotm_channel_id=slotm_channel.id, slotm_message_id=slotm_message.id)
         await self.ctx.success(f"Slotmanager channel for {tourney} created successfully. ({slotm_channel.mention})", 7)
+
+    @discord.ui.button(style=discord.ButtonStyle.green, label="Media-Partner")
+    async def manage_media_partner(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.defer()
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to add cancel-claim...")
+        if tourney:
+            view = MediaPartnerView(self.ctx, tourney=tourney)
+            view.add_item(DiscardButton(self.ctx))
+            self.stop()
+            view.message = await self.message.edit(embed=await view.initial_embed(), view=view)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="MS Excel File")
     async def download_excel_data(self, button: discord.Button, interaction: discord.Interaction):

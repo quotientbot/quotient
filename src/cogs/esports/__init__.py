@@ -718,30 +718,21 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
 
-    @commands.group(invoke_without_command=True, aliases=("tm", "t"))
-    @commands.bot_has_permissions(embed_links=True, add_reactions=True)
-    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True)
-    @commands.max_concurrency(1, BucketType.guild)
+    @commands.command(aliases=("tm", "t"))
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    @commands.cooldown(2, 10, type=commands.BucketType.guild)
     async def tourney(self, ctx: Context):
         """Create & Manage tournaments with Quotient"""
+        if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:
+            return await ctx.error(
+                "You need either `manage-server` permissions or `@tourney-mod` role to manage tournaments."
+            )
+
         view = TourneyManager(ctx)
         view.add_item(QuotientView.tricky_invite_button())
         view.message = await ctx.send(embed=await view.initial_embed(), view=view)
 
-
-    @tourney.group(name="mediapartner", aliases=("mp",), invoke_without_command=True)
-    @checks.can_use_tm()
-    @checks.has_done_setup()
-    @commands.cooldown(6, 1, type=commands.BucketType.guild)
-    async def tourney_media_partner(self, ctx: Context, tourney: Tourney):
-        """Add or Remove Media Partner for tourneys"""
-
-        view = MediaPartnerView(ctx, tourney=tourney)
-        embed = await MediaPartnerView.initial_embed(ctx, tourney)
-
-        view.add_item(discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK))
-
-        view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
 
     @commands.command(extras={"examples": ["quickidp 1234 pass Miramar", "quickidp 1234 pass Sanhok @role"]})
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
