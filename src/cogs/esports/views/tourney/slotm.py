@@ -142,7 +142,7 @@ class TourneySlotManager(discord.ui.View):
 
         return await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot_name", label="Change Team Name")
+    @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney-slot_name", label="Change Team Name")
     async def _change_slot_name(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -190,7 +190,7 @@ class TourneySlotManager(discord.ui.View):
                 await TMSlot.filter(pk=_id).update(team_name=truncate_string(team_name.content, 30))
                 return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
 
-    @discord.ui.button(emoji="🔁", label="Swap Groups", custom_id="tourney-swap-groups")
+    @discord.ui.button(emoji="<:swap:954022423542509598>", label="Swap Groups", custom_id="tourney-swap-groups")
     async def tourney_group_swap(self, button: discord.Button, inter: discord.Interaction):
         await inter.response.defer()
 
