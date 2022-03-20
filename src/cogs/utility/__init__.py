@@ -305,7 +305,7 @@ class Utility(Cog, name="utility"):
 
         user = self.bot.get_user(tag.owner_id) or await self.bot.fetch_user(tag.owner_id)
 
-        embed.set_author(name=str(user), icon_url=user.avatar.url)
+        embed.set_author(name=str(user), icon_url=user.display_avatar.url)
 
         embed.add_field(name="Owner", value=getattr(user, "mention", "Invalid User!"))
         embed.add_field(name="ID:", value=tag.id)

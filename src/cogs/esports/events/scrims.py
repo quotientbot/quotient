@@ -231,11 +231,30 @@ class ScrimEvents(Cog):
         if not scrim.toggle:
             return
 
-        if AutocleanType.channel in scrim.autoclean:
-            self.bot.loop.create_task(purge_channel(scrim.registration_channel))
+        guild = scrim.guild
 
-        if AutocleanType.role in scrim.autoclean:
-            self.bot.loop.create_task(purge_role(scrim.role))
+        async with self.__scrim_lock:
+            if AutocleanType.channel in scrim.autoclean:
+                self.bot.loop.create_task(self.__purge_channel(scrim.registration_channel))
+
+            if AutocleanType.role in scrim.autoclean:
+                async for slot in scrim.assigned_slots.all():
+                    member = await self.bot.get_or_fetch_member(guild, slot.user_id)
+                    if member:
+                        with suppress(discord.HTTPException):
+                            await member.remove_roles(discord.Object(id=scrim.role_id))
+
+                if guild and not guild.chunked:
+                    self.bot.loop.create_task(guild.chunk())
+
+                role = scrim.role
+                with suppress(AttributeError, discord.HTTPException):
+                    for m in role.members:
+                        await m.remove_roles(role)
+
+    async def __purge_channel(self, channel=None):
+        with suppress(discord.HTTPException, AttributeError):
+            await channel.purge(limit=100, check=lambda x: not x.pinned)
 
     @Cog.listener()
     async def on_scrim_ban_timer_complete(self, timer: Timer):

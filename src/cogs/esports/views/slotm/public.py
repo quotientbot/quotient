@@ -192,7 +192,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
             scrim = await Scrim.get(pk=scrim_id)
 
             await interaction.followup.send(
-                "What is your team's name?\n\n`Kindly enter your team name only, full format is not required.`",
+                "What is your team's name?\n\n`Kindly enter your team name or full format.`",
                 ephemeral=True,
             )
 
@@ -211,7 +211,8 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 if not (role := scrim.role) in interaction.user.roles:
                     await interaction.user.add_roles(role)
 
-            _slot = await AssignedSlot.create(num=num, user_id=interaction.user.id, team_name=team_name)
+            user_id = interaction.user.id
+            _slot = await AssignedSlot.create(num=num, user_id=user_id,members=[user_id], team_name=team_name)
             await scrim.assigned_slots.add(_slot)
 
             await scrim.refresh_slotlist_message()

@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "quotient",
-      "autorestart": false,
+      "autorestart": true,
       "watch": false,
       "ignore_watch": ["logs"],
       "script": "./src/bot.py",

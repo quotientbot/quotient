@@ -54,7 +54,7 @@ from .helpers import (
 #                 inline=False,
 #             )
 
-#         embed.set_thumbnail(url=self.bot.user.avatar.url)
+#         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
 #         return embed
 
 #     async def send_initial_message(self, ctx, channel):
@@ -293,7 +293,7 @@ class IDPMenu(menus.Menu):
 
         embed.set_footer(
             text=f"Shared by: {self.ctx.author} • Auto delete in {plural(self.delete_in):minute|minutes}.",
-            icon_url=self.ctx.author.avatar.url,
+            icon_url=self.ctx.author.display_avatar.url,
         )
         return embed
 
@@ -437,7 +437,7 @@ class IDPMenu(menus.Menu):
         self.delete_in = delete_time
         self.embed.set_footer(
             text=f"Shared by: {self.ctx.author} • Auto delete in {plural(self.delete_in):minute|minutes}",
-            icon_url=self.ctx.author.avatar.url,
+            icon_url=self.ctx.author.display_avatar.url,
         )
         await self.refresh()
 
@@ -625,7 +625,7 @@ class ConfigEditMenu(menus.Menu):
                 value=value,
             )
 
-        embed.set_thumbnail(url=self.bot.user.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         return embed
 
     async def cembed(self, description):

@@ -27,7 +27,6 @@ class SockSettings(Cog):
 
     @Cog.listener()
     async def on_request__new_vote(self, u, data: dict):
-        print(data)
         user_id = int(data.get("user_id"))
         record = await Votes.get(pk=user_id)
 
@@ -45,7 +44,7 @@ class SockSettings(Cog):
             embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
             embed.set_image(url=constants.random_thanks())
             embed.set_footer(text=f"Your total votes: {record.total_votes + 1}")
-            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.avatar.url)
+            await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.display_avatar.url)
 
     @Cog.listener()
     async def on_request__get_usernames(self, u, data: dict):

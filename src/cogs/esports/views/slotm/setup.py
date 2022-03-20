@@ -68,7 +68,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             "cancel their slot, claim an empty slot and also set reminder for vacant slots, All without bugging any mod.\n\n"
             f"**Current slot-manager channels:**\n{_sm}\n\nDon't forget to set the match times :)"
         )
-        # _e.set_thumbnail(url=guild.me.avatar.url)
+        # _e.set_thumbnail(url=guild.me.display_avatar.url)
         return _e
 
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc", emoji=emote.TextChannel)
@@ -162,7 +162,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             f"Match time means the time when `ID/Pass` \nof that particular scrim is shared.\n```{_to_show}```"
         )
 
-        _e.set_footer(text="Users cannot cancel/claim slots after this time.", icon_url=self.ctx.guild.me.avatar.url)
+        _e.set_footer(text="Users cannot cancel/claim slots after this time.", icon_url=self.ctx.guild.me.display_avatar.url)
 
         _view = QuotientView(self.ctx)
         _view.add_item(MatchTimeEditor(self.ctx))
