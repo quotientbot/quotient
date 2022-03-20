@@ -34,7 +34,7 @@ class MediaPartnerView(EsportsBaseView):
         except discord.HTTPException:
             await self.on_timeout()
 
-    @discord.ui.button(custom_id="add_media_partner", label="Add New")
+    @discord.ui.button(label="Add New", style=discord.ButtonStyle.green)
     async def add_partner(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -94,7 +94,7 @@ class MediaPartnerView(EsportsBaseView):
         self.bot.cache.media_partner_channels.add(channel.id)
         await self.__refresh_embed()
 
-    @discord.ui.button(custom_id="remove_mp", label="Remove")
+    @discord.ui.button(style=discord.ButtonStyle.red, label="Remove")
     async def remove_partner(self, button: discord.Button, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
