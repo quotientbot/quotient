@@ -327,12 +327,16 @@ class Tourney(BaseDbModel):
         await Tourney.filter(pk=self.id).update(started_at=self.bot.current_time, closed_at=None)
         self.bot.cache.tourney_channels.add(self.registration_channel_id)
 
-        _e = discord.Embed(color=self.bot.color, title=f"{self.name} Registration is Open")
+        _e = discord.Embed(color=self.bot.color)
+
         _e.description = (
-            f"📣 **`{self.required_mentions}`** mentions required.\n"
-            f"📣 Total slots: **`{self.total_slots}`** [`{self.total_slots - await self.assigned_slots.all().count()}` slots left]"
-        )
-        _e.set_thumbnail(url=self.bot.user.avatar.url)
+            f"**Registration Open for {self.name}**\n"
+            "```"
+            f"📣 {self.required_mentions} mentions required.\n"
+            f"📣 Total slots: {self.total_slots} [{self.total_slots - await self.assigned_slots.all().count()} slots left]"
+            "```"
+        )   
+        _e.set_thumbnail(url=getattr(self.guild.icon,"url",self.bot.user.avatar.url))
         _ping = None
         if p := self.ping_role:
             if p == self.guild.default_role:
