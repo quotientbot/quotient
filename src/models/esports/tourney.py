@@ -252,6 +252,9 @@ class Tourney(BaseDbModel):
         if not tourneys:
             return None
 
+        if len(tourneys) == 1:
+            return tourneys[0]
+
         view = QuotientView(ctx)
         view.add_item(TourneySelector(placeholder, tourneys))
 

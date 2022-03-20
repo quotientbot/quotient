@@ -322,4 +322,4 @@ class TourneyManager(EsportsBaseView):
             )
 
             with suppress(discord.HTTPException):
-                await _m.edit(embed=e, delete_after=15)
+                await _m.edit(embed=e, delete_after=10)
