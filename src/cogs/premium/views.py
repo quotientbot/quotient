@@ -13,7 +13,7 @@ class PremiumView(discord.ui.View):
         self.text = text
         self.add_item(
             discord.ui.Button(
-                url="https://discord.gg/hxgevz9Z4e",
+                url="https://quotientbot.xyz/premium",
                 emoji=emote.diamond,
                 label=label,
             )

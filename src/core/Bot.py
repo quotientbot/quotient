@@ -131,7 +131,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def prime_link(self):
-        return "https://discord.gg/hxgevz9Z4e"
+        return "https://quotientbot.xyz/premium"
 
     @property
     def color(self):
