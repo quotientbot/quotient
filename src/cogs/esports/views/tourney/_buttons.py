@@ -88,7 +88,7 @@ class SetRole(TourneyButton):
         super().__init__(emoji=ri(letter))
 
         self.ctx = ctx
-
+    
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -132,7 +132,7 @@ class SetPingRole(TourneyButton):
         role = await inputs.role_input(self.ctx, delete_after=True)
         await self.ctx.safe_delete(m)
 
-        self.view.record.ping_role_id = role
+        self.view.record.ping_role_id = role.id
 
         await self.view.refresh_view()
 
@@ -211,7 +211,7 @@ class OpenRole(TourneyButton):
         role = await inputs.role_input(self.ctx, delete_after=True)
         await self.ctx.safe_delete(m)
 
-        self.view.record.open_role_id = role
+        self.view.record.open_role_id = role.id
 
         await self.view.refresh_view()
 
