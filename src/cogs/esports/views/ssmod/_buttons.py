@@ -24,7 +24,7 @@ class SetChannel(discord.ui.Button):
 
         await self.ctx.safe_delete(_m)
 
-        if await SSVerify.filter(pk=channel.id).exists():
+        if await SSVerify.filter(channel_id=channel.id).exists():
             return await self.ctx.error(f"{channel.mention} is already a ssverification channel.", 3)
 
         if not channel.permissions_for(self.ctx.guild.me).embed_links:
