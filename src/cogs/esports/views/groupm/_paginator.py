@@ -165,9 +165,10 @@ class GroupPages(EsportsBaseView):
         if not c:
             return await self.ctx.error("You need to set a channel first.", 3)
 
+        embed = self.initial_embed
+
         self.send_to = None
 
-        embed = self.initial_embed
         embed.set_thumbnail(url=discord.Embed.Empty)
         embed.clear_fields()
         embed.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
