@@ -167,8 +167,6 @@ class GroupPages(EsportsBaseView):
 
         embed = self.initial_embed
 
-        self.send_to = None
-
         embed.set_thumbnail(url=discord.Embed.Empty)
         embed.clear_fields()
         embed.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
@@ -195,3 +193,4 @@ class GroupPages(EsportsBaseView):
 
         await self.ctx.success("GroupList published.", 3)
         await self.refresh_view()
+        self.send_to = None
