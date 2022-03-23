@@ -86,7 +86,7 @@ class Discard(ScrimsButton):
 
 class SaveScrim(ScrimsButton):
     def __init__(self, ctx: Context):
-        super().__init__(style=discord.ButtonStyle.green, label="Save")
+        super().__init__(style=discord.ButtonStyle.green, label="Save", disabled=True)
         self.ctx = ctx
 
     async def callback(self, interaction: Interaction):

@@ -41,19 +41,17 @@ class ScrimSetup(ScrimsView):
     async def refresh_view(self):
         _e = self.initial_message()
 
-        # if all(
-        #     (
-        #         self.record.registration_channel_id,
-        #         self.record.confirm_channel_id,
-        #         self.record.role_id,
-        #         self.record.mentions,
-        #         self.record.group_size,
-        #         self.record.total_slots,
-        #         self.record.check_emoji,
-        #         self.record.cross_emoji,
-        #     )
-        # ):
-        #     _e.set_footer(text="All fields are set")
+        if all(
+            (
+                self.record.registration_channel_id,
+                self.record.slotlist_channel_id,
+                self.record.role_id,
+                self.record.required_mentions,
+                self.record.total_slots,
+                self.record.open_time,
+            )
+        ):
+            self.children[-1].disabled = False
 
         try:
             self.message = await self.message.edit(embed=_e, view=self)
