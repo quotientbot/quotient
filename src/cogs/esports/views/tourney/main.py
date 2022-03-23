@@ -234,7 +234,7 @@ class TourneyManager(EsportsBaseView):
             slot = TMSlot(leader_id=leader.id, team_name=team_name, num=last_slot.num + 1 if last_slot else 1)
 
             _e = discord.Embed(color=0x00FFB3)
-            _e.description = f"**{slot.num}) NAME: [{slot.team_name.upper()}]({slot.jump_url})**\n"
+            _e.description = f"**{slot.num}) NAME: {slot.team_name.upper()}**\n"
 
             _e.set_footer(
                 text="Added by: {}".format(self.ctx.author),
