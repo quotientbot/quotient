@@ -69,6 +69,8 @@ class Scrim(BaseDbModel):
 
     match_time = fields.DatetimeField(null=True)
 
+    emojis = fields.JSONField(default=dict)  #!new
+
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
@@ -132,6 +134,14 @@ class Scrim(BaseDbModel):
             return self.guild.get_member(self.host_id)
 
         return self.bot.get_user(self.host_id)
+
+    @property
+    def check_emoji(self):
+        return self.emojis.get("tick", "✅")
+
+    @property
+    def cross_emoji(self):
+        return self.emojis.get("cross", "❌")
 
     @property
     def available_to_reserve(self):
