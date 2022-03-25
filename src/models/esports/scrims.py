@@ -77,7 +77,7 @@ class Scrim(BaseDbModel):
     slot_reminders: fields.ManyToManyRelation["ScrimsSlotReminder"] = fields.ManyToManyField("models.ScrimsSlotReminder")
 
     def __str__(self):
-        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Scrim: {self.id})"
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (ID: {self.id})"
 
     @classmethod
     async def convert(cls, ctx, argument: Union[str, discord.TextChannel]):
