@@ -14,6 +14,7 @@ from discord import Interaction
 class SetName(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -22,6 +23,7 @@ class SetName(ScrimsButton):
 class RegChannel(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -30,6 +32,7 @@ class RegChannel(ScrimsButton):
 class SlotChannel(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -38,6 +41,7 @@ class SlotChannel(ScrimsButton):
 class SetRole(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -46,6 +50,7 @@ class SetRole(ScrimsButton):
 class SetMentions(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -54,6 +59,7 @@ class SetMentions(ScrimsButton):
 class TotalSlots(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -62,6 +68,7 @@ class TotalSlots(ScrimsButton):
 class OpenTime(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
@@ -70,6 +77,115 @@ class OpenTime(ScrimsButton):
 class SetEmojis(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class SetEmojis(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class SetAutoclean(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class PingRole(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class OpenRole(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class MultiReg(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class MultiReg(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class MultiReg(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class TeamCompulsion(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class DuplicateTeam(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class DeleteReject(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class DeleteLate(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
+class SlotlistStart(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
