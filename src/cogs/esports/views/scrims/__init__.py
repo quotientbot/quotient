@@ -1,2 +1,2 @@
-from .editor import *
+from ._edit import *
 from .selector import *
