@@ -5,12 +5,13 @@ from ._base import ScrimsView
 from core import Context
 from models import Scrim
 
+from string import ascii_uppercase
 from ._btns import *
 import discord
 
 __all__ = ("ScrimSetup",)
 
-
+# TODO: adjust open days in setup wizard
 class ScrimSetup(ScrimsView):
     def __init__(self, ctx: Context):
         super().__init__(ctx, timeout=60)
@@ -25,6 +26,7 @@ class ScrimSetup(ScrimsView):
         self.add_item(TotalSlots(ctx, "e"))
         self.add_item(OpenTime(ctx, "f"))
         self.add_item(SetEmojis(ctx, "g"))
+        self.add_item(SetEmojis(ctx, "h"))
         self.add_item(Discard(ctx, "Cancel"))
         self.add_item(SaveScrim(ctx))
 
@@ -34,8 +36,25 @@ class ScrimSetup(ScrimsView):
 
         d_link = "https://quotientbot.xyz/dashboard/{0}/scrims/create".format(self.ctx.guild.id)
 
-        _e = discord.Embed()
-        _e.description = f"[Scrim Creation is a piece of cake throug dashboard, Click Me]({d_link})\n\n"
+        _e = discord.Embed(color=0x00FFB3, title="Enter details & Press Save", url=self.bot.config.SERVER_LINK)
+        _e.description = f"[`Scrim Creation is a piece of cake through dashboard, Click Me`]({d_link})\n\n"
+
+        fields = {
+            "Registration Channel": getattr(self.record.registration_channel, "mention", "`Not-Set`"),
+            "Slotlist Channel": getattr(self.record.slotlist_channel, "mention", "`Not-Set`"),
+            "Success Role": getattr(self.record.role, "mention", "`Not-Set`"),
+            "Required Mentions": f"`{self.record.required_mentions}`",
+            "Total Slots": f"`{self.record.total_slots or 'Not-Set'}`",
+            "Open Time": self.record.open_time.strftime("%I:%M %p") if self.record.open_time else "`Not-Set`",
+            f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
+        }
+
+        for idx, (name, value) in enumerate(fields.items()):
+            _e.add_field(
+                name=f"{ri(ascii_uppercase[idx])} {name}:",
+                value=value,
+            )
+
         return _e
 
     async def refresh_view(self):

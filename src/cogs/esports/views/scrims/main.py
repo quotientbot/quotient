@@ -16,8 +16,7 @@ class ScrimsMain(EsportsBaseView):
 
         self.ctx = ctx
 
-    @property
-    def initial_embed(self):
+    async def initial_embed(self):
         _e = discord.Embed(color=0x00FFB3, description="hi bro")
 
         return _e

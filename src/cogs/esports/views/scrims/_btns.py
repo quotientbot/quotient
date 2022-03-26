@@ -199,6 +199,12 @@ class Discard(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+        from .main import ScrimsMain as SM
+
+        self.view.stop()
+        v = SM(self.ctx)
+        v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)
+
 
 class SaveScrim(ScrimsButton):
     def __init__(self, ctx: Context):

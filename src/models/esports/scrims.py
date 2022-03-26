@@ -33,7 +33,7 @@ class Scrim(BaseDbModel):
     slotlist_channel_id = fields.BigIntField()
     slotlist_message_id = fields.BigIntField(null=True)
     role_id = fields.BigIntField(null=True)
-    required_mentions = fields.IntField()
+    required_mentions = fields.IntField(default=4)
     start_from = fields.IntField(default=1)
     available_slots = ArrayField(fields.IntField(), default=list)
     total_slots = fields.IntField()

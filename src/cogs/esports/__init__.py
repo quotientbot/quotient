@@ -1,6 +1,7 @@
 from __future__ import annotations
 import typing
 from cogs.esports.events.slots import SlotManagerEvents
+from cogs.esports.views.scrims.main import ScrimsMain
 from cogs.esports.views.tourney.main import TourneyManager
 
 if typing.TYPE_CHECKING:
@@ -93,11 +94,12 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @commands.group(aliases=("s", "sm"), invoke_without_command=True)
-    async def smanager(self, ctx):
+    async def smanager(self, ctx: Context):
         """
         Contains commands related to Quotient's powerful scrims manager.
         """
-        await ctx.send_help(ctx.command)
+        v = ScrimsMain(ctx)
+        v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
     @staticmethod
     def config_embed(value, description: str):
@@ -733,7 +735,6 @@ class ScrimManager(Cog, name="Esports"):
         view.add_item(QuotientView.tricky_invite_button())
         view.message = await ctx.send(embed=await view.initial_embed(), view=view)
 
-
     @commands.command(extras={"examples": ["quickidp 1234 pass Miramar", "quickidp 1234 pass Sanhok @role"]})
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
@@ -749,7 +750,9 @@ class ScrimManager(Cog, name="Esports"):
         embed.add_field(name="Room ID", value=room_id)
         embed.add_field(name="Password", value=password)
         embed.add_field(name="Map", value=map)
-        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url)
+        embed.set_footer(
+            text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url
+        )
         msg = await ctx.send(
             content=role_to_ping.mention if role_to_ping else None,
             embed=embed,
