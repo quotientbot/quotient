@@ -26,7 +26,9 @@ class ScrimSetup(ScrimsView):
         self.add_item(TotalSlots(ctx, "e"))
         self.add_item(OpenTime(ctx, "f"))
         self.add_item(SetEmojis(ctx, "g"))
-        self.add_item(SetEmojis(ctx, "h"))
+
+        self.add_item(OpenDays(ctx, "h"))
+        self.add_item(SetEmojis(ctx, "i"))
         self.add_item(Discard(ctx, "Cancel"))
         self.add_item(SaveScrim(ctx))
 
@@ -46,6 +48,7 @@ class ScrimSetup(ScrimsView):
             "Required Mentions": f"`{self.record.required_mentions}`",
             "Total Slots": f"`{self.record.total_slots or 'Not-Set'}`",
             "Open Time": self.record.open_time.strftime("%I:%M %p") if self.record.open_time else "`Not-Set`",
+            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:3]), self.record.open_days)),
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
         }
 
@@ -54,6 +57,7 @@ class ScrimSetup(ScrimsView):
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
+        _e.add_field(name="\u200b", value="\u200b")
 
         return _e
 

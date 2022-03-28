@@ -118,6 +118,15 @@ class OpenRole(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+class OpenDays(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+
 
 class MultiReg(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
