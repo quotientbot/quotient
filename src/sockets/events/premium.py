@@ -43,7 +43,7 @@ class SockPrime(Cog):
         user_id = int(u)
         invoice = data["invoice_link"]
 
-        prime = "https://discord.com/oauth2/authorize?client_id=902856923311919104&scope=applications.commands%20bot&permissions=21175985838"
+        prime = "https://discord.com/oauth2/authorize?client_id=902856923311919104&scope=applications.commands%20bot&permissions=536737213566"
 
         member = self.bot.server.get_member(user_id)
         if member is not None:
