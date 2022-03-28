@@ -43,7 +43,7 @@ class SockSettings(Cog):
 
             embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
             embed.set_image(url=constants.random_thanks())
-            embed.set_footer(text=f"Your total votes: {record.total_votes + 1}")
+            embed.set_footer(text=f"Your total votes: {record.total_votes}")
             await self.hook.send(embed=embed, username="vote-logs", avatar_url=self.bot.user.display_avatar.url)
 
     @Cog.listener()
