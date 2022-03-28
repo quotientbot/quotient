@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import suppress
 
 import typing as T
 
@@ -42,7 +43,8 @@ class GroupPages(EsportsBaseView):
     def send_channel(self):
         index = self.records.index(self.record) + 1
         if self.category:
-            return next(c for c in self.category.text_channels if str(index) in c.name)
+            with suppress(StopIteration):
+                return next(c for c in self.category.text_channels if str(index) in c.name)
 
     @property
     def initial_embed(self):
