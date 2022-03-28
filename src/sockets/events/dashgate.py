@@ -16,6 +16,10 @@ class DashboardGate(Cog):
         self.bot = bot
 
     @Cog.listener()
+    async def on_request__latency(self, u, data):
+        return await self.bot.sio.emit("latency__{0}".format(u), {})
+
+    @Cog.listener()
     async def on_request__guild_permissions(self, u, data):
 
         guild_ids = data["guild_ids"]
