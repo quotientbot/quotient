@@ -8,6 +8,8 @@ from discord import ButtonStyle, ui, Interaction
 import discord
 
 from ._wiz import ScrimSetup
+from models import Scrim
+from utils import emote
 
 
 class ScrimsMain(EsportsBaseView):
@@ -17,7 +19,22 @@ class ScrimsMain(EsportsBaseView):
         self.ctx = ctx
 
     async def initial_embed(self):
-        _e = discord.Embed(color=0x00FFB3, description="hi bro")
+        _e = discord.Embed(color=0x00FFB3, description="Smart Scrims Manager", url=self.ctx.config.SERVER_LINK)
+
+        to_show = []
+        for idx, _r in enumerate(await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time"), start=1):
+            to_show.append(f"`{idx}.` {(emote.xmark,emote.check)[_r.stoggle]}: {str(_r)} ")
+
+        _e.description = "\n".join(to_show) if to_show else "```Click Create button for new Scrim.```"
+
+        _e.set_footer(
+            text="Quotient Prime allows unlimited scrims.",
+            icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
+        )
+
+        if not to_show:
+            for _ in self.children[1:]:
+                _.disabled = True
 
         return _e
 
@@ -28,6 +45,7 @@ class ScrimsMain(EsportsBaseView):
         if not await self.ctx.is_premium_guild():
             ...
 
+        self.stop()
         v = ScrimSetup(self.ctx)
         v.message = await self.message.edit(embed=v.initial_message(), view=v)
 

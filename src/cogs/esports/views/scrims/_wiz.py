@@ -8,6 +8,7 @@ from models import Scrim
 from string import ascii_uppercase
 from ._btns import *
 import discord
+from utils import discord_timestamp as dt
 
 __all__ = ("ScrimSetup",)
 
@@ -42,13 +43,15 @@ class ScrimSetup(ScrimsView):
         _e.description = f"[`Scrim Creation is a piece of cake through dashboard, Click Me`]({d_link})\n\n"
 
         fields = {
-            "Registration Channel": getattr(self.record.registration_channel, "mention", "`Not-Set`"),
+            "Reg. Channel": getattr(self.record.registration_channel, "mention", "`Not-Set`"),
             "Slotlist Channel": getattr(self.record.slotlist_channel, "mention", "`Not-Set`"),
             "Success Role": getattr(self.record.role, "mention", "`Not-Set`"),
-            "Required Mentions": f"`{self.record.required_mentions}`",
+            "Req. Mentions": f"`{self.record.required_mentions}`",
             "Total Slots": f"`{self.record.total_slots or 'Not-Set'}`",
-            "Open Time": self.record.open_time.strftime("%I:%M %p") if self.record.open_time else "`Not-Set`",
-            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:3]), self.record.open_days)),
+            "Open Time": f"{dt(self.record.open_time,'t')} ({dt(self.record.open_time)})"
+            if self.record.open_time
+            else "`Not-Set`",
+            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days)),
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
         }
 
@@ -58,6 +61,9 @@ class ScrimSetup(ScrimsView):
                 value=value,
             )
         _e.add_field(name="\u200b", value="\u200b")
+        _e.set_footer(
+            text="Quotient Premium servers can set custom reactions.", icon_url=self.ctx.guild.me.display_avatar.url
+        )
 
         return _e
 

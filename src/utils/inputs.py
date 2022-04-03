@@ -163,7 +163,9 @@ async def integer_input(ctx: Context, check=None, timeout=120, limits=(None, Non
         return int(message.content)
 
 
-async def time_input(ctx: Context, check, timeout=120, delete_after=False):
+async def time_input(ctx: Context, check=None, timeout=120, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
+
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
@@ -182,7 +184,7 @@ async def time_input(ctx: Context, check, timeout=120, delete_after=False):
             if delete_after:
                 await safe_delete(message)
 
-            if datetime.now(tz=IST) > parsed:
+            while datetime.now(tz=IST) > parsed:
                 parsed = parsed + timedelta(hours=24)
 
             return parsed
