@@ -135,15 +135,42 @@ class SetEmojis(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error(
+                "[Quotient Premium](https://quotientbot.xyz/premium) is required to use this feature.", 4
+            )
 
+        e = discord.Embed(color=self.ctx.bot.color, title="Edit scrims emojis")
 
-class SetEmojis(ScrimsButton):
-    def __init__(self, ctx: Context, letter: str):
-        super().__init__(emoji=ri(letter))
-        self.ctx = ctx
+        e.description = (
+            "Which emojis do you want to use for tick and cross in scrims registrations?\n\n"
+            "`Please enter two emojis and separate them with a comma`"
+        )
 
-    async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
+        e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/888097255607906354/unknown.png")
+        e.set_footer(text="The first emoji must be the emoji for tick mark.")
+
+        m = await interaction.followup.send(embed=e)
+        emojis = await inputs.string_input(self.ctx, delete_after=True)
+
+        await self.ctx.safe_delete(m)
+
+        emojis = emojis.strip().split(",")
+        if not len(emojis) == 2:
+            return await interaction.followup.send("You didn't enter the correct format.", ephemeral=True)
+
+        check, cross = emojis
+
+        for emoji in emojis:
+            try:
+                await self.view.message.add_reaction(emoji.strip())
+                await self.view.message.clear_reactions()
+            except discord.HTTPException:
+                return await interaction.followup.send("One of the emojis you entered is invalid.", ephemeral=True)
+
+        self.view.record.emojis = {"tick": check.strip(), "cross": cross.strip()}
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, emojis=self.view.record.emojis)
 
 
 class SetAutoclean(ScrimsButton):

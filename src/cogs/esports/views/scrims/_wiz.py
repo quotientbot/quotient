@@ -26,10 +26,9 @@ class ScrimSetup(ScrimsView):
         self.add_item(SetMentions(ctx, "d"))
         self.add_item(TotalSlots(ctx, "e"))
         self.add_item(OpenTime(ctx, "f"))
-        self.add_item(SetEmojis(ctx, "g"))
 
-        self.add_item(OpenDays(ctx, "h"))
-        self.add_item(SetEmojis(ctx, "i"))
+        self.add_item(OpenDays(ctx, "g"))
+        self.add_item(SetEmojis(ctx, "h"))
         self.add_item(Discard(ctx, "Cancel"))
         self.add_item(SaveScrim(ctx))
 

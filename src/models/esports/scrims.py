@@ -18,6 +18,7 @@ import asyncio
 import utils
 import io
 
+from core import Context
 
 from utils import discord_timestamp, plural, truncate_string
 
@@ -423,6 +424,15 @@ class Scrim(BaseDbModel):
         await ReservedSlot.filter(pk__in=[_.pk for _ in _re]).delete()
         await self.delete()
 
+
+
+    async def confirm_all_scrims(self,ctx:Context,**kwargs):
+        prompt = await ctx.prompt("Do you want to apply these changes to all scrims in this server?")
+        if not prompt:
+            return await ctx.simple("Alright, this scrim only.",4)
+        
+        await Scrim.filter(guild_id=ctx.guild.id).update(**kwargs)
+        await ctx.simple("This change was applied to all your scrims.",4)
 
 class BaseSlot(models.Model):
     class Meta:
