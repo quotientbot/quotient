@@ -15,6 +15,7 @@ class QuotientView(discord.ui.View):
     def __init__(self, ctx: Context, *, timeout=30):
         super().__init__(timeout=timeout)
         self.ctx = ctx
+        self.bot = ctx.bot
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.ctx.author.id:
