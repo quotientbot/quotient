@@ -4,7 +4,7 @@ from core.Context import Context
 
 import discord
 from .views import QuotientView
-from utils import keycap_digit as kd
+from utils import keycap_digit as kd, string_input, truncate_string
 
 _d = {
     "Content": 1,
@@ -29,7 +29,9 @@ class EmbedOptions(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
         if (selected := _d[self.values[0]]) == 1:
-            ...
+            m = await self.ctx.simple("What message should be displayed above the embed? (Max `1000 chars`)", 60)
+            self.content = truncate_string(await string_input(self.ctx, timeout=60, delete_after=True), 1000)
+            await self.ctx.safe_delete(m)
 
         elif selected == 2:
             ...
@@ -68,7 +70,9 @@ class EmbedBuilder(QuotientView):
 
         self.add_item(EmbedOptions(self.ctx))
 
+    @property
+    def fomatted(self):
+        return {"content": self.content, "embed": self.embed.to_dict()}
 
-class ContentInput(discord.ui.Modal):
-    def __init__(self):
-        super().__init__()
+    async def refresh_view(self):
+        self.message = ...
