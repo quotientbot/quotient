@@ -206,7 +206,17 @@ class OpenDays(ScrimsButton):
         self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
+        from ._days import WeekDays
+
         await interaction.response.defer()
+        v = discord.ui.View(timeout=60.0)
+        v.add_item(WeekDays())
+
+        await interaction.followup.send("Please select the days to open registrations:", view=v, ephemeral=True)
+        await v.wait()
+        if c := getattr(v, "custom_id", None):
+            self.view.record.open_days = c
+            await self.view.refresh_view()
 
 
 class MultiReg(ScrimsButton):

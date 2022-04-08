@@ -20,6 +20,8 @@ _d = {
 
 
 class EmbedOptions(discord.ui.Select):
+    view: EmbedBuilder
+
     def __init__(self, ctx: Context):
         self.ctx = ctx
         super().__init__(
@@ -30,7 +32,7 @@ class EmbedOptions(discord.ui.Select):
         await interaction.response.defer()
         if (selected := _d[self.values[0]]) == 1:
             m = await self.ctx.simple("What message should be displayed above the embed? (Max `1000 chars`)", 60)
-            self.content = truncate_string(await string_input(self.ctx, timeout=60, delete_after=True), 1000)
+            self.view.content = truncate_string(await string_input(self.ctx, timeout=60, delete_after=True), 1000)
             await self.ctx.safe_delete(m)
 
         elif selected == 2:
