@@ -227,23 +227,13 @@ class MultiReg(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+        self.view.record.multiregister = not self.view.record.multiregister
+        await self.ctx.success(
+            f"Now users **{'can' if self.view.record.multiregister else 'can not'}** register more than once.", 3
+        )
+        await self.view.refresh_view()
 
-class MultiReg(ScrimsButton):
-    def __init__(self, ctx: Context, letter: str):
-        super().__init__(emoji=ri(letter))
-        self.ctx = ctx
-
-    async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
-
-
-class MultiReg(ScrimsButton):
-    def __init__(self, ctx: Context, letter: str):
-        super().__init__(emoji=ri(letter))
-        self.ctx = ctx
-
-    async def callback(self, interaction: Interaction):
-        await interaction.response.defer()
+        await self.view.record.confirm_all_scrims(self.ctx, multiregister=self.view.record.multiregister)
 
 
 class TeamCompulsion(ScrimsButton):
@@ -253,6 +243,12 @@ class TeamCompulsion(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+        self.view.record.teamname_compulsion = not self.view.record.teamname_compulsion
+        await self.ctx.success(
+            f"Now Team Name **{'is' if self.view.record.teamname_compulsion else 'is not'}** required to register.", 3
+        )
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, teamname_compulsion=self.view.record.teamname_compulsion)
 
 
 class DuplicateTeam(ScrimsButton):
@@ -263,6 +259,14 @@ class DuplicateTeam(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+        self.view.record.no_duplicate_name = not self.view.record.no_duplicate_name
+        await self.ctx.success(
+            f"Duplicate team names are now **{'not allowed' if self.view.record.no_duplicate_name else 'allowed'}**.", 3
+        )
+        await self.view.refresh_view()
+
+        await self.view.record.confirm_all_scrims(self.ctx, no_duplicate_name=self.view.record.no_duplicate_name)
+
 
 class DeleteReject(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
@@ -271,6 +275,13 @@ class DeleteReject(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+        self.view.record.autodelete_rejects = not self.view.record.autodelete_rejects
+        await self.ctx.success(
+            f"Rejected registrations will **{'be' if self.view.record.autodelete_rejects else 'not be'}** deleted automatically.",
+            3,
+        )
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, autodelete_rejects=self.view.record.autodelete_rejects)
 
 
 class DeleteLate(ScrimsButton):
@@ -280,6 +291,14 @@ class DeleteLate(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+
+        self.view.record.autodelete_extras = not self.view.record.autodelete_extras
+        await self.ctx.success(
+            f"Late/Extra registration messages will **{'be' if self.view.record.autodelete_extras else 'not be'}** deleted automatically.",
+            3,
+        )
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, autodelete_extras=self.view.record.autodelete_extras)
 
 
 class SlotlistStart(ScrimsButton):
