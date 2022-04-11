@@ -42,7 +42,7 @@ class Utility(Cog, name="utility"):
         self.bot = bot
 
     @commands.group(aliases=("timer", "remind"), invoke_without_command=True)
-    async def reminder(self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")):
+    async def reminder(self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")):  # noqa: F722
         """Reminds you of something after a certain amount of time.
 
         The input can be any direct date (e.g. YYYY-MM-DD) or a human
