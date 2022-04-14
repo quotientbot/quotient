@@ -9,7 +9,7 @@ import discord
 
 from ._wiz import ScrimSetup
 from models import Scrim
-from utils import emote
+from utils import emote, discord_timestamp
 
 
 class ScrimsMain(EsportsBaseView):
@@ -19,11 +19,13 @@ class ScrimsMain(EsportsBaseView):
         self.ctx = ctx
 
     async def initial_embed(self):
-        _e = discord.Embed(color=0x00FFB3, description="Smart Scrims Manager", url=self.ctx.config.SERVER_LINK)
+        _e = discord.Embed(color=0x00FFB3, title="Smart Scrims Manager", url=self.ctx.config.SERVER_LINK)
 
         to_show = []
         for idx, _r in enumerate(await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time"), start=1):
-            to_show.append(f"`{idx}.` {(emote.xmark,emote.check)[_r.stoggle]}: {str(_r)} ")
+            to_show.append(
+                f"`{idx}.` {(emote.xmark,emote.check)[_r.stoggle]}: {str(_r)} - {discord_timestamp(_r.open_time,'t')}"
+            )
 
         _e.description = "\n".join(to_show) if to_show else "```Click Create button for new Scrim.```"
 

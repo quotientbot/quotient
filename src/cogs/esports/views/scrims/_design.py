@@ -39,9 +39,9 @@ class ScrimDesign(ScrimsView):
         await inter.response.defer()
 
     @discord.ui.button(emoji=ri("c"))
-    async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):
+    async def pre_reg_msg(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
 
     @discord.ui.button(emoji=ri("d"))
-    async def pre_reg_msg(self, btn: discord.ui.Button, inter: discord.Interaction):
+    async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
