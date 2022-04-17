@@ -4,7 +4,7 @@ from tortoise import fields, exceptions
 from discord.ext.commands import BadArgument
 
 from typing import Optional, List, Union
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 
 from models import BaseDbModel
 
@@ -13,8 +13,8 @@ from utils import split_list
 import discord
 
 _dict = {
-    "tick": "✅",
-    "cross": "❌",
+    "tick": "\N{WHITE HEAVY CHECK MARK}",
+    "cross": "\N{CROSS MARK}",
 }
 
 from core import Context

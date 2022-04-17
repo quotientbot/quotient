@@ -4,7 +4,7 @@ from __future__ import annotations
 from core import Context
 from models import Tourney
 
-from ._buttons import *
+from ._buttons import *  # noqa: F401, F403
 from string import ascii_uppercase
 from ._base import TourneyView
 

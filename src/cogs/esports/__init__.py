@@ -10,34 +10,27 @@ from core import Cog, Context, QuotientView
 from contextlib import suppress
 from .helpers import (
     delete_denied_message,
-    log_scrim_ban,
     scrim_work_role,
-    toggle_channel,
     scrim_end_process,
-    tourney_work_role,
     registration_close_embed,
     registration_open_embed,
-    t_ask_embed,
     MultiScrimConverter,
 )
 
 from utils import (
     inputs,
     checks,
-    FutureTime,
     human_timedelta,
     QuoRole,
     QuoTextChannel,
     QuoUser,
     QuoPaginator,
-    LinkType,
-    LinkButton,
     discord_timestamp,
 )
 
-from constants import IST, EsportsRole, ScrimBanType
+from constants import IST
 from discord.ext.commands.cooldowns import BucketType
-from models import *
+from models import *  # noqa: F401, F403
 from datetime import datetime, timedelta
 from discord.ext import commands
 
@@ -47,8 +40,8 @@ from .errors import ScrimError, SMError, TourneyError, PointsError
 
 import discord
 import config
-from .menus import *
-from .views import *
+from .menus import *  # noqa: F401, F403
+from .views import *  # noqa: F401, F403
 
 
 class ScrimManager(Cog, name="Esports"):

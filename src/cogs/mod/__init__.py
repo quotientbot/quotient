@@ -11,8 +11,8 @@ from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
 from core import Cog, Context, QuotientView, role_command_check
 from models import Lockdown
 from discord.ext import commands
-from .events import *
-from .views import *
+from .events import *  # noqa: F401, F403
+from .views import *  # noqa: F401, F403
 
 from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser, human_timedelta, plural
 from constants import LockType

@@ -3,7 +3,7 @@ from datetime import timedelta
 from models import BaseDbModel, Timer
 
 from tortoise import fields, models
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 
 from constants import AutocleanType, Day
 from PIL import Image, ImageFont, ImageDraw

@@ -1,7 +1,7 @@
 from models import BaseDbModel
 
 from tortoise import fields
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 import config
 import discord
 
