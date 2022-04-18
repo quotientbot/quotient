@@ -10,7 +10,7 @@ import discord
 
 import config
 
-from ._buttons import *
+from ._buttons import *  # noqa: F401, F403
 
 __all__ = ("SetupWizard",)
 

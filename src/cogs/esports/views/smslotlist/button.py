@@ -9,7 +9,7 @@ import typing as T
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from .editor import *
+from .editor import *  # noqa: F401, F403
 
 from tortoise.exceptions import OperationalError
 from .select import prompt_slot_selection, BanOptions

@@ -1,4 +1,4 @@
-from models import *
+from models import *  # noqa: F401, F403
 from utils import QuoMember
 from discord.ext import commands
 from discord.ext.commands import Converter, BadArgument

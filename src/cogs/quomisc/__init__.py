@@ -19,7 +19,7 @@ import inspect
 
 from .views import MoneyButton, VoteButton, SetupButtonView
 
-from .dev import *
+from .dev import *  # noqa: F401, F403
 import discord
 import pygit2
 import pkg_resources
