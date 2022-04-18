@@ -84,7 +84,7 @@ class SockPrime(Cog):
                         url="https://media.discordapp.net/attachments/925259723379449908/941281803677892658/reals.png"
                     )
 
-                    return await member.send(embed=_f)
+                    await member.send(embed=_f)
 
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
