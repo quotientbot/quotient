@@ -148,7 +148,7 @@ async def scrim_end_process(ctx: Context, scrim: Scrim):
         check = lambda x: all(
             (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
         )
-        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check, wait_for=20))
+        ctx.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
 
 
 async def purge_channel(channel):
