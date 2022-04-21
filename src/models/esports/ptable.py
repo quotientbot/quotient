@@ -1,5 +1,5 @@
 from tortoise import models, fields
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 
 
 class PtableTourney(models.Model):

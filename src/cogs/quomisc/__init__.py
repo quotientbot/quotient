@@ -19,7 +19,7 @@ import inspect
 
 from .views import MoneyButton, VoteButton, SetupButtonView
 
-from .dev import *
+from .dev import *  # noqa: F401, F403
 import discord
 import pygit2
 import pkg_resources
@@ -279,7 +279,7 @@ class Quomisc(Cog, name="quomisc"):
         e = self.bot.embed(ctx, title="Vote for Quotient")
         e.description = (
             "**Rewards**\n"
-            "<a:roocool:917297222989795339> Voter Role `12 hrs`\n"
+            "<a:roocool:962749077831942276> Voter Role `12 hrs`\n"
             f"{self.bot.config.PRIME_EMOJI} Quo Coin `x1`"
         )
         e.set_thumbnail(url=self.bot.user.display_avatar.url)

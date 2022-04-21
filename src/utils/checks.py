@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
-from .exceptions import *
+from .exceptions import *  # noqa: F401, F403
 from models import User, Guild
 
 

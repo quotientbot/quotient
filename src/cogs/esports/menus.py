@@ -1,19 +1,17 @@
-from datetime import datetime
 
 from unicodedata import normalize
 from ast import literal_eval
 import aiohttp
-from prettytable import PrettyTable
+
 import config
 from discord.ext import menus
 from discord.ext.menus import Button
-import string, textwrap
-from models import Scrim, AssignedSlot, Tourney
-from models.esports import ReservedSlot
-from utils import *
-from models.helpers import *
+import string
+from models import Scrim
+from utils import *  # noqa: F401, F403
+from models.helpers import *  # noqa: F401, F403
 import constants
-from .errors import ScrimError, TourneyError
+from .errors import ScrimError
 from .helpers import (
     already_reserved,
     available_to_reserve,
