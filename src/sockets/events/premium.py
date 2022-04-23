@@ -30,6 +30,8 @@ class SockPrime(Cog):
                 "Unlimited media partner channels.",
                 "Unlimited ssverification channels.",
                 "Premium role in our server + several other benefits...",
+                "Flantic Bot Premium for 1 Month (worth $3)",
+                "Real Bot Premium for 1 Month (worth $3)",
             ],
         )
 
