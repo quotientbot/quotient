@@ -17,6 +17,7 @@ class SockPrime(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.hook = discord.Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
+        self.flantic_hook = discord.Webhook.from_url(self.bot.config.FLANTIC_PREMIUM, session=self.bot.session)
 
     @Cog.listener()
     async def on_request__perks(self, u, data):
@@ -67,26 +68,8 @@ class SockPrime(Cog):
             await member.send(embed=_e)
 
             if data["details"]["amount"] != "29.00":
-                async with self.bot.session.get(self.bot.config.REAL_PREMIUM + str(member.id)) as res:
-                    res = await res.json()
-
-                    _f = discord.Embed(
-                        color=self.bot.color, title="Quotient x RealMusic", url=self.bot.config.SERVER_LINK
-                    )
-                    _f.description = (
-                        "Quotient has partnered with Real, An Extraordinary Music Bot With Slash Commands, "
-                        "Spotify Support, DJ System, Request Channel, And Much More!\n\n"
-                        "With your Quotient Prime purchase, you have received **One Month Premium of Real Bot.**"
-                        "\n\n__Please follow these steps:__\n"
-                        "1. [Invite Real Music Bot](https://top.gg/bot/802812378558889994)\n"
-                        "2. Use `!!redeem {0}` in your server.".format(res["code"])
-                    )
-
-                    _f.set_thumbnail(
-                        url="https://media.discordapp.net/attachments/925259723379449908/941281803677892658/reals.png"
-                    )
-
-                    await member.send(embed=_f)
+                await self.ping_flantic(user_id)
+                await self.give_real(member)
 
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
@@ -103,3 +86,30 @@ class SockPrime(Cog):
         #         )
 
         ...
+
+    async def give_real(self, member: discord.Member | discord.User):
+        async with self.bot.session.get(self.bot.config.REAL_PREMIUM + str(member.id)) as res:
+            if not res.status == 200:
+                return
+
+            res = await res.json()
+
+            _f = discord.Embed(color=self.bot.color, title="Quotient x RealMusic", url=self.bot.config.SERVER_LINK)
+            _f.description = (
+                "Quotient has partnered with Real, An Extraordinary Music Bot With Slash Commands, "
+                "Spotify Support, DJ System, Request Channel, And Much More!\n\n"
+                "With your Quotient Prime purchase, you have received **One Month Premium of Real Bot.**"
+                "\n\n__Please follow these steps:__\n"
+                "1. [Invite Real Music Bot](https://top.gg/bot/802812378558889994)\n"
+                "2. Use `!!redeem {0}` in your server.".format(res["code"])
+            )
+
+            _f.set_thumbnail(
+                url="https://media.discordapp.net/attachments/925259723379449908/941281803677892658/reals.png"
+            )
+
+            with suppress(discord.HTTPException):
+                await member.send(embed=_f)
+
+    async def ping_flantic(self, user_id):
+        await self.flantic_hook.send(content=user_id)
