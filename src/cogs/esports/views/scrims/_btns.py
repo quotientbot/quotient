@@ -309,6 +309,17 @@ class SlotlistStart(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+        m = await self.ctx.success(
+            f"From which slot number do you want to start the slotlist? (Enter a number between 1 and {self.view.record.total_slots})"
+        )
+        self.view.record.start_from = await inputs.integer_input(
+            self.ctx, delete_after=True, limits=(1, self.view.record.total_slots)
+        )
+
+        await self.ctx.safe_delete(m)
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, start_from=self.view.record.start_from)
+
 
 class Discard(ScrimsButton):
     def __init__(self, ctx: Context, label="Back"):
