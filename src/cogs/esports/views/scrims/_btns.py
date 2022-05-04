@@ -3,11 +3,12 @@ from __future__ import annotations
 from core import Context
 import discord
 
-from utils import regional_indicator as ri, inputs, truncate_string, emote
+from utils import regional_indicator as ri, inputs, truncate_string, discord_timestamp as dt
 
 from ._base import ScrimsButton
 from contextlib import suppress
 
+from datetime import timedelta
 from models import Scrim
 from discord import Interaction
 
@@ -343,3 +344,27 @@ class SaveScrim(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+
+        self.ctx.bot.loop.create_task(self.view.record.setup_logs())
+        await self.view.record.save()
+
+        await self.ctx.bot.reminders.create_timer(self.view.record.open_time, "scrim_open", scrim_id=self.view.record.id)
+
+        self.view.record.autoclean_time = self.ctx.bot.current_time.replace(
+            hour=4, minute=0, second=0, microsecond=0
+        ) + timedelta(days=1)
+
+        await self.ctx.bot.reminders.create_timer(
+            self.view.record.autoclean_time, "autoclean", scrim_id=self.view.record.id
+        )
+
+        self.view.stop()
+        await self.ctx.success(f"Scrim was successfully created. (Registration in: {dt(self.view.record.open_time)})", 5)
+
+        from .main import ScrimsMain
+
+        view = ScrimsMain(self.ctx)
+        view.message = await self.view.message.edit(embed=await view.initial_embed(), view=view)
+
+
+#!add option to add this scrim to cancel claim
