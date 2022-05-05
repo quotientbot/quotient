@@ -122,6 +122,7 @@ class OpenTime(ScrimsButton):
         m = await self.ctx.simple(
             "At what time do you want me to open registrations daily?\n\nTime examples:",
             image="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
+            footer="Time is according to Indian Standard Time (UTC+05:30)",
         )
         self.view.record.open_time = await inputs.time_input(self.ctx, delete_after=True)
         await self.ctx.safe_delete(m)
@@ -182,6 +183,11 @@ class SetAutoclean(ScrimsButton):
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
 
+        from ._ac import AutocleanView
+        self.view.stop()
+
+        view = AutocleanView(self.ctx, self.view.record)
+        view.message = await self.view.message.edit(embed=view.initial_embed,view=view)
 
 class PingRole(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
