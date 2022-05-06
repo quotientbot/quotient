@@ -501,7 +501,6 @@ class ScrimManager(Cog, name="Esports"):
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
-    @checks.has_done_setup()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     async def s_slotlist_format(self, ctx, scrim: Scrim):
