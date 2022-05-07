@@ -35,6 +35,7 @@ class EmbedOptions(discord.ui.Select):
             m = await self.ctx.simple("What message should be displayed above the embed? (Max `1000 chars`)", 60)
             self.view.content = truncate_string(await string_input(self.ctx, timeout=60, delete_after=True), 1000)
             await self.ctx.safe_delete(m)
+            await self.view.refresh_view()
 
         elif selected == 2:
             ...
@@ -62,14 +63,13 @@ class EmbedOptions(discord.ui.Select):
 
 
 class EmbedBuilder(QuotientView):
-    def __init__(self, ctx: Context, message=None, content=None, embed=None):
+    def __init__(self, ctx: Context):
         super().__init__(ctx, timeout=100)
 
         self.ctx = ctx
 
-        self.message: discord.Message = message
-        self.content = content or ""
-        self.embed = embed or discord.Embed(color=self.bot.color)
+        self.content = self.message.content or ""
+        self.embed = (discord.Embed(color=self.bot.color), self.message.embeds[0])[self.message.embeds != []]
 
         self.add_item(EmbedOptions(self.ctx))
 
@@ -78,4 +78,7 @@ class EmbedBuilder(QuotientView):
         return {"content": self.content, "embed": self.embed.to_dict()}
 
     async def refresh_view(self):
-        self.message = ...
+        self.message = await self.message.edit(content=self.content, embed=self.embed, view=self)
+
+    async def rendor(self, **kwargs):
+        ...
