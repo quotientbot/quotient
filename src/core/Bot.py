@@ -282,7 +282,7 @@ class Quotient(commands.AutoShardedBot):
         self, channel: discord.TextChannel, message_id: int, *, cache: bool=True, fetch: bool=True
     ) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
-        if msg := self.get_message(message_id) and cache
+        if msg := self.get_message(message_id) and cache:
             return msg
         try:
             return self.message_cache[message_id]
