@@ -279,7 +279,7 @@ class Quotient(commands.AutoShardedBot):
             return _result
 
     async def get_or_fetch_message(
-        self, channel: discord.TextChannel, message_id: int, *, cache: bool=False, fetch: bool=True
+        self, channel: discord.TextChannel, message_id: int, *, cache: bool=True, fetch: bool=True
     ) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
         if msg := self.get_message(message_id) and cache
