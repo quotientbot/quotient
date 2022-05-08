@@ -177,7 +177,7 @@ class Quotient(commands.AutoShardedBot):
         await self.session.close()
         await Tortoise.close_connections()
 
-    def get_message(self, message_id: int) -> discord.Message:
+    def get_message(self, message_id: int) -> Optional[discord.Message]:
         """Gets the message from the cache"""
         return self._connection._get_message(message_id)
 
@@ -278,14 +278,20 @@ class Quotient(commands.AutoShardedBot):
         else:
             return _result
 
-    async def get_or_fetch_message(self, channel: discord.TextChannel, message_id: int) -> Optional[discord.Message]:
+    async def get_or_fetch_message(
+        self, channel: discord.TextChannel, message_id: int, *, cache: bool=False, fetch: bool=True
+    ) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
+        if msg := self.get_message(message_id) and cache
+            return msg
         try:
             return self.message_cache[message_id]
             # scripting is always faster than `.get()`
         except KeyError:
-            before = discord.Object(message_id + 1)
-            after = discord.Object(message_id - 1)
+            pass
+        before = discord.Object(message_id + 1)
+        after = discord.Object(message_id - 1)
+        if fetch:
             async for msg in channel.history(limit=1, before=before, after=after):
                 if msg:
                     self.message_cache[msg.id] = msg
