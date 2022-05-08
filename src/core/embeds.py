@@ -121,7 +121,8 @@ class EmbedOptions(discord.ui.Select):
             color = 0x36393E
 
             with suppress(ValueError):
-                color = int(str(await QuoColor.convert(self.ctx, modal._color.value)).replace("#", ""), 16)
+                if modal._color.value:
+                    color = int(str(await QuoColor.convert(self.ctx, modal._color.value)).replace("#", ""), 16)
 
             self.view.embed.color = color
 
