@@ -7,7 +7,6 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import wraps, partial
 from discord.ext.commands import converter
 
-from .exceptions import InvalidColor
 from typing import Optional
 import asyncio
 
@@ -68,7 +67,7 @@ class QuoColor:
         if result:
             return result
 
-        raise InvalidColor(arg)
+        return await ctx.error(f"`{arg}` isn't a valid color.", 4)
 
 
 class BannedMember(commands.Converter):
