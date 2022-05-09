@@ -20,7 +20,6 @@ class MsgType(Enum):
     countdown = "3"
 
 
-# TODO: check if scrim instance is updated by updating open msg and then opening it again
 class ScrimDesign(ScrimsView):
     def __init__(self, ctx: Context, scrim: Scrim):
         super().__init__(ctx, timeout=60.0)
@@ -40,6 +39,10 @@ class ScrimDesign(ScrimsView):
     @staticmethod
     def default_close_msg():
         return discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
+
+    @staticmethod
+    def default_countdown_msg():
+        return discord.Embed(color=config.COLOR, description="*Registration is starting in* **`<<t>>` seconds.**")
 
     @property
     def initial_embed(self):
