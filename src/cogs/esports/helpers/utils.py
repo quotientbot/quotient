@@ -1,21 +1,21 @@
-from contextlib import suppress
+import asyncio
 import io
+import re
+from ast import literal_eval
+from contextlib import suppress
+from datetime import datetime
 from typing import Optional, Union
 
-from prettytable.prettytable import PrettyTable
-from ast import literal_eval
-from models import Scrim, Tourney
-from datetime import datetime
-import constants, humanize
-
-from utils import find_team, strtime, QuoUser, plural, human_timedelta
 import discord
-import config
-import asyncio
-import re
+import humanize
+from prettytable.prettytable import PrettyTable
 
+import config
+import constants
+from constants import IST, ScrimBanType
 from core import Context
-from constants import ScrimBanType, IST
+from models import Scrim, Tourney
+from utils import QuoUser, find_team, human_timedelta, plural, strtime
 
 
 def get_slots(slots):

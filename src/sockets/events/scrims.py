@@ -5,9 +5,10 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from ..schemas import BaseScrim, SockResponse
 from core import Cog
 from models import Scrim
+
+from ..schemas import BaseScrim, SockResponse
 
 __all__ = ("SocketScrims",)
 

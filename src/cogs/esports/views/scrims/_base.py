@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import discord
 
-from ...views.base import EsportsBaseView
 from models import Scrim
+
+from ...views.base import EsportsBaseView
 
 __all__ = ("ScrimsView", "ScrimsButton")
 

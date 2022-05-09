@@ -1,8 +1,8 @@
+from .cmds import CmdEvents
+from .errors import Errors
 from .main import MainEvents
 from .tasks import QuoTasks
-from .cmds import CmdEvents
 from .votes import VotesCog
-from .errors import Errors
 
 
 def setup(bot):

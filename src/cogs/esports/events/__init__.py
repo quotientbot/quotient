@@ -1,6 +1,5 @@
 from .scrims import ScrimEvents
-from .tourneys import TourneyEvents
-
 from .slots import SlotManagerEvents
-from .tags import TagEvents
 from .ssverify import Ssverification
+from .tags import TagEvents
+from .tourneys import TourneyEvents

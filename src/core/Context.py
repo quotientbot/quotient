@@ -1,12 +1,13 @@
+import asyncio
+import io
 from contextlib import suppress
-from discord.ext import commands
-import discord, asyncio
 
-import utils, io
-
+import discord
 from async_property import async_property
+from discord.ext import commands
 
 import config as cfg
+import utils
 
 
 class Context(commands.Context):

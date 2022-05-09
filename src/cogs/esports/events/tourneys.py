@@ -1,31 +1,28 @@
 from __future__ import annotations
-from contextlib import suppress
 
 import typing
+from contextlib import suppress
+
 from cogs.esports.helpers.tourney import get_tourney_from_channel
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-from models import Tourney, TMSlot, MediaPartner, PartnerSlot, TGroupList
-
-from ..helpers import (
-    before_registrations,
-    cannot_take_registration,
-    check_tourney_requirements,
-    get_tourney_slots,
-    update_confirmed_message,
-)
+import asyncio
 from unicodedata import normalize
-from constants import EsportsLog, RegDeny
-
-from utils import truncate_string
-from tortoise.exceptions import DoesNotExist
 
 import discord
-import asyncio
+from tortoise.exceptions import DoesNotExist
+
 import utils
+from constants import EsportsLog, RegDeny
+from core import Cog
+from models import MediaPartner, PartnerSlot, TGroupList, TMSlot, Tourney
+from utils import truncate_string
+
+from ..helpers import (before_registrations, cannot_take_registration,
+                       check_tourney_requirements, get_tourney_slots,
+                       update_confirmed_message)
 
 
 class TourneyEvents(Cog):

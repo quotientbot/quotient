@@ -1,9 +1,10 @@
 from contextlib import suppress
+
 import discord
-from core import Context
-from utils import emote
 
 import config
+from core import Context
+from utils import emote
 
 __all__ = ("QuotientView",)
 

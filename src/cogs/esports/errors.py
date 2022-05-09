@@ -5,27 +5,18 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from models import (
-    Scrim,
-    Timer,
-    ReservedSlot,
-    Tourney,
-    AssignedSlot,
-    ArrayAppend,
-    TagCheck,
-    EasyTag,
-)
-from .helpers import (
-    delete_denied_message,
-    scrim_work_role,
-    tourney_work_role,
-)
-from constants import EsportsRole, EsportsLog, RegDeny
-from discord.ext import commands
 from contextlib import suppress
-from utils import plural
-from core import Cog
+
 import discord
+from discord.ext import commands
+
+from constants import EsportsLog, EsportsRole, RegDeny
+from core import Cog
+from models import (ArrayAppend, AssignedSlot, EasyTag, ReservedSlot, Scrim,
+                    TagCheck, Timer, Tourney)
+from utils import plural
+
+from .helpers import delete_denied_message, scrim_work_role, tourney_work_role
 
 
 class ScrimError(commands.CommandError):

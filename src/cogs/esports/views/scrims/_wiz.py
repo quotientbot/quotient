@@ -1,14 +1,16 @@
 from __future__ import annotations
-import typing as T
 
-from ._base import ScrimsView
+import typing as T
+from string import ascii_uppercase
+
+import discord
+
 from core import Context
 from models import Scrim
-
-from string import ascii_uppercase
-from ._btns import *
-import discord
 from utils import discord_timestamp as dt
+
+from ._base import ScrimsView
+from ._btns import *
 
 __all__ = ("ScrimSetup",)
 

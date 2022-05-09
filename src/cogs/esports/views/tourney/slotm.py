@@ -1,23 +1,22 @@
 from __future__ import annotations
+
 from contextlib import suppress
+from typing import TYPE_CHECKING, List
 
-from models import Tourney, TMSlot
-
+from models import TMSlot, Tourney
 from utils import BaseSelector, Prompt, emote, truncate_string
-
-from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core import Quotient
 
-from ...helpers import update_confirmed_message
+import asyncio
 
+import discord
 from tortoise.query_utils import Q
 
 import config
-import discord
 
-import asyncio
+from ...helpers import update_confirmed_message
 
 
 class TCancelSlotSelector(discord.ui.Select):

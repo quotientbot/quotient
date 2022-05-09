@@ -1,17 +1,16 @@
 from __future__ import annotations
-import typing
 
+import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
+import discord
 from discord import Webhook
-from core import Cog
-
-from models import Votes, User, Timer
 
 import constants
-import discord
+from core import Cog
+from models import Timer, User, Votes
 
 
 class VotesCog(Cog):

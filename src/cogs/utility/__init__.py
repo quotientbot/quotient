@@ -1,40 +1,31 @@
 from __future__ import annotations
 
-from discord.utils import escape_markdown, escape_mentions
 import typing
+
+from discord.utils import escape_markdown, escape_mentions
+
 from cogs.utility.events import AutoPurgeEvents, ReminderEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context
-from discord.ext import commands
-from models import Tag, AutoPurge, Snipe
 from ast import literal_eval as leval
-from models import Autorole, ArrayAppend, ArrayRemove
-
-from utils import (
-    checks,
-    QuoColor,
-    QuoPaginator,
-    strtime,
-    plural,
-    QuoRole,
-    QuoMember,
-    QuoCategory,
-    QuoTextChannel,
-    simple_convert,
-    discord_timestamp,
-    UserFriendlyTime,
-    truncate_string,
-)
-from .functions import TagName, guild_tag_stats, increment_usage, TagConverter, is_valid_name, member_tag_stats
 from contextlib import suppress
-import discord
+from datetime import timedelta
 from io import BytesIO
 
+import discord
+from discord.ext import commands
 from humanize import precisedelta
-from datetime import timedelta
+
+from core import Cog, Context
+from models import ArrayAppend, ArrayRemove, AutoPurge, Autorole, Snipe, Tag
+from utils import (QuoCategory, QuoColor, QuoMember, QuoPaginator, QuoRole,
+                   QuoTextChannel, UserFriendlyTime, checks, discord_timestamp,
+                   plural, simple_convert, strtime, truncate_string)
+
+from .functions import (TagConverter, TagName, guild_tag_stats,
+                        increment_usage, is_valid_name, member_tag_stats)
 
 
 class Utility(Cog, name="utility"):

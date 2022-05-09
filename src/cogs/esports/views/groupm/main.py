@@ -1,19 +1,19 @@
 from __future__ import annotations
-from contextlib import suppress
 
 import typing as T
+from contextlib import suppress
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from ..base import EsportsBaseView
+
 from core import Context
-
-from ._paginator import GroupPages
 from models import Tourney
+from utils import inputs, keycap_digit
 
-from utils import keycap_digit, inputs
+from ..base import EsportsBaseView
+from ._paginator import GroupPages
 
 __all__ = ("TourneyGroupManager",)
 

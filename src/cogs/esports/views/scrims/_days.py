@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from constants import Day
 import discord
 
+from constants import Day
 from utils import keycap_digit
 
 __all__ = ("WeekDays",)

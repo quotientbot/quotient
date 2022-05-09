@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from string import ascii_uppercase
 
 from core import Context
 from models import Tourney
 
-from ._buttons import *
-from string import ascii_uppercase
 from ._base import TourneyView
+from ._buttons import *
 
 
 class TourneySetupWizard(TourneyView):

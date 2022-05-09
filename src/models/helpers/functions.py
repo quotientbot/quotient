@@ -1,8 +1,8 @@
 import typing
-from pypika.terms import Function
-from tortoise.expressions import F
 from enum import Enum
 
+from pypika.terms import Function
+from tortoise.expressions import F
 
 __all__ = (
     "ArrayAppend",

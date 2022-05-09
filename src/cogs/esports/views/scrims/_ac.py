@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import typing as T
-from ._base import EsportsBaseView
 
-from core import Context
-from utils import keycap_digit as kd, time_input
 import discord
 
-from models import Scrim, ArrayAppend, ArrayRemove
 from constants import AutocleanType
+from core import Context
+from models import ArrayAppend, ArrayRemove, Scrim
+from utils import keycap_digit as kd
+from utils import time_input
+
+from ._base import EsportsBaseView
 
 __all__ = ("AutocleanView",)
 

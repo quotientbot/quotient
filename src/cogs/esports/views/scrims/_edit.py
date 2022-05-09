@@ -1,13 +1,15 @@
 from __future__ import annotations
-import typing as T
 
-from ._base import ScrimsView
-from core import Context
-from models import Scrim
+import typing as T
+from string import ascii_uppercase
+
 import discord
 
-from string import ascii_uppercase
+from core import Context
+from models import Scrim
 from utils import regional_indicator as ri
+
+from ._base import ScrimsView
 
 
 class ScrimsEditor(ScrimsView):

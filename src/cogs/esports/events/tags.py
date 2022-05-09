@@ -5,15 +5,16 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
+import re
+from contextlib import suppress
+
 import discord
-from models import TagCheck, EasyTag
 
 import utils
-import re
+from core import Cog
+from models import EasyTag, TagCheck
 
-from contextlib import suppress
-from ..helpers import delete_denied_message, EasyMemberConverter
+from ..helpers import EasyMemberConverter, delete_denied_message
 
 
 class TagEvents(Cog):

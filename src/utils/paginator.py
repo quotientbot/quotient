@@ -1,7 +1,9 @@
 from contextlib import suppress
 from typing import NamedTuple, Optional
-from .default import get_chunks
+
 import discord
+
+from .default import get_chunks
 
 
 class Page(NamedTuple):

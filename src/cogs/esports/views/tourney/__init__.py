@@ -1,2 +1,2 @@
-from .slotm import *
 from .groups import *
+from .slotm import *

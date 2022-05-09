@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from constants import SSType
 import discord
 
+from constants import SSType
 from utils import BaseSelector
 
 

@@ -1,8 +1,9 @@
+from contextlib import suppress
 from typing import List, Union
-from models import Scrim
+
 import discord
 
-from contextlib import suppress
+from models import Scrim
 from utils import emote
 
 __all__ = ("ScrimSelectorView",)

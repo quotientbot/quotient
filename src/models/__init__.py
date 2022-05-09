@@ -17,8 +17,7 @@ class BaseDbModel(models.Model):
     bot: Quotient
 
 
-from .models import *
 from .esports import *
-from .misc import *
-
 from .helpers import *
+from .misc import *
+from .models import *

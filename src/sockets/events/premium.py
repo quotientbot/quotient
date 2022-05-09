@@ -1,14 +1,15 @@
 from __future__ import annotations
-from contextlib import suppress
+
 import typing as T
+from contextlib import suppress
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
 import discord
 
 from constants import random_greeting, random_thanks
+from core import Cog
 
 __all__ = ("SockPrime",)
 

@@ -6,8 +6,10 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from core import Context
+
 import discord
+
+from core import Context
 
 
 class EsportsBaseView(discord.ui.View):

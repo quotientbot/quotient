@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-
 from discord.ext import tasks
+
 import config
+from core import Cog
 
 
 class QuoTasks(Cog):

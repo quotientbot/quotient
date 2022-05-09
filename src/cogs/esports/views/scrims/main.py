@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 import typing as T
 
-from ...views.base import EsportsBaseView
-from core import Context
-
-from discord import ButtonStyle, ui, Interaction
 import discord
+from discord import ButtonStyle, Interaction, ui
 
-from ._wiz import ScrimSetup
+from core import Context
 from models import Scrim
-from utils import emote, discord_timestamp
+from utils import discord_timestamp, emote
+
+from ...views.base import EsportsBaseView
+from ._wiz import ScrimSetup
 
 
 class ScrimsMain(EsportsBaseView):

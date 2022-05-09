@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import typing
+
 from cogs.esports.events.slots import SlotManagerEvents
 from cogs.esports.views.scrims.main import ScrimsMain
 from cogs.esports.views.tourney.main import TourneyManager
@@ -7,47 +9,29 @@ from cogs.esports.views.tourney.main import TourneyManager
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context, QuotientView
 from contextlib import suppress
-from .helpers import (
-    delete_denied_message,
-    log_scrim_ban,
-    scrim_work_role,
-    toggle_channel,
-    scrim_end_process,
-    tourney_work_role,
-    registration_close_embed,
-    registration_open_embed,
-    t_ask_embed,
-    MultiScrimConverter,
-)
-
-from utils import (
-    inputs,
-    checks,
-    FutureTime,
-    human_timedelta,
-    QuoRole,
-    QuoTextChannel,
-    QuoUser,
-    QuoPaginator,
-    LinkType,
-    LinkButton,
-    discord_timestamp,
-)
-
-from constants import IST, EsportsRole, ScrimBanType
-from discord.ext.commands.cooldowns import BucketType
-from models import *
 from datetime import datetime, timedelta
-from discord.ext import commands
-
-from tortoise.query_utils import Q
-from .events import ScrimEvents, TourneyEvents, TagEvents, Ssverification
-from .errors import ScrimError, SMError, TourneyError, PointsError
 
 import discord
+from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
+from tortoise.query_utils import Q
+
 import config
+from constants import IST, EsportsRole, ScrimBanType
+from core import Cog, Context, QuotientView
+from models import *
+from utils import (FutureTime, LinkButton, LinkType, QuoPaginator, QuoRole,
+                   QuoTextChannel, QuoUser, checks, discord_timestamp,
+                   human_timedelta, inputs)
+
+from .errors import PointsError, ScrimError, SMError, TourneyError
+from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
+from .helpers import (MultiScrimConverter, delete_denied_message,
+                      log_scrim_ban, registration_close_embed,
+                      registration_open_embed, scrim_end_process,
+                      scrim_work_role, t_ask_embed, toggle_channel,
+                      tourney_work_role)
 from .menus import *
 from .views import *
 

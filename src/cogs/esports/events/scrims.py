@@ -5,31 +5,23 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-from models import Scrim, AssignedSlot, ArrayRemove, Timer, BannedTeam, BanLog
-
-from ..helpers import (
-    add_role_and_reaction,
-    scrim_end_process,
-    before_registrations,
-    cannot_take_registration,
-    check_scrim_requirements,
-    available_to_reserve,
-    toggle_channel,
-    scrim_work_role,
-    registration_open_embed,
-    should_open_scrim,
-    purge_channel,
-    purge_role,
-)
-from constants import EsportsLog, IST, Day, EsportsRole, AutocleanType
+import asyncio
 from contextlib import suppress
 from datetime import datetime, timedelta
 from unicodedata import normalize
 
 import discord
-import asyncio
+
 import utils
+from constants import IST, AutocleanType, Day, EsportsLog, EsportsRole
+from core import Cog
+from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
+
+from ..helpers import (add_role_and_reaction, available_to_reserve,
+                       before_registrations, cannot_take_registration,
+                       check_scrim_requirements, purge_channel, purge_role,
+                       registration_open_embed, scrim_end_process,
+                       scrim_work_role, should_open_scrim, toggle_channel)
 
 
 class ScrimEvents(Cog):

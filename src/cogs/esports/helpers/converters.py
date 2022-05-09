@@ -1,7 +1,8 @@
+from discord.ext import commands
+from discord.ext.commands import BadArgument, Converter
+
 from models import *
 from utils import QuoMember
-from discord.ext import commands
-from discord.ext.commands import Converter, BadArgument
 
 
 class MultiScrimConverter(Converter):

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import typing as T
-from ._base import ScrimsView
+from enum import Enum
+
 import discord
 
-from models import Scrim
-
+import config
 from core import Context
+from core.embeds import EmbedBuilder
+from models import Scrim
 from utils import regional_indicator as ri
 
-from core.embeds import EmbedBuilder
-import config
-from enum import Enum
+from ._base import ScrimsView
 
 
 class MsgType(Enum):

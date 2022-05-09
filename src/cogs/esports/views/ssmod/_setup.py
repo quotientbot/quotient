@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core import Quotient
 
+import discord
+
 from core import Context
+from models import SSVerify
+from utils import emote
 
 from ...views.base import EsportsBaseView
-from models import SSVerify
-
-from utils import emote
-from ._wiz import SetupWizard
 from ._edit import SSmodEditor
-import discord
+from ._wiz import SetupWizard
 
 
 class SsmodMainView(EsportsBaseView):

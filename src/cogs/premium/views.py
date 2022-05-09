@@ -1,10 +1,11 @@
-from aiohttp import ClientSession
-from utils import emote
+import io
 from typing import List
 
 import discord
+from aiohttp import ClientSession
+
 import config
-import io
+from utils import emote
 
 
 class PremiumView(discord.ui.View):

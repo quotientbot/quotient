@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from ...views.base import EsportsBaseView
-from core import Context
-
-from models import SSVerify
-
-from utils import keycap_digit as kd
 import discord
 
 import config
+from core import Context
+from models import SSVerify
+from utils import keycap_digit as kd
 
+from ...views.base import EsportsBaseView
 from ._buttons import *
 
 __all__ = ("SetupWizard",)

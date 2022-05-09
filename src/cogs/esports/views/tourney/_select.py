@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import discord
-from models import Tourney, TMSlot
 import typing as T
 
+import discord
 
-from utils import emote
 from core import QuotientView
+from models import TMSlot, Tourney
+from utils import emote
 
 
 class TourneySelector(discord.ui.Select):

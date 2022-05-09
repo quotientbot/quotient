@@ -1,26 +1,25 @@
-from datetime import datetime
-
-from unicodedata import normalize
+import string
+import textwrap
 from ast import literal_eval
+from datetime import datetime
+from unicodedata import normalize
+
 import aiohttp
-from prettytable import PrettyTable
-import config
 from discord.ext import menus
 from discord.ext.menus import Button
-import string, textwrap
-from models import Scrim, AssignedSlot, Tourney
-from models.esports import ReservedSlot
-from utils import *
-from models.helpers import *
+from prettytable import PrettyTable
+
+import config
 import constants
+from models import AssignedSlot, Scrim, Tourney
+from models.esports import ReservedSlot
+from models.helpers import *
+from utils import *
+
 from .errors import ScrimError, TourneyError
-from .helpers import (
-    already_reserved,
-    available_to_reserve,
-    delete_denied_message,
-    scrim_work_role,
-    tourney_work_role,
-)
+from .helpers import (already_reserved, available_to_reserve,
+                      delete_denied_message, scrim_work_role,
+                      tourney_work_role)
 
 
 class IDPMenu(menus.Menu):

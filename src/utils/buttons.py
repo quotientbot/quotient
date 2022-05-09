@@ -1,5 +1,7 @@
-from typing import NamedTuple, Union, List
+from typing import List, NamedTuple, Union
+
 import discord
+
 from .default import split_list
 from .emote import TextChannel, VoiceChannel
 

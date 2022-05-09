@@ -1,9 +1,11 @@
-from contextlib import suppress
-import pytz, discord
-import config
 import random
+from contextlib import suppress
 from enum import Enum
 
+import discord
+import pytz
+
+import config
 
 class _Sentinel:
     def __repr__(self):

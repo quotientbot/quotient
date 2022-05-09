@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from ...views.base import EsportsBaseView, Context
 import discord
+
 from utils import integer_input
+
+from ...views.base import Context, EsportsBaseView
 
 
 class NextButton(discord.ui.Button):

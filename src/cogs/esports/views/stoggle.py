@@ -1,6 +1,8 @@
 import discord
+
 from core import Context
 from models import Scrim
+
 from ..views import EsportsBaseView
 
 

@@ -1,9 +1,10 @@
 import re
-from typing import Union
 from datetime import datetime
-from unicodedata import normalize as nm
-from constants import IST
 from itertools import islice
+from typing import Union
+from unicodedata import normalize as nm
+
+from constants import IST
 
 
 def get_chunks(iterable, size: int):

@@ -1,14 +1,14 @@
-from discord.ext import commands
-from PIL import ImageColor
-import discord, re
-import contextlib
-
-from concurrent.futures import ThreadPoolExecutor
-from functools import wraps, partial
-from discord.ext.commands import converter
-
-from typing import Optional
 import asyncio
+import contextlib
+import re
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
+from typing import Optional
+
+import discord
+from discord.ext import commands
+from discord.ext.commands import converter
+from PIL import ImageColor
 
 __all__ = (
     "BannedMember",

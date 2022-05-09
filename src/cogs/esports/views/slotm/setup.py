@@ -1,26 +1,22 @@
 from __future__ import annotations
+
 from code import interact
-
 from typing import TYPE_CHECKING, List
-
 
 if TYPE_CHECKING:
     from core import Quotient
 
-from ...views.base import EsportsBaseView
-from core import Context, QuotientView
-
-from models.esports.slotm import ScrimsSlotManager
-from cogs.esports.views.scrims import ScrimSelectorView
 import discord
 
+from cogs.esports.views.scrims import ScrimSelectorView
+from core import Context, QuotientView
 from models import Scrim
-from utils import emote, Prompt, truncate_string
+from models.esports.slotm import ScrimsSlotManager
+from utils import Prompt, emote, truncate_string
 
-from .time import MatchTimeEditor
-
+from ...views.base import EsportsBaseView
 from .editor import ScrimsSlotmEditor
-
+from .time import MatchTimeEditor
 
 __all__ = ("ScrimsSlotManagerSetup",)
 

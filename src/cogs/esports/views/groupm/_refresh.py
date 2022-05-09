@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import typing as T
-from models import Tourney, TGroupList, TMSlot
+
 import discord
+
+from models import TGroupList, TMSlot, Tourney
 from utils import emote
+
 from ..tourney._select import TourneySlotSelec
 
 __all__ = ("GroupRefresh",)

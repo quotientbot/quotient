@@ -1,8 +1,9 @@
-from utils import string_input, truncate_string, QuoMember, BetterFutureTime
-from async_property import async_property
-from models import Scrim, ReservedSlot
-from core import Context
 import discord
+from async_property import async_property
+
+from core import Context
+from models import ReservedSlot, Scrim
+from utils import BetterFutureTime, QuoMember, string_input, truncate_string
 
 
 class SlotReserver(discord.ui.View):

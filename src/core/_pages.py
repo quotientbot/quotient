@@ -1,14 +1,13 @@
-from contextlib import suppress
-
-from utils.default import split_list
-from .Context import Context
-
+import asyncio
 import typing as T
+from contextlib import suppress
 
 import discord
 
+from utils.default import split_list
+
+from .Context import Context
 from .views import QuotientView
-import asyncio
 
 
 class PageLine(T.NamedTuple):

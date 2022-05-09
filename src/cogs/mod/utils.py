@@ -1,6 +1,8 @@
-from core import Context
 from collections import Counter
+
 import discord
+
+from core import Context
 
 
 async def _self_clean_system(ctx: Context, search: int) -> dict:

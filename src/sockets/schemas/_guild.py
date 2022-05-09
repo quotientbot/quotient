@@ -1,6 +1,8 @@
 import typing as T
+
 import discord
 from pydantic import BaseModel
+
 from models import Guild
 
 __all__ = ("QGuild",)

@@ -7,31 +7,26 @@ from models.esports.tourney import TMSlot
 if TYPE_CHECKING:
     from core import Quotient
 
-from core import Context, QuotientView
-from ..base import EsportsBaseView
-
-from ._wiz import TourneySetupWizard
-import discord
-
-from ._editor import TourneyEditor
-from models import Tourney
-
-from discord import ButtonStyle
 import asyncio
-
-from utils import emote
-from contextlib import suppress
-from utils import member_input, plural, truncate_string
-
-from ._select import TourneySlotSelec
-from .slotm import TourneySlotManager
-from tortoise.query_utils import Q
 import re
+from contextlib import suppress
 
-from ._buttons import DiscardButton
+import discord
+from discord import ButtonStyle
+from tortoise.query_utils import Q
+
+from core import Context, QuotientView
+from models import Tourney
+from utils import emote, member_input, plural, truncate_string
+
+from ..base import EsportsBaseView
 from ..groupm import TourneyGroupManager
-
+from ._buttons import DiscardButton
+from ._editor import TourneyEditor
 from ._partner import MediaPartnerView
+from ._select import TourneySlotSelec
+from ._wiz import TourneySetupWizard
+from .slotm import TourneySlotManager
 
 
 class TourneyManager(EsportsBaseView):

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
+import re
 from contextlib import suppress
-
-from models import Tourney, TMSlot
-
-from constants import EsportsRole, RegDeny
-
 from typing import List, Optional
 
 import discord
-import re
+
+from constants import EsportsRole, RegDeny
+from models import TMSlot, Tourney
 
 
 def get_tourney_slots(slots: List[TMSlot]) -> int:

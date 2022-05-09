@@ -1,14 +1,15 @@
-from utils.inputs import image_input
-from ..views.base import EsportsBaseView
-
 from ast import literal_eval as leval
-from utils import string_input, truncate_string, QuoColor
+from functools import wraps
+
+import discord
 from async_property import async_property
 
-from functools import wraps
-from models import Scrim
 from core import Context
-import discord
+from models import Scrim
+from utils import QuoColor, string_input, truncate_string
+from utils.inputs import image_input
+
+from ..views.base import EsportsBaseView
 
 
 class SlotlistFormatter(EsportsBaseView):

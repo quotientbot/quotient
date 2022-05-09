@@ -1,11 +1,14 @@
 from __future__ import annotations
-from contextlib import suppress
+
 import typing as T
-from core.Context import Context
+from contextlib import suppress
 
 import discord
-from .views import QuotientView
+
+from core.Context import Context
 from utils import QuoColor
+
+from .views import QuotientView
 
 
 class EmbedOptions(discord.ui.Select):

@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from core import Context
-import discord
+from contextlib import suppress
+from datetime import timedelta
 
-from utils import regional_indicator as ri, inputs, truncate_string, discord_timestamp as dt
+import discord
+from discord import Interaction
+
+from core import Context
+from models import Scrim
+from utils import discord_timestamp as dt
+from utils import inputs
+from utils import regional_indicator as ri
+from utils import truncate_string
 
 from ._base import ScrimsButton
-from contextlib import suppress
-
-from datetime import timedelta
-from models import Scrim
-from discord import Interaction
 
 
 class SetName(ScrimsButton):

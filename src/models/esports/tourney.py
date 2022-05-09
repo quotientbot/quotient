@@ -1,24 +1,22 @@
-from contextlib import suppress
 import io
-from tortoise import fields, exceptions
-from discord.ext.commands import BadArgument
-
-from typing import Optional, List, Union
-from models.helpers import *
-
-from models import BaseDbModel
-
-from utils import split_list
+from contextlib import suppress
+from typing import List, Optional, Union
 
 import discord
+from discord.ext.commands import BadArgument
+from tortoise import exceptions, fields
+
+from models import BaseDbModel
+from models.helpers import *
+from utils import split_list
 
 _dict = {
     "tick": "✅",
     "cross": "❌",
 }
 
-from core import Context
 from constants import EsportsLog
+from core import Context
 
 
 class Tourney(BaseDbModel):
@@ -248,7 +246,8 @@ class Tourney(BaseDbModel):
 
         placeholder = placeholder or "Choose a tourney to contine..."
 
-        from cogs.esports.views.tourney._select import TourneySelector, QuotientView
+        from cogs.esports.views.tourney._select import (QuotientView,
+                                                        TourneySelector)
 
         tourneys = tourneys or await Tourney.filter(guild_id=ctx.guild.id).order_by("id").limit(25)
 

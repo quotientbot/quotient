@@ -5,11 +5,13 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
+from contextlib import suppress
+
+import discord
+
 from core import Cog
 from models import Timer
-import discord
 from utils import discord_timestamp
-from contextlib import suppress
 
 
 class ReminderEvents(Cog):

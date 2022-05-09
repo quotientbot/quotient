@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from ...views.base import EsportsBaseView
-from models import ScrimsSlotManager, Scrim
-from core import Context
-
-from utils import emote
 import discord
 
-
 from cogs.esports.views.scrims import ScrimSelectorView
+from core import Context
+from models import Scrim, ScrimsSlotManager
+from utils import emote
+
+from ...views.base import EsportsBaseView
 
 __all__ = ("SlotmScrimsEditor",)
 

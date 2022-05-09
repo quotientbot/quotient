@@ -1,5 +1,5 @@
-from tortoise.validators import Validator
 from tortoise.exceptions import ValidationError
+from tortoise.validators import Validator
 
 
 class ValueRangeValidator(Validator):

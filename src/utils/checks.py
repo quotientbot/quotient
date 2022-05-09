@@ -1,8 +1,11 @@
-from discord.ext import commands
-from discord.ext.commands import Context, has_any_role, CheckFailure
 from typing import Union
+
+from discord.ext import commands
+from discord.ext.commands import CheckFailure, Context, has_any_role
+
+from models import Guild, User
+
 from .exceptions import *
-from models import User, Guild
 
 
 def has_done_setup():

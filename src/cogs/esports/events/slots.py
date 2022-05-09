@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
+
 from core import Cog
-from models import Scrim, Timer, ScrimsSlotManager
+from models import Scrim, ScrimsSlotManager, Timer
 
 
 class SlotManagerEvents(Cog):
