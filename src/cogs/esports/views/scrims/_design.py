@@ -60,13 +60,25 @@ class ScrimDesign(ScrimsView):
             _e = discord.Embed.from_dict(self.scrim.open_message)
 
         self.stop()
-        await self.message.delete()
-        await self.ctx.simple("Edit this message to set new registration open message.", 4)
+
+        embed = discord.Embed(color=self.bot.color, title="Click me to Get Help", url=config.SERVER_LINK)
+        embed.description = (
+            f"\n*You are editing registration open message for {self.scrim}*\n\n"
+            "**__Keywords you can use in design:__**\n"
+            "`<<mentions>>` - Number of mentions required\n"
+            "`<<slots>>` - Total slots in this scrim\n"
+            "`<<reserved>>` - Number of Reserved slots\n"
+            "`<<slotlist>>` - Slotlist Channel mention.\n"
+            "`<<mention_banned>>` -  Mention banned users.\n"
+            "`<<mention_reserved>>` - Mention reserved slot owners.\n"
+        )
+        await self.message.edit(embed = embed,content="",view=None)
+
         _v = EmbedBuilder(
             self.ctx,
             items=[
-                SaveMessageBtn(self.ctx, self.scrim, MsgType.open),
-                BackBtn(self.ctx, self.scrim),
+                SaveMessageBtn(self.ctx, self.scrim, MsgType.open, self.message),
+                BackBtn(self.ctx, self.scrim, self.message),
                 SetDefault(self.ctx, self.scrim, MsgType.open),
             ],
         )
@@ -89,24 +101,40 @@ class ScrimDesign(ScrimsView):
 class SaveMessageBtn(discord.ui.Button):
     view: EmbedBuilder
 
-    def __init__(self, ctx: Context, scrim: Scrim, _type: MsgType):
+    def __init__(self, ctx: Context, scrim: Scrim, _type: MsgType, msg: discord.Message = None):
         super().__init__(style=discord.ButtonStyle.green, label="Save this design")
         self.scrim = scrim
 
         self.ctx = ctx
+        self.msg = msg
         self._type = _type
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
+        await self.ctx.simple(f"Saving Changes...", 2)
+        await self.scrim.make_changes(open_message=self.view.fomatted)
+        await self.ctx.success(f"Saved!", 2)
+        await self.scrim.confirm_all_scrims(self.ctx, open_message=self.view.fomatted)
+
+        self.view.stop()
+
+        if self.msg:
+            await self.ctx.safe_delete(self.msg)
+
+        v = ScrimDesign(self.ctx, self.scrim)
+        v.message = await self.view.message.edit(embed=v.initial_embed, view=v)
+
 
 class BackBtn(discord.ui.Button):
     view: EmbedBuilder
 
-    def __init__(self, ctx: Context, scrim: Scrim):
+    def __init__(self, ctx: Context, scrim: Scrim, msg: discord.Message = None):
         super().__init__(style=discord.ButtonStyle.red, label="Exit")
         self.ctx = ctx
         self.scrim = scrim
+
+        self.msg = msg
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -115,6 +143,9 @@ class BackBtn(discord.ui.Button):
             return await self.ctx.simple("OK. Not Exiting.", 4)
 
         self.view.stop()
+
+        if self.msg:
+            await self.ctx.safe_delete(self.msg)
         v = ScrimDesign(self.ctx, self.scrim)
         v.message = await self.view.message.edit(embed=v.initial_embed, view=v)
 
