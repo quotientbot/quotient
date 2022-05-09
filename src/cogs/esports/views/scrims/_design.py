@@ -20,6 +20,7 @@ class MsgType(Enum):
     countdown = "3"
 
 
+# TODO: check if scrim instance is updated by updating open msg and then opening it again
 class ScrimDesign(ScrimsView):
     def __init__(self, ctx: Context, scrim: Scrim):
         super().__init__(ctx, timeout=60.0)
@@ -35,6 +36,10 @@ class ScrimDesign(ScrimsView):
             description=f"📣 **`<<mentions>>`** mentions required.\n"
             f"📣 Total slots: **`<<slots>>`** [`<<reserved>>` slots reserved]",
         )
+
+    @staticmethod
+    def default_close_msg():
+        return discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
 
     @property
     def initial_embed(self):
@@ -52,6 +57,7 @@ class ScrimDesign(ScrimsView):
     @discord.ui.button(emoji=ri("a"))
     async def reg_open_message(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
+        await self.scrim.refresh_from_db()
 
         if len(self.scrim.open_message) <= 1:
             _e = ScrimDesign.default_open_msg()
@@ -72,7 +78,7 @@ class ScrimDesign(ScrimsView):
             "`<<mention_banned>>` -  Mention banned users.\n"
             "`<<mention_reserved>>` - Mention reserved slot owners.\n"
         )
-        await self.message.edit(embed = embed,content="",view=None)
+        await self.message.edit(embed=embed, content="", view=None)
 
         _v = EmbedBuilder(
             self.ctx,
@@ -88,14 +94,46 @@ class ScrimDesign(ScrimsView):
     @discord.ui.button(emoji=ri("b"))
     async def reg_clse_message(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
+        await self.scrim.refresh_from_db()
+
+        if len(self.scrim.close_message) <= 1:
+            _e = ScrimDesign.default_close_msg()
+
+        else:
+            _e = discord.Embed.from_dict(self.scrim.close_message)
+
+        self.stop()
+        embed = discord.Embed(color=self.bot.color, title="Click Me if you need Help", url=self.bot.config.SERVER_LINK)
+        embed.description = (
+            f"\n*You are editing registration close message for {self.scrim}*\n\n"
+            "**__Keywords you can use in design:__**\n"
+            "`<<slots>>` - Total slots in this scrim.\n"
+            "`<<filled>>` - Number of slots filled during registration.\n"
+            "`<<time_taken>>` - Time taken in registration.\n"
+            "`<<open_time>>` - Next day's registration time."
+        )
+        await self.message.edit(embed=embed, content="", view=None)
+
+        _v = EmbedBuilder(
+            self.ctx,
+            items=[
+                SaveMessageBtn(self.ctx, self.scrim, MsgType.close, self.message),
+                BackBtn(self.ctx, self.scrim, self.message),
+                SetDefault(self.ctx, self.scrim, MsgType.close),
+            ],
+        )
+
+        await _v.rendor(embed=_e)
 
     @discord.ui.button(emoji=ri("c"))
     async def pre_reg_msg(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
+        await self.scrim.refresh_from_db()
 
     @discord.ui.button(emoji=ri("d"))
     async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
+        await self.scrim.refresh_from_db()
 
 
 class SaveMessageBtn(discord.ui.Button):
@@ -113,9 +151,16 @@ class SaveMessageBtn(discord.ui.Button):
         await interaction.response.defer()
 
         await self.ctx.simple(f"Saving Changes...", 2)
-        await self.scrim.make_changes(open_message=self.view.fomatted)
+
+        if self._type == MsgType.open:
+            await self.scrim.make_changes(open_message=self.view.formatted)
+            await self.scrim.confirm_all_scrims(self.ctx, open_message=self.view.formatted)
+
+        elif self._type == MsgType.close:
+            await self.scrim.make_changes(close_message=self.view.formatted)
+            await self.scrim.confirm_all_scrims(self.ctx, close_message=self.view.formatted)
+
         await self.ctx.success(f"Saved!", 2)
-        await self.scrim.confirm_all_scrims(self.ctx, open_message=self.view.fomatted)
 
         self.view.stop()
 

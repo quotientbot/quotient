@@ -16,12 +16,12 @@ class EmbedOptions(discord.ui.Select):
         super().__init__(
             placeholder="Select an option to design the message.",
             options=[
-                discord.SelectOption(
-                    label="Normal Text",
-                    description="This is displayed above the embed.",
-                    emoji="<:c_:972805722276524092>",
-                    value="content",
-                ),
+                # discord.SelectOption(
+                #     label="Normal Text",
+                #     description="This is displayed above the embed.",
+                #     emoji="<:c_:972805722276524092>",
+                #     value="content",
+                # ),
                 discord.SelectOption(
                     label="Edit Message (Title, Description, Footer)",
                     emoji="<:menu:972807297812275220>",
@@ -140,8 +140,8 @@ class EmbedBuilder(QuotientView):
             self.add_item(_)
 
     @property
-    def fomatted(self):
-        return {"content": self.content, "embed": self.embed.to_dict()}
+    def formatted(self):
+        return self.embed.to_dict()
 
     async def refresh_view(self, to_del: discord.Message = None):
         if to_del:
