@@ -7,17 +7,16 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import discord
-from discord.ext.commands import (BadArgument, ChannelNotFound,
-                                  TextChannelConverter)
+from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
 import utils
 from constants import AutocleanType, Day
 from core import Context
-from models import BaseDbModel, Timer
+from models import BaseDbModel
 from models.helpers import *
-from utils import discord_timestamp, plural, truncate_string
+from utils import plural, truncate_string
 
 
 class Scrim(BaseDbModel):
@@ -68,6 +67,7 @@ class Scrim(BaseDbModel):
     match_time = fields.DatetimeField(null=True)
 
     emojis = fields.JSONField(default=dict)  #!new
+    cdn = fields.JSONField(default={"status": False, "countdown": 3, "msg": {}})  #!new
 
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
@@ -255,6 +255,7 @@ class Scrim(BaseDbModel):
     async def ensure_match_timer(self):
 
         from .slotm import ScrimsSlotManager
+        from models import Timer
 
         if not self.match_time:
             self.match_time = self.bot.current_time.replace(hour=0, minute=0, microsecond=0, second=0)
