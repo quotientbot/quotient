@@ -278,7 +278,8 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def make_changes(self, **kwargs):
-        return await Scrim.filter(pk=self.pk).update(**kwargs)
+        await Scrim.filter(pk=self.pk).update(**kwargs)
+        return await self.refresh_from_db()
 
     async def get_text_slotlist(self):
         _text = f"{self} Slot details:\n\n"

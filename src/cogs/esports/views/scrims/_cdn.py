@@ -30,7 +30,8 @@ class ScrimsCDN(ScrimsView):
         _e = discord.Embed(color=self.bot.color)
 
     async def refresh_view(self, **kwargs):
-        ...
+        await self.scrim.make_changes(**kwargs)
+        await self.ctx.send(self.scrim.cdn)
 
     @discord.ui.button(emoji=kd(1))
     async def change_status(self, btn: discord.Button, inter: discord.Interaction):
@@ -44,8 +45,8 @@ class ScrimsCDN(ScrimsView):
         await inter.response.defer()
 
         _m = await self.ctx.simple("How many seconds should the countdown be? (Min: `3` Max: `10`)")
-        self.scrim.cdn["countdown"] = await integer_input(self.ctx, limits=(3, 10))
-
+        self.scrim.cdn["countdown"] = await integer_input(self.ctx, limits=(3, 10), delete_after=True)
+        await self.ctx.safe_delete(_m)
         await self.refresh_view(cdn=self.scrim.cdn)
 
     @discord.ui.button(emoji=kd(3))
