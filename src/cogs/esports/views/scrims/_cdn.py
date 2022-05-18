@@ -75,3 +75,9 @@ class ScrimsCDN(ScrimsView):
     @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
     async def go_back(self, btn: discord.Button, inter: discord.Interaction):
         await inter.response.defer()
+
+        from ._design import ScrimDesign
+
+        self.stop()
+        v = ScrimDesign(self.ctx, self.scrim)
+        v.message = await self.message.edit(embed=v.initial_embed, view=v)
