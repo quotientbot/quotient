@@ -11,6 +11,7 @@ from core.embeds import EmbedBuilder
 from models import Scrim
 from utils import regional_indicator as ri
 
+from ._cdn import ScrimsCDN
 from ._base import ScrimsView
 
 
@@ -131,7 +132,11 @@ class ScrimDesign(ScrimsView):
     @discord.ui.button(emoji=ri("c"))
     async def pre_reg_msg(self, btn: discord.ui.Button, inter: discord.Interaction):
         await inter.response.defer()
-        await self.scrim.refresh_from_db()
+
+        self.stop()
+        v = ScrimsCDN(self.ctx, self.scrim)
+        v.message = await self.message.edit(embed=v.initial_embed,view=v)
+        
 
     @discord.ui.button(emoji=ri("d"))
     async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):

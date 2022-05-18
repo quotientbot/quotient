@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing as T
+
 from ._base import ScrimsView
 from core import Context
 from models import Scrim
@@ -27,11 +28,29 @@ class ScrimsCDN(ScrimsView):
 
     @property
     def initial_embed(self):
-        _e = discord.Embed(color=self.bot.color)
+        _e = discord.Embed(
+            color=self.bot.color,
+        )
+        _e.description = "**Registration open countdown editor -** {0}".format(self.scrim)
+
+        fields = {
+            "ON / OFF": ("`OFF`", "`ON`")[self.scrim.cdn["status"]],
+            "Countdown": f"`{self.scrim.cdn['countdown']}s`",
+            "Message": "`Click to view or edit`",
+        }
+
+        for idx, (name, value) in enumerate(fields.items(), 1):
+            _e.add_field(
+                name=f"{kd(idx)} {name}:",
+                value=value,
+                inline=False,
+            )
+
+        return _e
 
     async def refresh_view(self, **kwargs):
         await self.scrim.make_changes(**kwargs)
-        await self.ctx.send(self.scrim.cdn)
+        self.message = await self.message.edit(embed=self.initial_embed, view=self)
 
     @discord.ui.button(emoji=kd(1))
     async def change_status(self, btn: discord.Button, inter: discord.Interaction):
@@ -51,4 +70,8 @@ class ScrimsCDN(ScrimsView):
 
     @discord.ui.button(emoji=kd(3))
     async def set_msg(self, btn: discord.Button, inter: discord.Interaction):
+        await inter.response.defer()
+
+    @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
+    async def go_back(self, btn: discord.Button, inter: discord.Interaction):
         await inter.response.defer()
