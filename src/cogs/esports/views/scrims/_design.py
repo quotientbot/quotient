@@ -135,8 +135,7 @@ class ScrimDesign(ScrimsView):
 
         self.stop()
         v = ScrimsCDN(self.ctx, self.scrim)
-        v.message = await self.message.edit(embed=v.initial_embed,view=v)
-        
+        v.message = await self.message.edit(embed=v.initial_embed, view=v)
 
     @discord.ui.button(emoji=ri("d"))
     async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):
@@ -167,6 +166,11 @@ class SaveMessageBtn(discord.ui.Button):
         elif self._type == MsgType.close:
             await self.scrim.make_changes(close_message=self.view.formatted)
             await self.scrim.confirm_all_scrims(self.ctx, close_message=self.view.formatted)
+
+        elif self._type == MsgType.countdown:
+            self.scrim.cdn["msg"] = self.view.formatted
+            await self.scrim.make_changes(cdn=self.scrim.cdn)
+            await self.scrim.confirm_all_scrims(self.ctx, cdn=self.scrim.cdn)
 
         await self.ctx.success(f"Saved!", 2)
 

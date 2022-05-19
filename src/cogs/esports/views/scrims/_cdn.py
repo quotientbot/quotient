@@ -9,7 +9,10 @@ from models import Scrim
 import discord
 from pydantic import BaseModel
 
+from core.embeds import EmbedBuilder
+
 from utils import keycap_digit as kd, integer_input
+import config
 
 __all__ = ("ScrimsCDN",)
 
@@ -71,6 +74,28 @@ class ScrimsCDN(ScrimsView):
     @discord.ui.button(emoji=kd(3))
     async def set_msg(self, btn: discord.Button, inter: discord.Interaction):
         await inter.response.defer()
+        await self.scrim.refresh_from_db()
+
+        from ._design import SaveMessageBtn, MsgType, BackBtn, SetDefault, ScrimDesign
+
+        if len(self.scrim.cdn["msg"]) <= 1:
+            _e = ScrimDesign.default_countdown_msg()
+
+        else:
+            _e = discord.Embed.from_dict(self.scrim.cdn["msg"])
+
+        self.stop()
+
+        _v = EmbedBuilder(
+            self.ctx,
+            items=[
+                SaveMessageBtn(self.ctx, self.scrim, MsgType.countdown, self.message),
+                BackBtn(self.ctx, self.scrim, self.message),
+                SetDefault(self.ctx, self.scrim, MsgType.countdown),
+            ],
+        )
+
+        await _v.rendor(embed=_e)
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
     async def go_back(self, btn: discord.Button, inter: discord.Interaction):
