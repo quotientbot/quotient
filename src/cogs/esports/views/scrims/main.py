@@ -71,7 +71,3 @@ class ScrimsMain(EsportsBaseView):
     @discord.ui.button(label="Design", style=ButtonStyle.red)
     async def change_design(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
-
-    @discord.ui.button(label="Design", style=ButtonStyle.red)
-    async def change_design(self, button: ui.Button, interaction: Interaction):
-        await interaction.response.defer()

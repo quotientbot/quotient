@@ -86,6 +86,14 @@ class ScrimsCDN(ScrimsView):
 
         self.stop()
 
+        embed = discord.Embed(color=self.bot.color, title="Click Me if you need Help", url=self.bot.config.SERVER_LINK)
+        embed.description = (
+            f"\n*You are editing registration close message for {self.scrim}*\n\n"
+            "**__Keywords you can use in design:__**\n"
+            "`<<t>>` - Seconds left in opening reg (counter).\n"
+        )
+        await self.message.edit(embed=embed, content="", view=None)
+
         _v = EmbedBuilder(
             self.ctx,
             items=[

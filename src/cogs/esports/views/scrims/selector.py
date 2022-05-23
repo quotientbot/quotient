@@ -2,6 +2,8 @@ from contextlib import suppress
 from typing import List, Union
 
 import discord
+from core.Context import Context
+from core.views import QuotientView
 
 from models import Scrim
 from utils import emote
@@ -77,3 +79,30 @@ class ScrimSelectorView(discord.ui.View):
 #         view.message = await channel.send("Kindly use the dropdown below to select scrims.", view=view)
 #         await view.wait()
 #         return await Scrim.filter(pk__in=view.custom_id).order_by("id")
+
+
+async def prompt_selector(ctx: Context, scrims: List[Scrim] = None, *, placeholder: str = None, multi: bool = True):
+    placeholder = placeholder or "Choose {0} to continue...".format("Scrims" if multi else "a Scrim")
+
+    scrims = scrims or await Scrim.filter(guild_id=ctx.guild.id).order_by("open_time")
+    if not scrims:
+        return None
+
+    if len(scrims) == 1:
+        return scrims[0]
+
+    view = QuotientView(ctx)
+
+    view.message = await ctx.send(
+        "Choose {0} from the dropdown below:".format("Scrims" if multi else "a Scrim"),
+        view=view,
+    )
+    await view.wait()
+    if view.custom_id:
+        await view.message.delete()
+
+        scrims = view.custom_id.split(",")
+        if not len(scrims) > 1:
+            return await Scrim.get_or_none(pk=scrims[0])
+
+        return await Scrim.filter(pk__in=scrims)
