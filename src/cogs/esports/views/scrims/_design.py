@@ -11,8 +11,8 @@ from core.embeds import EmbedBuilder
 from models import Scrim
 from utils import regional_indicator as ri
 
-from ._cdn import ScrimsCDN
 from ._base import ScrimsView
+from ._cdn import ScrimsCDN
 
 
 class MsgType(Enum):

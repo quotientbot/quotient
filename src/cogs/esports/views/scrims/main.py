@@ -10,8 +10,8 @@ from models import Scrim
 from utils import discord_timestamp, emote
 
 from ...views.base import EsportsBaseView
-from ._wiz import ScrimSetup
 from ._design import ScrimDesign
+from ._wiz import ScrimSetup
 
 
 class ScrimsMain(EsportsBaseView):

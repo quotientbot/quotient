@@ -5,6 +5,7 @@ from core import Context
 from models import ReservedSlot, Scrim
 from utils import BetterFutureTime, QuoMember, string_input, truncate_string
 
+
 class SlotReserver(discord.ui.View):
     def __init__(self, ctx: Context, scrim: Scrim):
         super().__init__(timeout=60.0)

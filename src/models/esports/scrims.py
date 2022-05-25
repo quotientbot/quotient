@@ -254,8 +254,9 @@ class Scrim(BaseDbModel):
 
     async def ensure_match_timer(self):
 
-        from .slotm import ScrimsSlotManager
         from models import Timer
+
+        from .slotm import ScrimsSlotManager
 
         if not self.match_time:
             self.match_time = self.bot.current_time.replace(hour=0, minute=0, microsecond=0, second=0)

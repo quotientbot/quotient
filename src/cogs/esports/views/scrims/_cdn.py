@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import typing as T
 
-from ._base import ScrimsView
-from core import Context
-from models import Scrim
-
 import discord
 from pydantic import BaseModel
 
-from core.embeds import EmbedBuilder
-
-from utils import keycap_digit as kd, integer_input
 import config
+from core import Context
+from core.embeds import EmbedBuilder
+from models import Scrim
+from utils import integer_input
+from utils import keycap_digit as kd
+
+from ._base import ScrimsView
 
 __all__ = ("ScrimsCDN",)
 
@@ -76,7 +76,8 @@ class ScrimsCDN(ScrimsView):
         await inter.response.defer()
         await self.scrim.refresh_from_db()
 
-        from ._design import SaveMessageBtn, MsgType, BackBtn, SetDefault, ScrimDesign
+        from ._design import (BackBtn, MsgType, SaveMessageBtn, ScrimDesign,
+                              SetDefault)
 
         if len(self.scrim.cdn["msg"]) <= 1:
             _e = ScrimDesign.default_countdown_msg()

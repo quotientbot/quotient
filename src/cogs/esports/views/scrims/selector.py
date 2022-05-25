@@ -2,9 +2,9 @@ from contextlib import suppress
 from typing import List, Union
 
 import discord
+
 from core.Context import Context
 from core.views import QuotientView
-
 from models import Scrim
 from utils import emote, split_list
 

@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import typing as T
-from ._base import ScrimsView
+
+import discord
 
 from core import Context
 from models import Scrim
-import discord
+
+from ._base import ScrimsView
 
 
 class ScrimsSlotReserve(ScrimsView):
