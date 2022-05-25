@@ -440,6 +440,18 @@ class Scrim(BaseDbModel):
         await Scrim.filter(guild_id=ctx.guild.id).update(**kwargs)
         await ctx.simple("This change was applied to all your scrims.", 4)
 
+    @staticmethod
+    async def show_selector(*args, **kwargs):
+        """
+        :param: ctx: Context
+        :param: scrims: List[Scrim]
+        :param: placeholder:str
+        :param: multi:bool=True
+        """
+        from cogs.esports.views.scrims.selector import prompt_selector
+
+        return await prompt_selector(*args, **kwargs)
+
 
 class BaseSlot(models.Model):
     class Meta:
