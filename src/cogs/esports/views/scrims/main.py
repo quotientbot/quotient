@@ -64,6 +64,10 @@ class ScrimsMain(EsportsBaseView):
     @discord.ui.button(label="Reserve Slots", style=ButtonStyle.green)
     async def reserve_slots(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
+        scrim = await Scrim.show_selector(self.ctx, multi=False)
+        self.stop()
+
+        view = ...
 
     @discord.ui.button(label="Ban/Unban", style=ButtonStyle.red)
     async def ban_unban(self, button: ui.Button, interaction: Interaction):
