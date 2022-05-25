@@ -5,11 +5,10 @@ import typing as T
 import discord
 
 from core import Context
-from models import Scrim, ReservedSlot
+from models import ReservedSlot, Scrim
+from utils import string_input
 
 from ._base import ScrimsView
-
-from utils import string_input
 
 
 class ScrimsSlotReserve(ScrimsView):

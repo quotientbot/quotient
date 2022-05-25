@@ -45,7 +45,6 @@ class AutocleanType(Enum):
     channel = "channel"
     role = "role"
 
-
 class SSType(Enum):
     yt = "youtube"
     insta = "instagram"

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import discord
-from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
+from discord.ext.commands import (BadArgument, ChannelNotFound,
+                                  TextChannelConverter)
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 

@@ -355,20 +355,21 @@ class SaveScrim(ScrimsButton):
         await interaction.response.defer()
 
         self.ctx.bot.loop.create_task(self.view.record.setup_logs())
-        await self.view.record.save()
-
-        await self.ctx.bot.reminders.create_timer(self.view.record.open_time, "scrim_open", scrim_id=self.view.record.id)
 
         self.view.record.autoclean_time = self.ctx.bot.current_time.replace(
             hour=4, minute=0, second=0, microsecond=0
         ) + timedelta(days=1)
+
+        await self.view.record.save()
+
+        await self.ctx.bot.reminders.create_timer(self.view.record.open_time, "scrim_open", scrim_id=self.view.record.id)
 
         await self.ctx.bot.reminders.create_timer(
             self.view.record.autoclean_time, "autoclean", scrim_id=self.view.record.id
         )
 
         self.view.stop()
-        await self.ctx.success(f"Scrim was successfully created. (Registration in: {dt(self.view.record.open_time)})", 5)
+        await self.ctx.success(f"Scrim was successfully created. (Registration: {dt(self.view.record.open_time)})", 6)
 
         from .main import ScrimsMain
 
