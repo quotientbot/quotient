@@ -14,6 +14,7 @@ from core import Context
 
 class EsportsBaseView(discord.ui.View):
     message: discord.Message
+    custom_id: str
 
     def __init__(self, ctx: Context, **kwargs):
         super().__init__(timeout=kwargs.get("timeout", 60))

@@ -479,6 +479,10 @@ class ReservedSlot(BaseSlot):
 
     expires = fields.DatetimeField(null=True)
 
+    @property
+    def leader(self):
+        return self.bot.get_user(self.user_id)
+
 
 class BannedTeam(BaseSlot):
     class Meta:
