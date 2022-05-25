@@ -144,7 +144,12 @@ class ScrimDesign(ScrimsView):
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
     async def go_back(self, btn: discord.ui.Button, inter: discord.Interaction):
+        from .main import ScrimsMain
+
         await inter.response.defer()
+        self.stop()
+        view = ScrimsMain(self.ctx)
+        view.message = await self.message.edit(embed=await view.initial_embed(), view=view)
 
 
 class SaveMessageBtn(discord.ui.Button):

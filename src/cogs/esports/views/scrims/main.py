@@ -11,6 +11,7 @@ from utils import discord_timestamp, emote
 
 from ...views.base import EsportsBaseView
 from ._wiz import ScrimSetup
+from ._design import ScrimDesign
 
 
 class ScrimsMain(EsportsBaseView):
@@ -71,3 +72,9 @@ class ScrimsMain(EsportsBaseView):
     @discord.ui.button(label="Design", style=ButtonStyle.red)
     async def change_design(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
+
+        scrim = await Scrim.show_selector(self.ctx, multi=False)
+        self.stop()
+
+        view = ScrimDesign(self.ctx, scrim)
+        view.message = await self.message.edit(embed=view.initial_embed, view=view)
