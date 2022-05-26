@@ -13,6 +13,7 @@ from ...views.base import EsportsBaseView
 from ._design import ScrimDesign
 from ._wiz import ScrimSetup
 from ._edit import ScrimsEditor
+from ._reserve import ScrimsSlotReserve
 
 
 class ScrimsMain(EsportsBaseView):
@@ -74,7 +75,9 @@ class ScrimsMain(EsportsBaseView):
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
 
-        view = ...
+        view = ScrimsSlotReserve(self.ctx, scrim)
+        await view.add_buttons()
+        view.message = await self.message.edit(embed=await view.initial_embed, view=view)
 
     @discord.ui.button(label="Ban/Unban", style=ButtonStyle.red)
     async def ban_unban(self, button: ui.Button, interaction: Interaction):
