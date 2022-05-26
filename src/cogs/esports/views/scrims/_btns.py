@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from contextlib import suppress
 from datetime import timedelta
 
 import discord
@@ -8,10 +7,7 @@ from discord import Interaction
 
 from core import Context
 from models import Scrim
-from utils import discord_timestamp as dt
-from utils import inputs
-from utils import regional_indicator as ri
-from utils import truncate_string
+from utils import discord_timestamp as dt, inputs, regional_indicator as ri, truncate_string, emote
 
 from ._base import ScrimsButton
 
@@ -340,6 +336,31 @@ class Discard(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+
+        from .main import ScrimsMain as SM
+
+        self.view.stop()
+        v = SM(self.ctx)
+        v.message = await self.view.message.edit(embed=await v.initial_embed(), view=v)
+
+
+class DeleteScrim(ScrimsButton):
+    def __init__(self, ctx: Context):
+        super().__init__(emoji=emote.trash, label="Delete")
+        self.ctx = ctx
+
+    async def callback(self, interaction: Interaction):
+        await interaction.response.defer()
+
+        prompt = await self.ctx.prompt(
+            f"{self.view.record} will be permanently deleted. This action is irreversible.",
+            title="Are you sure you want to continue?",
+        )
+        if not prompt:
+            return await self.ctx.simple("OK! Not deleting.", 4)
+
+        await self.view.record.full_delete()
+        await self.ctx.success(f"{self.view.record} has been deleted.", 4)
 
         from .main import ScrimsMain as SM
 

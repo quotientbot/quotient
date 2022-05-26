@@ -103,4 +103,5 @@ class ScrimsEditor(ScrimsView):
         self.add_item(DeleteLate(self.ctx, "p"))
         self.add_item(SetAutoclean(self.ctx, "q"))
 
+        self.add_item(DeleteScrim(self.ctx))
         self.add_item(Discard(self.ctx, "Main Menu"))
