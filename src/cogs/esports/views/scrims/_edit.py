@@ -31,6 +31,12 @@ class ScrimsEditor(ScrimsView):
         del _d["available_slots"]
         del _d["open_days"]
 
+        await self.bot.db.execute(
+            """UPDATE public."sm.scrims" SET open_days = $1 WHERE id = $2""",
+            [_.value for _ in self.record.open_days],
+            self.record.id,
+        )
+
         await self.record.make_changes(**_d)
 
         await self._add_buttons()
@@ -66,6 +72,7 @@ class ScrimsEditor(ScrimsView):
             "Autoclean": f"{dt(scrim.autoclean_time)} (`{', '.join(_.name.title() for _ in scrim.autoclean)}`)"
             if scrim.autoclean
             else "`Turned OFF`",
+            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days)),
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -73,7 +80,7 @@ class ScrimsEditor(ScrimsView):
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
-        _e.add_field(name="\u200b", value="\u200b")  # invisible field
+        # _e.add_field(name="\u200b", value="\u200b")  # invisible field
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
@@ -102,6 +109,7 @@ class ScrimsEditor(ScrimsView):
         self.add_item(DeleteReject(self.ctx, "o"))
         self.add_item(DeleteLate(self.ctx, "p"))
         self.add_item(SetAutoclean(self.ctx, "q"))
+        self.add_item(OpenDays(self.ctx, "r"))
 
         self.add_item(DeleteScrim(self.ctx))
         self.add_item(Discard(self.ctx, "Main Menu"))
