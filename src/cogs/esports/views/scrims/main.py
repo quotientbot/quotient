@@ -63,7 +63,7 @@ class ScrimsMain(EsportsBaseView):
 
         v = ScrimsEditor(self.ctx, scrim)
         await v._add_buttons()
-        v.message = await self.message.edit(embed=v.initial_message, view=v)
+        v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Start/Stop Reg", style=ButtonStyle.green)
     async def toggle_reg(self, button: ui.Button, interaction: Interaction):

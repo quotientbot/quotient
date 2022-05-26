@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import discord
-from discord.ext.commands import (BadArgument, ChannelNotFound,
-                                  TextChannelConverter)
+from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -453,6 +452,11 @@ class Scrim(BaseDbModel):
         from cogs.esports.views.scrims.selector import prompt_selector
 
         return await prompt_selector(*args, **kwargs)
+
+    async def scrim_posi(self):
+        from cogs.esports.views.scrims.selector import scrim_position
+
+        return await scrim_position(self.pk, self.guild_id)
 
 
 class BaseSlot(models.Model):

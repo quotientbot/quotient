@@ -35,12 +35,12 @@ class ScrimsEditor(ScrimsView):
 
         await self._add_buttons()
         try:
-            self.message = await self.message.edit(embed=self.initial_message, view=self)
+            self.message = await self.message.edit(embed=await self.initial_message, view=self)
         except discord.HTTPException:
             await self.on_timeout()
 
     @property
-    def initial_message(self):
+    async def initial_message(self):
         scrim = self.record
 
         _e = discord.Embed(color=0x00FFB3, url=self.ctx.config.SERVER_LINK)
@@ -74,7 +74,7 @@ class ScrimsEditor(ScrimsView):
                 value=value,
             )
         _e.add_field(name="\u200b", value="\u200b")  # invisible field
-        _e.set_footer(text=f"Page {self.page_info[0]}/{self.page_info[1]}", icon_url=self.ctx.bot.user.avatar.url)
+        _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
     async def _add_buttons(self):
@@ -102,3 +102,5 @@ class ScrimsEditor(ScrimsView):
         self.add_item(DeleteReject(self.ctx, "o"))
         self.add_item(DeleteLate(self.ctx, "p"))
         self.add_item(SetAutoclean(self.ctx, "q"))
+
+        self.add_item(Discard(self.ctx, "Main Menu"))

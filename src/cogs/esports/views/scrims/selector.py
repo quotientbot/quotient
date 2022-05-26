@@ -7,6 +7,7 @@ from core.Context import Context
 from core.views import QuotientView
 from models import Scrim
 from utils import emote, split_list
+from aiocache import cached
 
 __all__ = ("ScrimSelectorView",)
 
@@ -118,3 +119,12 @@ class Select(discord.ui.Select):
         self.view.custom_id = self.values
 
         self.view.stop()
+
+
+@cached(ttl=10)
+async def scrim_position(scrim_id: int, guild_id: int):
+    """
+    returns the position of scrim in all scrims of a server
+    """
+    scrims = await Scrim.filter(guild_id=guild_id).order_by("open_time")
+    return str(scrims.index(next(s for s in scrims if s.pk == scrim_id)) + 1), len(scrims).__str__()

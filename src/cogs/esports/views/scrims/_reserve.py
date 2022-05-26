@@ -10,6 +10,7 @@ from utils import string_input
 
 from ._base import ScrimsView, ScrimsButton
 from ._pages import *
+from ._btns import Discard
 
 __all__ = ("ScrimsSlotReserve",)
 
@@ -30,6 +31,7 @@ class ScrimsSlotReserve(ScrimsView):
         for _ in range(self.record.start_from, self.record.total_slots + self.record.start_from):
             _l.append(f"Slot {_:02}  -->  " + next((i.team_name for i in reserved if i.num == _), "❌") + "\n")
         _e.description = f"```{''.join(_l)}```"
+        _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
     async def refresh_view(self):
@@ -42,13 +44,16 @@ class ScrimsSlotReserve(ScrimsView):
     async def add_buttons(self):
         self.clear_items()
 
-        if await Scrim.filter(guild_id=self.ctx.guild.id).count() >= 2:
-            self.add_item(Prev(self.ctx))
-            self.add_item(SkipTo(self.ctx))
-            self.add_item(Next(self.ctx))
-
         self.add_item(NewReserve(self.ctx))
-        self.add_item(RemoveReserve(self.ctx))
+
+        self.add_item(RemoveReserve(self.ctx, not bool(await self.record.reserved_slots.all().count())))
+
+        if await Scrim.filter(guild_id=self.ctx.guild.id).count() >= 2:
+            self.add_item(Prev(self.ctx, 2))
+            self.add_item(SkipTo(self.ctx, 2))
+            self.add_item(Next(self.ctx, 2))
+
+        self.add_item(Discard(self.ctx, "Main Menu", 2))
 
 
 class NewReserve(ScrimsButton):
@@ -62,8 +67,8 @@ class NewReserve(ScrimsButton):
 
 
 class RemoveReserve(ScrimsButton):
-    def __init__(self, ctx: Context):
-        super().__init__(style=discord.ButtonStyle.red, label="Remove Reserved")
+    def __init__(self, ctx: Context, disabled: bool = True):
+        super().__init__(style=discord.ButtonStyle.red, label="Remove Reserved", disabled=disabled)
 
         self.ctx = ctx
 
@@ -72,10 +77,15 @@ class RemoveReserve(ScrimsButton):
 
         v = ScrimsView(self.ctx)
         v.add_item(SlotSelect(await self.view.record.reserved_slots.all().order_by("num")))
+
+        m = await self.ctx.send("Please select the slots to remove from reserved:", view=v)
         await v.wait()
+
         if v.custom_id:
             await ReservedSlot.filter(id__in=v.custom_id).delete()
             await self.__refresh_view()
+
+        await self.ctx.safe_delete(m)
 
 
 class SlotSelect(discord.ui.Select):

@@ -187,10 +187,12 @@ class SetAutoclean(ScrimsButton):
         await interaction.response.defer()
 
         from ._ac import AutocleanView
+
         self.view.stop()
 
         view = AutocleanView(self.ctx, self.view.record)
-        view.message = await self.view.message.edit(embed=view.initial_embed,view=view)
+        view.message = await self.view.message.edit(embed=view.initial_embed, view=view)
+
 
 class PingRole(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
@@ -332,8 +334,8 @@ class SlotlistStart(ScrimsButton):
 
 
 class Discard(ScrimsButton):
-    def __init__(self, ctx: Context, label="Back"):
-        super().__init__(style=discord.ButtonStyle.red, label=label)
+    def __init__(self, ctx: Context, label="Back", row: int = None):
+        super().__init__(style=discord.ButtonStyle.red, label=label, row=row)
         self.ctx = ctx
 
     async def callback(self, interaction: Interaction):
