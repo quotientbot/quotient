@@ -25,12 +25,13 @@ class ScrimsSlotReserve(ScrimsView):
     @property
     async def initial_embed(self):
         _e = discord.Embed(color=self.bot.color)
+        _e.description = f"**{self.record}  -  Reserved Slots**\n\n"
 
         reserved = await self.record.reserved_slots.order_by("num")
         _l = []
         for _ in range(self.record.start_from, self.record.total_slots + self.record.start_from):
             _l.append(f"Slot {_:02}  -->  " + next((i.team_name for i in reserved if i.num == _), "❌") + "\n")
-        _e.description = f"```{''.join(_l)}```"
+        _e.description += f"```{''.join(_l)}```"
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
