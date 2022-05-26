@@ -187,7 +187,8 @@ class SetAutoclean(ScrimsButton):
         self.view.stop()
 
         view = AutocleanView(self.ctx, self.view.record)
-        view.message = await self.view.message.edit(embed=view.initial_embed, view=view)
+        await view._add_buttons()
+        view.message = await self.view.message.edit(embed=await view.initial_embed, view=view)
 
 
 class PingRole(ScrimsButton):
