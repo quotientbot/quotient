@@ -91,4 +91,5 @@ class ScrimsMain(EsportsBaseView):
         self.stop()
 
         view = ScrimDesign(self.ctx, scrim)
-        view.message = await self.message.edit(embed=view.initial_embed, view=view)
+        await view._add_buttons()
+        view.message = await self.message.edit(embed=await view.initial_embed, view=view)

@@ -11,7 +11,7 @@ __all__ = ("ScrimsView", "ScrimsButton")
 
 class ScrimsView(EsportsBaseView):
     record: Scrim
-    scrim:Scrim
+    # scrim:Scrim
 
     def __init__(self, ctx, **kwargs):
         super().__init__(ctx, **kwargs)

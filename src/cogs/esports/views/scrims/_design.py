@@ -11,8 +11,11 @@ from core.embeds import EmbedBuilder
 from models import Scrim
 from utils import regional_indicator as ri
 
-from ._base import ScrimsView
+from ._base import ScrimsView, ScrimsButton
 from ._cdn import ScrimsCDN
+from ._btns import Discard
+
+from ._pages import *
 
 
 class MsgType(Enum):
@@ -25,7 +28,7 @@ class ScrimDesign(ScrimsView):
     def __init__(self, ctx: Context, scrim: Scrim):
         super().__init__(ctx, timeout=60.0)
 
-        self.scrim = scrim
+        self.record = scrim
         self.ctx = ctx
 
     @staticmethod
@@ -46,34 +49,62 @@ class ScrimDesign(ScrimsView):
         return discord.Embed(color=config.COLOR, description="*Registration is starting in* **`<<t>>` seconds.**")
 
     @property
-    def initial_embed(self):
+    async def initial_embed(self):
         _e = discord.Embed(color=0x00FFB3)
         _e.description = (
-            f"[**Scrims - Design Settings - {self.scrim}**]({self.ctx.config.SERVER_LINK})\n"
+            f"[**Scrims - Design Settings - {self.record}**]({self.ctx.config.SERVER_LINK})\n"
             "What do you want to design today?\n\n"
             f"{ri('a')} - Registration Open Message\n"
             f"{ri('b')} - Registration Close Message\n"
             f"{ri('c')} - Registratipn Open Countdown\n"
             f"{ri('d')} - Slotlist Design\n"
         )
+        _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
-    @discord.ui.button(emoji=ri("a"))
-    async def reg_open_message(self, btn: discord.ui.Button, inter: discord.Interaction):
-        await inter.response.defer()
-        await self.scrim.refresh_from_db()
+    async def _add_buttons(self):
+        self.clear_items()
 
-        if len(self.scrim.open_message) <= 1:
+        self.add_item(OpenMessage())
+        self.add_item(CloseMessage())
+        self.add_item(CDNmsg())
+        self.add_item(SlotlistFormat())
+
+        if await Scrim.filter(guild_id=self.ctx.guild.id).count() >= 2:
+            self.add_item(Prev(self.ctx, 2))
+            self.add_item(SkipTo(self.ctx, 2))
+            self.add_item(Next(self.ctx, 2))
+
+        self.add_item(Discard(self.ctx, "Main Menu", 2))
+
+    async def refresh_view(self):
+        await self._add_buttons()
+        try:
+            self.message = await self.message.edit(embed=await self.initial_embed, view=self)
+        except discord.HTTPException:
+            await self.on_timeout()
+
+
+class OpenMessage(ScrimsButton):
+    def __init__(self):
+        super().__init__(emoji=ri("a"))
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        await self.view.record.refresh_from_db()
+
+        if len(self.view.record.open_message) <= 1:
             _e = ScrimDesign.default_open_msg()
 
         else:
-            _e = discord.Embed.from_dict(self.scrim.open_message)
+            _e = discord.Embed.from_dict(self.view.record.open_message)
 
-        self.stop()
+        self.view.stop()
 
-        embed = discord.Embed(color=self.bot.color, title="Click me to Get Help", url=config.SERVER_LINK)
+        embed = discord.Embed(color=self.view.bot.color, title="Click me to Get Help", url=config.SERVER_LINK)
         embed.description = (
-            f"\n*You are editing registration open message for {self.scrim}*\n\n"
+            f"\n*You are editing registration open message for {self.view.record}*\n\n"
             "**__Keywords you can use in design:__**\n"
             "`<<mentions>>` - Number of mentions required\n"
             "`<<slots>>` - Total slots in this scrim\n"
@@ -82,74 +113,79 @@ class ScrimDesign(ScrimsView):
             "`<<mention_banned>>` -  Mention banned users.\n"
             "`<<mention_reserved>>` - Mention reserved slot owners.\n"
         )
-        await self.message.edit(embed=embed, content="", view=None)
+        await self.view.message.edit(embed=embed, content="", view=None)
 
         _v = EmbedBuilder(
-            self.ctx,
+            self.view.ctx,
             items=[
-                SaveMessageBtn(self.ctx, self.scrim, MsgType.open, self.message),
-                BackBtn(self.ctx, self.scrim, self.message),
-                SetDefault(self.ctx, self.scrim, MsgType.open),
+                SaveMessageBtn(self.view.ctx, self.view.record, MsgType.open, self.view.message),
+                BackBtn(self.view.ctx, self.view.record, self.view.message),
+                SetDefault(self.view.ctx, self.view.record, MsgType.open),
             ],
         )
 
         await _v.rendor(embed=_e)
 
-    @discord.ui.button(emoji=ri("b"))
-    async def reg_clse_message(self, btn: discord.ui.Button, inter: discord.Interaction):
-        await inter.response.defer()
-        await self.scrim.refresh_from_db()
 
-        if len(self.scrim.close_message) <= 1:
+class CloseMessage(ScrimsButton):
+    def __init__(self):
+        super().__init__(emoji=ri("b"))
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        await self.view.record.refresh_from_db()
+
+        if len(self.view.record.close_message) <= 1:
             _e = ScrimDesign.default_close_msg()
 
         else:
-            _e = discord.Embed.from_dict(self.scrim.close_message)
+            _e = discord.Embed.from_dict(self.view.record.close_message)
 
-        self.stop()
-        embed = discord.Embed(color=self.bot.color, title="Click Me if you need Help", url=self.bot.config.SERVER_LINK)
+        self.view.stop()
+        embed = discord.Embed(
+            color=self.view.bot.color, title="Click Me if you need Help", url=self.view.bot.config.SERVER_LINK
+        )
         embed.description = (
-            f"\n*You are editing registration close message for {self.scrim}*\n\n"
+            f"\n*You are editing registration close message for {self.view.record}*\n\n"
             "**__Keywords you can use in design:__**\n"
             "`<<slots>>` - Total slots in this scrim.\n"
             "`<<filled>>` - Number of slots filled during registration.\n"
             "`<<time_taken>>` - Time taken in registration.\n"
             "`<<open_time>>` - Next day's registration time."
         )
-        await self.message.edit(embed=embed, content="", view=None)
+        await self.view.message.edit(embed=embed, content="", view=None)
 
         _v = EmbedBuilder(
-            self.ctx,
+            self.view.ctx,
             items=[
-                SaveMessageBtn(self.ctx, self.scrim, MsgType.close, self.message),
-                BackBtn(self.ctx, self.scrim, self.message),
-                SetDefault(self.ctx, self.scrim, MsgType.close),
+                SaveMessageBtn(self.view.ctx, self.view.record, MsgType.close, self.view.message),
+                BackBtn(self.view.ctx, self.view.record, self.view.message),
+                SetDefault(self.view.ctx, self.view.record, MsgType.close),
             ],
         )
 
         await _v.rendor(embed=_e)
 
-    @discord.ui.button(emoji=ri("c"))
-    async def pre_reg_msg(self, btn: discord.ui.Button, inter: discord.Interaction):
-        await inter.response.defer()
 
-        self.stop()
-        v = ScrimsCDN(self.ctx, self.scrim)
-        v.message = await self.message.edit(embed=v.initial_embed, view=v)
+class CDNmsg(ScrimsButton):
+    def __init__(self):
+        super().__init__(emoji=ri("c"))
 
-    @discord.ui.button(emoji=ri("d"))
-    async def slotlist_design(self, btn: discord.ui.Button, inter: discord.Interaction):
-        await inter.response.defer()
-        await self.scrim.refresh_from_db()
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
 
-    @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
-    async def go_back(self, btn: discord.ui.Button, inter: discord.Interaction):
-        from .main import ScrimsMain
+        self.view.stop()
+        v = ScrimsCDN(self.view.ctx, self.view.record)
+        v.message = await self.view.message.edit(embed=v.initial_embed, view=v)
 
-        await inter.response.defer()
-        self.stop()
-        view = ScrimsMain(self.ctx)
-        view.message = await self.message.edit(embed=await view.initial_embed(), view=view)
+
+class SlotlistFormat(ScrimsButton):
+    def __init__(self):
+        super().__init__(emoji=ri("d"))
+
+    async def callback(self, interaction: discord.Interaction):
+        ...
 
 
 class SaveMessageBtn(discord.ui.Button):
@@ -189,7 +225,8 @@ class SaveMessageBtn(discord.ui.Button):
             await self.ctx.safe_delete(self.msg)
 
         v = ScrimDesign(self.ctx, self.scrim)
-        v.message = await self.view.message.edit(embed=v.initial_embed, view=v)
+        await v._add_buttons()
+        v.message = await self.view.message.edit(embed=await v.initial_embed, view=v)
 
 
 class BackBtn(discord.ui.Button):
@@ -213,7 +250,8 @@ class BackBtn(discord.ui.Button):
         if self.msg:
             await self.ctx.safe_delete(self.msg)
         v = ScrimDesign(self.ctx, self.scrim)
-        v.message = await self.view.message.edit(embed=v.initial_embed, view=v)
+        await v._add_buttons()
+        v.message = await self.view.message.edit(embed=await v.initial_embed, view=v)
 
 
 class SetDefault(discord.ui.Button):
