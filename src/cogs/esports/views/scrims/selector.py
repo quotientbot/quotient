@@ -2,12 +2,12 @@ from contextlib import suppress
 from typing import List, Union
 
 import discord
+from aiocache import cached
 
 from core.Context import Context
 from core.views import QuotientView
 from models import Scrim
 from utils import emote, split_list
-from aiocache import cached
 
 __all__ = ("ScrimSelectorView",)
 

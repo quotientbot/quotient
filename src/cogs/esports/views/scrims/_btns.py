@@ -7,7 +7,10 @@ from discord import Interaction
 
 from core import Context
 from models import Scrim
-from utils import discord_timestamp as dt, inputs, regional_indicator as ri, truncate_string, emote
+from utils import discord_timestamp as dt
+from utils import emote, inputs
+from utils import regional_indicator as ri
+from utils import truncate_string
 
 from ._base import ScrimsButton
 

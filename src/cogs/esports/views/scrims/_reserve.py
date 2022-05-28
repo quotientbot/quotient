@@ -8,9 +8,9 @@ from core import Context
 from models import ReservedSlot, Scrim
 from utils import string_input
 
-from ._base import ScrimsView, ScrimsButton
-from ._pages import *
+from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
+from ._pages import *
 
 __all__ = ("ScrimsSlotReserve",)
 

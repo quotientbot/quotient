@@ -11,9 +11,9 @@ from utils import discord_timestamp, emote
 
 from ...views.base import EsportsBaseView
 from ._design import ScrimDesign
-from ._wiz import ScrimSetup
 from ._edit import ScrimsEditor
 from ._reserve import ScrimsSlotReserve
+from ._wiz import ScrimSetup
 
 
 class ScrimsMain(EsportsBaseView):

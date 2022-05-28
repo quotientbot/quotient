@@ -11,10 +11,9 @@ from core.embeds import EmbedBuilder
 from models import Scrim
 from utils import regional_indicator as ri
 
-from ._base import ScrimsView, ScrimsButton
-from ._cdn import ScrimsCDN
+from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
-
+from ._cdn import ScrimsCDN
 from ._pages import *
 
 

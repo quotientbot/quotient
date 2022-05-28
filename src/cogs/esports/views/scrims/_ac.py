@@ -1,18 +1,18 @@
 from __future__ import annotations
-from tempfile import TemporaryFile
 
 import typing as T
+from tempfile import TemporaryFile
 
 import discord
 
 from constants import AutocleanType
 from core import Context
 from models import ArrayAppend, ArrayRemove, Scrim
-from utils import keycap_digit as kd, time_input
-
-from ._pages import *
+from utils import keycap_digit as kd
+from utils import time_input
 
 from ._base import ScrimsButton, ScrimsView
+from ._pages import *
 
 __all__ = ("AutocleanView",)
 
