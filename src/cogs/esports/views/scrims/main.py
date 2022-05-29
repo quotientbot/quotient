@@ -23,7 +23,7 @@ class ScrimsMain(EsportsBaseView):
         self.ctx = ctx
 
     async def initial_embed(self):
-        _e = discord.Embed(color=0x00FFB3, title="Smart Scrims Manager", url=self.ctx.config.SERVER_LINK)
+        _e = discord.Embed(color=0x00FFB3, title="Quotient's Smart Scrims Manager", url=self.ctx.config.SERVER_LINK)
 
         to_show = []
         for idx, _r in enumerate(await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time"), start=1):
@@ -65,7 +65,7 @@ class ScrimsMain(EsportsBaseView):
         await v._add_buttons()
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
-    @discord.ui.button(label="Start/Stop Reg", style=ButtonStyle.green)
+    @discord.ui.button(label="Instant Start/Stop Reg", style=ButtonStyle.green)
     async def toggle_reg(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
 
@@ -93,3 +93,7 @@ class ScrimsMain(EsportsBaseView):
         view = ScrimDesign(self.ctx, scrim)
         await view._add_buttons()
         view.message = await self.message.edit(embed=await view.initial_embed, view=view)
+
+    @discord.ui.button(label="Scrim not working, Need Help!", style=ButtonStyle.red)
+    async def troubleshoot_scrim(self, button: ui.Button, interaction: Interaction):
+        await interaction.response.defer()
