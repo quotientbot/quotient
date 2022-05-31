@@ -9,14 +9,16 @@ from core import Context
 from models import Scrim
 from utils import discord_timestamp, emote
 
-from ...views.base import EsportsBaseView
 from ._design import ScrimDesign
 from ._edit import ScrimsEditor
 from ._reserve import ScrimsSlotReserve
 from ._wiz import ScrimSetup
 
+from ._slotlist import ManageSlotlist
+from ._base import ScrimsView
 
-class ScrimsMain(EsportsBaseView):
+
+class ScrimsMain(ScrimsView):
     def __init__(self, ctx: Context):
         super().__init__(ctx, timeout=100)
 
@@ -69,6 +71,12 @@ class ScrimsMain(EsportsBaseView):
     async def toggle_reg(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
 
+        scrim = await Scrim.show_selector(
+            self.ctx, multi=False, placeholder="Please select the scrim to stop or start registration."
+        )
+
+        v = ScrimsView(self.ctx)
+
     @discord.ui.button(label="Reserve Slots", style=ButtonStyle.green)
     async def reserve_slots(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
@@ -94,6 +102,27 @@ class ScrimsMain(EsportsBaseView):
         await view._add_buttons()
         view.message = await self.message.edit(embed=await view.initial_embed, view=view)
 
+    @discord.ui.button(label="Manage Slotlist", style=ButtonStyle.blurple)
+    async def manage_slotlist(self, button: ui.Button, interaction: Interaction):
+        await interaction.response.defer()
+
+        scrim = await Scrim.show_selector(
+            self.ctx, multi=False, placeholder="Please select the scrim to manage slotlist."
+        )
+
+        self.stop()
+        v = ScrimsView(self.ctx)
+        v.add_item(ManageSlotlist(self.ctx, scrim))
+        v.message = await self.ctx.send("Please choose an action:", view=v)
+
     @discord.ui.button(label="Scrim not working, Need Help!", style=ButtonStyle.red)
     async def troubleshoot_scrim(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
+
+        scrim = await Scrim.show_selector(
+            self.ctx, multi=False, placeholder="Please select the scrim you need help with."
+        )
+        _e = discord.Embed(color=self.bot.color, title="Analyzing {0}...".format(scrim))
+        _e.description = ""
+
+        await self.message.edit(embed=_e)
