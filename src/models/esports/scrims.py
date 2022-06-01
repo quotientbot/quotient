@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import discord
-from discord.ext.commands import (BadArgument, ChannelNotFound,
-                                  TextChannelConverter)
+from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -238,6 +237,9 @@ class Scrim(BaseDbModel):
                 # msg = await channel.fetch_message(self.slotlist_message_id)
 
             await msg.edit(embed=embed)
+
+    async def send_slotlist(self, channel: discord.TextChannel = None) -> discord.Message:
+        channel = channel or self.slotlist_channel
 
     async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
         async for reminder in self.slot_reminders.all():
