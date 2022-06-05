@@ -17,6 +17,7 @@ from ._wiz import ScrimSetup
 from ._slotlist import ManageSlotlist
 from ._base import ScrimsView
 from ._toggle import ScrimsToggle
+from ._ban import ScrimBanManager
 
 
 class ScrimsMain(ScrimsView):
@@ -93,6 +94,13 @@ class ScrimsMain(ScrimsView):
     @discord.ui.button(label="Ban/Unban", style=ButtonStyle.red)
     async def ban_unban(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()
+
+        scrim = await Scrim.show_selector(self.ctx, multi=False)
+        self.stop()
+
+        v = ScrimBanManager(self.ctx, scrim)
+        await v._add_buttons()
+        v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Design", style=ButtonStyle.red)
     async def change_design(self, button: ui.Button, interaction: Interaction):
