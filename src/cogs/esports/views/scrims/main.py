@@ -16,6 +16,7 @@ from ._wiz import ScrimSetup
 
 from ._slotlist import ManageSlotlist
 from ._base import ScrimsView
+from ._toggle import ScrimsToggle
 
 
 class ScrimsMain(ScrimsView):
@@ -74,8 +75,10 @@ class ScrimsMain(ScrimsView):
         scrim = await Scrim.show_selector(
             self.ctx, multi=False, placeholder="Please select the scrim to stop or start registration."
         )
-
-        v = ScrimsView(self.ctx)
+        self.stop()
+        v = ScrimsToggle(self.ctx, scrim)
+        await v._add_buttons()
+        v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Reserve Slots", style=ButtonStyle.green)
     async def reserve_slots(self, button: ui.Button, interaction: Interaction):
