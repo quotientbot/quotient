@@ -212,7 +212,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
                     await interaction.user.add_roles(role)
 
             user_id = interaction.user.id
-            _slot = await AssignedSlot.create(num=num, user_id=user_id,members=[user_id], team_name=team_name)
+            _slot = await AssignedSlot.create(num=num, user_id=user_id, members=[user_id], team_name=team_name)
             await scrim.assigned_slots.add(_slot)
 
             await scrim.refresh_slotlist_message()
@@ -279,6 +279,43 @@ class ScrimsSlotmPublicView(discord.ui.View):
         )
 
         await interaction.followup.send(embed=_e, ephemeral=True)
+
+    @discord.ui.button(label="Transfer IDP Role", custom_id="scrims_transfer_idp_role", style=discord.ButtonStyle.green)
+    @scrimsslotmdefer()
+    async def transfer_idp(self, button: discord.Button, interaction: discord.Interaction):
+        await self.record.refresh_public_message()
+
+        scrims = Scrim.filter(
+            pk__in=self.record.scrim_ids,
+            closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
+            match_time__gt=self.bot.current_time,
+            opened_at__isnull=True,
+        ).order_by("open_time")
+
+        _user_slots = []
+
+        async for scrim in scrims:
+            async for slot in scrim.assigned_slots.filter(user_id=interaction.user.id).order_by("num"):
+                _user_slots.append((slot, scrim))
+
+        if not _user_slots:
+            return await interaction.followup.send("You don't have any slot that can be transferred.", ephemeral=True)
+
+        _user_slots = _user_slots[:25]
+        cancel_view = BaseSelector(interaction.user.id, CancelSlotSelector, records=_user_slots)
+        await interaction.followup.send(
+            "Choose a slot to transfer ID-Pass Role to your teammates.", view=cancel_view, ephemeral=True
+        )
+        await cancel_view.wait()
+
+        if c_id := cancel_view.custom_id:
+            slot_id, scrim_id = c_id.split(":")
+
+            scrim = await Scrim.get(pk=scrim_id)
+            _slot = await AssignedSlot.filter(pk=slot_id).first()
+            print(_slot)
+
+
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         ...
