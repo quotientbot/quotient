@@ -20,7 +20,15 @@ class ScrimBanManager(ScrimsView):
 
     @property
     async def initial_message(self):
+        
+        banned = [_ async for _ in self.record.banned_teams.all()]
+
         _e = discord.Embed(color=self.bot.color)
+        _e.description  = "**Banned:**\n"
+        
+        
+        
+
 
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
