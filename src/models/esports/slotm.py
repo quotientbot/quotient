@@ -123,7 +123,10 @@ class ScrimsSlotManager(BaseDbModel):
         _claimable_slots = (
             ("\n" + "\n".join(_claimable))
             if _claimable
-            else "```No Slots Available at the time.\nPress 🔔 to set a reminder.```" ""
+            else (
+                "```No Slots Available at the time.\nPress 🔔 to set a reminder.```\n"
+                "You can transfer ID-Pass Role to your teammates."
+            )
         )
 
         _e = discord.Embed(color=0x00FFB3, title="Scrims Slot Management", url=self.bot.config.SERVER_LINK)

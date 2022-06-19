@@ -315,7 +315,5 @@ class ScrimsSlotmPublicView(discord.ui.View):
             _slot = await AssignedSlot.filter(pk=slot_id).first()
             print(_slot)
 
-
-
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
-        ...
+        print(error)
