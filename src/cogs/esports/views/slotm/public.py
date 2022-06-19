@@ -12,7 +12,7 @@ import discord
 
 from models import Scrim, AssignedSlot, ScrimsSlotReminder, ArrayAppend, ArrayRemove
 
-from utils import BaseSelector, Prompt, plural
+from utils import BaseSelector, Prompt, plural, emote
 
 from functools import wraps
 from tortoise.exceptions import OperationalError
@@ -58,6 +58,25 @@ class CancelSlotSelector(discord.ui.Select):
             )
 
         super().__init__(placeholder="Select slot from this dropdown", options=_options)
+
+    async def callback(self, interaction: discord.Interaction):
+        self.view.stop()
+        self.view.custom_id = interaction.data["values"][0]
+
+
+class UserSelector(discord.ui.Select):
+    def __init__(self, users: List[discord.Member]):
+        _options = []
+        for user in users:
+            _options.append(
+                discord.SelectOption(
+                    label=f"{user.name}#{user.discriminator}",
+                    value=user.id,
+                    emoji="📇",
+                )
+            )
+
+        super().__init__(placeholder="Select your teammate from this dropdown", options=_options)
 
     async def callback(self, interaction: discord.Interaction):
         self.view.stop()
@@ -283,7 +302,6 @@ class ScrimsSlotmPublicView(discord.ui.View):
     @discord.ui.button(label="Transfer IDP Role", custom_id="scrims_transfer_idp_role", style=discord.ButtonStyle.green)
     @scrimsslotmdefer()
     async def transfer_idp(self, button: discord.Button, interaction: discord.Interaction):
-        await self.record.refresh_public_message()
 
         scrims = Scrim.filter(
             pk__in=self.record.scrim_ids,
@@ -309,11 +327,41 @@ class ScrimsSlotmPublicView(discord.ui.View):
         await cancel_view.wait()
 
         if c_id := cancel_view.custom_id:
-            slot_id, scrim_id = c_id.split(":")
+            scrim_id, slot_id = c_id.split(":")
 
             scrim = await Scrim.get(pk=scrim_id)
+
             _slot = await AssignedSlot.filter(pk=slot_id).first()
-            print(_slot)
+            _slot.members.remove(interaction.user.id)
+            if not _slot.members:
+                return await interaction.followup.send(
+                    f"{interaction.user.mention}, you cannot transfer ID-Pass role to your teammates "
+                    "because you didn't mention them during registration.",
+                    ephemeral=True,
+                )
+
+            users = [i for i in (interaction.guild.get_member(_) for _ in _slot.members) if i]
+
+            if not users:
+                return await interaction.followup.send("All your teammates have left the server.", ephemeral=True)
+
+            if len(users) == 1:
+                user_id = users[0].id
+
+            else:
+                users_view = BaseSelector(interaction.user.id, UserSelector, users=...)
+                await interaction.followup.send(
+                    "Please select your teammate to transfer ID-Pass Role.", view=users_view, ephemeral=True
+                )
+                await users_view.wait()
+                user_id = users_view.custom_id
+
+            await AssignedSlot.filter(pk=_slot.pk).update(user_id=user_id)
+            self.bot.loop.create_task(interaction.user.remove_roles(discord.Object(scrim.role_id)))
+            self.bot.loop.create_task(interaction.guild.get_member(user_id).add_roles(discord.Object(scrim.role_id)))
+            return await interaction.followup.send(
+                f"{emote.check} | ID-Pass Role & Slot ownership transferred to <@{user_id}>", ephemeral=True
+            )
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         print(error)
