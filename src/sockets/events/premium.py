@@ -17,7 +17,7 @@ class SockPrime(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.hook = discord.Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
-        self.flantic_hook = discord.Webhook.from_url(self.bot.config.FLANTIC_PREMIUM, session=self.bot.session)
+        # self.flantic_hook = discord.Webhook.from_url(self.bot.config.FLANTIC_PREMIUM, session=self.bot.session)
 
     @Cog.listener()
     async def on_request__perks(self, u, data):
@@ -67,7 +67,7 @@ class SockPrime(Cog):
             await member.send(embed=_e)
 
             if data["details"]["amount"] != "29.00":
-                await self.ping_flantic(user_id)
+                # await self.ping_flantic(user_id)
                 await self.give_real(member)
 
         _e = discord.Embed(
@@ -110,5 +110,5 @@ class SockPrime(Cog):
             with suppress(discord.HTTPException):
                 await member.send(embed=_f)
 
-    async def ping_flantic(self, user_id):
-        await self.flantic_hook.send(content=user_id)
+    # async def ping_flantic(self, user_id):
+    #     await self.flantic_hook.send(content=user_id)
