@@ -239,7 +239,20 @@ class Scrim(BaseDbModel):
             await msg.edit(embed=embed)
 
     async def send_slotlist(self, channel: discord.TextChannel = None) -> discord.Message:
+        from cogs.esports.views.smslotlist.button import SlotlistEditButton
+
         channel = channel or self.slotlist_channel
+
+        _v = SlotlistEditButton(self.bot, self)
+        embed, schannel = await self.create_slotlist()
+        _v.message= await channel.send(embed=embed, view=_v)
+
+        if channel == schannel:
+            await self.make_changes(slotlist_message_id=_v.message.id)
+
+        return _v.message
+        
+
 
     async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
         async for reminder in self.slot_reminders.all():

@@ -124,7 +124,7 @@ class ScrimsMain(ScrimsView):
         self.stop()
         v = ScrimsView(self.ctx)
         v.add_item(ManageSlotlist(self.ctx, scrim))
-        v.message = await self.ctx.send("Please choose an action:", view=v)
+        v.message = await self.message.edit("Please choose an action:", embed=None, view=v)
 
     @discord.ui.button(label="Scrim not working, Need Help!", style=ButtonStyle.red)
     async def troubleshoot_scrim(self, button: ui.Button, interaction: Interaction):

@@ -5,11 +5,11 @@ import discord
 
 from models import Scrim
 from ._base import ScrimsView
-from utils import inputs
+from utils import inputs, emote
 
 __all__ = ("ManageSlotlist",)
 
-#!TODO:  make send_slotlist work
+#!TODO:  make format btn
 
 
 class ManageSlotlist(discord.ui.Select):
@@ -31,10 +31,17 @@ class ManageSlotlist(discord.ui.Select):
                     emoji="<:settings:980844348159688706>",
                     value="format",
                 ),
+                discord.SelectOption(
+                    label="Go Back",
+                    description="Move back to Main Menu",
+                    emoji=emote.exit,
+                    value="back",
+                ),
             ],
         )
 
-        self.ctx = self.view.ctx
+        self.ctx = ctx
+        self.record = scrim
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -45,10 +52,24 @@ class ManageSlotlist(discord.ui.Select):
             channel = await inputs.channel_input(self.ctx, delete_after=True)
             await self.ctx.safe_delete(m)
 
-            if not await self.view.record.teams_registered.count():
-                return await self.ctx.error("No registrations found in {0}.".format(self.view.record), 5)
+            if not await self.record.teams_registered.count():
+                return await self.ctx.error("No registrations found in {0}.".format(self.record), 5)
 
-            m = await self.view.record.send_slotlist(channel)
-            await self.ctx.success("Slotlist sent! [Click to Jump]({0})".format(m.jump_url))
+            m = await self.record.send_slotlist(channel)
+            await self.ctx.success("Slotlist sent! [Click to Jump]({0})".format(m.jump_url), 5)
+
+            from .main import ScrimsMain
+
+            self.view.stop()
+            v = ScrimsMain(self.ctx)
+            v.message = await self.view.message.edit(content="", embed=await v.initial_embed(), view=v)
+
         elif selected == "format":
             ...
+
+        elif selected == "back":
+            from .main import ScrimsMain
+
+            self.view.stop()
+            v = ScrimsMain(self.ctx)
+            v.message = await self.view.message.edit(content="", embed=await v.initial_embed(), view=v)
