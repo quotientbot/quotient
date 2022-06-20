@@ -6,7 +6,7 @@ import discord
 
 from core import Context
 from models import ReservedSlot, Scrim
-from utils import string_input
+from utils import string_input, truncate_string, QuoMember, BetterFutureTime
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -58,6 +58,8 @@ class ScrimsSlotReserve(ScrimsView):
 
 
 class NewReserve(ScrimsButton):
+    view: ScrimsSlotReserve
+
     def __init__(self, ctx: Context):
         super().__init__(style=discord.ButtonStyle.green, label="Reserve Slot(s)")
 
@@ -65,6 +67,66 @@ class NewReserve(ScrimsButton):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        m = await self.ctx.simple(
+            "Enter the slot details you want to reserve in the following format:\n"
+            "> `slot_number`,`team_name`, `team_owner`, `time to reserve`\n\n"
+            "Enter `none` in place of:\n"
+            "- `team owner` if you want the slot be a management slot.\n"
+            "- `time to reserve` if you want the reserve time to never expire.\n\n"
+            "\n*don't forget to separate everything with comma (`,`)*\n",
+            image="https://cdn.discordapp.com/attachments/851846932593770496/988408404341039134/reserve_help.gif",
+        )
+
+        slots = await string_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+
+        if slots.strip().lower() == "cancel":
+            return await self.ctx.error("Alright, Aborting.", 4)
+
+        slots = slots.split("\n")
+        for _ in slots:
+            _ = _.split(",")
+
+            try:
+                num, team_name, team_owner, time_to_reserve = _
+                num = int(num.strip())
+
+                team_name = truncate_string(team_name.strip(), 25)
+
+            except ValueError:
+                return await self.ctx.error(
+                    "The details you entered were not according to the proper format. Please refer to example image.", 6
+                )
+
+            owner_id = None
+            if team_owner.strip().lower() != "none":
+                owner = await QuoMember().convert(self.ctx, team_owner.strip())
+                owner_id = owner.id
+
+            expire = None
+            if time_to_reserve.strip().lower() != "none":
+                expire = await BetterFutureTime().convert(self.ctx, time_to_reserve.strip())
+
+            if num not in (_range := self.view.record.available_to_reserve):
+                return await self.error_embed(
+                    f"The slot-number you entered (`{num}`) cannot be reserved.\n"
+                    f"\nThe slot-number must be a number between `{_range.start}` and `{_range.stop}`",
+                    5,
+                )
+
+            to_del = await self.view.record.reserved_slots.filter(num=num).first()
+            if to_del:
+                await ReservedSlot.filter(pk=to_del.id).delete()
+
+            slot = await ReservedSlot.create(num=num, user_id=owner_id, team_name=team_name, expires=expire)
+            await self.view.record.reserved_slots.add(slot)
+            if expire and owner_id:
+                await self.ctx.bot.reminders.create_timer(
+                    expire, "scrim_reserve", scrim_id=self.view.record.id, user_id=owner_id, team_name=team_name, num=num
+                )
+
+        await self.view.refresh_view()
 
 
 class RemoveReserve(ScrimsButton):
