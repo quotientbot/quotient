@@ -146,7 +146,7 @@ class RemoveReserve(ScrimsButton):
 
         if v.custom_id:
             await ReservedSlot.filter(id__in=v.custom_id).delete()
-            await self.__refresh_view()
+            await self.view.refresh_view()
 
         await self.ctx.safe_delete(m)
 
@@ -160,12 +160,14 @@ class SlotSelect(discord.ui.Select):
             _options.append(
                 discord.SelectOption(
                     label=f"Slot {_.num}",
-                    description=f"Team: {_.team_name} ({getattr(_.leader)})",
+                    description=f"Team: {_.team_name} ({_.leader or 'No leader'})",
                     value=_.id.__str__(),
                     emoji="<:menu:972807297812275220>",
                 )
             )
-        super().__init__(max_values=len(slots), placeholder="Select the slot(s) you want to remove from reserved")
+        super().__init__(
+            max_values=len(slots), placeholder="Select the slot(s) you want to remove from reserved", options=_options
+        )
 
     async def callback(self, interaction: discord.Interaction):
         self.view.custom_id = self.values
