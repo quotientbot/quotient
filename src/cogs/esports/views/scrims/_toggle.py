@@ -2,7 +2,7 @@ from __future__ import annotations
 from ._base import ScrimsView, ScrimsButton
 
 from core import Context
-from models import Scrim
+from models import Scrim, ScrimsSlotManager
 
 from ._btns import Discard
 from ._pages import *
@@ -59,3 +59,13 @@ class StopReg(ScrimsButton):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        if not self.view.record.opened_at:
+            return await self.view.ctx.error("Registration is already closed.", 5)
+
+        await self.view.record.close_registration()
+        await self.view.ctx.success(f"Registration closed {self.view.record}.")
+
+        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.view.record.id)
+        if slotm:
+            await slotm.refresh_public_message()

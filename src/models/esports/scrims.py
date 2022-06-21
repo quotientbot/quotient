@@ -12,11 +12,13 @@ from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
 import utils
-from constants import AutocleanType, Day
+from constants import AutocleanType, Day, EsportsLog
 from core import Context
 from models import BaseDbModel
 from models.helpers import *
-from utils import plural, truncate_string
+from utils import plural, truncate_string, discord_timestamp
+
+import humanize
 
 
 class Scrim(BaseDbModel):
@@ -245,14 +247,12 @@ class Scrim(BaseDbModel):
 
         _v = SlotlistEditButton(self.bot, self)
         embed, schannel = await self.create_slotlist()
-        _v.message= await channel.send(embed=embed, view=_v)
+        _v.message = await channel.send(embed=embed, view=_v)
 
         if channel == schannel:
             await self.make_changes(slotlist_message_id=_v.message.id)
 
         return _v.message
-        
-
 
     async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
         async for reminder in self.slot_reminders.all():
@@ -391,8 +391,24 @@ class Scrim(BaseDbModel):
         except KeyError:
             ...
 
-    async def reg_close_msg(self):
-        ...
+    def reg_close_msg(self):
+        if len(self.close_message) <= 1:
+            return discord.Embed(color=self.bot.config.COLOR, description="**Registration is now Closed!**")
+
+        changes = [
+            ("<<slots>>", str(self.total_slots)),
+            ("<<filled>>", str(self.total_slots - len(self.available_slots))),
+            ("<<time_taken>>", self.time_elapsed or "N/A"),
+            ("<<open_time>>", discord_timestamp(self.open_time)),
+        ]
+
+        text = str(self.close_message)
+        for _ in changes:
+            text = text.replace(*_)
+        
+        return discord.Embed.from_dict(leval(text))
+
+
 
     async def setup_logs(self):
         _reason = "Created for scrims management."
@@ -456,6 +472,35 @@ class Scrim(BaseDbModel):
 
         await Scrim.filter(guild_id=ctx.guild.id).update(**kwargs)
         await ctx.simple("This change was applied to all your scrims.", 4)
+
+    async def close_registration(self):
+        from cogs.esports.helpers.utils import toggle_channel, wait_and_purge
+
+        closed_at = self.bot.current_time
+        registration_channel = self.registration_channel
+        open_role = self.open_role
+
+        self.time_elapsed = humanize.precisedelta(closed_at - self.opened_at)
+        await self.make_changes(opened_at=None, time_elapsed=self.time_elapsed, closed_at=closed_at)
+
+        channel_update = await toggle_channel(registration_channel, open_role, False)
+        _e = self.reg_close_msg()
+        await registration_channel.send(embed=_e)
+
+        self.bot.dispatch("scrim_log", EsportsLog.closed, self, permission_updated=channel_update)
+
+        registered = await self.teams_registered
+
+        if self.autoslotlist and registered:
+            await self.send_slotlist()
+
+        if self.autodelete_extras:
+            msg_ids = (i.message_id for i in registered)
+
+            check = lambda x: all(
+                (not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids)
+            )
+            self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
 
     @staticmethod
     async def show_selector(*args, **kwargs):
