@@ -17,11 +17,17 @@ from constants import IST, AutocleanType, Day, EsportsLog, EsportsRole
 from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
-from ..helpers import (add_role_and_reaction, available_to_reserve,
-                       before_registrations, cannot_take_registration,
-                       check_scrim_requirements, purge_channel, purge_role,
-                       registration_open_embed, scrim_end_process,
-                       scrim_work_role, should_open_scrim, toggle_channel)
+from ..helpers import (
+    add_role_and_reaction,
+    available_to_reserve,
+    before_registrations,
+    cannot_take_registration,
+    check_scrim_requirements,
+    registration_open_embed,
+    scrim_work_role,
+    should_open_scrim,
+    toggle_channel,
+)
 
 
 class ScrimEvents(Cog):
@@ -100,7 +106,7 @@ class ScrimEvents(Cog):
             self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
 
             if len(scrim.available_slots) == 1:
-                await scrim_end_process(ctx, scrim)
+                await scrim.close_registration()
 
     # ==========================================================================================================
     # ==========================================================================================================
@@ -134,7 +140,7 @@ class ScrimEvents(Cog):
         if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime(
             "%d-%b-%Y %I:%M %p"
         ):
-            return  # means we are having multiple timers for a single scrims :c shit
+            return  # means we are having multiple timers for a single scrim :c shit
 
         guild = scrim.guild
 

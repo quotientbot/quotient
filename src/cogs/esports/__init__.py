@@ -21,17 +21,32 @@ import config
 from constants import IST, EsportsRole, ScrimBanType
 from core import Cog, Context, QuotientView
 from models import *
-from utils import (FutureTime, LinkButton, LinkType, QuoPaginator, QuoRole,
-                   QuoTextChannel, QuoUser, checks, discord_timestamp,
-                   human_timedelta, inputs)
+from utils import (
+    FutureTime,
+    LinkButton,
+    LinkType,
+    QuoPaginator,
+    QuoRole,
+    QuoTextChannel,
+    QuoUser,
+    checks,
+    discord_timestamp,
+    human_timedelta,
+    inputs,
+)
 
 from .errors import PointsError, ScrimError, SMError, TourneyError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
-from .helpers import (MultiScrimConverter, delete_denied_message,
-                      log_scrim_ban, registration_close_embed,
-                      registration_open_embed, scrim_end_process,
-                      scrim_work_role, t_ask_embed, toggle_channel,
-                      tourney_work_role)
+from .helpers import (
+    MultiScrimConverter,
+    delete_denied_message,
+    log_scrim_ban,
+    registration_open_embed,
+    scrim_work_role,
+    t_ask_embed,
+    toggle_channel,
+    tourney_work_role,
+)
 from .menus import *
 from .views import *
 
@@ -86,29 +101,6 @@ class ScrimManager(Cog, name="Esports"):
         v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
     # ************************************************************************************************
-
-
-    @smanager.command(name="close")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_channels=True)
-    async def s_close(self, ctx: Context, scrim: Scrim):
-        """
-        Close a scrim immediately, even if the slots aren't full.
-        """
-        if scrim.opened_at is None:
-            return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
-        prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
-        if not prompt:
-            return await ctx.success("Ok, Aborting!")
-
-        await scrim_end_process(ctx, scrim)
-        await ctx.message.add_reaction(emote.check)
-
-        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=scrim.id)
-        if slotm:
-            await slotm.refresh_public_message()
-
     # ************************************************************************************************
 
     @smanager.command(name="toggle")
@@ -238,7 +230,6 @@ class ScrimManager(Cog, name="Esports"):
         view = SlotlistFormatter(ctx, scrim=scrim)
         view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
 
-
     @smanager.command(name="start")
     @checks.can_use_sm()
     @checks.has_done_setup()
@@ -308,7 +299,6 @@ class ScrimManager(Cog, name="Esports"):
 
         if banlog := await BanLog.get_or_none(guild_id=ctx.guild.id):
             await banlog.log_unban(user.id, ctx.author, scrims, reason or "```No reason given```")
-
 
     # ************************************************************************************************
     # ************************************************************************************************

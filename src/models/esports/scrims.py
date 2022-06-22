@@ -386,10 +386,45 @@ class Scrim(BaseDbModel):
         )  # As pillow is blocking, we will process image in executor
 
     async def reg_open_msg(self):
-        try:
-            c = self.open_message["content"]
-        except KeyError:
-            ...
+        reserved_count = await self.reserved_slots.all().count()
+
+        if len(self.open_message) <= 1:
+            return discord.Embed(
+                color=self.bot.color,
+                title="Registration is now open!",
+                description=f"📣 **`{self.required_mentions}`** mentions required.\n"
+                f"📣 Total slots: **`{self.total_slots}`** [`{reserved_count}` slots reserved]",
+            )
+
+        changes = [
+            ("<<mentions>>", str(self.required_mentions)),
+            ("<<slots>>", str(self.total_slots)),
+            ("<<reserved>>", str(reserved_count)),
+            ("<<slotlist>>", getattr(self.slotlist_channel, "mention", "Not Found")),
+            ("<<multireg>>", "Enabled" if self.multiregister else "Not Enabled"),
+            ("<<teamname>>", "Yes" if self.teamname_compulsion else "No"),
+            (
+                "<<mention_banned>>",
+                ", ".join(
+                    map(lambda x: getattr(x, "mention", "Left"), map(self.guild.get_member, await self.banned_user_ids()))
+                ),
+            ),
+            (
+                "<<mention_reserved>>",
+                ", ".join(
+                    map(
+                        lambda x: getattr(x, "mention", "Left"),
+                        map(self.guild.get_member, await self.reserved_user_ids()),
+                    )
+                ),
+            ),
+        ]
+
+        text = str(self.open_message)
+        for _ in changes:
+            text = text.replace(*_)
+
+        return discord.Embed.from_dict(leval(text))
 
     def reg_close_msg(self):
         if len(self.close_message) <= 1:
@@ -405,10 +440,8 @@ class Scrim(BaseDbModel):
         text = str(self.close_message)
         for _ in changes:
             text = text.replace(*_)
-        
+
         return discord.Embed.from_dict(leval(text))
-
-
 
     async def setup_logs(self):
         _reason = "Created for scrims management."
@@ -475,6 +508,7 @@ class Scrim(BaseDbModel):
 
     async def close_registration(self):
         from cogs.esports.helpers.utils import toggle_channel, wait_and_purge
+        from .slotm import ScrimsSlotManager
 
         closed_at = self.bot.current_time
         registration_channel = self.registration_channel
@@ -501,6 +535,13 @@ class Scrim(BaseDbModel):
                 (not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids)
             )
             self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
+
+        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.id)
+        if slotm:
+            await slotm.refresh_public_message()
+
+    async def start_registration(self):
+        ...
 
     @staticmethod
     async def show_selector(*args, **kwargs):

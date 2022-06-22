@@ -113,44 +113,6 @@ async def wait_and_purge(channel, *, limit=100, wait_for=15, check=lambda m: Tru
         await channel.purge(limit=limit, check=check)
 
 
-async def scrim_end_process(ctx: Context, scrim: Scrim):
-    closed_at = datetime.now(tz=constants.IST)
-
-    registration_channel = scrim.registration_channel
-    open_role = scrim.open_role
-
-    delta = humanize.precisedelta(closed_at - scrim.opened_at)
-
-    await Scrim.filter(pk=scrim.id).update(opened_at=None, time_elapsed=delta, closed_at=closed_at)
-
-    channel_update = await toggle_channel(registration_channel, open_role, False)
-
-    await scrim.refresh_from_db(("time_elapsed",))  # refreshing our instance to get time_elapsed
-
-    _e = registration_close_embed(scrim)
-
-    await registration_channel.send(embed=_e)
-
-    ctx.bot.dispatch("scrim_log", constants.EsportsLog.closed, scrim, permission_updated=channel_update)
-
-    if scrim.autoslotlist and await scrim.teams_registered:
-        from ..views import SlotlistEditButton
-
-        embed, channel = await scrim.create_slotlist()
-
-        _v = SlotlistEditButton(ctx.bot, scrim)
-        with suppress(AttributeError, discord.Forbidden):
-            _v.message = await channel.send(embed=embed, view=_v)
-            await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)
-
-    if scrim.autodelete_extras:
-        msg_ids = (i.message_id for i in await scrim.assigned_slots.all())
-        check = lambda x: all(
-            (not x.pinned, not x.reactions, not x.embeds, not x.author == ctx.bot.user, not x.id in msg_ids)
-        )
-        ctx.bot.loop.create_task(wait_and_purge(ctx.channel, check=check, wait_for=20))
-
-
 async def purge_channel(channel):
     with suppress(AttributeError, discord.Forbidden, discord.NotFound, discord.HTTPException):
         await channel.purge(limit=100, check=lambda x: not x.pinned)
@@ -333,24 +295,6 @@ async def registration_open_embed(scrim: Scrim) -> discord.Embed:
             ),
         )
 
-        embed = discord.Embed.from_dict(literal_eval(text))
-
-    return embed
-
-
-def registration_close_embed(scrim: Scrim):
-    _dict = scrim.close_message
-
-    if len(_dict) <= 1:
-        embed = discord.Embed(color=config.COLOR, description="**Registration is now Closed!**")
-
-    else:
-        text = str(_dict)
-        text = text.replace("<<slots>>", str(scrim.total_slots))
-        text = text.replace("<<filled>>", str(scrim.total_slots - len(scrim.available_slots)))
-        if scrim.time_elapsed:
-            text = text.replace("<<time_taken>>", scrim.time_elapsed)
-        text = text.replace("<<open_time>>", strtime(scrim.open_time))
         embed = discord.Embed.from_dict(literal_eval(text))
 
     return embed

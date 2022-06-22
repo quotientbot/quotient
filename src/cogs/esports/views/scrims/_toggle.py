@@ -52,6 +52,12 @@ class StartReg(ScrimsButton):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
+        if not self.view.record.closed_at:
+            return await self.view.ctx.error("Registration is already open. To restart, pls stop registration first.", 4)
+
+        await self.view.record.start_registration()
+        await self.view.ctx.success(f"Registration opened {self.view.record}.")
+
 
 class StopReg(ScrimsButton):
     def __init__(self):
@@ -65,7 +71,3 @@ class StopReg(ScrimsButton):
 
         await self.view.record.close_registration()
         await self.view.ctx.success(f"Registration closed {self.view.record}.")
-
-        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.view.record.id)
-        if slotm:
-            await slotm.refresh_public_message()
