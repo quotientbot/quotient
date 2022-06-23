@@ -18,7 +18,6 @@ from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
 from ..helpers import (
-    add_role_and_reaction,
     before_registrations,
     cannot_take_registration,
     check_scrim_requirements,
@@ -99,7 +98,7 @@ class ScrimEvents(Cog):
             await scrim.assigned_slots.add(slot)
 
             await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
-            self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
+            self.bot.loop.create_task(scrim.add_tick(message))
 
             if len(scrim.available_slots) == 1:
                 await scrim.close_registration()

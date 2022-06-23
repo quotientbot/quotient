@@ -47,12 +47,6 @@ async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **
         await channel.send(content=getattr(user, "mention", "unknown-user"), embed=embed)
 
 
-async def add_role_and_reaction(ctx, role):
-    with suppress(discord.HTTPException):
-        await ctx.message.add_reaction("\N{WHITE HEAVY CHECK MARK}")
-        await ctx.author.add_roles(role)
-
-
 async def already_reserved(scrim: Scrim):
     return [i.num for i in await scrim.reserved_slots.all()]
 
