@@ -9,15 +9,14 @@ from core import Context
 from models import Scrim
 from utils import discord_timestamp, emote
 
+from ._ban import ScrimBanManager
+from ._base import ScrimsView
 from ._design import ScrimDesign
 from ._edit import ScrimsEditor
 from ._reserve import ScrimsSlotReserve
-from ._wiz import ScrimSetup
-
 from ._slotlist import ManageSlotlist
-from ._base import ScrimsView
 from ._toggle import ScrimsToggle
-from ._ban import ScrimBanManager
+from ._wiz import ScrimSetup
 
 
 class ScrimsMain(ScrimsView):

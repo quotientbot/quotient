@@ -6,7 +6,7 @@ import discord
 
 from core import Context
 from models import ReservedSlot, Scrim
-from utils import string_input, truncate_string, QuoMember, BetterFutureTime
+from utils import BetterFutureTime, QuoMember, string_input, truncate_string
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard

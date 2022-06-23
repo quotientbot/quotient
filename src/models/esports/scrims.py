@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import discord
-from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
+import humanize
+from discord.ext.commands import (BadArgument, ChannelNotFound,
+                                  TextChannelConverter)
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -16,9 +18,7 @@ from constants import AutocleanType, Day, EsportsLog, EsportsRole
 from core import Context
 from models import BaseDbModel
 from models.helpers import *
-from utils import plural, truncate_string, discord_timestamp
-
-import humanize
+from utils import discord_timestamp, plural, truncate_string
 
 
 class Scrim(BaseDbModel):
@@ -508,6 +508,7 @@ class Scrim(BaseDbModel):
 
     async def close_registration(self):
         from cogs.esports.helpers.utils import toggle_channel, wait_and_purge
+
         from .slotm import ScrimsSlotManager
 
         closed_at = self.bot.current_time
@@ -541,7 +542,9 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def start_registration(self):
-        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+        from cogs.esports.helpers.utils import (available_to_reserve,
+                                                scrim_work_role,
+                                                toggle_channel)
 
         oldslots = await self.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()

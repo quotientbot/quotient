@@ -21,32 +21,15 @@ import config
 from constants import IST, EsportsRole, ScrimBanType
 from core import Cog, Context, QuotientView
 from models import *
-from utils import (
-    FutureTime,
-    LinkButton,
-    LinkType,
-    QuoPaginator,
-    QuoRole,
-    QuoTextChannel,
-    QuoUser,
-    checks,
-    discord_timestamp,
-    human_timedelta,
-    inputs,
-)
+from utils import (FutureTime, LinkButton, LinkType, QuoPaginator, QuoRole,
+                   QuoTextChannel, QuoUser, checks, discord_timestamp,
+                   human_timedelta, inputs)
 
 from .errors import PointsError, ScrimError, SMError, TourneyError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
-from .helpers import (
-    MultiScrimConverter,
-    delete_denied_message,
-    log_scrim_ban,
-    registration_open_embed,
-    scrim_work_role,
-    t_ask_embed,
-    toggle_channel,
-    tourney_work_role,
-)
+from .helpers import (MultiScrimConverter, delete_denied_message,
+                      log_scrim_ban, registration_open_embed, scrim_work_role,
+                      t_ask_embed, toggle_channel, tourney_work_role)
 from .menus import *
 from .views import *
 

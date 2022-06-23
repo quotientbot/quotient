@@ -1,12 +1,13 @@
 from __future__ import annotations
-from ._base import ScrimsView, ScrimsButton
+
+import discord
 
 from core import Context
 from models import Scrim, ScrimsSlotManager
 
+from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
 from ._pages import *
-import discord
 
 __all__ = ("ScrimsToggle",)
 

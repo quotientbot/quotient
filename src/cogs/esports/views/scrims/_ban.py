@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from ._base import ScrimsButton, ScrimsView
-from core import Context
-from models import Scrim
 import discord
 
+from core import Context
+from models import Scrim
+
+from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
 from ._pages import *
 

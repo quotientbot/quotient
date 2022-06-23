@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from core import Context
 import discord
 
+from core import Context
 from models import Scrim
+from utils import emote, inputs
+
 from ._base import ScrimsView
-from utils import inputs, emote
 
 __all__ = ("ManageSlotlist",)
 

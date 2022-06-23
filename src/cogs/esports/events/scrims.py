@@ -13,20 +13,16 @@ from unicodedata import normalize
 import discord
 
 import utils
-from constants import IST, AutocleanType, Day, EsportsLog, EsportsRole
+from constants import IST, AutocleanType, Day
 from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
 from ..helpers import (
     add_role_and_reaction,
-    available_to_reserve,
     before_registrations,
     cannot_take_registration,
     check_scrim_requirements,
-    registration_open_embed,
-    scrim_work_role,
     should_open_scrim,
-    toggle_channel,
 )
 
 
