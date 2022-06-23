@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
 import utils
-from constants import AutocleanType, Day, EsportsLog
+from constants import AutocleanType, Day, EsportsLog, EsportsRole
 from core import Context
 from models import BaseDbModel
 from models.helpers import *
@@ -541,7 +541,61 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def start_registration(self):
-        ...
+        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+
+        oldslots = await self.assigned_slots
+        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
+        await self.assigned_slots.clear()
+
+        # here we insert a list of slots we can give for the registration.
+        await self.bot.db.execute(
+            """
+            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
+            """,
+            await available_to_reserve(self),
+            self.id,
+        )
+
+        scrim_role = self.role
+
+        async for slot in self.reserved_slots.all():
+            assinged_slot = await AssignedSlot.create(
+                num=slot.num,
+                user_id=slot.user_id,
+                team_name=slot.team_name,
+                jump_url=None,
+            )
+
+            await self.assigned_slots.add(assinged_slot)
+
+            if slot.user_id:
+                with suppress(AttributeError):
+                    self.bot.loop.create_task(self.guild.get_member(slot.user_id).add_roles(scrim_role))
+
+        await Scrim.filter(pk=self.id).update(
+            opened_at=self.bot.current_time,
+            closed_at=None,
+            slotlist_message_id=None,
+        )
+        self.bot.loop.create_task(self.ensure_match_timer())
+        await asyncio.sleep(0.2)
+
+        # Opening Channel for Normal Janta
+        registration_channel = self.registration_channel
+        open_role = self.open_role
+
+        _e = await self.reg_open_msg()
+
+        await registration_channel.send(
+            content=scrim_work_role(self, EsportsRole.ping),
+            embed=_e,
+            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
+        )
+
+        self.bot.cache.scrim_channels.add(registration_channel.id)
+
+        await toggle_channel(registration_channel, open_role, True)
+        self.bot.dispatch("scrim_log", EsportsLog.open, self)
 
     @staticmethod
     async def show_selector(*args, **kwargs):

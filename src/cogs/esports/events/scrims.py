@@ -153,63 +153,7 @@ class ScrimEvents(Cog):
         if not guild.chunked:
             self.bot.loop.create_task(guild.chunk())
 
-        oldslots = await scrim.assigned_slots
-        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
-
-        await scrim.assigned_slots.clear()
-
-        # here we insert a list of slots we can give for the registration.
-        # we insert only the empty slots not the reserved ones to avoid extra queries during creation of slots for reserved users.
-
-        await self.bot.db.execute(
-            """
-            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
-            """,
-            await available_to_reserve(scrim),
-            scrim.id,
-        )
-
-        scrim_role = scrim.role
-        async for slot in scrim.reserved_slots.all():
-            assinged_slot = await AssignedSlot.create(
-                num=slot.num,
-                user_id=slot.user_id,
-                team_name=slot.team_name,
-                jump_url=None,
-            )
-
-            await scrim.assigned_slots.add(assinged_slot)
-
-            if slot.user_id:
-                with suppress(AttributeError):
-                    self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
-
-        await Scrim.filter(pk=scrim.id).update(
-            opened_at=datetime.now(tz=IST),
-            closed_at=None,
-            slotlist_message_id=None,
-        )
-
-        self.bot.loop.create_task(scrim.ensure_match_timer())
-
-        await asyncio.sleep(0.2)
-
-        # Opening Channel for Normal Janta
-        registration_channel = scrim.registration_channel
-        open_role = scrim.open_role
-
-        _e = await registration_open_embed(scrim)
-
-        await registration_channel.send(
-            content=scrim_work_role(scrim, EsportsRole.ping),
-            embed=_e,
-            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
-        )
-
-        self.bot.cache.scrim_channels.add(registration_channel.id)
-
-        await toggle_channel(registration_channel, open_role, True)
-        self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
+        await scrim.start_registration()
 
     @Cog.listener()
     async def on_autoclean_timer_complete(self, timer: Timer):

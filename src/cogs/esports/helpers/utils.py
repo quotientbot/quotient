@@ -1,21 +1,16 @@
 import asyncio
 import io
 import re
-from ast import literal_eval
 from contextlib import suppress
 from datetime import datetime
-from typing import Optional, Union
+from typing import Union
 
 import discord
-import humanize
-from prettytable.prettytable import PrettyTable
 
-import config
 import constants
 from constants import IST, ScrimBanType
-from core import Context
 from models import Scrim, Tourney
-from utils import QuoUser, find_team, human_timedelta, plural, strtime
+from utils import QuoUser, find_team, human_timedelta, plural
 
 
 def get_slots(slots):
@@ -233,68 +228,3 @@ def scrim_work_role(scrim: Scrim, _type: constants.EsportsRole):
     if role == scrim.guild.default_role:
         return "@everyone"
     return getattr(role, "mention", "Role deleted!")
-
-
-async def embed_or_content(ctx, _type: constants.RegMsg) -> Optional[int]:
-    m = await ctx.simple(
-        f"Do you want the {_type.value} message to be an embed or normal text/image ?"
-        "\n\n`Reply with 1 for embed and 2 for simple text/image`"
-    )
-
-    try:
-        option = await ctx.bot.wait_for(
-            "message", check=lambda msg: msg.channel == ctx.channel and msg.author == ctx.author, timeout=20
-        )
-
-        await delete_denied_message(m, 0)
-    except asyncio.TimeoutError:
-        return await ctx.error(f"You ran out of time, Kindly try again")
-
-    else:
-        try:
-            option = int(option.content)
-        except ValueError:
-            return await ctx.error("You didn't enter a valid number, you had to choose between 1 and 2.")
-
-        if option not in (1, 2):
-            return await ctx.error("You didn't enter a valid number, You had to choose between 1 and 2.")
-
-        return option
-
-
-async def registration_open_embed(scrim: Scrim) -> discord.Embed:
-    _dict = scrim.open_message
-    reserved_count = await scrim.reserved_slots.all().count()
-
-    if len(_dict) <= 1:
-        embed = discord.Embed(
-            color=config.COLOR,
-            title="Registration is now open!",
-            description=f"📣 **`{scrim.required_mentions}`** mentions required.\n"
-            f"📣 Total slots: **`{scrim.total_slots}`** [`{reserved_count}` slots reserved]",
-        )
-
-    else:
-        text = str(_dict)
-        text = text.replace("<<mentions>>", str(scrim.required_mentions))
-        text = text.replace("<<slots>>", str(scrim.total_slots))
-        text = text.replace("<<reserved>>", str(reserved_count))
-        text = text.replace("<<slotlist>>", getattr(scrim.slotlist_channel, "mention", "Not Found"))
-        text = text.replace("<<multireg>>", "Enabled" if scrim.multiregister else "Not Enabled")
-        text = text.replace("<<teamname>>", "Yes" if scrim.teamname_compulsion else "No")
-        text = text.replace(
-            "<<mention_banned>>",
-            ", ".join(
-                map(lambda x: getattr(x, "mention", "Left"), map(scrim.guild.get_member, await scrim.banned_user_ids()))
-            ),
-        )
-        text = text.replace(
-            "<<mention_reserved>>",
-            ", ".join(
-                map(lambda x: getattr(x, "mention", "Left"), map(scrim.guild.get_member, await scrim.reserved_user_ids()))
-            ),
-        )
-
-        embed = discord.Embed.from_dict(literal_eval(text))
-
-    return embed
