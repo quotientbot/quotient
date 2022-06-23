@@ -10,26 +10,19 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
-from tortoise.query_utils import Q
 
-import config
-from constants import IST, EsportsRole, ScrimBanType
+from constants import IST
 from core import Cog, Context, QuotientView
 from models import *
-from utils import (FutureTime, LinkButton, LinkType, QuoPaginator, QuoRole,
-                   QuoTextChannel, QuoUser, checks, discord_timestamp,
-                   human_timedelta, inputs)
+from utils import QuoRole, QuoTextChannel, QuoUser, checks
 
 from .errors import PointsError, ScrimError, SMError, TourneyError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
-from .helpers import (MultiScrimConverter, delete_denied_message,
-                      log_scrim_ban, registration_open_embed, scrim_work_role,
-                      t_ask_embed, toggle_channel, tourney_work_role)
+from .helpers import MultiScrimConverter, delete_denied_message
 from .menus import *
 from .views import *
 
@@ -84,58 +77,7 @@ class ScrimManager(Cog, name="Esports"):
         v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
     # ************************************************************************************************
-    # ************************************************************************************************
-
-    @smanager.command(name="toggle")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_toggle(self, ctx, scrim: Scrim, option: str = None):
-        """
-        Toggle on/off things for a scrim.
-        """
-        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist", "multiregister")
-        display = ",".join(map(lambda s: f"`{s}`", valid_opt))
-        display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim.id} scrim`"
-
-        if not option or option.lower() not in valid_opt:
-            return await ctx.send(display_msg)
-
-        stoggle = scrim.stoggle
-        ping = scrim.ping_role_id
-        openrole = scrim.open_role_id
-        autoclean = scrim.autoclean
-
-        if option.lower() == "scrim":
-            await Scrim.filter(pk=scrim.id).update(stoggle=not (stoggle))
-            await ctx.success(f"Scrim is now {'OFF' if stoggle else 'ON'}")
-
-        elif option.lower() == "ping":
-            if ping is None:
-                return await ctx.error(f"Ping Role is not set.")
-
-            await Scrim.filter(pk=scrim.id).update(ping_role_id=None)
-            await ctx.success(f"Ping Role turned OFF.")
-
-        elif option.lower() == "openrole":
-            if openrole is None:
-                return await ctx.error(f"Open Role is not set.")
-
-            await Scrim.filter(pk=scrim.id).update(open_role_id=None)
-            await ctx.success(f"Open Role set to {ctx.guild.default_role.mention}")
-
-        elif option.lower() == "autoclean":
-            await Scrim.filter(pk=scrim.id).update(autoclean=not (autoclean))
-            await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
-
-        elif option.lower() == "autoslotlist":
-            await Scrim.filter(pk=scrim.id).update(autoslotlist=not (scrim.autoslotlist))
-            await ctx.success(f"Autopost-slotlist turned {'OFF' if scrim.autoslotlist else 'ON'}!")
-
-        elif option.lower() == "multiregister":
-            await Scrim.filter(pk=scrim.id).update(multiregister=not (scrim.multiregister))
-            await ctx.success(f"Multiple registerations turned {'OFF' if scrim.multiregister else 'ON'}!")
-
-    # ************************************************************************************************
+    # *************************************************************
     @smanager.group(name="slotlist", invoke_without_command=True)
     async def s_slotlist(self, ctx):
         """
@@ -183,26 +125,6 @@ class ScrimManager(Cog, name="Esports"):
 
         else:
             await ctx.error(f"I can't send messages in {channel}")
-
-    @s_slotlist.command(name="edit")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(5, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_slotlist_edit(self, ctx, scrim: Scrim):
-        """
-        Edit a slotlist
-        """
-        msg = None
-        with suppress(discord.HTTPException):
-            msg = await self.bot.get_or_fetch_message(scrim.slotlist_channel, scrim.slotlist_message_id)
-            # msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
-        if not msg:
-            return await ctx.error("Slotlist Message not found.")
-
-        _view = ScrimsSlotlistEditor(ctx, scrim, msg)
-        embed = _view.initial_embed()
-        _view.message = await ctx.send(embed=embed, view=_view)
 
     @s_slotlist.command(name="format")
     @checks.can_use_sm()

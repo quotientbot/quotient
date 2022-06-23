@@ -6,6 +6,7 @@ from core import Context
 from models import Scrim
 from utils import emote, inputs
 
+from contextlib import suppress
 from ._base import ScrimsView
 
 __all__ = ("ManageSlotlist",)
@@ -33,6 +34,12 @@ class ManageSlotlist(discord.ui.Select):
                     value="format",
                 ),
                 discord.SelectOption(
+                    label="Edit Slotlist",
+                    description="Edit slotlist (Remove/Add New teams).",
+                    emoji=emote.edit,
+                    value="edit",
+                ),
+                discord.SelectOption(
                     label="Go Back",
                     description="Move back to Main Menu",
                     emoji=emote.exit,
@@ -46,7 +53,6 @@ class ManageSlotlist(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        self.view.stop()
 
         if (selected := self.values[0]) == "repost":
             m = await self.ctx.simple("Mention the channel to send slotlist.")
@@ -67,6 +73,20 @@ class ManageSlotlist(discord.ui.Select):
 
         elif selected == "format":
             ...
+
+        elif selected == "edit":
+            if self.record.slotlist_message_id == None:
+                return await self.ctx.error("Slotlist not found. Please repost.", 5)
+
+            msg = None
+            with suppress(discord.HTTPException):
+                msg = await self.ctx.bot.get_or_fetch_message(
+                    self.record.slotlist_channel, self.record.slotlist_message_id
+                )
+            if not msg:
+                return await self.ctx.error("Slotlist Message not found. Repost first.", 5)
+
+            return await self.ctx.success("Click `Edit` button under [slotlist message]({0}).".format(msg.jump_url), 6)
 
         elif selected == "back":
             from .main import ScrimsMain
