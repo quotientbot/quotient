@@ -9,13 +9,9 @@ from cogs.esports.views.tourney.main import TourneyManager
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from contextlib import suppress
-from datetime import datetime
-
 import discord
 from discord.ext import commands
 
-from constants import IST
 from core import Cog, Context, QuotientView
 from models import *
 from utils import QuoRole, QuoTextChannel, QuoUser, checks
@@ -85,47 +81,6 @@ class ScrimManager(Cog, name="Esports"):
         """
         await ctx.send_help(ctx.command)
 
-    @s_slotlist.command(name="show")
-    async def s_slotlist_show(self, ctx, scrim: Scrim):
-        """
-        Show slotlist of a scrim.
-        """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
-
-        embed, channel = await scrim.create_slotlist()
-        await ctx.send(embed=embed, embed_perms=True)
-
-    @s_slotlist.command(name="send")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_slotlist_send(self, ctx: Context, scrim: Scrim, channel: discord.TextChannel = None):
-        """
-        Send slotlist of a scrim.
-        """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
-
-        embed, schannel = await scrim.create_slotlist()
-        channel = channel or schannel
-
-        await ctx.send(embed=embed)
-        prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
-        if not prompt:
-            return await ctx.error("Ok, Aborting.")
-
-        if channel is not None and channel.permissions_for(ctx.me).embed_links:
-            _v = SlotlistEditButton(ctx.bot, scrim)
-
-            _v.message = await channel.send(embed=embed, view=_v)
-            await ctx.success("Slotlist sent successfully!")
-
-            if channel == schannel:
-                await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)
-
-        else:
-            await ctx.error(f"I can't send messages in {channel}")
-
     @s_slotlist.command(name="format")
     @checks.can_use_sm()
     @commands.cooldown(5, 1, type=commands.BucketType.user)
@@ -134,32 +89,6 @@ class ScrimManager(Cog, name="Esports"):
         """Set a default format for scrim slotlist."""
         view = SlotlistFormatter(ctx, scrim=scrim)
         view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
-
-    @smanager.command(name="start")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(10, 1, type=commands.BucketType.user)
-    async def s_start(self, ctx: Context, scrim: Scrim):
-        """
-        Start a registration instantly.
-        """
-        ...
-        prompt = await ctx.prompt(
-            f"This will start the registrations for {str(scrim)} will start immediately."
-            "\nAlso the registraton open time will change to current time, \n\n"
-            "Are you sure you want to continue?"
-        )
-
-        if not prompt:
-            return await ctx.simple("Alright, Aborting")
-
-        _t = datetime.now(tz=IST)
-        await Scrim.filter(pk=scrim.id).update(open_time=_t)
-        await self.reminders.create_timer(_t, "scrim_open", scrim_id=scrim.id)
-        await ctx.success(
-            f"Registration opened!\n\nRegistration open time has been changed to `{_t.strftime('%I:%M %p')}`"
-            f"\nYou can change open time again with `{ctx.prefix}s edit {scrim.id}`"
-        )
 
     # ************************************************************************************************
 
