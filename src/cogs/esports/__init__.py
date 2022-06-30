@@ -73,24 +73,6 @@ class ScrimManager(Cog, name="Esports"):
         v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
     # ************************************************************************************************
-    # *************************************************************
-    @smanager.group(name="slotlist", invoke_without_command=True)
-    async def s_slotlist(self, ctx):
-        """
-        Create/ Edit or Send a scrim slotlist.
-        """
-        await ctx.send_help(ctx.command)
-
-    @s_slotlist.command(name="format")
-    @checks.can_use_sm()
-    @commands.cooldown(5, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_slotlist_format(self, ctx, scrim: Scrim):
-        """Set a default format for scrim slotlist."""
-        view = SlotlistFormatter(ctx, scrim=scrim)
-        view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
-
-    # ************************************************************************************************
 
     @smanager.command(name="ban")
     @checks.can_use_sm()

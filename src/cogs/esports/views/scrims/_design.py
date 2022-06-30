@@ -15,6 +15,7 @@ from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
 from ._cdn import ScrimsCDN
 from ._pages import *
+from ._formatter import show_slotlist_formatter
 
 
 class MsgType(Enum):
@@ -184,7 +185,9 @@ class SlotlistFormat(ScrimsButton):
         super().__init__(emoji=ri("d"))
 
     async def callback(self, interaction: discord.Interaction):
-        ...
+        await interaction.response.defer()
+        self.view.stop()
+        await show_slotlist_formatter(self.view.ctx, self.view.record, self.view.message)
 
 
 class SaveMessageBtn(discord.ui.Button):

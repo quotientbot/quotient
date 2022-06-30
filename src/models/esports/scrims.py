@@ -57,7 +57,7 @@ class Scrim(BaseDbModel):
     show_time_elapsed = fields.BooleanField(default=True)
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
-    slotlist_format = fields.TextField(null=True)
+    slotlist_format = fields.JSONField(null=True)  #!str > jsonb
 
     no_duplicate_name = fields.BooleanField(default=False)
 
@@ -204,35 +204,38 @@ class Scrim(BaseDbModel):
             await msg.add_reaction(self.check_emoji)
             await msg.author.add_roles(self.role)
 
+    @staticmethod
+    def default_slotlist_format():
+        return discord.Embed(color=0x00FFB3, title=f"<<name>> Slotlist", description="```<<slots>>```").set_footer(
+            text=f"Registration took: <<time_taken>>"
+        )
+
     async def create_slotlist(self):
 
         _slots = await self.cleaned_slots()
 
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
 
-        if self.slotlist_format is not None:
-            format = leval(self.slotlist_format)
-
-            embed = discord.Embed.from_dict(format)
-
-            description = embed.description.replace("\n" * 3, "") if embed.description else ""
-
-            embed.description = f"""
-            ```\n{desc}\n```
-            {description}
-            """
-
+        if len(self.slotlist_format) <= 1:
+            text = str(self.default_slotlist_format().to_dict())
         else:
-            embed = discord.Embed(title=self.name + " Slotlist", description=f"```\n{desc}\n```", color=self.bot.color)
+            text = str(self.slotlist_format)
 
-        if self.show_time_elapsed and self.time_elapsed:
-            embed.set_footer(text=f"Registration took: {self.time_elapsed}")
+        changes = [
+            ("<<slots>>", desc),
+            ("<<name>>", self.name),
+            ("<<time_taken>>", self.time_elapsed or "N/A"),
+            ("<<open_time>>", discord_timestamp(self.open_time)),
+        ]
 
+        for _ in changes:
+            text = text.replace(*_)
+
+        embed = discord.Embed.from_dict(leval(text))
         if embed.color == discord.Embed.Empty:
             embed.color = 0x2F3136
 
-        channel = self.slotlist_channel
-        return embed, channel
+        return embed, self.slotlist_channel
 
     async def refresh_slotlist_message(self, msg: discord.Message = None):
         embed, channel = await self.create_slotlist()

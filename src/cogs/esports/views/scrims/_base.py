@@ -16,6 +16,9 @@ class ScrimsView(EsportsBaseView):
     def __init__(self, ctx, **kwargs):
         super().__init__(ctx, **kwargs)
 
+    async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
+        print(error)
+
 
 class ScrimsButton(discord.ui.Button):
     view: ScrimsView

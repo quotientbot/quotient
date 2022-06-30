@@ -8,6 +8,7 @@ from utils import emote, inputs
 
 from contextlib import suppress
 from ._base import ScrimsView
+from ._formatter import show_slotlist_formatter
 
 __all__ = ("ManageSlotlist",)
 
@@ -72,7 +73,8 @@ class ManageSlotlist(discord.ui.Select):
             v.message = await self.view.message.edit(content="", embed=await v.initial_embed(), view=v)
 
         elif selected == "format":
-            ...
+            self.view.stop()
+            await show_slotlist_formatter(self.ctx, self.record, self.view.message)
 
         elif selected == "edit":
             if self.record.slotlist_message_id == None:
