@@ -67,7 +67,7 @@ class ScrimsCDN(ScrimsView):
         await inter.response.defer()
 
         _m = await self.ctx.simple("How many seconds should the countdown be? (Min: `3` Max: `10`)")
-        self.scrim.cdn["countdown"] = await integer_input(self.ctx, limits=(3, 10), delete_after=True)
+        self.scrim.cdn["countdown"] = await integer_input(self.ctx, limits=(5, 15), delete_after=True)
         await self.ctx.safe_delete(_m)
         await self.refresh_view(cdn=self.scrim.cdn)
 
@@ -76,8 +76,7 @@ class ScrimsCDN(ScrimsView):
         await inter.response.defer()
         await self.scrim.refresh_from_db()
 
-        from ._design import (BackBtn, MsgType, SaveMessageBtn, ScrimDesign,
-                              SetDefault)
+        from ._design import BackBtn, MsgType, SaveMessageBtn, ScrimDesign, SetDefault
 
         if len(self.scrim.cdn["msg"]) <= 1:
             _e = ScrimDesign.default_countdown_msg()

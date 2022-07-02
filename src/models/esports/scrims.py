@@ -597,6 +597,11 @@ class Scrim(BaseDbModel):
         registration_channel = self.registration_channel
         open_role = self.open_role
 
+        # check if countdown is on
+
+        # if self.cdn.get("status", False):
+        #     ...
+
         _e = await self.reg_open_msg()
 
         await registration_channel.send(
@@ -628,7 +633,7 @@ class Scrim(BaseDbModel):
         return await scrim_position(self.pk, self.guild_id)
 
     @staticmethod
-    @cached(ttl=60*2)
+    @cached(ttl=60 * 2)
     async def scrim_count(guild_id: int):
         return await Scrim.filter(guild_id=guild_id).count()
 

@@ -281,7 +281,7 @@ class TourneyManager(EsportsBaseView):
     @discord.ui.button(style=discord.ButtonStyle.green, label="Media-Partner")
     async def manage_media_partner(self, button: discord.ui.Button, interaction: discord.Interaction):
         await interaction.response.defer()
-        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to add cancel-claim...")
+        tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to set media-partner..")
         if tourney:
             view = MediaPartnerView(self.ctx, tourney=tourney)
             view.add_item(DiscardButton(self.ctx))

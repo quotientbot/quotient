@@ -56,8 +56,8 @@ class ScrimDesign(ScrimsView):
             "What do you want to design today?\n\n"
             f"{ri('a')} - Registration Open Message\n"
             f"{ri('b')} - Registration Close Message\n"
-            f"{ri('c')} - Registratipn Open Countdown\n"
-            f"{ri('d')} - Slotlist Design\n"
+            # f"{ri('c')} - Registration Open Countdown\n"
+            f"{ri('c')} - Slotlist Design\n"
         )
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
@@ -67,7 +67,7 @@ class ScrimDesign(ScrimsView):
 
         self.add_item(OpenMessage())
         self.add_item(CloseMessage())
-        self.add_item(CDNmsg())
+        # self.add_item(CDNmsg())
         self.add_item(SlotlistFormat())
 
         if await Scrim.filter(guild_id=self.ctx.guild.id).count() >= 2:
@@ -182,7 +182,7 @@ class CDNmsg(ScrimsButton):
 
 class SlotlistFormat(ScrimsButton):
     def __init__(self):
-        super().__init__(emoji=ri("d"))
+        super().__init__(emoji=ri("c"))
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()

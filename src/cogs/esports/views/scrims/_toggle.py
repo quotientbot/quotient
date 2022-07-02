@@ -3,7 +3,7 @@ from __future__ import annotations
 import discord
 
 from core import Context
-from models import Scrim, ScrimsSlotManager
+from models import Scrim
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -57,7 +57,7 @@ class StartReg(ScrimsButton):
             return await self.view.ctx.error("Registration is already open. To restart, pls stop registration first.", 4)
 
         await self.view.record.start_registration()
-        await self.view.ctx.success(f"Registration opened {self.view.record}.")
+        await self.view.ctx.success(f"Registration opened {self.view.record}.", 5)
 
 
 class StopReg(ScrimsButton):
@@ -71,4 +71,4 @@ class StopReg(ScrimsButton):
             return await self.view.ctx.error("Registration is already closed.", 5)
 
         await self.view.record.close_registration()
-        await self.view.ctx.success(f"Registration closed {self.view.record}.")
+        await self.view.ctx.success(f"Registration closed {self.view.record}.", 5)
