@@ -14,8 +14,8 @@ from utils import regional_indicator as ri
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
 from ._cdn import ScrimsCDN
-from ._pages import *
 from ._formatter import show_slotlist_formatter
+from ._pages import *
 
 
 class MsgType(Enum):

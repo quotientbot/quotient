@@ -19,7 +19,6 @@ from utils import QuoRole, QuoTextChannel, checks
 from .errors import PointsError, ScrimError, SMError, TourneyError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
 from .helpers import delete_denied_message
-
 from .views import *
 
 

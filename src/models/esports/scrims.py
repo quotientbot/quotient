@@ -8,7 +8,8 @@ from typing import List, Optional, Union
 
 import discord
 import humanize
-from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
+from discord.ext.commands import (BadArgument, ChannelNotFound,
+                                  TextChannelConverter)
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -549,7 +550,9 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def start_registration(self):
-        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+        from cogs.esports.helpers.utils import (available_to_reserve,
+                                                scrim_work_role,
+                                                toggle_channel)
 
         oldslots = await self.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()

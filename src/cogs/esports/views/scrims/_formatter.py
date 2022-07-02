@@ -1,8 +1,8 @@
 from __future__ import annotations
+
 import discord
 
 from core import Context
-
 from core.embeds import EmbedBuilder
 from models import Scrim
 

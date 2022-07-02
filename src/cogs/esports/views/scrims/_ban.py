@@ -1,20 +1,20 @@
 from __future__ import annotations
-import typing as T
+
 import asyncio
+import typing as T
 from contextlib import suppress
 from datetime import timedelta
-import dateparser
 
+import dateparser
 import discord
 
 from core import Context, QuotientView
-from models import Scrim, BannedTeam, BanLog
+from models import BanLog, BannedTeam, Scrim
+from utils import discord_timestamp, emote, plural
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
 from ._pages import *
-
-from utils import plural, discord_timestamp, emote
 
 __all__ = ("ScrimBanManager",)
 

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from contextlib import suppress
+
 import discord
 
 from core import Context
 from models import Scrim
 from utils import emote, inputs
 
-from contextlib import suppress
 from ._base import ScrimsView
 from ._formatter import show_slotlist_formatter
 
