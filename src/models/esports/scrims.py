@@ -336,7 +336,7 @@ class Scrim(BaseDbModel):
                 await scrim.banned_teams.add(b)
 
             if banlog := await BanLog.get_or_none(guild_id=self.guild_id):
-                await banlog.log_ban(_, mod, scrims, reason)
+                await banlog.log_ban(_, mod, scrims, reason.arg, reason.dt)
 
             if reason.dt:
                 await self.bot.reminders.create_timer(
@@ -685,19 +685,19 @@ class BanLog(BaseDbModel):
 
         return ", ".join(_scrims)
 
-    async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason):
+    async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason: str = None, dt: str = None):
 
-        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+        user: discord.User = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
 
         _e = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(scrims):scrim|scrims}")
         _e.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
         _e.add_field(name="Moderator", value=mod)
         _e.add_field(name="Effected Scrims", value=self.__format_scrims(scrims), inline=False)
-        _e.add_field(name="Reason", value=f"```{truncate_string(reason.arg,100) if reason.arg else 'No reason given'}```")
+        _e.add_field(name="Reason", value=f"```{truncate_string(reason,100) if reason else 'No reason given'}```")
 
-        _e.set_footer(text=f"Expiring: {'Never' if not reason.dt else ''}")
-        if reason.dt:
-            _e.timestamp = reason.dt
+        _e.set_footer(text=f"Expiring: {'Never' if not dt else ''}")
+        if dt:
+            _e.timestamp = dt
 
         if user:
             _e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))

@@ -65,6 +65,9 @@ class ScrimsMain(ScrimsView):
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
 
+        if not scrim:
+            return
+
         v = ScrimsEditor(self.ctx, scrim)
         await v._add_buttons()
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
@@ -77,6 +80,9 @@ class ScrimsMain(ScrimsView):
             self.ctx, multi=False, placeholder="Please select the scrim to stop or start registration."
         )
         self.stop()
+        if not scrim:
+            return
+
         v = ScrimsToggle(self.ctx, scrim)
         await v._add_buttons()
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
@@ -86,6 +92,9 @@ class ScrimsMain(ScrimsView):
         await interaction.response.defer()
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
+
+        if not scrim:
+            return
 
         view = ScrimsSlotReserve(self.ctx, scrim)
         await view.add_buttons()
@@ -97,6 +106,8 @@ class ScrimsMain(ScrimsView):
 
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
+        if not scrim:
+            return
 
         v = ScrimBanManager(self.ctx, scrim)
         await v._add_buttons()
@@ -108,6 +119,9 @@ class ScrimsMain(ScrimsView):
 
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
+
+        if not scrim:
+            return
 
         view = ScrimDesign(self.ctx, scrim)
         await view._add_buttons()
@@ -122,6 +136,10 @@ class ScrimsMain(ScrimsView):
         )
 
         self.stop()
+
+        if not scrim:
+            return
+
         v = ScrimsView(self.ctx)
         v.add_item(ManageSlotlist(self.ctx, scrim))
         v.message = await self.message.edit("Please choose an action:", embed=None, view=v)
@@ -133,6 +151,10 @@ class ScrimsMain(ScrimsView):
         scrim = await Scrim.show_selector(
             self.ctx, multi=False, placeholder="Please select the scrim you need help with."
         )
+
+        if not scrim:
+            return
+
         _e = discord.Embed(color=self.bot.color, title="Analyzing {0}...".format(scrim))
         _e.description = ""
 
