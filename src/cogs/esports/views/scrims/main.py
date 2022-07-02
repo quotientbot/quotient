@@ -1,7 +1,9 @@
 from __future__ import annotations
+from contextlib import suppress
 
 import typing as T
-
+import asyncio
+import random
 import discord
 from discord import ButtonStyle, Interaction, ui
 
@@ -155,7 +157,58 @@ class ScrimsMain(ScrimsView):
         if not scrim:
             return
 
-        _e = discord.Embed(color=self.bot.color, title="Analyzing {0}...".format(scrim))
-        _e.description = ""
+        _e = discord.Embed(
+            color=self.bot.color, title="Join Support Server for more assistance", url=self.ctx.config.SERVER_LINK
+        )
+        _e.description = "**Analyzing {0}...**".format(scrim)
 
-        await self.message.edit(embed=_e)
+        m = await self.ctx.send(embed=_e)
+        _results, t, x = [], emote.check, emote.xmark
+
+        _results.append(
+            (f"{x} Registration channel not found.", f"{t} Registration channel found.")[bool(scrim.registration_channel)]
+        )
+        _results.append(
+            (f"{x} Slotlist channel not found.", f"{t} Slotlist channel found.")[bool(scrim.slotlist_channel)]
+        )
+
+        perms = False
+        with suppress(AttributeError):
+            perms = scrim.registration_channel.permissions_for(self.ctx.guild.me)
+            perms = all(
+                (
+                    perms.manage_channels,
+                    perms.manage_permissions,
+                    perms.manage_messages,
+                    perms.use_external_emojis,
+                    perms.add_reactions,
+                    perms.embed_links,
+                )
+            )
+        _results.append(
+            (f"{x} Need permissions in registration channel", f"{t} Registration channel permissions are ok.")[perms]
+        )
+
+        _results.append((f"{x} Success Role not found.", f"{t} Success Role found.")[bool(scrim.role)])
+        _results.append(
+            (f"{x} `Manage-Roles` perms required.", f"{t} `Manage-Roles` perms found.")[
+                scrim.guild.me.guild_permissions.manage_roles
+            ]
+        )
+
+        role_perm = False
+        if scrim.role:
+            if not scrim.role >= scrim.guild.me.top_role:
+                role_perm = True
+
+        _results.append((f"{x} Success Role is above my toprole.", f"{t} Success Role is below my toprole.")[role_perm])
+        _results.append((f"{x} Open role not found.", f"{t} Open role found.")[bool(scrim.open_role)])
+        _results.append((f"{x} Logs-Channel not found", f"{t} Logs-Channel found.")[bool(scrim.logschan)])
+        _results.append(f"\nRegistration open time is {discord_timestamp(scrim.open_time,'f')}")
+        _results.append(f"{t} Scrim analyzing complete.")
+
+        for _ in _results:
+            _e.description += "\n" + _
+            await asyncio.sleep(random.randint(1, 3))
+            with suppress(discord.HTTPException):
+                await m.edit(embed=_e, delete_after=10)

@@ -14,7 +14,7 @@ from ._btns import *
 
 __all__ = ("ScrimSetup",)
 
-# TODO: adjust open days in setup wizard
+
 class ScrimSetup(ScrimsView):
     def __init__(self, ctx: Context):
         super().__init__(ctx, timeout=60)

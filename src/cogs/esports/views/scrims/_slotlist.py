@@ -13,8 +13,6 @@ from ._formatter import show_slotlist_formatter
 
 __all__ = ("ManageSlotlist",)
 
-#!TODO:  make format btn
-
 
 class ManageSlotlist(discord.ui.Select):
     view: ScrimsView
