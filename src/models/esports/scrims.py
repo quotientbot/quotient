@@ -8,8 +8,7 @@ from typing import List, Optional, Union
 
 import discord
 import humanize
-from discord.ext.commands import (BadArgument, ChannelNotFound,
-                                  TextChannelConverter)
+from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -19,6 +18,8 @@ from core import Context
 from models import BaseDbModel
 from models.helpers import *
 from utils import discord_timestamp, plural, truncate_string
+
+from aiocache import cached
 
 
 class Scrim(BaseDbModel):
@@ -507,6 +508,9 @@ class Scrim(BaseDbModel):
         await self.delete()
 
     async def confirm_all_scrims(self, ctx: Context, **kwargs):
+        if not await Scrim.scrim_count(ctx.guild.id) > 1:
+            return
+
         prompt = await ctx.prompt("Do you want to apply these changes to all scrims in this server?")
         if not prompt:
             return await ctx.simple("Alright, this scrim only.", 4)
@@ -550,9 +554,7 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def start_registration(self):
-        from cogs.esports.helpers.utils import (available_to_reserve,
-                                                scrim_work_role,
-                                                toggle_channel)
+        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
 
         oldslots = await self.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
@@ -624,6 +626,11 @@ class Scrim(BaseDbModel):
         from cogs.esports.views.scrims.selector import scrim_position
 
         return await scrim_position(self.pk, self.guild_id)
+
+    @staticmethod
+    @cached(ttl=60*2)
+    async def scrim_count(guild_id: int):
+        return await Scrim.filter(guild_id=guild_id).count()
 
 
 class BaseSlot(models.Model):
