@@ -1,50 +1,19 @@
 import asyncio
-import io
+
 import re
 from contextlib import suppress
-from datetime import datetime
 from typing import Union
 
 import discord
 
 import constants
-from constants import IST, ScrimBanType
 from models import Scrim, Tourney
-from utils import QuoUser, find_team, human_timedelta, plural
+from utils import find_team
 
 
 def get_slots(slots):
     for slot in slots:
         yield slot.user_id
-
-
-async def log_scrim_ban(channel, scrims, status: ScrimBanType, user: QuoUser, **kwargs):
-    mod = kwargs.get("mod")
-    reason = kwargs.get("reason") or "No Reason Provided..."
-    format = ", ".join((f"{getattr(scrim.registration_channel, 'mention','deleted-channel')}" for scrim in scrims))
-
-    if status == ScrimBanType.ban:
-        expire_time = kwargs.get("expire_time")
-
-        embed = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(len(scrims)):Scrim|Scrims}")
-        embed.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
-        embed.add_field(name="Moderator", value=mod)
-        embed.add_field(name="Effected Scrims", value=format, inline=False)
-        embed.add_field(name="Reason", value=reason, inline=False)
-
-        if expire_time:
-            embed.set_footer(text=f"Expires in {human_timedelta(expire_time)}")
-
-    else:
-        embed = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from {plural(len(scrims)):Scrim|Scrims}")
-        embed.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
-        embed.add_field(name="Moderator", value=mod)
-        embed.add_field(name="Effected Scrims", value=format, inline=False)
-        embed.add_field(name="Reason", value=reason, inline=False)
-
-    with suppress(AttributeError, discord.HTTPException, discord.Forbidden):
-        embed.timestamp = datetime.now(tz=IST)
-        await channel.send(content=getattr(user, "mention", "unknown-user"), embed=embed)
 
 
 async def already_reserved(scrim: Scrim):
@@ -100,20 +69,6 @@ async def wait_and_purge(channel, *, limit=100, wait_for=15, check=lambda m: Tru
 
     with suppress(discord.HTTPException):
         await channel.purge(limit=limit, check=check)
-
-
-async def purge_channel(channel):
-    with suppress(AttributeError, discord.Forbidden, discord.NotFound, discord.HTTPException):
-        await channel.purge(limit=100, check=lambda x: not x.pinned)
-
-
-async def purge_role(role):
-    with suppress(AttributeError, discord.Forbidden, discord.HTTPException):
-        if not role.guild.chunked:
-            await role.guild.chunk()
-
-        for member in role.members:
-            await member.remove_roles(role, reason="Scrims Manager Autoclean!")
 
 
 async def delete_denied_message(message: discord.Message, seconds=10):

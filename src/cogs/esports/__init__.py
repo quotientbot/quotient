@@ -14,12 +14,12 @@ from discord.ext import commands
 
 from core import Cog, Context, QuotientView
 from models import *
-from utils import QuoRole, QuoTextChannel, QuoUser, checks
+from utils import QuoRole, QuoTextChannel, checks
 
 from .errors import PointsError, ScrimError, SMError, TourneyError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
-from .helpers import MultiScrimConverter, delete_denied_message
-from .menus import *
+from .helpers import delete_denied_message
+
 from .views import *
 
 
@@ -73,53 +73,6 @@ class ScrimManager(Cog, name="Esports"):
         v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
     # ************************************************************************************************
-
-    @smanager.command(name="ban")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_ban(self, ctx: Context):
-        """
-        Ban someone from the scrims temporarily or permanently.
-        """
-        await ctx.simple("Use 'Punish' button from the slotlist message. ")
-
-    @smanager.command(name="unban")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_unban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, reason: str = None):
-        """
-        Unban a banned team from a scrim.
-        Use `all` to unban from all scrims.
-        """
-        if len(scrim) == 1 and not user.id in await scrim[0].banned_user_ids():
-            return await ctx.send(f"**{str(user)}** is not banned.")
-
-        scrims = []
-        for s in scrim:
-            bans = await s.banned_teams.filter(user_id=user.id)
-            if bans:
-                await BannedTeam.filter(id__in=[_.pk for _ in bans]).delete()
-                scrims.append(s)
-
-        if not scrims:
-            return await ctx.send(f"**{str(user)}** is not banned from scrims.")
-
-        format = "\n".join(
-            (
-                f"{emote.check} Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
-                for scrim in scrims
-            )
-        )
-
-        await ctx.simple(f"Successfully unbanned {str(user)} from \n" f"{format}")
-
-        if banlog := await BanLog.get_or_none(guild_id=ctx.guild.id):
-            await banlog.log_unban(user.id, ctx.author, scrims, reason or "```No reason given```")
-
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
     # ************************************************************************************************
 
     @commands.command(aliases=("tm", "t"))
@@ -162,22 +115,6 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
-
-    @commands.command()
-    @commands.has_permissions(manage_guild=True)
-    @commands.cooldown(7, 1, type=commands.BucketType.guild)
-    async def customidp(self, ctx: Context, channel: QuoTextChannel, role_to_ping: QuoRole = None):
-        """Share customized Id/pass message."""
-        if not (
-            channel.permissions_for(ctx.me).send_messages
-            or channel.permissions_for(ctx.me).embed_links
-            or channel.permissions_for(ctx.me).manage_messages
-        ):
-            return await ctx.error(
-                f"I need `send_messages` , `embed_links` and `manage_messages` permission in {channel.mention}"
-            )
-
-        await IDPMenu(send_channel=channel, role=role_to_ping).start(ctx)
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):
@@ -390,18 +327,6 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************
-
-    # @commands.group(aliases=("pt",), invoke_without_command=True)
-    # async def ptable(self, ctx):
-    #     """Points tables commands"""
-    #     embed = discord.Embed(color=self.bot.color, title="Shifted to Dashboard", url=self.bot.config.WEBSITE)
-    #     embed.description = (
-    #         f"Points table command has been moved to the dashboard [here]({self.bot.config.WEBSITE}/dashboard) for ease of use."
-    #         f"\n\nTo create beautiful points tables, use the link above or use `{ctx.prefix}dashboard` command to get a direct link"
-    #         "to the dashboard"
-    #     )
-    #     embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
-    #     await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("slotm",))
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
