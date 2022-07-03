@@ -16,7 +16,7 @@ from core import Cog, Context, QuotientView
 from models import *
 from utils import QuoRole, QuoTextChannel, checks
 
-from .errors import PointsError, ScrimError, SMError, TourneyError
+from .errors import SMError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
 from .helpers import delete_denied_message
 from .views import *
@@ -25,10 +25,6 @@ from .views import *
 class ScrimManager(Cog, name="Esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
-
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, (ScrimError, TourneyError, PointsError)):
-            return await ctx.error(error)
 
     @property
     def reminders(self):

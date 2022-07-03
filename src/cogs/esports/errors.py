@@ -12,27 +12,10 @@ from discord.ext import commands
 
 from constants import EsportsLog, EsportsRole, RegDeny
 from core import Cog
-from models import (ArrayAppend, AssignedSlot, EasyTag, ReservedSlot, Scrim,
-                    TagCheck, Timer, Tourney)
+from models import ArrayAppend, AssignedSlot, EasyTag, ReservedSlot, Scrim, TagCheck, Timer, Tourney
 from utils import plural
 
 from .helpers import delete_denied_message, scrim_work_role, tourney_work_role
-
-
-class ScrimError(commands.CommandError):
-    pass
-
-
-class TourneyError(commands.CommandError):
-    pass
-
-
-class PointsError(commands.CommandError):
-    pass
-
-
-class VerifyError(commands.CommandError):
-    pass
 
 
 class SMError(Cog):

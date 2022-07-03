@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing
 
-from cogs.esports.errors import ScrimError, TourneyError
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -27,8 +26,6 @@ class Errors(Cog):
             commands.NoPrivateMessage,
             discord.Forbidden,
             discord.NotFound,
-            TourneyError,
-            ScrimError,
         )
 
         if isinstance(err, ignored):
