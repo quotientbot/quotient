@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import typing as T
-from tempfile import TemporaryFile
 
 import discord
 
 from constants import AutocleanType
 from core import Context
-from models import ArrayAppend, ArrayRemove, Scrim
+from models import ArrayAppend, ArrayRemove, Scrim, Timer
 from utils import keycap_digit as kd
 from utils import time_input
 
@@ -109,6 +108,10 @@ class OnThree(ScrimsButton):
         t = await time_input(self.view.ctx, delete_after=True)
         await self.view.ctx.safe_delete(m)
         self.view.record.autoclean_time = t
+        
+        await Timer.filter(extra={"args": [], "kwargs": {"scrim_id": self.view.record.id}}, event="autoclean").delete()
+
+        await self.view.bot.reminders.create_timer(t, "autoclean", scrim_id=self.view.record.id)
 
         await self.view.record.make_changes(autoclean_time=t)
         await self.view.refresh_view()

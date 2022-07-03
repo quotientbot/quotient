@@ -6,7 +6,7 @@ from string import ascii_uppercase
 import discord
 
 from core import Context
-from models import Scrim
+from models import Scrim, Timer
 from utils import discord_timestamp as dt
 from utils import regional_indicator as ri
 
@@ -30,6 +30,9 @@ class ScrimsEditor(ScrimsView):
         del _d["autoclean"]
         del _d["available_slots"]
         del _d["open_days"]
+
+        await Timer.filter(extra={"args": [], "kwargs": {"scrim_id": self.record.id}}, event="scrim_open").delete()
+        await self.bot.reminders.create_timer(_d["open_time"], "scrim_open", scrim_id=self.record.id)
 
         await self.bot.db.execute(
             """UPDATE public."sm.scrims" SET open_days = $1 WHERE id = $2""",
