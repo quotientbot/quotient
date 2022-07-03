@@ -33,7 +33,7 @@ class ScrimsMain(ScrimsView):
         to_show = []
         for idx, _r in enumerate(await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time"), start=1):
             to_show.append(
-                f"`{idx}.` {(emote.xmark,emote.check)[_r.stoggle]}: {str(_r)} - {discord_timestamp(_r.open_time,'t')}"
+                f"`{idx:02}.` {(emote.xmark,emote.check)[_r.stoggle]}: {str(_r)} - {discord_timestamp(_r.open_time,'t')}"
             )
 
         _e.description = "\n".join(to_show) if to_show else "```Click Create button for new Scrim.```"
@@ -231,4 +231,6 @@ class ScrimsMain(ScrimsView):
             _e.description += "\n" + _
             await asyncio.sleep(random.randint(1, 3))
             with suppress(discord.HTTPException):
-                await m.edit(embed=_e, delete_after=10)
+                await m.edit(embed=_e)
+
+        await self.ctx.safe_delete(m, 8)
