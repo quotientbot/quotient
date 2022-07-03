@@ -60,7 +60,6 @@ class TourneySetupWizard(TourneyView):
                 self.record.registration_channel_id,
                 self.record.role_id,
                 self.record.confirm_channel_id,
-                self.record.required_mentions,
                 self.record.total_slots,
                 self.record.group_size,
             )

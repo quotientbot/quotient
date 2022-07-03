@@ -146,6 +146,24 @@ class ScrimsMain(ScrimsView):
         v.add_item(ManageSlotlist(self.ctx, scrim))
         v.message = await self.message.edit("Please choose an action:", embed=None, view=v)
 
+    @discord.ui.button(label="Enable/Disable", style=discord.ButtonStyle.red)
+    async def toggle(self, button: ui.Button, interaction: Interaction):
+        await interaction.response.defer()
+        scrims = await Scrim.show_selector(self.ctx, multi=True)
+        if not scrims:
+            return
+
+        self.stop()
+        for scrim in scrims:
+            await scrim.make_changes(stoggle=not scrim.stoggle)
+
+        await self.ctx.success(
+            f"Done! Not that registration of disabled scrims will not be opened, until they are enabled back.", 6
+        )
+
+        v = ScrimsMain(self.ctx)
+        v.message = await self.message.edit(embed=await v.initial_embed(), view=v)
+
     @discord.ui.button(label="Scrim not working, Need Help!", style=ButtonStyle.red)
     async def troubleshoot_scrim(self, button: ui.Button, interaction: Interaction):
         await interaction.response.defer()

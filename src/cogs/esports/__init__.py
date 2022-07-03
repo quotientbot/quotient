@@ -63,11 +63,17 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s", "sm"), invoke_without_command=True)
+    @commands.command(aliases=("s", "sm"))
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def smanager(self, ctx: Context):
         """
         Contains commands related to Quotient's powerful scrims manager.
         """
+        if not any((ctx.author.guild_permissions.manage_guild, Scrim.is_ignorable(ctx.author))):
+            return await ctx.error(f"You need `scrims-mod` role or `Manage-Server` permissions to use this command.")
+
         v = ScrimsMain(ctx)
         v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
@@ -76,8 +82,10 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.command(aliases=("tm", "t"))
     @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
-    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
-    @commands.cooldown(2, 10, type=commands.BucketType.guild)
+    @commands.bot_has_guild_permissions(
+        manage_channels=True, manage_permissions=True, manage_roles=True, manage_messages=True
+    )
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tourney(self, ctx: Context):
         """Create & Manage tournaments with Quotient"""
         if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:

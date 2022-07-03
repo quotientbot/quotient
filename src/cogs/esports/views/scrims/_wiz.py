@@ -76,7 +76,6 @@ class ScrimSetup(ScrimsView):
                 self.record.registration_channel_id,
                 self.record.slotlist_channel_id,
                 self.record.role_id,
-                self.record.required_mentions,
                 self.record.total_slots,
                 self.record.open_time,
             )

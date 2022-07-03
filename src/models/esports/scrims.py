@@ -80,23 +80,9 @@ class Scrim(BaseDbModel):
     def __str__(self):
         return f"{getattr(self.registration_channel,'mention','deleted-channel')} (ID: {self.id})"
 
-    @classmethod
-    async def convert(cls, ctx, argument: Union[str, discord.TextChannel]):
-        scrim = None
-
-        try:
-            _c = await TextChannelConverter().convert(ctx, argument)
-            scrim = await cls.get_or_none(registration_channel_id=_c.id, guild_id=ctx.guild.id)
-        except ChannelNotFound:
-            if argument.isdigit():
-                scrim = await cls.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
-
-        if not scrim:
-            raise BadArgument(
-                f"This is not a valid Scrim ID or registration channel.\n\nGet a valid ID with `{ctx.prefix}s config`"
-            )
-
-        return scrim
+    @staticmethod
+    def is_ignorable(member: discord.Member) -> bool:
+        return "scrims-mod" in (role.name.lower() for role in member.roles)
 
     @property
     def guild(self) -> Optional[discord.Guild]:
