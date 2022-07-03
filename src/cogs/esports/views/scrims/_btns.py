@@ -201,6 +201,16 @@ class PingRole(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+        if self.view.record.ping_role_id:
+            self.view.record.ping_role_id = None
+            await self.view.refresh_view()
+            return await self.ctx.success("Removed ping-role, click again to set.", 5)
+
+        m = await self.ctx.simple("Mention the role you want to ping when registration starts.")
+        role = await inputs.role_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+        self.view.record.ping_role_id = role.id
+        await self.view.refresh_view()
 
 
 class OpenRole(ScrimsButton):
@@ -210,6 +220,11 @@ class OpenRole(ScrimsButton):
 
     async def callback(self, interaction: Interaction):
         await interaction.response.defer()
+        m = await self.ctx.simple("Mention the role you want to open registration for.")
+        role = await inputs.role_input(self.ctx, delete_after=True)
+        await self.ctx.safe_delete(m)
+        self.view.record.open_role_id = role.id
+        await self.view.refresh_view()
 
 
 class OpenDays(ScrimsButton):
