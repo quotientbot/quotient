@@ -109,7 +109,7 @@ class NewReserve(ScrimsButton):
                 expire = await BetterFutureTime().convert(self.ctx, time_to_reserve.strip())
 
             if num not in (_range := self.view.record.available_to_reserve):
-                return await self.error_embed(
+                return await self.ctx.error(
                     f"The slot-number you entered (`{num}`) cannot be reserved.\n"
                     f"\nThe slot-number must be a number between `{_range.start}` and `{_range.stop}`",
                     5,
