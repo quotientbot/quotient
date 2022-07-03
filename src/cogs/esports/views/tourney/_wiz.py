@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from string import ascii_uppercase
 
 from core import Context
 from models import Tourney
 
-from ._buttons import *  # noqa: F401, F403
-from string import ascii_uppercase
 from ._base import TourneyView
+from ._buttons import *
 
 
 class TourneySetupWizard(TourneyView):
@@ -36,7 +36,7 @@ class TourneySetupWizard(TourneyView):
             "Registration Channel": getattr(self.record.registration_channel, "mention", "`Not-Set`"),
             "Confirm Channel": getattr(self.record.confirm_channel, "mention", "`Not-Set`"),
             "Success Role": getattr(self.record.role, "mention", "`Not-Set`"),
-            "Mentions": f"`{self.record.required_mentions}`",
+            "Required Mentions": f"`{self.record.required_mentions}`",
             "Teams per Group": f"`{self.record.group_size or 'Not-Set'}`",
             "Total Slots": f"`{self.record.total_slots or 'Not-Set'}`",
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{self.record.check_emoji},{self.record.cross_emoji}",
@@ -60,7 +60,6 @@ class TourneySetupWizard(TourneyView):
                 self.record.registration_channel_id,
                 self.record.role_id,
                 self.record.confirm_channel_id,
-                self.record.required_mentions,
                 self.record.total_slots,
                 self.record.group_size,
             )

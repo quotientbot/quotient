@@ -1,19 +1,20 @@
 from __future__ import annotations
 
-from contextlib import suppress
-import aiohttp
 import asyncio
-import dateparser
+from contextlib import suppress
 from datetime import datetime, timedelta
-from discord.ext.commands.converter import RoleConverter, TextChannelConverter, MemberConverter
 
-
-from utils import keycap_digit
-from .exceptions import InputError
-from constants import IST
+import aiohttp
+import dateparser
 import discord
-
 from discord.ext.commands import Context
+from discord.ext.commands.converter import (MemberConverter, RoleConverter,
+                                            TextChannelConverter)
+
+from constants import IST
+from utils import keycap_digit
+
+from .exceptions import InputError
 
 
 async def safe_delete(message) -> bool:
@@ -163,7 +164,9 @@ async def integer_input(ctx: Context, check=None, timeout=120, limits=(None, Non
         return int(message.content)
 
 
-async def time_input(ctx: Context, check, timeout=120, delete_after=False):
+async def time_input(ctx: Context, check=None, timeout=120, delete_after=False):
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
+
     try:
         message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
     except asyncio.TimeoutError:
@@ -182,7 +185,7 @@ async def time_input(ctx: Context, check, timeout=120, delete_after=False):
             if delete_after:
                 await safe_delete(message)
 
-            if datetime.now(tz=IST) > parsed:
+            while datetime.now(tz=IST) > parsed:
                 parsed = parsed + timedelta(hours=24)
 
             return parsed

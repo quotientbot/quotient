@@ -1,25 +1,24 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING, List
+
+from models import Guild, Tourney
 
 from ...views.base import EsportsBaseView
-
-from models import Tourney, Guild
-
-from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from core import Quotient
 
-from utils import inputs, get_chunks, emote, QuoRole, truncate_string
+import asyncio
+
+import discord
+from discord.ext import commands
 from humanize import precisedelta
 
-from discord.ext import commands
-from core import Context
-import discord
 import config
-
-import asyncio
+from core import Context
+from utils import QuoRole, emote, get_chunks, inputs, truncate_string
 
 
 class TourneyGroupManager(EsportsBaseView):

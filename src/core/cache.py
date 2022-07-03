@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-
-from models import Guild, EasyTag, TagCheck, Scrim, Tourney, AutoPurge, SSVerify
 import config
 from constants import IST
-from datetime import datetime
+from models import (AutoPurge, EasyTag, Guild, Scrim, SSVerify, TagCheck,
+                    Tourney)
 
 
 class CacheManager:

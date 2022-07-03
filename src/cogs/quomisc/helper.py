@@ -1,5 +1,7 @@
-import discord, io
 import datetime
+import io
+
+import discord
 
 
 class TabularData:

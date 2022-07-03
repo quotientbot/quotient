@@ -1,13 +1,13 @@
-from discord.ext.commands import ChannelNotFound, TextChannelConverter
+from contextlib import suppress
+from datetime import timedelta
 
 import dateparser
-from contextlib import suppress
-from core import Context
-from utils import string_input, emote
-
-from datetime import timedelta
 import discord
+from discord.ext.commands import ChannelNotFound, TextChannelConverter
+
+from core import Context
 from models import Scrim
+from utils import emote, string_input
 
 __all__ = ("MatchTimeEditor",)
 

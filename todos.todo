@@ -1,3 +1,2 @@
-- [x] add right_bot_check listener to required listeners
-- [x] fix confirmed messages edit with different bots
-- [x] task for premium reminder
+- fix instant start reg btn , add checks
+

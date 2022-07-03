@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import typing
-from cogs.esports.errors import TourneyError, ScrimError
+
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context
-from utils import exceptions
-from constants import random_greeting
+import discord
 from discord.ext import commands
 
-import discord
+from constants import random_greeting
+from core import Cog, Context
+from utils import exceptions
 
 
 class Errors(Cog):
@@ -26,8 +26,6 @@ class Errors(Cog):
             commands.NoPrivateMessage,
             discord.Forbidden,
             discord.NotFound,
-            TourneyError,
-            ScrimError,
         )
 
         if isinstance(err, ignored):

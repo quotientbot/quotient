@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from core import Quotient
 
-
-from models import Tourney
 from core import Cog
+from models import Tourney
+
 from ..schemas import SockTourney
 
 __all__ = ("SockTourney",)

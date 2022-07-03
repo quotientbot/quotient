@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from core import Context
-
-from utils import keycap_digit as kd, inputs, truncate_string, BaseSelector, Prompt
 import discord
-from ._type import SStypeSelector
 
 from constants import SSType
+from core import Context
 from models import SSVerify
+from utils import BaseSelector, Prompt, inputs
+from utils import keycap_digit as kd
+from utils import truncate_string
+
+from ._type import SStypeSelector
 
 
 class SetChannel(discord.ui.Button):

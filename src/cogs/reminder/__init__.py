@@ -5,9 +5,13 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
+import asyncio
 from datetime import datetime, timedelta
-import discord, asyncio, asyncpg
+
+import asyncpg
+import discord
+
+from core import Cog
 from models import Timer
 from utils import IST
 

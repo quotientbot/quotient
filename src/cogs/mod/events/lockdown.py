@@ -1,13 +1,13 @@
 from __future__ import annotations
-import typing
 
+import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-from models import Timer, Lockdown
 from constants import LockType
+from core import Cog
+from models import Lockdown, Timer
 
 
 class LockEvents(Cog):

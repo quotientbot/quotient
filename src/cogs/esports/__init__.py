@@ -1,56 +1,30 @@
 from __future__ import annotations
+
 import typing
+
 from cogs.esports.events.slots import SlotManagerEvents
+from cogs.esports.views.scrims.main import ScrimsMain
 from cogs.esports.views.tourney.main import TourneyManager
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context, QuotientView
-from contextlib import suppress
-from .helpers import (
-    delete_denied_message,
-    scrim_work_role,
-    scrim_end_process,
-    registration_close_embed,
-    registration_open_embed,
-    MultiScrimConverter,
-)
-
-from utils import (
-    inputs,
-    checks,
-    human_timedelta,
-    QuoRole,
-    QuoTextChannel,
-    QuoUser,
-    QuoPaginator,
-    discord_timestamp,
-)
-
-from constants import IST
-from discord.ext.commands.cooldowns import BucketType
-from models import *  # noqa: F401, F403
-from datetime import datetime, timedelta
+import discord
 from discord.ext import commands
 
-from tortoise.query_utils import Q
-from .events import ScrimEvents, TourneyEvents, TagEvents, Ssverification
-from .errors import ScrimError, SMError, TourneyError, PointsError
+from core import Cog, Context, QuotientView
+from models import *
+from utils import QuoRole, QuoTextChannel, checks
 
-import discord
-import config
-from .menus import *  # noqa: F401, F403
-from .views import *  # noqa: F401, F403
+from .errors import SMError
+from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
+from .helpers import delete_denied_message
+from .views import *
 
 
 class ScrimManager(Cog, name="Esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
-
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, (ScrimError, TourneyError, PointsError)):
-            return await ctx.error(error)
 
     @property
     def reminders(self):
@@ -85,636 +59,29 @@ class ScrimManager(Cog, name="Esports"):
 
     # ************************************************************************************************
 
-    @commands.group(aliases=("s", "sm"), invoke_without_command=True)
-    async def smanager(self, ctx):
+    @commands.command(aliases=("s", "sm"))
+    @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
+    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
+    async def smanager(self, ctx: Context):
         """
         Contains commands related to Quotient's powerful scrims manager.
         """
-        await ctx.send_help(ctx.command)
+        if not any((ctx.author.guild_permissions.manage_guild, Scrim.is_ignorable(ctx.author))):
+            return await ctx.error(f"You need `scrims-mod` role or `Manage-Server` permissions to use this command.")
 
-    @staticmethod
-    def config_embed(value, description: str):
-        embed = discord.Embed(
-            color=discord.Color(config.COLOR),
-            title=f"🛠️ Scrims Manager ({value}/6)",
-            description=description,
-        )
-        embed.set_footer(text=f'Reply with "cancel" to stop the process.')
-        return embed
+        v = ScrimsMain(ctx)
+        v.message = await ctx.send(embed=await v.initial_embed(), view=v)
 
-    # ************************************************************************************************
-
-    @smanager.command(name="setup")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, add_reactions=True)
-    @commands.max_concurrency(1, BucketType.guild)
-    async def s_setup(self, ctx: Context):
-        """
-        Setup Scrims Manager for a channel.
-        Without premium you can setup scrims manager for upto 3 channels, however with Quotient Premium there isn't any limit.
-        """
-        count = await Scrim.filter(guild_id=ctx.guild.id).count()
-
-        guild = await Guild.get(guild_id=ctx.guild.id)
-
-        if count >= 3 and not guild.is_premium:
-            return await ctx.premium_mango("Quotient Prime is required to create more than 3 scrims.")
-
-        def check(message: discord.Message):
-            if message.content.strip().lower() == "cancel":
-                raise ScrimError("Alright, reverting all process.")
-
-            return message.author == ctx.author and ctx.channel == message.channel
-
-        # Registration Channel.
-        scrim = Scrim(
-            guild_id=ctx.guild.id,
-            host_id=ctx.author.id,
-        )
-        await ctx.send(
-            embed=self.config_embed(
-                1,
-                "Which is the default registration channel?",
-            )
-        )
-        channel = await inputs.channel_input(ctx, check)
-
-        if await Scrim.filter(registration_channel_id=channel.id).count():
-            raise ScrimError("This channel is already a registration channel.")
-
-        if not channel.permissions_for(ctx.me).manage_channels:
-            raise ScrimError(f"I require `manage channels` permission in **{channel}**.")
-
-        scrim.registration_channel_id = channel.id
-
-        # Slotlist Channel
-        await ctx.send(
-            embed=self.config_embed(
-                2,
-                f"Which is default slotlist channel for {scrim.registration_channel.mention}?",
-            )
-        )
-
-        channel = await inputs.channel_input(ctx, check)
-
-        scrim.slotlist_channel_id = channel.id
-
-        # Role (Registered Users)
-        await ctx.send(
-            embed=self.config_embed(
-                3,
-                f"What role should I give for correct registration?",
-            )
-        )
-
-        role = await inputs.role_input(ctx, check)
-
-        scrim.role_id = role.id
-
-        # Mentions Limit
-
-        await ctx.send(
-            embed=self.config_embed(
-                4,
-                "How many mentions are required for successful registration?" " (Can't be more than 10 or less than 0.)",
-            )
-        )
-
-        scrim.required_mentions = await inputs.integer_input(
-            ctx,
-            check,
-            limits=(0, 10),
-        )
-
-        # Total Slots
-
-        await ctx.send(
-            embed=self.config_embed(
-                5,
-                "How many total slots are there? (Can't be more than 30 or less than 1.)",
-            )
-        )
-
-        scrim.total_slots = await inputs.integer_input(
-            ctx,
-            check,
-            limits=(1, 30),
-        )
-
-        await ctx.send(
-            embed=self.config_embed(
-                6,
-                "**At what time should I open registrations?**"
-                "\n> Time must be in 24h and in this format **`hh:mm`**\n"
-                "**Example: 14:00** - Registration will open at 2PM.\n\n"
-                "**Currently Quotient works according to Indian Standard Time (UTC+05:30)**",
-            )
-        )
-        scrim.open_time = await inputs.time_input(ctx, check)
-
-        registration_channel = scrim.registration_channel
-
-        fields = (
-            f"Registration Channel: {registration_channel.mention}",
-            f"Slotlist Channel: {scrim.slotlist_channel.mention}",
-            f"Role: {scrim.role.mention}",
-            f"Minimum Mentions: {scrim.required_mentions}",
-            f"Slots: {scrim.total_slots}",
-            f"Open Time: {discord_timestamp(scrim.open_time,'t')}",
-        )
-
-        title = "Are these correct?"
-        description = "\n".join(f"`{idx}.` {field}" for idx, field in enumerate(fields, start=1))
-
-        confirm = await ctx.prompt(description, title=title)
-        if not confirm:
-            await ctx.send("Ok, Aborting!")
-        else:
-            message = await ctx.send("Setting up everything!")
-            reason = "Created for scrims management."
-
-            # Scrims MODS
-            scrims_mod = discord.utils.get(ctx.guild.roles, name="scrims-mod")
-
-            if scrims_mod is None:
-                scrims_mod = await ctx.guild.create_role(name="scrims-mod", color=self.bot.color, reason=reason)
-
-            overwrite = registration_channel.overwrites_for(ctx.guild.default_role)
-            overwrite.update(read_messages=True, send_messages=True, read_message_history=True)
-            await registration_channel.set_permissions(scrims_mod, overwrite=overwrite)
-
-            # Srims LOGS
-            scrims_log_channel = discord.utils.get(ctx.guild.text_channels, name="quotient-scrims-logs")
-
-            if scrims_log_channel is None:
-                guild = ctx.guild
-                overwrites = {
-                    guild.default_role: discord.PermissionOverwrite(read_messages=False),
-                    guild.me: discord.PermissionOverwrite(read_messages=True),
-                    scrims_mod: discord.PermissionOverwrite(read_messages=True),
-                }
-                scrims_log_channel = await ctx.guild.create_text_channel(
-                    name="quotient-scrims-logs",
-                    overwrites=overwrites,
-                    reason=reason,
-                )
-
-                # Sending Message to scrims-log-channel
-                note = await scrims_log_channel.send(
-                    embed=discord.Embed(
-                        description=f"If events related to scrims i.e opening registrations or adding roles, "
-                        f"etc are triggered, then they will be logged in this channel. "
-                        f"Also I have created {scrims_mod.mention}, you can give that role to your "
-                        f"scrims-moderators. User with {scrims_mod.mention} can also send messages in "
-                        f"registration channels and they won't be considered as scrims-registration.\n\n"
-                        f"`Note`: **Do not rename this channel.**",
-                        color=discord.Color(config.COLOR),
-                    )
-                )
-                await note.pin()
-
-            scrim.autoclean_time = self.bot.current_time.replace(hour=4, minute=0, second=0, microsecond=0) + timedelta(
-                days=1
-            )
-            await scrim.save()
-            await self.reminders.create_timer(scrim.open_time, "scrim_open", scrim_id=scrim.id)
-
-            await self.bot.reminders.create_timer(scrim.autoclean_time, "autoclean", scrim_id=scrim.id)
-
-            text = f"Scrims Management Setup Complete. (`Scrims ID: {scrim.id}`)"
-            try:
-                await message.edit(content=text)
-            except discord.NotFound:
-                await ctx.send(text)
-
-    # ************************************************************************************************
-
-    @smanager.command(name="edit")
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    @checks.can_use_sm()
-    async def s_edit(self, ctx, *, scrim: Scrim):
-        """
-        Edit scrims manager config for a scrim.
-        """
-        menu = ConfigEditMenu(scrim=scrim)
-        await menu.start(ctx)
-
-    # ************************************************************************************************
-
-    @smanager.command(name="days")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_days(self, ctx, *, scrim: Scrim):
-        """
-        Edit open days for a scrim.
-        """
-        menu = DaysMenu(scrim=scrim)
-        await menu.start(ctx)
-
-    # @smanager.command(name="open")
-    # async def s_open(self, ctx, scrim_id: int):
-    #     pass
-
-    @smanager.command(name="close")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_channels=True)
-    async def s_close(self, ctx: Context, scrim: Scrim):
-        """
-        Close a scrim immediately, even if the slots aren't full.
-        """
-        if scrim.opened_at is None:
-            return await ctx.error(f"Scrim `({scrim.id})` is already closed.")
-        prompt = await ctx.prompt(f"Are you sure you want to close Scrim: `{scrim.id}`?")
-        if not prompt:
-            return await ctx.success("Ok, Aborting!")
-
-        await scrim_end_process(ctx, scrim)
-        await ctx.message.add_reaction(emote.check)
-
-        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=scrim.id)
-        if slotm:
-            await slotm.refresh_public_message()
-
-    @smanager.command(name="config")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(5, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_config(self, ctx: Context):
-        """
-        Get config of all the scrims you have setup.
-        """
-        allscrims = await Scrim.filter(guild_id=ctx.guild.id).order_by("open_time")
-
-        if not allscrims:
-            return await ctx.send(
-                f"You do not have any scrims setup on this server.\n\nKindly use `{ctx.prefix}smanager setup` to setup one."
-            )
-
-        paginator = QuoPaginator(ctx, title=f"Total Scrims: {len(allscrims)}", per_page=1)
-        for idx, scrim in enumerate(allscrims, start=1):
-            reg_channel = getattr(scrim.registration_channel, "mention", "`Channel Deleted!`")
-            slot_channel = getattr(scrim.slotlist_channel, "mention", "`Channel Deleted!`")
-
-            role = getattr(scrim.role, "mention", "`Role Deleted!`")
-            open_time = (scrim.open_time).strftime("%I:%M %p")
-            open_role = scrim_work_role(scrim, constants.EsportsRole.open)
-            ping_role = scrim_work_role(scrim, constants.EsportsRole.ping)
-            mystring = f"> Scrim ID: `{scrim.id}`\n> Name: `{scrim.name}`\n> Registration Channel: {reg_channel}\n> Slotlist Channel: {slot_channel}\n> Role: {role}\n> Mentions: `{scrim.required_mentions}`\n> Total Slots: `{scrim.total_slots}`\n> Open Time: `{open_time}`\n> Toggle: `{scrim.stoggle}`\n> Open Role: {open_role}\n> Ping Role: {ping_role}\n> Slotlist start from: {scrim.start_from}"
-
-            paginator.add_line(f"**`<<<<<<-- {idx:02d}. -->>>>>>`**\n{mystring}")
-
-        await paginator.start()
-
-    # ************************************************************************************************
-
-    @smanager.command(name="toggle")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_toggle(self, ctx, scrim: Scrim, option: str = None):
-        """
-        Toggle on/off things for a scrim.
-        """
-        valid_opt = ("scrim", "ping", "openrole", "autoclean", "autoslotlist", "multiregister")
-        display = ",".join(map(lambda s: f"`{s}`", valid_opt))
-        display_msg = f"Valid options are:\n{display}\n\nUsage Example: `smanager toggle {scrim.id} scrim`"
-
-        if not option or option.lower() not in valid_opt:
-            return await ctx.send(display_msg)
-
-        stoggle = scrim.stoggle
-        ping = scrim.ping_role_id
-        openrole = scrim.open_role_id
-        autoclean = scrim.autoclean
-
-        if option.lower() == "scrim":
-            await Scrim.filter(pk=scrim.id).update(stoggle=not (stoggle))
-            await ctx.success(f"Scrim is now {'OFF' if stoggle else 'ON'}")
-
-        elif option.lower() == "ping":
-            if ping is None:
-                return await ctx.error(f"Ping Role is not set.")
-
-            await Scrim.filter(pk=scrim.id).update(ping_role_id=None)
-            await ctx.success(f"Ping Role turned OFF.")
-
-        elif option.lower() == "openrole":
-            if openrole is None:
-                return await ctx.error(f"Open Role is not set.")
-
-            await Scrim.filter(pk=scrim.id).update(open_role_id=None)
-            await ctx.success(f"Open Role set to {ctx.guild.default_role.mention}")
-
-        elif option.lower() == "autoclean":
-            await Scrim.filter(pk=scrim.id).update(autoclean=not (autoclean))
-            await ctx.success(f"Autoclean turned {'OFF' if autoclean else 'ON'}")
-
-        elif option.lower() == "autoslotlist":
-            await Scrim.filter(pk=scrim.id).update(autoslotlist=not (scrim.autoslotlist))
-            await ctx.success(f"Autopost-slotlist turned {'OFF' if scrim.autoslotlist else 'ON'}!")
-
-        elif option.lower() == "multiregister":
-            await Scrim.filter(pk=scrim.id).update(multiregister=not (scrim.multiregister))
-            await ctx.success(f"Multiple registerations turned {'OFF' if scrim.multiregister else 'ON'}!")
-
-    # ************************************************************************************************
-    @smanager.group(name="slotlist", invoke_without_command=True)
-    async def s_slotlist(self, ctx):
-        """
-        Create/ Edit or Send a scrim slotlist.
-        """
-        await ctx.send_help(ctx.command)
-
-    @s_slotlist.command(name="show")
-    async def s_slotlist_show(self, ctx, scrim: Scrim):
-        """
-        Show slotlist of a scrim.
-        """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
-
-        embed, channel = await scrim.create_slotlist()
-        await ctx.send(embed=embed, embed_perms=True)
-
-    @s_slotlist.command(name="send")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_slotlist_send(self, ctx: Context, scrim: Scrim, channel: discord.TextChannel = None):
-        """
-        Send slotlist of a scrim.
-        """
-        if not await scrim.teams_registered.count():
-            return await ctx.error("Nobody registered yet!")
-
-        embed, schannel = await scrim.create_slotlist()
-        channel = channel or schannel
-
-        await ctx.send(embed=embed)
-        prompt = await ctx.prompt("This is how the slotlist looks. Should I send it?")
-        if not prompt:
-            return await ctx.error("Ok, Aborting.")
-
-        if channel is not None and channel.permissions_for(ctx.me).embed_links:
-            _v = SlotlistEditButton(ctx.bot, scrim)
-
-            _v.message = await channel.send(embed=embed, view=_v)
-            await ctx.success("Slotlist sent successfully!")
-
-            if channel == schannel:
-                await Scrim.filter(pk=scrim.id).update(slotlist_message_id=_v.message.id)
-
-        else:
-            await ctx.error(f"I can't send messages in {channel}")
-
-    @s_slotlist.command(name="edit")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(5, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_slotlist_edit(self, ctx, scrim: Scrim):
-        """
-        Edit a slotlist
-        """
-        msg = None
-        with suppress(discord.HTTPException):
-            msg = await self.bot.get_or_fetch_message(scrim.slotlist_channel, scrim.slotlist_message_id)
-            # msg = await scrim.slotlist_channel.fetch_message(scrim.slotlist_message_id)
-        if not msg:
-            return await ctx.error("Slotlist Message not found.")
-
-        _view = ScrimsSlotlistEditor(ctx, scrim, msg)
-        embed = _view.initial_embed()
-        _view.message = await ctx.send(embed=embed, view=_view)
-
-    @s_slotlist.command(name="format")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(5, 1, type=commands.BucketType.user)
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_slotlist_format(self, ctx, scrim: Scrim):
-        """Set a default format for scrim slotlist."""
-        view = SlotlistFormatter(ctx, scrim=scrim)
-        view.message = await ctx.send(embed=SlotlistFormatter.updated_embed(scrim), view=view)
-
-    # @s_slotlist.command(name="image")
-    # @checks.can_use_sm()
-    # @checks.has_done_setup()
-    # @commands.cooldown(10, 1, type=commands.BucketType.user)
-    # @commands.bot_has_permissions(embed_links=True, attach_files=True)
-    # async def s_slotlist_image(self, ctx, scrim: Scrim):
-    #     """
-    #     Get image version of a slotlist.
-    #     """
-    #     if not await scrim.teams_registered.count():
-    #         return await ctx.error("Nobody registered yet!")
-
-    #     files = await scrim.create_slotlist_img()
-    #     for file in files:
-    #         await ctx.send(file=file)
-
-    @smanager.command(name="start")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.cooldown(10, 1, type=commands.BucketType.user)
-    async def s_start(self, ctx: Context, scrim: Scrim):
-        """
-        Start a registration instantly.
-        """
-        ...
-        prompt = await ctx.prompt(
-            f"This will start the registrations for {str(scrim)} will start immediately."
-            "\nAlso the registraton open time will change to current time, \n\n"
-            "Are you sure you want to continue?"
-        )
-
-        if not prompt:
-            return await ctx.simple("Alright, Aborting")
-
-        _t = datetime.now(tz=IST)
-        await Scrim.filter(pk=scrim.id).update(open_time=_t)
-        await self.reminders.create_timer(_t, "scrim_open", scrim_id=scrim.id)
-        await ctx.success(
-            f"Registration opened!\n\nRegistration open time has been changed to `{_t.strftime('%I:%M %p')}`"
-            f"\nYou can change open time again with `{ctx.prefix}s edit {scrim.id}`"
-        )
-
-    # ************************************************************************************************
-    @smanager.command(name="delete")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_delete(self, ctx, scrim: Scrim):
-        """
-        Completely delete a scrim.
-        """
-        prompt = await ctx.prompt(
-            f"Are you sure you want to delete scrim `{scrim.id}`?",
-        )
-        if prompt:
-            self.bot.cache.scrim_channels.discard(scrim.registration_channel_id)
-            await scrim.delete()
-            await ctx.success(f"Scrim (`{scrim.id}`) deleted successfully.")
-        else:
-            await ctx.success(f"Alright! Aborting")
-
-    @smanager.command(name="ban")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_ban(self, ctx: Context):
-        """
-        Ban someone from the scrims temporarily or permanently.
-        """
-        await ctx.simple("Use 'Punish' button from the slotlist message. ")
-
-    @smanager.command(name="unban")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_unban(self, ctx: Context, scrim: MultiScrimConverter, user: QuoUser, *, reason: str = None):
-        """
-        Unban a banned team from a scrim.
-        Use `all` to unban from all scrims.
-        """
-        if len(scrim) == 1 and not user.id in await scrim[0].banned_user_ids():
-            return await ctx.send(f"**{str(user)}** is not banned.")
-
-        scrims = []
-        for s in scrim:
-            bans = await s.banned_teams.filter(user_id=user.id)
-            if bans:
-                await BannedTeam.filter(id__in=[_.pk for _ in bans]).delete()
-                scrims.append(s)
-
-        if not scrims:
-            return await ctx.send(f"**{str(user)}** is not banned from scrims.")
-
-        format = "\n".join(
-            (
-                f"{emote.check} Scrim {scrim.id}: {getattr(scrim.registration_channel, 'mention','deleted-channel')}"
-                for scrim in scrims
-            )
-        )
-
-        await ctx.simple(f"Successfully unbanned {str(user)} from \n" f"{format}")
-
-        if banlog := await BanLog.get_or_none(guild_id=ctx.guild.id):
-            await banlog.log_unban(user.id, ctx.author, scrims, reason or "```No reason given```")
-
-    @smanager.group(name="reserve", invoke_without_command=True)
-    @commands.max_concurrency(1, BucketType.guild)
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_reserve(self, ctx, scrim: Scrim):
-        """
-        Add / Remove a team from the reserved list
-        """
-        reserves = await scrim.reserved_slots.all()
-        embed = discord.Embed(color=self.bot.color, title="Reserved-Slots Editor")
-
-        to_show = []
-        for i in scrim.available_to_reserve:
-            check = [j.team_name for j in reserves if j.num == i]
-
-            if check:
-                info = check[0]
-            else:
-                info = "❌"
-
-            to_show.append(f"Slot {i:02}  -->  {info}\n")
-
-        embed.description = f"```{''.join(to_show)}```"
-
-        view = SlotReserver(ctx, scrim)
-        view.message = await ctx.send(embed=embed, view=view, embed_perms=True)
-
-    @s_reserve.command(name="list", aliases=("all",))
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    async def s_reverse_list(self, ctx, scrim: Scrim):
-        """
-        Get a list of all reserved teams and their leaders.
-        """
-        if not sum(1 for i in await scrim.reserved_user_ids()):
-            return await ctx.error("None of the slots is reserved.")
-
-        users = ""
-        for idx, record in enumerate(await scrim.reserved_slots.all(), start=1):
-
-            owner = "M"
-            if record.user_id:
-                owner = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.user_id)
-
-            users += f"`{idx:02d}`| {record.team_name.title()} ({owner}) [Slot: {record.num}]\n"
-
-        embed = discord.Embed(color=config.COLOR, description=users, title=f"Reserved Slots: {scrim.id}")
-        await ctx.send(embed=embed)
-
-    @smanager.command(name="autoclean")
-    @checks.can_use_sm()
-    @checks.has_done_setup()
-    @commands.bot_has_permissions(embed_links=True, manage_messages=True)
-    async def s_autoclean(self, ctx, scrim: Scrim):
-        """Commands related to quotient's autoclean"""
-        await AutocleanMenu(scrim=scrim).start(ctx)
-
-    @smanager.command(name="info")
-    async def s_info(self, ctx: Context, scrim: Scrim):
-        """Get information about a scrim."""
-        text = (
-            f"> Name: `{scrim.name}`\n> Registration Channel: {getattr(scrim.registration_channel,'mention','`Channel Not Found`')}\n"
-            f"> Slotlist Channel: {getattr(scrim.slotlist_channel,'mention','`Channel Not Found`')}\n"
-            f"> Total Slots: `{scrim.total_slots}`\n\nRegistration status?"
-        )
-        if scrim.opened_at:
-            text += f"\n> `Open!` ({strtime(scrim.opened_at)})\n> Slots Left: {len(scrim.available_slots)}"
-
-        elif scrim.closed_at:
-            text += f"\n> `Closed!` ({strtime(scrim.closed_at)})"
-
-        else:
-            text += "\n> Will be available after next registrations!"
-
-        banned = [x.user_id for x in await scrim.banned_teams]
-        text += f"\n\n> Reserved Slots: `{sum(1 for i in (x.user_id for x in await scrim.reserved_slots))}`"
-        text += f"\n> Banned Users: `{len(banned)}` "
-        if banned:
-            text += ", ".join((getattr(x, "mention", "Not Found!") for x in map(self.bot.get_user, banned)))
-
-        embed = self.bot.embed(ctx, title="Scrims Info: ({0})".format(scrim.id))
-        embed.description = text
-        await ctx.send(embed=embed, embed_perms=True)
-
-    @smanager.command(name="openmsg")
-    @checks.can_use_sm()
-    async def s_openmsg(self, ctx: Context, scrim: Scrim):
-        """See/edit scrim registration open msg"""
-        await ctx.send(
-            content=f"**THIS MESSAGE MIGHT DIFFER THE ACTUAL OPEN MESSAGE**\nUse our dashboard to edit this embed: https://quotientbot.xyz/dashboard/{ctx.guild.id}/scrims",
-            embed=await registration_open_embed(scrim),
-        )
-
-    @smanager.command(name="closemsg")
-    @checks.can_use_sm()
-    async def s_closemsg(self, ctx: Context, scrim: Scrim):
-        """See/edit scrim registration close msg"""
-        await ctx.send(
-            content=f"**THIS MESSAGE MIGHT DIFFER THE ACTUAL CLOSE MESSAGE**\nUse our dashboard to edit this embed: https://quotientbot.xyz/dashboard/{ctx.guild.id}/scrims",
-            embed=registration_close_embed(scrim),
-        )
-
-    # ************************************************************************************************
-    # ************************************************************************************************
-    # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************
 
     @commands.command(aliases=("tm", "t"))
     @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
-    @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
-    @commands.cooldown(2, 10, type=commands.BucketType.guild)
+    @commands.bot_has_guild_permissions(
+        manage_channels=True, manage_permissions=True, manage_roles=True, manage_messages=True
+    )
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tourney(self, ctx: Context):
         """Create & Manage tournaments with Quotient"""
         if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:
@@ -725,7 +92,6 @@ class ScrimManager(Cog, name="Esports"):
         view = TourneyManager(ctx)
         view.add_item(QuotientView.tricky_invite_button())
         view.message = await ctx.send(embed=await view.initial_embed(), view=view)
-
 
     @commands.command(extras={"examples": ["quickidp 1234 pass Miramar", "quickidp 1234 pass Sanhok @role"]})
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
@@ -742,7 +108,9 @@ class ScrimManager(Cog, name="Esports"):
         embed.add_field(name="Room ID", value=room_id)
         embed.add_field(name="Password", value=password)
         embed.add_field(name="Map", value=map)
-        embed.set_footer(text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url)
+        embed.set_footer(
+            text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url
+        )
         msg = await ctx.send(
             content=role_to_ping.mention if role_to_ping else None,
             embed=embed,
@@ -750,22 +118,6 @@ class ScrimManager(Cog, name="Esports"):
         )
 
         self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
-
-    @commands.command()
-    @commands.has_permissions(manage_guild=True)
-    @commands.cooldown(7, 1, type=commands.BucketType.guild)
-    async def customidp(self, ctx: Context, channel: QuoTextChannel, role_to_ping: QuoRole = None):
-        """Share customized Id/pass message."""
-        if not (
-            channel.permissions_for(ctx.me).send_messages
-            or channel.permissions_for(ctx.me).embed_links
-            or channel.permissions_for(ctx.me).manage_messages
-        ):
-            return await ctx.error(
-                f"I need `send_messages` , `embed_links` and `manage_messages` permission in {channel.mention}"
-            )
-
-        await IDPMenu(send_channel=channel, role=role_to_ping).start(ctx)
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):
@@ -978,18 +330,6 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
     # ************************************************************************************************
     # ************************************************************************************************
-
-    # @commands.group(aliases=("pt",), invoke_without_command=True)
-    # async def ptable(self, ctx):
-    #     """Points tables commands"""
-    #     embed = discord.Embed(color=self.bot.color, title="Shifted to Dashboard", url=self.bot.config.WEBSITE)
-    #     embed.description = (
-    #         f"Points table command has been moved to the dashboard [here]({self.bot.config.WEBSITE}/dashboard) for ease of use."
-    #         f"\n\nTo create beautiful points tables, use the link above or use `{ctx.prefix}dashboard` command to get a direct link"
-    #         "to the dashboard"
-    #     )
-    #     embed.set_image(url="https://media.discordapp.net/attachments/779229002626760716/873236858333720616/ptable.png")
-    #     await ctx.send(embed=embed, embed_perms=True)
 
     @commands.command(aliases=("slotm",))
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)

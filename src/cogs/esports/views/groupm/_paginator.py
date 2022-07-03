@@ -3,13 +3,13 @@ from contextlib import suppress
 
 import typing as T
 
-from models.esports.tourney import Tourney, TMSlot, TGroupList
-
-from ..base import EsportsBaseView
-from core import Context
 import discord
 
-from utils import inputs, emote
+from core import Context
+from models.esports.tourney import TGroupList, TMSlot, Tourney
+from utils import emote, inputs
+
+from ..base import EsportsBaseView
 from ._refresh import GroupRefresh
 
 

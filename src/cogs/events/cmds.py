@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
 from contextlib import suppress
-from models import Autorole, ArrayRemove
-from core import Cog, Context
+
 import discord
 
-from models import Commands
+from core import Cog, Context
+from models import ArrayRemove, Autorole, Commands
 
 
 class CmdEvents(Cog):

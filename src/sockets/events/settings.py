@@ -5,13 +5,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-from ..schemas import SockResponse
-
-from models import Votes
-import discord
 from contextlib import suppress
+
+import discord
+
 import constants
+from core import Cog
+from models import Votes
+
+from ..schemas import SockResponse
 
 
 class SockSettings(Cog):

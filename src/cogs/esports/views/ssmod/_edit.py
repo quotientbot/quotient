@@ -5,14 +5,13 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from core import Quotient
 
+import config
 from core import Context
 from models import SSVerify
 
 from ...views.base import EsportsBaseView
 from ..paginator import NextButton, PrevButton, StopButton
-
-from ._buttons import *  # noqa: F401, F403
-import config
+from ._buttons import *
 
 
 class SSmodEditor(EsportsBaseView):

@@ -5,15 +5,15 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from models import Guild
-from core import Cog, Context
-
+import re
 from contextlib import suppress
-from constants import random_greeting
+
 import discord
 
-import re
 import config
+from constants import random_greeting
+from core import Cog, Context
+from models import Guild
 
 
 class MainEvents(Cog, name="Main Events"):

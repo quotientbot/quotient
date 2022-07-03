@@ -5,27 +5,25 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-
-from datetime import datetime, timedelta, timezone
-from cogs.quomisc.helper import format_relative
-from utils import get_ipm, human_timedelta, checks, LinkButton, LinkType
-from core import Cog, Context, QuotientView
-from models import Guild, Votes, User, Commands
-from discord.ext import commands
-from utils import QuoColor, LinkType, LinkButton, truncate_string
-from collections import Counter
-
 import inspect
-
-from .views import MoneyButton, VoteButton, SetupButtonView
-
-from .dev import *  # noqa: F401, F403
-import discord
-import pygit2
-import pkg_resources
-import psutil
 import itertools
 import os
+from collections import Counter
+from datetime import datetime, timedelta, timezone
+
+import discord
+import pkg_resources
+import psutil
+import pygit2
+from discord.ext import commands
+
+from cogs.quomisc.helper import format_relative
+from core import Cog, Context, QuotientView
+from models import Commands, Guild, User, Votes
+from utils import LinkButton, LinkType, QuoColor, checks, get_ipm, human_timedelta, truncate_string
+
+from .dev import *
+from .views import MoneyButton, SetupButtonView, VoteButton
 
 
 class Quomisc(Cog, name="quomisc"):

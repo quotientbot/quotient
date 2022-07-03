@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 import asyncio
+from typing import TYPE_CHECKING, List
 
-from typing import List, TYPE_CHECKING
 import aiohttp
-
 import discord
 
 from constants import SSType
@@ -11,14 +11,14 @@ from constants import SSType
 if TYPE_CHECKING:
     from core import Quotient
 
+from collections import defaultdict
 from contextlib import suppress
-from utils import emote, plural
-
-from core import Cog, Context, QuotientRatelimiter
-from models import SSVerify, ImageResponse
 
 import humanize
-from collections import defaultdict
+
+from core import Cog, Context, QuotientRatelimiter
+from models import ImageResponse, SSVerify
+from utils import emote, plural
 
 
 class MemberLimits(defaultdict):

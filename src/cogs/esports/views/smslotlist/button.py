@@ -1,22 +1,24 @@
 from __future__ import annotations
-from contextlib import suppress
-
-from models import Scrim, AssignedSlot, BanLog
-import discord
 
 import typing as T
+from contextlib import suppress
+
+import discord
+
+from models import AssignedSlot, BanLog, Scrim
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from .editor import *  # noqa: F401, F403
-
-from tortoise.exceptions import OperationalError
-from .select import prompt_slot_selection, BanOptions
-from utils import TimeText, emote
-
 import asyncio
 import random
+
+from tortoise.exceptions import OperationalError
+
+from utils import TimeText, emote
+
+from .editor import *
+from .select import BanOptions, prompt_slot_selection
 
 __all__ = ("SlotlistEditButton",)
 

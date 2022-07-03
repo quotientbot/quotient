@@ -1,9 +1,11 @@
-from typing import List, Mapping
 from difflib import get_close_matches
-from discord.ext import commands
-from utils import get_ipm, QuoPaginator, truncate_string, LinkType, LinkButton
+from typing import List, Mapping
+
 import discord
+from discord.ext import commands
+
 import config
+from utils import LinkButton, LinkType, QuoPaginator, get_ipm, truncate_string
 
 from .Cog import Cog
 

@@ -1,17 +1,16 @@
 import asyncio
+import re
+from contextlib import suppress
+from typing import List, Tuple
+
+import discord
+from tortoise import fields
 
 from models import BaseDbModel
-
-from tortoise import fields
 from models.helpers import ArrayField
+from utils import aenumerate, plural, truncate_string
+
 from .scrims import Scrim
-
-from typing import List, Tuple
-import discord
-
-from contextlib import suppress
-from utils import plural, aenumerate, truncate_string
-import re
 
 __all__ = ("ScrimsSlotManager",)
 

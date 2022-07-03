@@ -1,36 +1,21 @@
 from __future__ import annotations
 
+from string import ascii_uppercase
+from typing import List
+
 import discord
-from models import Tourney
 
 from core import Context
-
-from typing import List
-from ..paginator import NextButton, PrevButton, StopButton
-from string import ascii_uppercase
+from models import Tourney
 from utils import regional_indicator as ri
 
-from ._buttons import (
-    SetTourneyname,
-    RegChannel,
-    ConfirmChannel,
-    SetRole,
-    SetMentions,
-    SetSlots,
-    SetEmojis,
-    SetPingRole,
-    OpenRole,
-    MultiReg,
-    TeamCompulsion,
-    DuplicateTeamName,
-    AutodeleteRejected,
-    SuccessMessage,
-    DeleteTourney,
-    SetGroupSize,
-    DiscardButton,
-)
-
+from ..paginator import NextButton, PrevButton, StopButton
 from ._base import TourneyView
+from ._buttons import (AutodeleteRejected, ConfirmChannel, DeleteTourney,
+                       DiscardButton, DuplicateTeamName, MultiReg, OpenRole,
+                       RegChannel, SetEmojis, SetGroupSize, SetMentions,
+                       SetPingRole, SetRole, SetSlots, SetTourneyname,
+                       SuccessMessage, TeamCompulsion)
 
 
 class TourneyEditor(TourneyView):
@@ -82,8 +67,8 @@ class TourneyEditor(TourneyView):
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{tourney.check_emoji},{tourney.cross_emoji}",
             "Ping Role": getattr(tourney.ping_role, "mention", "`Not-Set`"),
             "Open Role": getattr(tourney.open_role, "mention", "`role-deleted`"),
-            "Multi-Reg": ("`Not allowed!`", "`Allowed`")[tourney.multiregister],
-            "Team Compulsion": ("`No!`", "`Yes!`")[tourney.teamname_compulsion],
+            "Multi-Register": ("`Not allowed!`", "`Allowed`")[tourney.multiregister],
+            "Team-Name Compulsion": ("`No!`", "`Yes!`")[tourney.teamname_compulsion],
             "Duplicate Team Name": ("`Allowed`", "`Not allowed!`")[tourney.no_duplicate_name],
             "Autodelete Rejected": ("`No!`", "`Yes!`")[tourney.autodelete_rejected],
             "Success Message": f"`Click to view / edit`",

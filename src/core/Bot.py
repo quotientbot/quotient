@@ -1,37 +1,35 @@
 from __future__ import annotations
-from contextlib import suppress
+
 import typing
+from contextlib import suppress
 
 if typing.TYPE_CHECKING:
     from ..cogs.reminder import Reminders
 
-
-from discord import AllowedMentions, Intents
-from discord.ext import commands
-from tortoise import Tortoise
-
-from datetime import datetime
-
-from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union
-from async_property import async_property
-from datetime import datetime
-
-import aiohttp, asyncio, os
-import config as cfg
-
+import asyncio
 import itertools
+import os
+import time
+from datetime import datetime
+from typing import (Any, Callable, Coroutine, Dict, List, NoReturn, Optional,
+                    Union)
+
+import aiohttp
+import dbl
 import discord
 import mystbin
-import dbl
-import time
+from async_property import async_property
+from discord import AllowedMentions, Intents
+from discord.ext import commands
+from lru import LRU
+from tortoise import Tortoise
 
+import config as cfg
 import constants as csts
 
+from .cache import CacheManager
 from .Context import Context
 from .Help import HelpCommand
-from .cache import CacheManager
-
-from lru import LRU
 
 intents = Intents.default()
 intents.members = True
@@ -93,8 +91,9 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import ScrimsSlotmPublicView, TourneySlotManager, SlotlistEditButton, GroupRefresh
-        from models import ScrimsSlotManager, Tourney, Scrim, TGroupList
+        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
+                                        SlotlistEditButton, TourneySlotManager)
+        from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
         async for record in ScrimsSlotManager.all():

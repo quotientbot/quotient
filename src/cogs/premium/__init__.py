@@ -1,28 +1,27 @@
 from __future__ import annotations
 
-import typing
-
 import asyncio
+import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, Context
-from discord.ext import commands, tasks
-from models import User, Guild, ArrayAppend, Timer, Premium
-from utils import checks, strtime, IST, Prompt
-from datetime import datetime, timedelta
-from tortoise.query_utils import Q
-
 from contextlib import suppress
-from constants import random_greeting, random_thanks
-
-from .views import PremiumView, GuildSelector
+from datetime import datetime, timedelta
 
 import discord
-import config
+from discord.ext import commands, tasks
+from tortoise.query_utils import Q
 
-from .expire import remind_guild_to_pay, remind_user_to_pay, deactivate_premium, extra_guild_perks
+import config
+from constants import random_greeting, random_thanks
+from core import Cog, Context
+from models import ArrayAppend, Guild, Premium, Timer, User
+from utils import IST, Prompt, checks, strtime
+
+from .expire import (deactivate_premium, extra_guild_perks,
+                     remind_guild_to_pay, remind_user_to_pay)
+from .views import GuildSelector, PremiumView
 
 
 class PremiumCog(Cog, name="Premium"):

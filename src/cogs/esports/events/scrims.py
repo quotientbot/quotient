@@ -5,31 +5,19 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
-from models import Scrim, AssignedSlot, ArrayRemove, Timer, BannedTeam, BanLog
-
-from ..helpers import (
-    add_role_and_reaction,
-    scrim_end_process,
-    before_registrations,
-    cannot_take_registration,
-    check_scrim_requirements,
-    available_to_reserve,
-    toggle_channel,
-    scrim_work_role,
-    registration_open_embed,
-    should_open_scrim,
-    purge_channel,
-    purge_role,
-)
-from constants import EsportsLog, IST, Day, EsportsRole, AutocleanType
+import asyncio
 from contextlib import suppress
 from datetime import datetime, timedelta
 from unicodedata import normalize
 
 import discord
-import asyncio
+
 import utils
+from constants import IST, AutocleanType, Day
+from core import Cog
+from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
+
+from ..helpers import before_registrations, cannot_take_registration, check_scrim_requirements, should_open_scrim
 
 
 class ScrimEvents(Cog):
@@ -57,12 +45,11 @@ class ScrimEvents(Cog):
             return self.bot.cache.scrim_channels.discard(channel_id)
 
         scrim_role = scrim.role
-        modrole = scrim.modrole
 
         if scrim.opened_at is None or scrim_role is None:
             return
 
-        if modrole and modrole in message.author.roles:
+        if Scrim.is_ignorable(message.author):
             return
 
         if not before_registrations(message, scrim_role):
@@ -105,10 +92,10 @@ class ScrimEvents(Cog):
             await scrim.assigned_slots.add(slot)
 
             await Scrim.filter(pk=scrim.id).update(available_slots=ArrayRemove("available_slots", slot_num))
-            self.bot.loop.create_task(add_role_and_reaction(ctx, scrim.role))
+            self.bot.loop.create_task(scrim.add_tick(message))
 
             if len(scrim.available_slots) == 1:
-                await scrim_end_process(ctx, scrim)
+                await scrim.close_registration()
 
     # ==========================================================================================================
     # ==========================================================================================================
@@ -142,7 +129,7 @@ class ScrimEvents(Cog):
         if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime(
             "%d-%b-%Y %I:%M %p"
         ):
-            return  # means we are having multiple timers for a single scrims :c shit
+            return  # means we are having multiple timers for a single scrim :c shit
 
         guild = scrim.guild
 
@@ -155,63 +142,7 @@ class ScrimEvents(Cog):
         if not guild.chunked:
             self.bot.loop.create_task(guild.chunk())
 
-        oldslots = await scrim.assigned_slots
-        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
-
-        await scrim.assigned_slots.clear()
-
-        # here we insert a list of slots we can give for the registration.
-        # we insert only the empty slots not the reserved ones to avoid extra queries during creation of slots for reserved users.
-
-        await self.bot.db.execute(
-            """
-            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
-            """,
-            await available_to_reserve(scrim),
-            scrim.id,
-        )
-
-        scrim_role = scrim.role
-        async for slot in scrim.reserved_slots.all():
-            assinged_slot = await AssignedSlot.create(
-                num=slot.num,
-                user_id=slot.user_id,
-                team_name=slot.team_name,
-                jump_url=None,
-            )
-
-            await scrim.assigned_slots.add(assinged_slot)
-
-            if slot.user_id:
-                with suppress(AttributeError):
-                    self.bot.loop.create_task(guild.get_member(slot.user_id).add_roles(scrim_role))
-
-        await Scrim.filter(pk=scrim.id).update(
-            opened_at=datetime.now(tz=IST),
-            closed_at=None,
-            slotlist_message_id=None,
-        )
-
-        self.bot.loop.create_task(scrim.ensure_match_timer())
-
-        await asyncio.sleep(0.2)
-
-        # Opening Channel for Normal Janta
-        registration_channel = scrim.registration_channel
-        open_role = scrim.open_role
-
-        _e = await registration_open_embed(scrim)
-
-        await registration_channel.send(
-            content=scrim_work_role(scrim, EsportsRole.ping),
-            embed=_e,
-            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
-        )
-
-        self.bot.cache.scrim_channels.add(registration_channel.id)
-
-        await toggle_channel(registration_channel, open_role, True)
-        self.bot.dispatch("scrim_log", EsportsLog.open, scrim)
+        await scrim.start_registration()
 
     @Cog.listener()
     async def on_autoclean_timer_complete(self, timer: Timer):

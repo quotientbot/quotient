@@ -1,12 +1,13 @@
+import asyncio
+import io
 from contextlib import suppress
-from discord.ext import commands
-import discord, asyncio
 
-import utils, io
-
+import discord
 from async_property import async_property
+from discord.ext import commands
 
 import config as cfg
+import utils
 
 
 class Context(commands.Context):
@@ -96,13 +97,16 @@ class Context(commands.Context):
 
     async def simple(self, message, delete_after=None, **kwargs):
         with suppress(discord.HTTPException):
-            image = kwargs.pop("image",discord.Embed.Empty)
+            image = kwargs.pop("image", discord.Embed.Empty)
+            footer = kwargs.pop("footer", discord.Embed.Empty)
 
             return await self.reply(
                 embed=discord.Embed(
                     description=message,
                     color=self.bot.color,
-                ).set_image(url=image),
+                )
+                .set_image(url=image)
+                .set_footer(text=footer),
                 delete_after=delete_after,
                 **kwargs,
             )

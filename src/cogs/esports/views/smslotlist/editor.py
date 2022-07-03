@@ -1,18 +1,17 @@
 from __future__ import annotations
-from contextlib import suppress
-
-
-import discord
-
-from models import Scrim, ArrayAppend, ScrimsSlotManager, AssignedSlot, ArrayRemove
-
-from .select import prompt_slot_selection
 
 import asyncio
 import re
-from utils import truncate_string, emote
-
 import typing as T
+from contextlib import suppress
+
+import discord
+
+from models import (ArrayAppend, ArrayRemove, AssignedSlot, Scrim,
+                    ScrimsSlotManager)
+from utils import emote, truncate_string
+
+from .select import prompt_slot_selection
 
 if T.TYPE_CHECKING:
     from core import Quotient

@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from ...views.base import EsportsBaseView
 from typing import TYPE_CHECKING
+
+from ...views.base import EsportsBaseView
 
 if TYPE_CHECKING:
     from core import Quotient
 
+import discord
+
 from core import Context
 from models import TagCheck
-import discord
 
 
 class TagCheckView(EsportsBaseView):

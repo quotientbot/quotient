@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 import typing
 
 if typing.TYPE_CHECKING:
     from core import Quotient
-from core import Cog
 
 from socketio import AsyncClient
 
+from core import Cog
+
 from .app import sio
-from .events import DashboardGate, SocketScrims, SockSettings, SockPrime, SockGuild
+from .events import (DashboardGate, SocketScrims, SockGuild, SockPrime,
+                     SockSettings)
 
 
 class SocketConnection(Cog):

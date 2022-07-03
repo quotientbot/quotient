@@ -1,9 +1,10 @@
-from ..base import EsportsBaseView
-from models import Tourney, MediaPartner
-
-from utils import integer_input, channel_input, aenumerate, channel_input
-from core import Context
 import discord
+
+from core import Context
+from models import MediaPartner, Tourney
+from utils import aenumerate, channel_input, integer_input
+
+from ..base import EsportsBaseView
 
 
 class MediaPartnerView(EsportsBaseView):

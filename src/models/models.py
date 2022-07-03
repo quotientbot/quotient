@@ -1,8 +1,11 @@
-from .helpers import *  # noqa: F401, F403
-import constants
-from tortoise import fields, models
-import discord
 from typing import Optional
+
+import discord
+from tortoise import fields, models
+
+import constants
+
+from .helpers import *
 
 __all__ = (
     "User",

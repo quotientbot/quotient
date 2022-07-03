@@ -12,13 +12,6 @@ class NotSetup(QuotientError):
         )
 
 
-class InvalidColor(QuotientError):
-    def __init__(self, argument):
-        super().__init__(
-            f"`{argument}` doesn't seem to be a valid color, \nPick a shade from [here](https://www.google.com/search?q=color+picker)"
-        )
-
-
 class NotPremiumGuild(QuotientError):
     def __init__(self):
         super().__init__(

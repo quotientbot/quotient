@@ -1,10 +1,9 @@
-from models import BaseDbModel
-
-from tortoise import fields
-from models.helpers import *  # noqa: F401, F403
-import config
 import discord
+from tortoise import fields
 
+import config
+from models import BaseDbModel
+from models.helpers import *
 
 _dict = {"embed": [], "scrims": [], "tourney": [], "slotm": []}
 

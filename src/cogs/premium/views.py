@@ -1,10 +1,11 @@
-from aiohttp import ClientSession
-from utils import emote
+import io
 from typing import List
 
 import discord
+from aiohttp import ClientSession
+
 import config
-import io
+from utils import emote
 
 
 class PremiumView(discord.ui.View):
@@ -25,19 +26,8 @@ class PremiumView(discord.ui.View):
             color=0x00FFB3, description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
         )
 
-        _e.description += f"\n`{self.text}`"  # `\n\n**Quotient Premium includes:**\n"
-        #     "- Host Unlimited Scrims and Tournaments.\n"
-        #     "- Add unlimited slot-manager channels. (`cancel-claim`)\n"
-        #     "- Unlimited tagcheck and easytag channels.\n"
-        #     "- Custom footer and color of all embeds bot sends.\n"
-        #     "- Custom reactions for tourney and scrims.\n"
-        #     "- Unlimited ssverification channels. (`youtube/insta`)\n"
-        #     "- Unlimited media partner channels.\n"
-        #     "- Premium role in our server and other benefits..."
-        #
-        _e.set_image(
-            url="https://cdn.discordapp.com/attachments/782161513825042462/933027639013289984/QUOTIENT-PERKS.png"
-        )
+        _e.description += f"\n`{self.text}`"
+        _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/991209774123339816/premium_plans.gif")
         return _e
 
 

@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from typing import Optional, Union, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
     from core import Quotient
 
-
-from .utils import _self_clean_system, _complex_cleanup_strategy, do_removal
-from core import Cog, Context, QuotientView, role_command_check
-from models import Lockdown
-from discord.ext import commands
-from .events import *  # noqa: F401, F403
-from .views import *  # noqa: F401, F403
-
-from utils import ActionReason, MemberID, BannedMember, emote, FutureTime, QuoUser, human_timedelta, plural
-from constants import LockType
+import re
 
 import discord
-import re
+from discord.ext import commands
+
+from constants import LockType
+from core import Cog, Context, QuotientView, role_command_check
+from models import Lockdown
+from utils import (ActionReason, BannedMember, FutureTime, MemberID, QuoUser,
+                   emote, human_timedelta, plural)
+
+from .events import *
+from .utils import _complex_cleanup_strategy, _self_clean_system, do_removal
+from .views import *
 
 
 class Mod(Cog):

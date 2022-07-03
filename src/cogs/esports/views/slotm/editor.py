@@ -4,19 +4,19 @@ from typing import TYPE_CHECKING
 
 from utils.buttons import Prompt
 
-
 if TYPE_CHECKING:
     from core import Quotient
 
-from ...views.base import EsportsBaseView
+from string import ascii_uppercase
+
+import discord
 
 from core import Context
 from models.esports.slotm import ScrimsSlotManager
+from utils import plural
+from utils import regional_indicator as ri
 
-from utils import plural, regional_indicator as ri
-
-from string import ascii_uppercase
-import discord
+from ...views.base import EsportsBaseView
 from .scrimsedit import SlotmScrimsEditor
 
 __all__ = ("ScrimsSlotmEditor",)

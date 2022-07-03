@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from contextlib import suppress
+
+import discord
 
 from core import Context
-import discord
-from utils import regional_indicator as ri, inputs, truncate_string, emote
+from models import Tourney
+from utils import emote, inputs
+from utils import regional_indicator as ri
+from utils import truncate_string
 
 from ._base import TourneyButton
-from models import Tourney
-
-from contextlib import suppress
 
 #! increase success message limit to 500
 #! fake tags maybe

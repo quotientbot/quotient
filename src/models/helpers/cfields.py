@@ -1,5 +1,6 @@
-from tortoise.fields.base import Field
 from typing import Any
+
+from tortoise.fields.base import Field
 
 
 class ArrayField(Field, list):

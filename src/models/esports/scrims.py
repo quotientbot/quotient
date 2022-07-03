@@ -1,25 +1,25 @@
+import asyncio
+import io
+from ast import literal_eval as leval
 from contextlib import suppress
 from datetime import timedelta
-from models import BaseDbModel, Timer
-
-from tortoise import fields, models
-from models.helpers import *  # noqa: F401, F403
-
-from constants import AutocleanType, Day
-from PIL import Image, ImageFont, ImageDraw
-from discord.ext.commands import BadArgument, TextChannelConverter, ChannelNotFound
-
-from ast import literal_eval as leval
-from typing import Optional, Union, List
 from pathlib import Path
+from typing import List, Optional, Union
 
 import discord
-import asyncio
+import humanize
+from discord.ext.commands import BadArgument, ChannelNotFound, TextChannelConverter
+from PIL import Image, ImageDraw, ImageFont
+from tortoise import fields, models
+
 import utils
-import io
-
-
+from constants import AutocleanType, Day, EsportsLog, EsportsRole
+from core import Context
+from models import BaseDbModel
+from models.helpers import *
 from utils import discord_timestamp, plural, truncate_string
+
+from aiocache import cached
 
 
 class Scrim(BaseDbModel):
@@ -33,7 +33,7 @@ class Scrim(BaseDbModel):
     slotlist_channel_id = fields.BigIntField()
     slotlist_message_id = fields.BigIntField(null=True)
     role_id = fields.BigIntField(null=True)
-    required_mentions = fields.IntField()
+    required_mentions = fields.IntField(default=4)
     start_from = fields.IntField(default=1)
     available_slots = ArrayField(fields.IntField(), default=list)
     total_slots = fields.IntField()
@@ -59,7 +59,7 @@ class Scrim(BaseDbModel):
     show_time_elapsed = fields.BooleanField(default=True)
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
-    slotlist_format = fields.TextField(null=True)
+    slotlist_format = fields.JSONField(null=True)  #!str > jsonb
 
     no_duplicate_name = fields.BooleanField(default=False)
 
@@ -69,31 +69,20 @@ class Scrim(BaseDbModel):
 
     match_time = fields.DatetimeField(null=True)
 
+    emojis = fields.JSONField(default=dict)  #!new
+    cdn = fields.JSONField(default={"status": False, "countdown": 3, "msg": {}})  #!new
+
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")
     slot_reminders: fields.ManyToManyRelation["ScrimsSlotReminder"] = fields.ManyToManyField("models.ScrimsSlotReminder")
 
     def __str__(self):
-        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (Scrim: {self.id})"
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (ID: {self.id})"
 
-    @classmethod
-    async def convert(cls, ctx, argument: Union[str, discord.TextChannel]):
-        scrim = None
-
-        try:
-            _c = await TextChannelConverter().convert(ctx, argument)
-            scrim = await cls.get_or_none(registration_channel_id=_c.id, guild_id=ctx.guild.id)
-        except ChannelNotFound:
-            if argument.isdigit():
-                scrim = await cls.get_or_none(pk=int(argument), guild_id=ctx.guild.id)
-
-        if not scrim:
-            raise BadArgument(
-                f"This is not a valid Scrim ID or registration channel.\n\nGet a valid ID with `{ctx.prefix}s config`"
-            )
-
-        return scrim
+    @staticmethod
+    def is_ignorable(member: discord.Member) -> bool:
+        return "scrims-mod" in (role.name.lower() for role in member.roles)
 
     @property
     def guild(self) -> Optional[discord.Guild]:
@@ -132,6 +121,14 @@ class Scrim(BaseDbModel):
             return self.guild.get_member(self.host_id)
 
         return self.bot.get_user(self.host_id)
+
+    @property
+    def check_emoji(self):
+        return self.emojis.get("tick", "✅")
+
+    @property
+    def cross_emoji(self):
+        return self.emojis.get("cross", "❌")
 
     @property
     def available_to_reserve(self):
@@ -190,35 +187,44 @@ class Scrim(BaseDbModel):
 
         return _list
 
+    async def add_tick(self, msg: discord.Message):
+        with suppress(discord.HTTPException):
+            await msg.add_reaction(self.check_emoji)
+            await msg.author.add_roles(self.role)
+
+    @staticmethod
+    def default_slotlist_format():
+        return discord.Embed(color=0x00FFB3, title=f"<<name>> Slotlist", description="```\n<<slots>>\n```").set_footer(
+            text=f"Registration took: <<time_taken>>"
+        )
+
     async def create_slotlist(self):
 
         _slots = await self.cleaned_slots()
 
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
 
-        if self.slotlist_format is not None:
-            format = leval(self.slotlist_format)
-
-            embed = discord.Embed.from_dict(format)
-
-            description = embed.description.replace("\n" * 3, "") if embed.description else ""
-
-            embed.description = f"""
-            ```\n{desc}\n```
-            {description}
-            """
-
+        if len(self.slotlist_format) <= 1:
+            text = str(self.default_slotlist_format().to_dict())
         else:
-            embed = discord.Embed(title=self.name + " Slotlist", description=f"```\n{desc}\n```", color=self.bot.color)
+            text = str(self.slotlist_format)
 
-        if self.show_time_elapsed and self.time_elapsed:
-            embed.set_footer(text=f"Registration took: {self.time_elapsed}")
+        changes = [
+            ("<<name>>", self.name),
+            ("<<time_taken>>", self.time_elapsed or "N/A"),
+            ("<<open_time>>", discord_timestamp(self.open_time)),
+        ]
 
+        for _ in changes:
+            text = text.replace(*_)
+
+        embed = discord.Embed.from_dict(leval(text))
         if embed.color == discord.Embed.Empty:
             embed.color = 0x2F3136
 
-        channel = self.slotlist_channel
-        return embed, channel
+        embed.description = embed.description.replace("<<slots>>", desc)
+
+        return embed, self.slotlist_channel
 
     async def refresh_slotlist_message(self, msg: discord.Message = None):
         embed, channel = await self.create_slotlist()
@@ -229,6 +235,20 @@ class Scrim(BaseDbModel):
                 # msg = await channel.fetch_message(self.slotlist_message_id)
 
             await msg.edit(embed=embed)
+
+    async def send_slotlist(self, channel: discord.TextChannel = None) -> discord.Message:
+        from cogs.esports.views.smslotlist.button import SlotlistEditButton
+
+        channel = channel or self.slotlist_channel
+
+        _v = SlotlistEditButton(self.bot, self)
+        embed, schannel = await self.create_slotlist()
+        _v.message = await channel.send(embed=embed, view=_v)
+
+        if channel == schannel:
+            await self.make_changes(slotlist_message_id=_v.message.id)
+
+        return _v.message
 
     async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
         async for reminder in self.slot_reminders.all():
@@ -245,6 +265,8 @@ class Scrim(BaseDbModel):
             await ScrimsSlotReminder.filter(pk=reminder.pk).delete()
 
     async def ensure_match_timer(self):
+
+        from models import Timer
 
         from .slotm import ScrimsSlotManager
 
@@ -269,7 +291,8 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def make_changes(self, **kwargs):
-        return await Scrim.filter(pk=self.pk).update(**kwargs)
+        await Scrim.filter(pk=self.pk).update(**kwargs)
+        return await self.refresh_from_db()
 
     async def get_text_slotlist(self):
         _text = f"{self} Slot details:\n\n"
@@ -302,7 +325,7 @@ class Scrim(BaseDbModel):
                 await scrim.banned_teams.add(b)
 
             if banlog := await BanLog.get_or_none(guild_id=self.guild_id):
-                await banlog.log_ban(_, mod, scrims, reason)
+                await banlog.log_ban(_, mod, scrims, reason.arg, reason.dt)
 
             if reason.dt:
                 await self.bot.reminders.create_timer(
@@ -357,6 +380,64 @@ class Scrim(BaseDbModel):
         return await asyncio.get_event_loop().run_in_executor(
             None, wrapper
         )  # As pillow is blocking, we will process image in executor
+
+    async def reg_open_msg(self):
+        reserved_count = await self.reserved_slots.all().count()
+
+        if len(self.open_message) <= 1:
+            return discord.Embed(
+                color=self.bot.color,
+                title="Registration is now open!",
+                description=f"📣 **`{self.required_mentions}`** mentions required.\n"
+                f"📣 Total slots: **`{self.total_slots}`** [`{reserved_count}` slots reserved]",
+            )
+
+        changes = [
+            ("<<mentions>>", str(self.required_mentions)),
+            ("<<slots>>", str(self.total_slots)),
+            ("<<reserved>>", str(reserved_count)),
+            ("<<slotlist>>", getattr(self.slotlist_channel, "mention", "Not Found")),
+            ("<<multireg>>", "Enabled" if self.multiregister else "Not Enabled"),
+            ("<<teamname>>", "Yes" if self.teamname_compulsion else "No"),
+            (
+                "<<mention_banned>>",
+                ", ".join(
+                    map(lambda x: getattr(x, "mention", "Left"), map(self.guild.get_member, await self.banned_user_ids()))
+                ),
+            ),
+            (
+                "<<mention_reserved>>",
+                ", ".join(
+                    map(
+                        lambda x: getattr(x, "mention", "Left"),
+                        map(self.guild.get_member, await self.reserved_user_ids()),
+                    )
+                ),
+            ),
+        ]
+
+        text = str(self.open_message)
+        for _ in changes:
+            text = text.replace(*_)
+
+        return discord.Embed.from_dict(leval(text))
+
+    def reg_close_msg(self):
+        if len(self.close_message) <= 1:
+            return discord.Embed(color=self.bot.config.COLOR, description="**Registration is now Closed!**")
+
+        changes = [
+            ("<<slots>>", str(self.total_slots)),
+            ("<<filled>>", str(self.total_slots - len(self.available_slots))),
+            ("<<time_taken>>", self.time_elapsed or "N/A"),
+            ("<<open_time>>", discord_timestamp(self.open_time)),
+        ]
+
+        text = str(self.close_message)
+        for _ in changes:
+            text = text.replace(*_)
+
+        return discord.Embed.from_dict(leval(text))
 
     async def setup_logs(self):
         _reason = "Created for scrims management."
@@ -413,6 +494,136 @@ class Scrim(BaseDbModel):
         await ReservedSlot.filter(pk__in=[_.pk for _ in _re]).delete()
         await self.delete()
 
+    async def confirm_all_scrims(self, ctx: Context, **kwargs):
+        if not await Scrim.scrim_count(ctx.guild.id) > 1:
+            return
+
+        prompt = await ctx.prompt("Do you want to apply these changes to all scrims in this server?")
+        if not prompt:
+            return await ctx.simple("Alright, this scrim only.", 4)
+
+        await Scrim.filter(guild_id=ctx.guild.id).update(**kwargs)
+        await ctx.simple("This change was applied to all your scrims.", 4)
+
+    async def close_registration(self):
+        from cogs.esports.helpers.utils import toggle_channel, wait_and_purge
+
+        from .slotm import ScrimsSlotManager
+
+        closed_at = self.bot.current_time
+        registration_channel = self.registration_channel
+        open_role = self.open_role
+
+        self.time_elapsed = humanize.precisedelta(closed_at - self.opened_at)
+        await self.make_changes(opened_at=None, time_elapsed=self.time_elapsed, closed_at=closed_at)
+
+        channel_update = await toggle_channel(registration_channel, open_role, False)
+        _e = self.reg_close_msg()
+        await registration_channel.send(embed=_e)
+
+        self.bot.dispatch("scrim_log", EsportsLog.closed, self, permission_updated=channel_update)
+
+        registered = await self.teams_registered
+
+        if self.autoslotlist and registered:
+            await self.send_slotlist()
+
+        if self.autodelete_extras:
+            msg_ids = (i.message_id for i in registered)
+
+            check = lambda x: all(
+                (not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids)
+            )
+            self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
+
+        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.id)
+        if slotm:
+            await slotm.refresh_public_message()
+
+    async def start_registration(self):
+        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+
+        oldslots = await self.assigned_slots
+        await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
+        await self.assigned_slots.clear()
+
+        # here we insert a list of slots we can give for the registration.
+        await self.bot.db.execute(
+            """
+            UPDATE public."sm.scrims" SET available_slots = $1 WHERE id = $2
+            """,
+            await available_to_reserve(self),
+            self.id,
+        )
+
+        scrim_role = self.role
+
+        async for slot in self.reserved_slots.all():
+            assinged_slot = await AssignedSlot.create(
+                num=slot.num,
+                user_id=slot.user_id,
+                team_name=slot.team_name,
+                jump_url=None,
+            )
+
+            await self.assigned_slots.add(assinged_slot)
+
+            if slot.user_id:
+                with suppress(AttributeError):
+                    self.bot.loop.create_task(self.guild.get_member(slot.user_id).add_roles(scrim_role))
+
+        await Scrim.filter(pk=self.id).update(
+            opened_at=self.bot.current_time,
+            closed_at=None,
+            slotlist_message_id=None,
+        )
+        self.bot.loop.create_task(self.ensure_match_timer())
+        await asyncio.sleep(0.2)
+
+        # Opening Channel for Normal Janta
+        registration_channel = self.registration_channel
+        open_role = self.open_role
+
+        # check if countdown is on
+
+        # if self.cdn.get("status", False):
+        #     ...
+
+        _e = await self.reg_open_msg()
+
+        await registration_channel.send(
+            content=scrim_work_role(self, EsportsRole.ping),
+            embed=_e,
+            allowed_mentions=discord.AllowedMentions(roles=True, everyone=True),
+        )
+
+        self.bot.cache.scrim_channels.add(registration_channel.id)
+
+        await toggle_channel(registration_channel, open_role, True)
+        self.bot.dispatch("scrim_log", EsportsLog.open, self)
+
+    @staticmethod
+    async def show_selector(*args, **kwargs):
+        """
+        :param: ctx: Context
+        :param: scrims: List[Scrim]
+        :param: placeholder:str
+        :param: multi:bool=True
+        """
+        from cogs.esports.views.scrims.selector import prompt_selector
+
+        return await prompt_selector(*args, **kwargs)
+
+    async def scrim_posi(self):
+        from cogs.esports.views.scrims.selector import scrim_position
+
+        return await scrim_position(self.pk, self.guild_id)
+
+    @staticmethod
+    @cached(ttl=60 * 2)
+    async def scrim_count(guild_id: int):
+        return await Scrim.filter(guild_id=guild_id).count()
+
 
 class BaseSlot(models.Model):
     class Meta:
@@ -438,6 +649,10 @@ class ReservedSlot(BaseSlot):
         table = "sm.reserved_slots"
 
     expires = fields.DatetimeField(null=True)
+
+    @property
+    def leader(self):
+        return self.bot.get_user(self.user_id)
 
 
 class BannedTeam(BaseSlot):
@@ -472,19 +687,19 @@ class BanLog(BaseDbModel):
 
         return ", ".join(_scrims)
 
-    async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason):
+    async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason: str = None, dt: str = None):
 
-        user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
+        user: discord.User = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
 
         _e = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(scrims):scrim|scrims}")
         _e.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")
         _e.add_field(name="Moderator", value=mod)
         _e.add_field(name="Effected Scrims", value=self.__format_scrims(scrims), inline=False)
-        _e.add_field(name="Reason", value=f"```{truncate_string(reason.arg,100) if reason.arg else 'No reason given'}```")
+        _e.add_field(name="Reason", value=f"```{truncate_string(reason,100) if reason else 'No reason given'}```")
 
-        _e.set_footer(text=f"Expiring: {'Never' if not reason.dt else ''}")
-        if reason.dt:
-            _e.timestamp = reason.dt
+        _e.set_footer(text=f"Expiring: {'Never' if not dt else ''}")
+        if dt:
+            _e.timestamp = dt
 
         if user:
             _e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))

@@ -1,8 +1,11 @@
-from contextlib import suppress
-import pytz, discord
-import config
 import random
+from contextlib import suppress
 from enum import Enum
+
+import discord
+import pytz
+
+import config
 
 
 class _Sentinel:
@@ -156,9 +159,8 @@ def random_thanks():
 
 tips = (
     "We have an awesome support server:\ndiscord.gg/aBM5xz6",
-    "You can set custom reactions for tourneys with `t emojis` cmd",
+    "You can set custom reactions for tourneys & scrims with Quotient Pro",
     "I like your face : )",  # I really do
-    "You can customize scrim slotlist designs with `sm slotlist format` command.",
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "Quotient can detect and verify youtube/insta/loco,etc. screenshots (`ssverify` cmd).",
     "You can buy Quotient Prime for 29INR only at <https://quotientbot.xyz/premium>",

@@ -1,4 +1,4 @@
-from PIL import ImageDraw, Image, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 
 def add_watermark(image):

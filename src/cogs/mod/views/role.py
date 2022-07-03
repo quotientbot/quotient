@@ -5,11 +5,12 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from utils import emote
+from contextlib import suppress
 
 import discord
+
 from core import Context
-from contextlib import suppress
+from utils import emote
 
 
 class RoleRevertButton(discord.ui.Button):

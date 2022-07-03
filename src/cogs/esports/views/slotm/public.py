@@ -2,21 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Tuple
 
-
 if TYPE_CHECKING:
     from core import Quotient
 
-from models.esports.slotm import ScrimsSlotManager
 from contextlib import suppress
-import discord
-
-from models import Scrim, AssignedSlot, ScrimsSlotReminder, ArrayAppend, ArrayRemove
-
-from utils import BaseSelector, Prompt, plural, emote
-
 from functools import wraps
+
+import discord
 from tortoise.exceptions import OperationalError
+
 from cogs.esports.views.scrims import ScrimSelectorView
+from models import ArrayAppend, ArrayRemove, AssignedSlot, Scrim, ScrimsSlotReminder
+from models.esports.slotm import ScrimsSlotManager
+from utils import BaseSelector, Prompt, plural, emote
 
 __all__ = ("ScrimsSlotmPublicView",)
 

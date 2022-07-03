@@ -1,15 +1,14 @@
-from discord.ext import commands
-from PIL import ImageColor
-import discord, re
-import contextlib
-
-from concurrent.futures import ThreadPoolExecutor
-from functools import wraps, partial
-from discord.ext.commands import converter
-
-from .exceptions import InvalidColor
-from typing import Optional
 import asyncio
+import contextlib
+import re
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
+from typing import Optional
+
+import discord
+from discord.ext import commands
+from discord.ext.commands import converter
+from PIL import ImageColor
 
 __all__ = (
     "BannedMember",
@@ -68,7 +67,7 @@ class QuoColor:
         if result:
             return result
 
-        raise InvalidColor(arg)
+        return await ctx.error(f"`{arg}` isn't a valid color.", 4)
 
 
 class BannedMember(commands.Converter):

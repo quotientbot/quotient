@@ -7,8 +7,9 @@ import discord
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from models import Guild
 from core import Cog
+from models import Guild
+
 from ..schemas import QGuild
 
 __all__ = ("SockGuild",)

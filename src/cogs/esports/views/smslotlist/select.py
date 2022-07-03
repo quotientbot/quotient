@@ -1,13 +1,14 @@
 from __future__ import annotations
 
-
 from typing import List
 
-from models import AssignedSlot
 import discord
-import config
 
-from utils import truncate_string as ts, emote, keycap_digit as kd
+import config
+from models import AssignedSlot
+from utils import emote
+from utils import keycap_digit as kd
+from utils import truncate_string as ts
 
 
 class ScrimSlotSelector(discord.ui.Select):

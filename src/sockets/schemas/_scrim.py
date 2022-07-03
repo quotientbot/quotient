@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING, List, Tuple, Union
+
 from pydantic import BaseModel, validator
-from typing import List, TYPE_CHECKING, Tuple, Union
 
 if TYPE_CHECKING:
     from core import Quotient
 
-from constants import AutocleanType, Day, IST
-
 from datetime import datetime, timedelta
 
 import dateparser
-from models import Scrim, Guild, Timer
+
+from constants import IST, AutocleanType, Day
+from models import Guild, Scrim, Timer
 
 __all__ = ("BaseScrim",)
 
