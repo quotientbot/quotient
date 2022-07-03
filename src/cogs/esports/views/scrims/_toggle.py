@@ -56,8 +56,11 @@ class StartReg(ScrimsButton):
         if not self.view.record.closed_at:
             return await self.view.ctx.error("Registration is already open. To restart, pls stop registration first.", 4)
 
-        await self.view.record.start_registration()
-        await self.view.ctx.success(f"Registration opened {self.view.record}.", 5)
+        try:
+            await self.view.record.start_registration()
+            await self.view.ctx.success(f"Registration opened {self.view.record}.", 5)
+        except Exception as e:
+            return await self.view.ctx.error(e, 10)
 
 
 class StopReg(ScrimsButton):
