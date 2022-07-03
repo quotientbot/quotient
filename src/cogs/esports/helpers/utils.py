@@ -93,7 +93,7 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.nomention, scrim)
 
-    elif message.author.id in (banned := await scrim.banned_user_ids()):
+    elif message.author.id in await scrim.banned_user_ids():
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.banned, scrim)
 

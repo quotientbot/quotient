@@ -39,7 +39,7 @@ class EsportsBaseView(discord.ui.View):
                     b.style, b.disabled = discord.ButtonStyle.grey, True
 
             with suppress(discord.HTTPException):
-                await self.message.edit(embed=self.message.embeds[0], view=self)
+                await self.message.edit(view=self)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         self.ctx.bot.dispatch("command_error", self.ctx, error)

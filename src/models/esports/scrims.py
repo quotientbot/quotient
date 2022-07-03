@@ -194,7 +194,7 @@ class Scrim(BaseDbModel):
 
     @staticmethod
     def default_slotlist_format():
-        return discord.Embed(color=0x00FFB3, title=f"<<name>> Slotlist", description="```<<slots>>```").set_footer(
+        return discord.Embed(color=0x00FFB3, title=f"<<name>> Slotlist", description="```\n<<slots>>\n```").set_footer(
             text=f"Registration took: <<time_taken>>"
         )
 
@@ -210,7 +210,6 @@ class Scrim(BaseDbModel):
             text = str(self.slotlist_format)
 
         changes = [
-            ("<<slots>>", desc),
             ("<<name>>", self.name),
             ("<<time_taken>>", self.time_elapsed or "N/A"),
             ("<<open_time>>", discord_timestamp(self.open_time)),
@@ -222,6 +221,8 @@ class Scrim(BaseDbModel):
         embed = discord.Embed.from_dict(leval(text))
         if embed.color == discord.Embed.Empty:
             embed.color = 0x2F3136
+
+        embed.description = embed.description.replace("<<slots>>", desc)
 
         return embed, self.slotlist_channel
 

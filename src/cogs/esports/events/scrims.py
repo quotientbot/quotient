@@ -17,8 +17,7 @@ from constants import IST, AutocleanType, Day
 from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
-from ..helpers import (before_registrations, cannot_take_registration,
-                       check_scrim_requirements, should_open_scrim)
+from ..helpers import before_registrations, cannot_take_registration, check_scrim_requirements, should_open_scrim
 
 
 class ScrimEvents(Cog):
@@ -46,12 +45,11 @@ class ScrimEvents(Cog):
             return self.bot.cache.scrim_channels.discard(channel_id)
 
         scrim_role = scrim.role
-        modrole = scrim.modrole
 
         if scrim.opened_at is None or scrim_role is None:
             return
 
-        if modrole and modrole in message.author.roles:
+        if Scrim.is_ignorable(message.author):
             return
 
         if not before_registrations(message, scrim_role):
