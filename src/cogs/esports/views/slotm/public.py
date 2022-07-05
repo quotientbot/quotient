@@ -325,41 +325,51 @@ class ScrimsSlotmPublicView(discord.ui.View):
         await cancel_view.wait()
 
         if c_id := cancel_view.custom_id:
-            scrim_id, slot_id = c_id.split(":")
+            try:
+                scrim_id, slot_id = c_id.split(":")
 
-            scrim = await Scrim.get(pk=scrim_id)
+                scrim = await Scrim.get(pk=scrim_id)
 
-            _slot = await AssignedSlot.filter(pk=slot_id).first()
-            _slot.members.remove(interaction.user.id)
-            if not _slot.members:
+                _slot = await AssignedSlot.filter(pk=slot_id).first()
+                _slot.members.remove(interaction.user.id)
+                if not _slot.members:
+                    return await interaction.followup.send(
+                        f"{interaction.user.mention}, you cannot transfer ID-Pass role to your teammates "
+                        "because you didn't mention them during registration.",
+                        ephemeral=True,
+                    )
+
+                users = []
+                for _ in _slot.members:
+                    if user := await self.bot.get_or_fetch_member(interaction.guild, _):
+                        users.append(user)
+
+                if not users:
+                    return await interaction.followup.send("All your teammates have left the server.", ephemeral=True)
+
+                if len(users) == 1:
+                    user_id = users[0].id
+
+                else:
+                    users_view = BaseSelector(interaction.user.id, UserSelector, users=...)
+                    await interaction.followup.send(
+                        "Please select your teammate to transfer ID-Pass Role.", view=users_view, ephemeral=True
+                    )
+                    await users_view.wait()
+                    user_id = users_view.custom_id
+
+                await AssignedSlot.filter(pk=_slot.pk).update(user_id=user_id)
+                self.bot.loop.create_task(interaction.user.remove_roles(discord.Object(scrim.role_id)))
+                self.bot.loop.create_task(interaction.guild.get_member(user_id).add_roles(discord.Object(scrim.role_id)))
                 return await interaction.followup.send(
-                    f"{interaction.user.mention}, you cannot transfer ID-Pass role to your teammates "
-                    "because you didn't mention them during registration.",
-                    ephemeral=True,
+                    f"{emote.check} | ID-Pass Role & Slot ownership transferred to <@{user_id}>", ephemeral=True
                 )
 
-            users = [i for i in (interaction.guild.get_member(_) for _ in _slot.members) if i]
-
-            if not users:
-                return await interaction.followup.send("All your teammates have left the server.", ephemeral=True)
-
-            if len(users) == 1:
-                user_id = users[0].id
-
-            else:
-                users_view = BaseSelector(interaction.user.id, UserSelector, users=...)
+            except Exception as e:
                 await interaction.followup.send(
-                    "Please select your teammate to transfer ID-Pass Role.", view=users_view, ephemeral=True
+                    f"{emote.xmark} | Something went wrong. We are already fixing it.", ephemeral=True
                 )
-                await users_view.wait()
-                user_id = users_view.custom_id
-
-            await AssignedSlot.filter(pk=_slot.pk).update(user_id=user_id)
-            self.bot.loop.create_task(interaction.user.remove_roles(discord.Object(scrim.role_id)))
-            self.bot.loop.create_task(interaction.guild.get_member(user_id).add_roles(discord.Object(scrim.role_id)))
-            return await interaction.followup.send(
-                f"{emote.check} | ID-Pass Role & Slot ownership transferred to <@{user_id}>", ephemeral=True
-            )
+                await self.bot.get_user(548163406537162782).send(e)
 
     async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
         print(error)

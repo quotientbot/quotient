@@ -59,7 +59,7 @@ class Scrim(BaseDbModel):
     show_time_elapsed = fields.BooleanField(default=True)
 
     open_days = ArrayField(fields.CharEnumField(Day), default=lambda: list(Day))
-    slotlist_format = fields.JSONField(null=True)  #!str > jsonb
+    slotlist_format = fields.JSONField(default=dict)  #!str > jsonb
 
     no_duplicate_name = fields.BooleanField(default=False)
 
