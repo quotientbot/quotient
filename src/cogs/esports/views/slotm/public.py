@@ -351,7 +351,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
                     user_id = users[0].id
 
                 else:
-                    users_view = BaseSelector(interaction.user.id, UserSelector, users=...)
+                    users_view = BaseSelector(interaction.user.id, UserSelector, users=users)
                     await interaction.followup.send(
                         "Please select your teammate to transfer ID-Pass Role.", view=users_view, ephemeral=True
                     )
