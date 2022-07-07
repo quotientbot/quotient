@@ -356,7 +356,10 @@ class ScrimsSlotmPublicView(discord.ui.View):
                         "Please select your teammate to transfer ID-Pass Role.", view=users_view, ephemeral=True
                     )
                     await users_view.wait()
-                    user_id = users_view.custom_id
+                    if not users_view.custom_id:
+                        return
+
+                    user_id = int(users_view.custom_id)
 
                 await AssignedSlot.filter(pk=_slot.pk).update(user_id=user_id)
                 self.bot.loop.create_task(interaction.user.remove_roles(discord.Object(scrim.role_id)))
