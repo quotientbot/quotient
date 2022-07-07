@@ -67,9 +67,9 @@ class MediaPartnerView(EsportsBaseView):
             return await self.error_embed(f"The tourney you entered is already partnered with {tourney}.")
 
         if not guild.chunked:
-            await guild.chunk()
+            self.bot.loop.create_task(guild.chunk())
 
-        if not interaction.user.id in (m.id for m in guild.members):
+        if not await self.bot.get_or_fetch_member(guild, self.ctx.author.id):
             return await self.error_embed(
                 "You are not even in the server you are trying to media partner with.\n\n"
                 "Kindly join the server first or gimme right ID."

@@ -13,6 +13,8 @@ class PointsTable(QuotientView):
         super().__init__(ctx, timeout=100)
 
         self.teams: T.List[Team] = []
+        self.header: str = ""
+        self.footer: str = ""
 
     @property
     def initial_msg(self):
@@ -30,6 +32,17 @@ class PointsTable(QuotientView):
 
     async def refresh_view(self):
         self.message = await self.message.edit(embed=self.initial_msg, view=self)
+
+    @discord.ui.button(label="Title & Footer")
+    async def set_title(self, btn: discord.Button, inter: discord.Interaction):
+        modal = ...
+        await inter.response.send_modal()
+        await modal.wait()
+
+        self.header = modal.header.value
+        self.footer = modal.footer.value
+
+        await self.refresh_view()
 
     @discord.ui.button(label="Add Team")
     async def add_team(self, btn: discord.Button, inter: discord.Interaction):
@@ -77,6 +90,21 @@ class PointsTable(QuotientView):
     @discord.ui.button(label="Create Image")
     async def create_image(self, btn: discord.Button, inter: discord.Interaction):
         await inter.response.send_message(self.teams)
+
+
+class HeaderInput(discord.ui.Modal, title="Set Title & Footer"):
+    header = discord.ui.TextInput(
+        label="Header (optional)",
+        value="",
+        max_length=100,
+        placeholder="Enter a title for the table",
+    )
+    footer = discord.ui.TextInput(
+        label="Footer (optional)",
+        value="",
+        max_length=100,
+        placeholder="Enter a footer for the table",
+    )
 
 
 class TeamInput(discord.ui.Modal, title="Add New Team"):

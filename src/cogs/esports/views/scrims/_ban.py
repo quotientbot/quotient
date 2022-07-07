@@ -10,7 +10,7 @@ import discord
 
 from core import Context, QuotientView
 from models import BanLog, BannedTeam, Scrim
-from utils import discord_timestamp, emote, plural
+from utils import discord_timestamp, emote, plural, truncate_string
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -34,13 +34,16 @@ class ScrimBanManager(ScrimsView):
         _e = discord.Embed(color=self.bot.color)
         _e.description = f"**Start / Stop scrim registration of {self.record}**\n\n__Banned:__\n"
 
+        t = ""
         for idx, _ in enumerate(banned, 1):
-            _e.description += (
+            t += (
                 f"`{idx:02}.` {getattr(self.bot.get_user(_.user_id),'mention','`unknown-user`')} "
                 f"`[{_.user_id}]` - {discord_timestamp(_.expires) if _.expires else 'Lifetime'}\n"
             )
 
-        if not banned:
+        if t != "":
+            _e.description += truncate_string(t, 3900)
+        else:
             _e.description += "```\nNo Banned user\n```"
 
         _e.set_author(name=f"Page - {' / '.join(await self.record.scrim_posi())}", icon_url=self.bot.user.avatar.url)

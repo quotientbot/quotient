@@ -291,7 +291,7 @@ class TourneySlotManager(discord.ui.View):
             await cancel_view.wait()
 
             if cancel_view.custom_id:
-                first_slot = await TMSlot.get(pk=cancel_view.custom_id)
+                second_slot = await TMSlot.get(pk=cancel_view.custom_id)
 
         if not second_slot:
             return
