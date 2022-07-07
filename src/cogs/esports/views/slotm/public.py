@@ -181,15 +181,6 @@ class ScrimsSlotmPublicView(discord.ui.View):
             available_slots__not=[],
         ).order_by("open_time")
 
-        for scrim in scrims[:]:
-            if not self.record.multiple_slots:
-                if await scrim.assigned_slots.filter(user_id=interaction.user.id).exists():
-                    scrims.remove(scrim)
-
-            if await scrim.banned_teams.filter(user_id=interaction.user.id).exists():
-                with suppress(ValueError):
-                    scrims.remove(scrim)
-
         if not scrims:
             return await interaction.followup.send(
                 "**No slot available for you due one of the following reasons:**\n"
@@ -207,6 +198,12 @@ class ScrimsSlotmPublicView(discord.ui.View):
             num = int(num)
 
             scrim = await Scrim.get(pk=scrim_id)
+            if await scrim.banned_teams.filter(user_id=interaction.user.id).exists():
+                return await interaction.followup.send("You are banned from this scrim.", ephemeral=True)
+
+            if not self.record.multiple_slots:
+                if await scrim.assigned_slots.filter(user_id=interaction.user.id).exists():
+                    return await interaction.followup.send("You already have a slot in this scrim.", ephemeral=True)
 
             await interaction.followup.send(
                 "What is your team's name?\n\n`Kindly enter your team name or full format.`",
