@@ -11,8 +11,7 @@ import itertools
 import os
 import time
 from datetime import datetime
-from typing import (Any, Callable, Coroutine, Dict, List, NoReturn, Optional,
-                    Union)
+from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union
 
 import aiohttp
 import dbl
@@ -91,8 +90,7 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
-                                        SlotlistEditButton, TourneySlotManager)
+        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
@@ -278,7 +276,7 @@ class Quotient(commands.AutoShardedBot):
             return _result
 
     async def get_or_fetch_message(
-        self, channel: discord.TextChannel, message_id: int, *, cache: bool=True, fetch: bool=True
+        self, channel: discord.TextChannel, message_id: int, *, cache: bool = True, fetch: bool = True
     ) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
         if cache and (msg := self.get_message(message_id)):

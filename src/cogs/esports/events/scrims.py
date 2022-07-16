@@ -95,7 +95,10 @@ class ScrimEvents(Cog):
             self.bot.loop.create_task(scrim.add_tick(message))
 
             if len(scrim.available_slots) == 1:
-                await scrim.close_registration()
+                try:
+                    await scrim.close_registration()
+                except Exception as e:
+                    print(f"scrim close error: {e}")
 
     # ==========================================================================================================
     # ==========================================================================================================

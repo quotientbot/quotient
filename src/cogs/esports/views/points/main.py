@@ -13,13 +13,14 @@ class PointsTable(QuotientView):
         super().__init__(ctx, timeout=100)
 
         self.teams: T.List[Team] = []
-        self.header: str = ""
-        self.footer: str = ""
+        self.header: str = None
+
+        self.footer: str = None
 
     @property
     def initial_msg(self):
         _e = discord.Embed(color=self.bot.color, title="Points Table Maker")
-        _e.description = "```\n"
+        _e.description = "S.No. " + "Team Name".ljust(22) + "Place Pts".ljust(5) + "Kills".ljust(5) + "Total\n" "```\n"
         for idx, team in enumerate(self.teams, 1):
             _e.description += (
                 f"{idx:02}. {team.name.ljust(22)} {str(team.placepts).ljust(5)} {str(team.kills).ljust(5)}"
@@ -27,7 +28,7 @@ class PointsTable(QuotientView):
             )
 
         _e.description += "```"
-
+        _e.set_footer(text=f"Header: {self.header or 'Not Set'}\nFooter: {self.footer or 'Not Set'}")
         return _e
 
     async def refresh_view(self):
@@ -95,13 +96,11 @@ class PointsTable(QuotientView):
 class HeaderInput(discord.ui.Modal, title="Set Title & Footer"):
     header = discord.ui.TextInput(
         label="Header (optional)",
-        value="",
         max_length=100,
         placeholder="Enter a title for the table",
     )
     footer = discord.ui.TextInput(
         label="Footer (optional)",
-        value="",
         max_length=100,
         placeholder="Enter a footer for the table",
     )
