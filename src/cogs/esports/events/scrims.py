@@ -176,7 +176,7 @@ class ScrimEvents(Cog):
         if not guild.chunked:
             self.bot.loop.create_task(guild.chunk())
 
-        async with self.__scrim_lock:
+        async with self.__autoclean_lock:
             if AutocleanType.channel in scrim.autoclean:
                 self.bot.loop.create_task(self.__purge_channel(scrim.registration_channel))
 
