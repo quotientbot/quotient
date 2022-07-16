@@ -61,7 +61,6 @@ class Quotient(commands.AutoShardedBot):
             **kwargs,
         )
 
-        asyncio.get_event_loop().run_until_complete(self.init_quo())
         self.loop = asyncio.get_event_loop()
         self.start_time = datetime.now(tz=csts.IST)
         self.cmd_invokes = 0
@@ -78,13 +77,11 @@ class Quotient(commands.AutoShardedBot):
 
         self.message_cache: Dict[int, Any] = LRU(1000)
 
-        for coro_func in on_startup:
-            self.loop.create_task(coro_func(self))
 
     @on_startup.append
     async def __load_extensions(self):
         for ext in self.config.EXTENSIONS:
-            self.load_extension(ext)
+            await self.load_extension(ext)
             print(f"Loaded extension: {ext}")
 
     @on_startup.append
@@ -150,6 +147,11 @@ class Quotient(commands.AutoShardedBot):
         for mname, model in Tortoise.apps.get("models").items():
             model.bot = self
 
+    async def setup_hook(self) -> None:
+        await self.init_quo()
+        for coro_func in on_startup:
+            self.loop.create_task(coro_func(self))
+
     async def get_prefix(self, message: discord.Message) -> str:
         """Get a guild's prefix"""
         if not message.guild:
@@ -171,7 +173,10 @@ class Quotient(commands.AutoShardedBot):
 
     async def close(self) -> NoReturn:
         await super().close()
-        await self.session.close()
+
+        if hasattr(self,"session"):
+            await self.session.close()
+
         await Tortoise.close_connections()
 
     def get_message(self, message_id: int) -> Optional[discord.Message]:
@@ -209,7 +214,7 @@ class Quotient(commands.AutoShardedBot):
         embed_footer = self.cache.guild_data[ctx.guild.id]["footer"]
 
         if embed_footer.strip().lower() == "none":
-            embed_footer = discord.Embed.Empty
+            embed_footer = None
 
         embed = discord.Embed(**kwargs)
         embed.color = embed_color

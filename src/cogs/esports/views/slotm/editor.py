@@ -64,27 +64,27 @@ class ScrimsSlotmEditor(EsportsBaseView):
             await self.on_timeout()
 
     @discord.ui.button(custom_id="edit_main_slotm_channel", emoji=ri("A"))
-    async def edit_main_slotm_channel(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_main_slotm_channel(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         return await interaction.followup.send("Main Channel can't be edited. Sorry 🥲", ephemeral=True)
 
     @discord.ui.button(custom_id="edit_slotm_status", emoji=ri("B"))
-    async def edit_slotm_status(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_slotm_status(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await self.__update_record(toggle=not self.record.toggle)
 
     @discord.ui.button(custom_id="edit_slotm_reminders", emoji=ri("C"))
-    async def edit_slotm_reminders(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_slotm_reminders(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await self.__update_record(allow_reminders=not self.record.allow_reminders)
 
     @discord.ui.button(custom_id="edit_slotm_multi_claim", emoji=ri("D"))
-    async def edit_slotm_multi_claim(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_slotm_multi_claim(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await self.__update_record(multiple_slots=not self.record.multiple_slots)
 
     @discord.ui.button(custom_id="edit_slotm_scrims", emoji=ri("E"))
-    async def edit_slotm_scrims(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_slotm_scrims(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         _view = SlotmScrimsEditor(self.ctx, self.record)
@@ -92,7 +92,7 @@ class ScrimsSlotmEditor(EsportsBaseView):
         await self.on_timeout()
 
     @discord.ui.button(custom_id="delete_slotm", label="Delete Slot-Manager", style=discord.ButtonStyle.red)
-    async def delete_slotm(self, button: discord.Button, interaction: discord.Interaction):
+    async def delete_slotm(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         prompt = Prompt(self.ctx.author.id)

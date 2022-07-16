@@ -37,10 +37,10 @@ class SocketConnection(Cog):
             self.connected = False
 
 
-def setup(bot: Quotient):
-    bot.add_cog(SocketConnection(bot))
-    bot.add_cog(DashboardGate(bot))
-    bot.add_cog(SocketScrims(bot))
-    bot.add_cog(SockSettings(bot))
-    bot.add_cog(SockPrime(bot))
-    bot.add_cog(SockGuild(bot))
+async def setup(bot: Quotient):
+    await bot.add_cog(SocketConnection(bot))
+    await bot.add_cog(DashboardGate(bot))
+    await bot.add_cog(SocketScrims(bot))
+    await bot.add_cog(SockSettings(bot))
+    await bot.add_cog(SockPrime(bot))
+    await bot.add_cog(SockGuild(bot))

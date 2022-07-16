@@ -47,7 +47,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
         return _e
 
     @discord.ui.button(style=discord.ButtonStyle.success, label="Change Team", custom_id="smslot_change_team")
-    async def change_team_name(self, button: discord.Button, interaction: discord.Interaction):
+    async def change_team_name(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         __slots = await self.scrim.assigned_slots.all().order_by("num")
@@ -102,7 +102,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
             return await self.scrim.refresh_slotlist_message(self.slotlist_message)
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Remove Team", custom_id="smslot_remove_team")
-    async def remove_team_name(self, button: discord.Button, interaction: discord.Interaction):
+    async def remove_team_name(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         __slots = await self.scrim.assigned_slots.all().order_by("num")
@@ -140,7 +140,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
                 await slotm.refresh_public_message()
 
     @discord.ui.button(label="Add Team", custom_id="smslot_add_team", style=discord.ButtonStyle.green)
-    async def add_new_team(self, button: discord.Button, interaction: discord.Interaction):
+    async def add_new_team(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         _list = list(range(self.scrim.start_from, 30))

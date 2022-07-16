@@ -32,6 +32,7 @@ class ScrimSelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options, max_values=max_values)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values
 
         self.view.stop()
@@ -116,6 +117,7 @@ class Select(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options, max_values=len(_options) if multi else 1)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values
 
         self.view.stop()

@@ -33,7 +33,7 @@ class QuoPages:
 
         self.per_page = per_page
         self.timeout = timeout
-        self.title = title or discord.Embed.Empty
+        self.title = title or None
         self.show_page_count = show_page_count
 
         self.enteries: T.List[PageLine] = []
@@ -139,14 +139,14 @@ class QuoPageView(QuotientView):
             self.embed.set_image(url=self.pages[self.current_page - 1].image)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="first", emoji="<:double_left:878668594530099220>")
-    async def first_page(self, button: discord.Button, interaction: discord.Interaction):
+    async def first_page(self, interaction: discord.Interaction, button: discord.Button):
         self.current_page = 1
         self.update_embed()
 
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="previous", emoji="<:left:878668491660623872>")
-    async def previous_page(self, button: discord.Button, interaction: discord.Interaction):
+    async def previous_page(self, interaction: discord.Interaction, button: discord.Button):
         if self.current_page == 1:
             return
 
@@ -156,7 +156,7 @@ class QuoPageView(QuotientView):
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="skipto", label="Skip to page ...")
-    async def skip_page(self, button: discord.Button, interaction: discord.Interaction):
+    async def skip_page(self, interaction: discord.Interaction, button: discord.Button):
         if self.__input_lock.locked():
             return await interaction.response.send_message("Already waiting for your response...", ephemeral=True)
 
@@ -194,7 +194,7 @@ class QuoPageView(QuotientView):
                     await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="next", emoji="<:right:878668370331983913>")
-    async def next_page(self, button: discord.Button, interaction: discord.Interaction):
+    async def next_page(self, interaction: discord.Interaction, button: discord.Button):
         if self.current_page == len(self.pages):
             return
 
@@ -204,7 +204,7 @@ class QuoPageView(QuotientView):
         await interaction.response.edit_message(embed=self.embed, view=self)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="last", emoji="<:double_right:878668437193359392>")
-    async def last_page(self, button: discord.Button, interaction: discord.Interaction):
+    async def last_page(self, interaction: discord.Interaction, button: discord.Button):
         self.current_page = len(self.pages)
         self.update_embed()
 

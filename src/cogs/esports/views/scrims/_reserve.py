@@ -170,5 +170,6 @@ class SlotSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values
         self.view.stop()

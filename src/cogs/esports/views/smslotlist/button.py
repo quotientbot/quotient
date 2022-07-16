@@ -50,7 +50,7 @@ class SlotlistEditButton(discord.ui.View):
         return True
 
     @discord.ui.button(label="Edit", emoji="📝", style=discord.ButtonStyle.green, custom_id="scrim_slotlist_edit_b")
-    async def edit_slotlist(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_slotlist(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
         try:
@@ -65,7 +65,7 @@ class SlotlistEditButton(discord.ui.View):
         _view.message = await interaction.followup.send(embed=embed, view=_view, ephemeral=True)
 
     @discord.ui.button(label="Punish", emoji="🛠️", style=discord.ButtonStyle.danger, custom_id="scrim_slotlist_ban_b")
-    async def ban_slot(self, button: discord.Button, interaction: discord.Interaction):
+    async def ban_slot(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
         __slots = await self.scrim.assigned_slots.all().order_by("num")
@@ -104,7 +104,7 @@ class SlotlistEditButton(discord.ui.View):
             if _v.value:
                 _e.title = "Banning teams..."
                 _e.description = ""
-                _e.set_image(url=discord.Embed.Empty)
+                _e.set_image(url=None)
 
                 m = await interaction.followup.send(embed=_e, ephemeral=True)
 

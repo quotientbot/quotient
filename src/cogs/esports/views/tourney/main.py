@@ -48,7 +48,7 @@ class TourneyManager(EsportsBaseView):
         _e.set_thumbnail(url=self.ctx.guild.me.display_avatar.url)
         _e.set_footer(
             text="Quotient Prime allows unlimited tournaments.",
-            icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
+            icon_url=getattr(self.ctx.author.display_avatar, "url", None),
         )
 
         if not to_show:
@@ -58,7 +58,7 @@ class TourneyManager(EsportsBaseView):
         return _e
 
     @discord.ui.button(style=ButtonStyle.blurple, label="Create Tournament")
-    async def create_tournament(self, button: discord.Button, interaction: discord.Interaction):
+    async def create_tournament(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         if not await self.ctx.is_premium_guild():
             if await Tourney.filter(guild_id=self.ctx.guild.id).count() >= 1:
@@ -73,7 +73,7 @@ class TourneyManager(EsportsBaseView):
         _v.message = await self.message.edit(embed=_v.initial_message(), view=_v)
 
     @discord.ui.button(style=ButtonStyle.blurple, label="Edit Settings")
-    async def edit_tournament(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_tournament(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         self.stop()
         records = await Tourney.filter(guild_id=self.ctx.guild.id).order_by("id")
@@ -84,7 +84,7 @@ class TourneyManager(EsportsBaseView):
         _v.message = await self.message.edit(embed=await _v.initial_message(), view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.green, label="Start/Pause Reg")
-    async def start_or_pause(self, button: discord.Button, interaction: discord.Interaction):
+    async def start_or_pause(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to start/pause")
@@ -102,7 +102,7 @@ class TourneyManager(EsportsBaseView):
             return await self.ctx.success(f"Done! Check {tourney.registration_channel.mention}", 4)
 
     @discord.ui.button(style=ButtonStyle.red, label="Ban/Unban")
-    async def ban_or_unban(self, btn: discord.Button, interaction: discord.Interaction):
+    async def ban_or_unban(self, interaction: discord.Interaction, btn: discord.Button):
         await interaction.response.defer()
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to ban/unban users.")
         if tourney:
@@ -137,7 +137,7 @@ class TourneyManager(EsportsBaseView):
         )
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney_groups_send", label="Manage Groups")
-    async def send_tourney_group(self, button: discord.Button, interaction: discord.Interaction):
+    async def send_tourney_group(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to manage groups.")
@@ -148,7 +148,7 @@ class TourneyManager(EsportsBaseView):
             _v.message = await self.message.edit(embed=_v.initial_embed, view=_v)
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Cancel Slots")
-    async def remove_user_slots(self, button: discord.Button, interaction: discord.Interaction):
+    async def remove_user_slots(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         m = await self.ctx.simple("Mention the user whose slot you want to remove.")
@@ -198,7 +198,7 @@ class TourneyManager(EsportsBaseView):
             return await self.ctx.success(f"Done! {c} slot(s) of {member.mention} removed.", 6)
 
     @discord.ui.button(style=discord.ButtonStyle.green, label="Manually Add Slot")
-    async def reserve_user_slot(self, button: discord.Button, interaction: discord.Interaction):
+    async def reserve_user_slot(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         m = await self.ctx.simple("Mention the team leader and Enter the team name.")
 
@@ -233,7 +233,7 @@ class TourneyManager(EsportsBaseView):
 
             _e.set_footer(
                 text="Added by: {}".format(self.ctx.author),
-                icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
+                icon_url=getattr(self.ctx.author.display_avatar, "url", None),
             )
 
             m = await tourney.confirm_channel.send(leader.mention, embed=_e)
@@ -250,7 +250,7 @@ class TourneyManager(EsportsBaseView):
                 await tourney.end_process()
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Slot-Manager channel")
-    async def tourney_slotmanager(self, button: discord.Button, interaction: discord.Interaction):
+    async def tourney_slotmanager(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to add cancel-claim...")
@@ -279,7 +279,7 @@ class TourneyManager(EsportsBaseView):
         await self.ctx.success(f"Slotmanager channel for {tourney} created successfully. ({slotm_channel.mention})", 7)
 
     @discord.ui.button(style=discord.ButtonStyle.green, label="Media-Partner")
-    async def manage_media_partner(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def manage_media_partner(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         tourney = await Tourney.prompt_selector(self.ctx, placeholder="Select a tournament to set media-partner..")
         if tourney:
@@ -289,7 +289,7 @@ class TourneyManager(EsportsBaseView):
             view.message = await self.message.edit(embed=await view.initial_embed(), view=view)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="MS Excel File")
-    async def download_excel_data(self, button: discord.Button, interaction: discord.Interaction):
+    async def download_excel_data(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         # if not await self.ctx.is_premium_guild():
         #     return await self.ctx.error(

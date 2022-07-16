@@ -43,7 +43,7 @@ class TourneyGroupManager(EsportsBaseView):
         return e
 
     @discord.ui.button(custom_id="publish_groups", label="Publish Group List")
-    async def publish_tourney_groups(self, button: discord.Button, interaction: discord.Interaction):
+    async def publish_tourney_groups(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ask_embed(
@@ -61,7 +61,7 @@ class TourneyGroupManager(EsportsBaseView):
 
         for idx, _chunk in enumerate(await self.tourney.get_groups(self.size), start=1):
             e = discord.Embed(color=self.bot.color, title=f"{self.tourney.name} Group {idx}")
-            e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
+            e.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", None))
             e.description = ""
             for count, _slot in enumerate(_chunk, start=1):
                 e.description += f"`{count:02}` • **{truncate_string(_slot.team_name,30)}** (<@{_slot.leader_id}>)\n"
@@ -72,7 +72,7 @@ class TourneyGroupManager(EsportsBaseView):
         _view.message = await interaction.followup.send(embed=GroupListView.initial_embed(self.tourney), view=_view)
 
     @discord.ui.button(custom_id="give_group_roles", label="Give Roles")
-    async def give_group_roles(self, button: discord.Button, interaction: discord.Interaction):
+    async def give_group_roles(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
         if not len(self.ctx.guild.roles) < 235:
             return await self.error_embed(
@@ -213,7 +213,7 @@ class GroupListView(EsportsBaseView):
         return _e
 
     @discord.ui.button(custom_id="publish_g_hook", emoji="<a:diamond:899295009289949235>", label="Webhook (Recommended)")
-    async def publish_groups_webhook(self, button: discord.Button, interaction: discord.Interaction):
+    async def publish_groups_webhook(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         if not await self.ctx.is_premium_guild():
@@ -242,7 +242,7 @@ class GroupListView(EsportsBaseView):
         await self.ctx.success("Group list published.", 4)
 
     @discord.ui.button(custom_id="publish_g_bot", emoji="<:pain:837567768106238002>", label="With Bot")
-    async def publish_groups_bot(self, button: discord.Button, interaction: discord.Interaction):
+    async def publish_groups_bot(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ctx.simple(f"Publishing, please wait {emote.loading}")
@@ -253,6 +253,6 @@ class GroupListView(EsportsBaseView):
         await self.ctx.success("Group list published.", 4)
 
     @discord.ui.button(custom_id="publish_g_delete", emoji=emote.trash)
-    async def publish_groups_delete(self, button: discord.Button, interaction: discord.Interaction):
+    async def publish_groups_delete(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
         await interaction.delete_original_message()

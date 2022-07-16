@@ -36,7 +36,7 @@ class MediaPartnerView(EsportsBaseView):
             await self.on_timeout()
 
     @discord.ui.button(label="Add New", style=discord.ButtonStyle.green)
-    async def add_partner(self, button: discord.Button, interaction: discord.Interaction):
+    async def add_partner(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         if await self.tourney.media_partners.all().count() >= 1 and not await self.ctx.is_premium_guild():
@@ -96,7 +96,7 @@ class MediaPartnerView(EsportsBaseView):
         await self.__refresh_embed()
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Remove")
-    async def remove_partner(self, button: discord.Button, interaction: discord.Interaction):
+    async def remove_partner(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         m = await self.ask_embed(

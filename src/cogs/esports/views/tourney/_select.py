@@ -27,6 +27,7 @@ class TourneySelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values[0]
 
         self.view.stop()
@@ -51,5 +52,6 @@ class TourneySlotSelec(discord.ui.Select):
         super().__init__(options=_options, placeholder=placeholder, max_values=len(_options))
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id  = interaction.data["values"]

@@ -38,6 +38,7 @@ class ScrimsSlotmSelector(discord.ui.Select):
         super().__init__(placeholder="Select a slot-manager channel ...", options=_o)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values[0]
 
         self.view.stop()
@@ -68,7 +69,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         return _e
 
     @discord.ui.button(label="Add Channel", custom_id="scrims_slotm_addc", emoji=emote.TextChannel)
-    async def add_channel(self, button: discord.Button, interaction: discord.Interaction):
+    async def add_channel(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         if not await self.ctx.is_premium_guild():
@@ -114,7 +115,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
         )
 
     @discord.ui.button(label="Edit Config", custom_id="scrims_slotm_editc", emoji=emote.edit)
-    async def edit_config(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_config(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         records = await ScrimsSlotManager.filter(guild_id=self.ctx.guild.id)
@@ -140,7 +141,7 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             )
 
     @discord.ui.button(emoji="🔒", label="Match Time", custom_id="scrims_slotm_matcht")
-    async def set_match_time(self, button: discord.Button, interaction: discord.Interaction):
+    async def set_match_time(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("open_time")

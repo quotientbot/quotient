@@ -65,7 +65,7 @@ class MoneyButton(BaseView):
         self.bot: Quotient = ctx.bot
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="claim_prime", label="Claim Prime (120 coins)")
-    async def claim_premium(self, button: discord.Button, interaction: discord.Interaction):
+    async def claim_premium(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
         self.children[0].disabled = True
@@ -101,10 +101,10 @@ class SetupButtonView(QuotientView):
         self.ctx = ctx
 
     @discord.ui.button(label="setup scrims", custom_id="setup_scrims_button")
-    async def setup_scrims_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def setup_scrims_button(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}sm setup` to setup a scrim.")
 
     @discord.ui.button(label="setup tourney", custom_id="setup_tourney_button")
-    async def setup_tourney_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def setup_tourney_button(self, interaction: discord.Interaction, button: discord.Button):
         return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament.")

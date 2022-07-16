@@ -97,8 +97,8 @@ class Context(commands.Context):
 
     async def simple(self, message, delete_after=None, **kwargs):
         with suppress(discord.HTTPException):
-            image = kwargs.pop("image", discord.Embed.Empty)
-            footer = kwargs.pop("footer", discord.Embed.Empty)
+            image = kwargs.pop("image", None)
+            footer = kwargs.pop("footer", None)
 
             return await self.reply(
                 embed=discord.Embed(

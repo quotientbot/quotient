@@ -37,12 +37,12 @@ class Prompt(discord.ui.View):
         return True
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.value = True
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
         self.value = False
         self.stop()
 
@@ -87,6 +87,7 @@ class ChannelSelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = interaction.data["values"][0]
         self.view.stop()
 
@@ -96,5 +97,6 @@ class CustomSelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = interaction.data["values"][0]
         self.view.stop()

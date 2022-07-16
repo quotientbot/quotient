@@ -381,11 +381,11 @@ class ScrimManager(Cog, name="Esports"):
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
 
 
-def setup(bot):
-    bot.add_cog(ScrimManager(bot))
-    bot.add_cog(SMError(bot))
-    bot.add_cog(ScrimEvents(bot))
-    bot.add_cog(TourneyEvents(bot))
-    bot.add_cog(TagEvents(bot))
-    bot.add_cog(Ssverification(bot))
-    bot.add_cog(SlotManagerEvents(bot))
+async def setup(bot):
+    await bot.add_cog(ScrimManager(bot))
+    await bot.add_cog(SMError(bot))
+    await bot.add_cog(ScrimEvents(bot))
+    await bot.add_cog(TourneyEvents(bot))
+    await bot.add_cog(TagEvents(bot))
+    await bot.add_cog(Ssverification(bot))
+    await bot.add_cog(SlotManagerEvents(bot))

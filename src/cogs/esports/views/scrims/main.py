@@ -40,7 +40,7 @@ class ScrimsMain(ScrimsView):
 
         _e.set_footer(
             text="Quotient Prime allows unlimited scrims.",
-            icon_url=getattr(self.ctx.author.display_avatar, "url", discord.Embed.Empty),
+            icon_url=getattr(self.ctx.author.display_avatar, "url", None),
         )
 
         if not to_show:
@@ -50,7 +50,7 @@ class ScrimsMain(ScrimsView):
         return _e
 
     @discord.ui.button(label="Create Scrim", style=ButtonStyle.green)
-    async def create_new_scrim(self, button: ui.Button, interaction: Interaction):
+    async def create_new_scrim(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
 
         if not await self.ctx.is_premium_guild():
@@ -62,7 +62,7 @@ class ScrimsMain(ScrimsView):
         v.message = await self.message.edit(embed=v.initial_message(), view=v)
 
     @discord.ui.button(label="Edit Settings", style=ButtonStyle.blurple)
-    async def edit_scrim(self, button: ui.Button, interaction: Interaction):
+    async def edit_scrim(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
@@ -75,7 +75,7 @@ class ScrimsMain(ScrimsView):
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Instant Start/Stop Reg", style=ButtonStyle.green)
-    async def toggle_reg(self, button: ui.Button, interaction: Interaction):
+    async def toggle_reg(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
 
         scrim = await Scrim.show_selector(
@@ -90,7 +90,7 @@ class ScrimsMain(ScrimsView):
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Reserve Slots", style=ButtonStyle.green)
-    async def reserve_slots(self, button: ui.Button, interaction: Interaction):
+    async def reserve_slots(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         scrim = await Scrim.show_selector(self.ctx, multi=False)
         self.stop()
@@ -103,7 +103,7 @@ class ScrimsMain(ScrimsView):
         view.message = await self.message.edit(embed=await view.initial_embed, view=view)
 
     @discord.ui.button(label="Ban/Unban", style=ButtonStyle.red)
-    async def ban_unban(self, button: ui.Button, interaction: Interaction):
+    async def ban_unban(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
 
         scrim = await Scrim.show_selector(self.ctx, multi=False)
@@ -116,7 +116,7 @@ class ScrimsMain(ScrimsView):
         v.message = await self.message.edit(embed=await v.initial_message, view=v)
 
     @discord.ui.button(label="Design", style=ButtonStyle.red)
-    async def change_design(self, button: ui.Button, interaction: Interaction):
+    async def change_design(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
 
         scrim = await Scrim.show_selector(self.ctx, multi=False)
@@ -130,7 +130,7 @@ class ScrimsMain(ScrimsView):
         view.message = await self.message.edit(embed=await view.initial_embed, view=view)
 
     @discord.ui.button(label="Manage Slotlist", style=ButtonStyle.blurple)
-    async def manage_slotlist(self, button: ui.Button, interaction: Interaction):
+    async def manage_slotlist(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
 
         scrim = await Scrim.show_selector(
@@ -144,10 +144,10 @@ class ScrimsMain(ScrimsView):
 
         v = ScrimsView(self.ctx)
         v.add_item(ManageSlotlist(self.ctx, scrim))
-        v.message = await self.message.edit("Please choose an action:", embed=None, view=v)
+        v.message = await self.message.edit(content="Please choose an action:", embed=None, view=v)
 
     @discord.ui.button(label="Enable/Disable", style=discord.ButtonStyle.red)
-    async def toggle(self, button: ui.Button, interaction: Interaction):
+    async def toggle(self, interaction: Interaction, button: ui.Button):
         await interaction.response.defer()
         scrims = await Scrim.show_selector(self.ctx, multi=True)
         if not scrims:
@@ -167,7 +167,7 @@ class ScrimsMain(ScrimsView):
         v.message = await self.message.edit(embed=await v.initial_embed(), view=v)
 
     # @discord.ui.button(label="Scrim not working, Need Help!", style=ButtonStyle.red)
-    # async def troubleshoot_scrim(self, button: ui.Button, interaction: Interaction):
+    # async def troubleshoot_scrim(self, interaction: Interaction, button: ui.Button):
     #     await interaction.response.defer()
 
     #     scrim = await Scrim.show_selector(

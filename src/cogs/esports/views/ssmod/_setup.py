@@ -35,11 +35,11 @@ class SsmodMainView(EsportsBaseView):
         _e = discord.Embed(color=0x00FFB3, title=f"Advanced Screenshots Manager", url=self.ctx.config.SERVER_LINK)
         _e.set_thumbnail(url=self.bot.user.display_avatar.url)
         _e.description = _sm
-        _e.set_footer(text="When in doubt, press '?' :)", icon_url=getattr(self.ctx.author, "url", discord.Embed.Empty))
+        _e.set_footer(text="When in doubt, press '?' :)", icon_url=getattr(self.ctx.author, "url", None))
         return _e
 
     @discord.ui.button(label="Setup ssverify", custom_id="setup_ssverify_button", emoji=emote.add)
-    async def setup_ssverify_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def setup_ssverify_button(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         if not await self.ctx.is_premium_guild():
@@ -51,7 +51,7 @@ class SsmodMainView(EsportsBaseView):
         view.message = await interaction.followup.send(embed=_e, view=view)
 
     @discord.ui.button(label="Change Settings", custom_id="edit_ssmod_config", emoji="⚒️")
-    async def edit_ssmod_config(self, button: discord.Button, interaction: discord.Interaction):
+    async def edit_ssmod_config(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         records = await SSVerify.filter(guild_id=self.ctx.guild.id).order_by("id")
@@ -60,7 +60,7 @@ class SsmodMainView(EsportsBaseView):
         _view.message = await interaction.followup.send(embed=await _view.initial_embed(records[0]), view=_view)
 
     @discord.ui.button(emoji="❔", custom_id="info_ssmod_button")
-    async def stop_ssmod_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def stop_ssmod_button(self, interaction: discord.Interaction, button: discord.Button):
         _e = discord.Embed(color=0x00FFB3, title="Screenshots Manager FAQ", url=self.ctx.config.SERVER_LINK)
         _e.description = (
             "**How to setup Quotient ssverification?**\n"

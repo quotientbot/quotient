@@ -316,5 +316,5 @@ class PremiumCog(Cog, name="Premium"):
     #     await channel.send("Quotient Change request timed out. Kindly use `qchangequo` command again.")
 
 
-def setup(bot) -> None:
-    bot.add_cog(PremiumCog(bot))
+async def setup(bot) -> None:
+    await bot.add_cog(PremiumCog(bot))

@@ -29,7 +29,7 @@ class SlotmScrimsEditor(EsportsBaseView):
         return _e
 
     @discord.ui.button(custom_id="slotm_scrims_add", emoji=emote.add)
-    async def add_new_scrims(self, button: discord.Button, interaction: discord.Interaction):
+    async def add_new_scrims(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         await self.record.refresh_from_db()
 
@@ -49,7 +49,7 @@ class SlotmScrimsEditor(EsportsBaseView):
             await self.ctx.success("Successfully added new scrims.", 3)
 
     @discord.ui.button(custom_id="slotm_scrims_remove", emoji=emote.remove)
-    async def remove_scrims(self, button: discord.Button, interaction: discord.Interaction):
+    async def remove_scrims(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         await self.record.refresh_from_db()

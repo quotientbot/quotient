@@ -345,7 +345,7 @@ class IDPMenu(menus.Menu):
 
         await inputs.safe_delete(msg)
         if title.lower() == "none":
-            self.embed.title = discord.Embed.Empty
+            self.embed.title = None
         else:
             self.embed.title = title
         await self.refresh()
@@ -400,7 +400,7 @@ class IDPMenu(menus.Menu):
         await inputs.safe_delete(msg)
 
         if image.lower() == "none":
-            self.embed.set_thumbnail(url=discord.Embed.Empty)
+            self.embed.set_thumbnail(url=None)
         else:
             try:
                 image_formats = ("image/png", "image/jpeg", "image/jpg", "image/gif")

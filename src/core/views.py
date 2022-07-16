@@ -38,7 +38,7 @@ class QuotientView(discord.ui.View):
             with suppress(discord.HTTPException):
                 return await self.message.edit(view=self)
 
-    async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item) -> None:
         self.ctx.bot.dispatch("command_error", self.ctx, error)
 
     @staticmethod

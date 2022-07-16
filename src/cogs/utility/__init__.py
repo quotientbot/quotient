@@ -649,7 +649,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"**{channel}** removed from autopurge channels.")
 
 
-def setup(bot) -> None:
-    bot.add_cog(Utility(bot))
-    bot.add_cog(AutoPurgeEvents(bot))
-    bot.add_cog(ReminderEvents(bot))
+async def setup(bot) -> None:
+    await bot.add_cog(Utility(bot))
+    await bot.add_cog(AutoPurgeEvents(bot))
+    await bot.add_cog(ReminderEvents(bot))

@@ -30,9 +30,9 @@ class TagCheckView(EsportsBaseView):
         return _e
 
     @discord.ui.button(label="Add Channel", custom_id="add_tc_channel")
-    async def add_tc_channel(self, button: discord.Button, interaction: discord.Interaction):
+    async def add_tc_channel(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
     @discord.ui.button(label="Remove Channel", custom_id="remove_tc_channel")
-    async def remove_tc_channel(self, button: discord.Button, interaction: discord.Interaction):
+    async def remove_tc_channel(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()

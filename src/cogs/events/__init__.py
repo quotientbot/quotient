@@ -5,9 +5,9 @@ from .tasks import QuoTasks
 from .votes import VotesCog
 
 
-def setup(bot):
-    bot.add_cog(MainEvents(bot))
-    bot.add_cog(QuoTasks(bot))
-    bot.add_cog(CmdEvents(bot))
-    bot.add_cog(VotesCog(bot))
-    bot.add_cog(Errors(bot))
+async def setup(bot):
+    await bot.add_cog(MainEvents(bot))
+    await bot.add_cog(QuoTasks(bot))
+    await bot.add_cog(CmdEvents(bot))
+    await bot.add_cog(VotesCog(bot))
+    await bot.add_cog(Errors(bot))

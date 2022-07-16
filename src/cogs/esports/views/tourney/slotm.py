@@ -39,6 +39,7 @@ class TCancelSlotSelector(discord.ui.Select):
         super().__init__(placeholder=placeholder, options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]
 
@@ -75,7 +76,7 @@ class TourneySlotManager(discord.ui.View):
         return embed
 
     @discord.ui.button(style=discord.ButtonStyle.danger, custom_id="tourney-cancel-slot", label="Cancel My Slot")
-    async def cancel_slot(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def cancel_slot(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         _slots = await self.tourney.assigned_slots.filter(
@@ -118,7 +119,7 @@ class TourneySlotManager(discord.ui.View):
             return await interaction.followup.send(f"{emote.check} | Your slot was removed.", ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="tourney-slot-info", label="My Groups")
-    async def _slots_info(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _slots_info(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         _slots = await self.tourney.assigned_slots.filter(
@@ -142,7 +143,7 @@ class TourneySlotManager(discord.ui.View):
         return await interaction.followup.send(embed=embed, ephemeral=True)
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, custom_id="tourney-slot_name", label="Change Team Name")
-    async def _change_slot_name(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def _change_slot_name(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         _slots = await self.tourney.assigned_slots.filter(
@@ -190,7 +191,7 @@ class TourneySlotManager(discord.ui.View):
                 return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
 
     @discord.ui.button(emoji="<:swap:954022423542509598>", label="Swap Groups", custom_id="tourney-swap-groups")
-    async def tourney_group_swap(self, button: discord.Button, inter: discord.Interaction):
+    async def tourney_group_swap(self, inter: discord.Interaction,button: discord.Button):
         await inter.response.defer()
 
         if not inter.user.guild_permissions.manage_guild and not Tourney.is_ignorable(inter.user):
@@ -206,10 +207,10 @@ class TourneySlotManager(discord.ui.View):
             await first_msg.delete()
 
         except asyncio.TimeoutError:
-            await m.edit("Timed out. Please try again later.", ephemeral=True)
+            await m.edit(content="Timed out. Please try again later.", ephemeral=True)
 
         if not first_msg.mentions:
-            await m.edit("You didn't mention first user.")
+            await m.edit(content="You didn't mention first user.")
 
         first_user: discord.User = first_msg.mentions[0]
 
@@ -254,10 +255,10 @@ class TourneySlotManager(discord.ui.View):
             await second_msg.delete()
 
         except asyncio.TimeoutError:
-            await m.edit("Timed out. Please try again later.")
+            await m.edit(content="Timed out. Please try again later.")
 
         if not second_msg.mentions:
-            await m.edit("You didn't mention second user.")
+            await m.edit(content="You didn't mention second user.")
 
         second_user: discord.User = second_msg.mentions[0]
         if second_user == first_user:

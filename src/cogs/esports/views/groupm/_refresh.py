@@ -31,7 +31,7 @@ class GroupRefresh(discord.ui.View):
         label="Refresh",
         style=discord.ButtonStyle.green,
     )
-    async def refresh_group(self, button: discord.Button, interaction: discord.Interaction):
+    async def refresh_group(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         _checks = await self.__do_checks(interaction, True)
@@ -44,7 +44,7 @@ class GroupRefresh(discord.ui.View):
         await TGroupList.filter(pk=record.pk).update(refresh_at=record.bot.current_time)
 
         _e = discord.Embed(color=0x00FFB3, title=f"{tourney.name} - Group {record.group_number}")
-        # _e.set_thumbnail(url=getattr(tourney.guild.icon, "url", discord.Embed.Empty))
+        # _e.set_thumbnail(url=getattr(tourney.guild.icon, "url", None))
 
         _e.description = (
             "```\n"
@@ -53,13 +53,13 @@ class GroupRefresh(discord.ui.View):
             )
             + "```"
         )
-        _e.set_footer(text=tourney.guild.name, icon_url=getattr(tourney.guild.icon, "url", discord.Embed.Empty))
+        _e.set_footer(text=tourney.guild.name, icon_url=getattr(tourney.guild.icon, "url", None))
 
         await interaction.edit_original_message(embed=_e, view=self)
         await interaction.followup.send("Grouplist message was refreshed successfully.", ephemeral=True)
 
     @discord.ui.button(custom_id="gl_info_b", emoji=emote.info, label="Info")
-    async def slots_info(self, button: discord.Button, interaction: discord.Interaction):
+    async def slots_info(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         _checks = await self.__do_checks(interaction)

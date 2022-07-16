@@ -219,7 +219,7 @@ class Scrim(BaseDbModel):
             text = text.replace(*_)
 
         embed = discord.Embed.from_dict(leval(text))
-        if embed.color == discord.Embed.Empty:
+        if embed.color == None:
             embed.color = 0x2F3136
 
         embed.description = embed.description.replace("<<slots>>", desc)

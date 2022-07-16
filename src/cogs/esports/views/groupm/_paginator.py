@@ -50,7 +50,7 @@ class GroupPages(EsportsBaseView):
     def initial_embed(self):
         current_page = self.records.index(self.record) + 1
         _e = discord.Embed(color=0x00FFB3, title=f"{self.tourney.name} - Group {current_page}")
-        _e.set_thumbnail(url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
+        _e.set_thumbnail(url=getattr(self.ctx.guild.icon, "url", None))
 
         _e.description = (
             "```\n"
@@ -74,7 +74,7 @@ class GroupPages(EsportsBaseView):
         return _e
 
     @discord.ui.button(emoji="<:left:878668491660623872>")
-    async def prev_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def prev_button(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         index = self.records.index(self.record)
@@ -86,7 +86,7 @@ class GroupPages(EsportsBaseView):
         await self.refresh_view()
 
     @discord.ui.button(label="Skip to...")
-    async def skip_to(self, button: discord.Button, interaction: discord.Interaction):
+    async def skip_to(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         m = await self.ctx.simple("What page do you want to go to? (Enter page number)")
         p = await inputs.integer_input(self.ctx, delete_after=True, timeout=30)
@@ -102,7 +102,7 @@ class GroupPages(EsportsBaseView):
         await self.refresh_view()
 
     @discord.ui.button(emoji="<:right:878668370331983913>")
-    async def next_button(self, button: discord.Button, interaction: discord.Interaction):
+    async def next_button(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         index = self.records.index(self.record)
@@ -114,7 +114,7 @@ class GroupPages(EsportsBaseView):
         await self.refresh_view()
 
     @discord.ui.button(label="Give Roles")
-    async def give_roles(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def give_roles(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
 
         m = await self.ctx.simple(
@@ -147,7 +147,7 @@ class GroupPages(EsportsBaseView):
             )
 
     @discord.ui.button(label="Send to", row=2, style=discord.ButtonStyle.blurple)
-    async def send_channl(self, button: discord.Button, interaction: discord.Interaction):
+    async def send_channl(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         m = await self.ctx.simple("Mention the channel where you want to send this grouplist.")
@@ -160,7 +160,7 @@ class GroupPages(EsportsBaseView):
         await self.refresh_view()
 
     @discord.ui.button(label="Send", style=discord.ButtonStyle.green, row=2)
-    async def send_now(self, button: discord.Button, interaction: discord.Interaction):
+    async def send_now(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         c = self.send_to if self.send_to else self.send_channel
@@ -169,9 +169,9 @@ class GroupPages(EsportsBaseView):
 
         embed = self.initial_embed
 
-        embed.set_thumbnail(url=discord.Embed.Empty)
+        embed.set_thumbnail(url=None)
         embed.clear_fields()
-        embed.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", discord.Embed.Empty))
+        embed.set_footer(text=self.ctx.guild.name, icon_url=getattr(self.ctx.guild.icon, "url", None))
         try:
             m = await c.send(
                 "@everyone" if self.ping_all else "",

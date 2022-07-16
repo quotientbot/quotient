@@ -123,7 +123,7 @@ class Ssverification(Cog):
             embed.set_footer(text=f"Time taken: {humanize.precisedelta(complete_at-start_at)}")
             embed.set_author(
                 name=f"Submitted {await record.data.filter(author_id=ctx.author.id).count()}/{record.required_ss}",
-                icon_url=getattr(ctx.author.display_avatar, "url", discord.Embed.Empty),
+                icon_url=getattr(ctx.author.display_avatar, "url", None),
             )
 
             with suppress(discord.HTTPException):

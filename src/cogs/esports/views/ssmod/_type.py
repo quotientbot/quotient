@@ -53,5 +53,6 @@ class SStypeSelector(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]

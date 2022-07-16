@@ -47,7 +47,7 @@ class TourneyGroupManager(EsportsBaseView):
             self.message = await self.message.edit(embed=self.initial_embed)
 
     @discord.ui.button(emoji=keycap_digit(1))
-    async def change_slotlist_start(self, button: discord.Button, interaction: discord.Interaction):
+    async def change_slotlist_start(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         m = await self.ctx.simple("Enter the slot number to start group/slotlist. (Max `20`)")
@@ -60,13 +60,13 @@ class TourneyGroupManager(EsportsBaseView):
         await self.__refresh_msg()
 
     @discord.ui.button(emoji=keycap_digit(2))
-    async def toggle_ping_all(self, button: discord.Button, interaction: discord.Interaction):
+    async def toggle_ping_all(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         self.ping_all = not self.ping_all
         await self.__refresh_msg()
 
     @discord.ui.button(label="Create Channels & Roles")
-    async def create_roles_channels(self, button: discord.Button, interaction: discord.Interaction):
+    async def create_roles_channels(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
         if len(self.ctx.guild.channels) >= 490:
             return await self.ctx.error("Too many channels in server. Please delete some first.", 4)
@@ -151,7 +151,7 @@ class TourneyGroupManager(EsportsBaseView):
         await self.ctx.simple("Group channels and roles creation successfuly", 5)
 
     @discord.ui.button(label="Group List", style=discord.ButtonStyle.green)
-    async def send_grouplist(self, button: discord.Button, interaction: discord.Interaction):
+    async def send_grouplist(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer()
 
         if not self.tourney.group_size:

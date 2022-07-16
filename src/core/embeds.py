@@ -86,7 +86,7 @@ class EmbedOptions(discord.ui.Select):
                 self.view.embed.set_thumbnail(url=modal._image.value)
 
             else:
-                self.view.embed.set_thumbnail(url=discord.Embed.Empty)
+                self.view.embed.set_thumbnail(url=None)
 
             await self.view.refresh_view()
 
@@ -99,7 +99,7 @@ class EmbedOptions(discord.ui.Select):
                 self.view.embed.set_image(url=modal._image.value)
 
             else:
-                self.view.embed.set_image(url=discord.Embed.Empty)
+                self.view.embed.set_image(url=None)
 
             await self.view.refresh_view()
 
@@ -112,7 +112,7 @@ class EmbedOptions(discord.ui.Select):
                 self.view.embed.set_footer(icon_url=modal._image.value, text=self.view.embed.footer.text)
 
             else:
-                self.view.embed.set_footer(icon_url=discord.Embed.Empty, text=self.view.embed.footer.text)
+                self.view.embed.set_footer(icon_url=None, text=self.view.embed.footer.text)
 
             await self.view.refresh_view()
 
@@ -203,6 +203,9 @@ class MainEdit(discord.ui.Modal, title="Edit Embed Message"):
         required=False,
     )
 
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
+
 
 class Content(discord.ui.Modal, title="Edit Message Content"):
     _content = discord.ui.TextInput(
@@ -213,7 +216,8 @@ class Content(discord.ui.Modal, title="Edit Message Content"):
         style=discord.TextStyle.long,
     )
 
-
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
 class Color(discord.ui.Modal, title="Edit Embed Color"):
     _color = discord.ui.TextInput(
         label="Enter a valid Color",
@@ -221,7 +225,8 @@ class Color(discord.ui.Modal, title="Edit Embed Color"):
         required=False,
         max_length="7",
     )
-
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
 
 class InputImage(discord.ui.Modal, title="Edit Image"):
     _image = discord.ui.TextInput(
@@ -229,3 +234,5 @@ class InputImage(discord.ui.Modal, title="Edit Image"):
         placeholder="Leave empty to remove Image.",
         required=False,
     )
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()

@@ -22,7 +22,7 @@ __all__ = ("ScrimsSlotmPublicView",)
 class scrimsslotmdefer:
     def __call__(self, fn):
         @wraps(fn)
-        async def wrapper(view: ScrimsSlotmPublicView, button: discord.Button, interaction: discord.Interaction):
+        async def wrapper(view: ScrimsSlotmPublicView, interaction: discord.Interaction, button: discord.Button):
             await interaction.response.defer()
 
             try:
@@ -31,7 +31,7 @@ class scrimsslotmdefer:
                 await interaction.followup.send("This slot-m is unusable.", ephemeral=True)
                 return await interaction.delete_original_message()
 
-            return await fn(view, button, interaction)
+            return await fn(view, interaction,button)
 
         return wrapper
 
@@ -58,6 +58,7 @@ class CancelSlotSelector(discord.ui.Select):
         super().__init__(placeholder="Select slot from this dropdown", options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]
 
@@ -77,6 +78,7 @@ class UserSelector(discord.ui.Select):
         super().__init__(placeholder="Select your teammate from this dropdown", options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]
 
@@ -100,6 +102,7 @@ class ClaimSlotSelector(discord.ui.Select):
         super().__init__(placeholder="Select a slot from this dropdown", options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]
 
@@ -113,7 +116,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.danger, custom_id="scrims_slot_cancel", label="Cancel Slot")
     @scrimsslotmdefer()
-    async def cancel_scrims_slot(self, button: discord.Button, interaction: discord.Interaction):
+    async def cancel_scrims_slot(self, interaction: discord.Interaction, button: discord.Button):
         scrims = Scrim.filter(
             pk__in=self.record.scrim_ids,
             closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -165,7 +168,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="scrims_slot_claim", label="Claim Slot")
     @scrimsslotmdefer()
-    async def claim_scrims_slot(self, button: discord.Button, interaction: discord.Interaction):
+    async def claim_scrims_slot(self, interaction: discord.Interaction, button: discord.Button):
 
         perms = interaction.channel.permissions_for(interaction.guild.me)
         if not perms.manage_channels and perms.manage_messages:
@@ -237,7 +240,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
 
     @discord.ui.button(label="Remind Me", custom_id="scrims_slot_reminder", emoji="🔔")
     @scrimsslotmdefer()
-    async def set_slot_reminder(self, button: discord.Button, interaction: discord.Interaction):
+    async def set_slot_reminder(self, interaction: discord.Interaction, button: discord.Button):
         scrims = await Scrim.filter(
             pk__in=self.record.scrim_ids,
             closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -296,7 +299,7 @@ class ScrimsSlotmPublicView(discord.ui.View):
 
     @discord.ui.button(label="Transfer IDP Role", custom_id="scrims_transfer_idp_role", style=discord.ButtonStyle.green)
     @scrimsslotmdefer()
-    async def transfer_idp(self, button: discord.Button, interaction: discord.Interaction):
+    async def transfer_idp(self, interaction: discord.Interaction, button: discord.Button):
 
         scrims = Scrim.filter(
             pk__in=self.record.scrim_ids,
@@ -371,5 +374,5 @@ class ScrimsSlotmPublicView(discord.ui.View):
                 )
                 await self.bot.get_user(548163406537162782).send(e)
 
-    async def on_error(self, error: Exception, item: discord.ui.Item, interaction: discord.Interaction) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item) -> None:
         print(error)

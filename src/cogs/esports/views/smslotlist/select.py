@@ -26,6 +26,7 @@ class ScrimSlotSelector(discord.ui.Select):
         super().__init__(options=_options, placeholder=placeholder, max_values=len(_options) if multiple else 1)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0] if not self.max_values > 1 else interaction.data["values"]
 
@@ -60,21 +61,25 @@ class BanOptions(discord.ui.View):
         return _e
 
     @discord.ui.button(emoji=kd(1))
-    async def on_one(self, button: discord.Button, interaction: discord.Interaction):
+    async def on_one(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer()
         self.value = "1"
         self.stop()
 
     @discord.ui.button(emoji=kd(2))
-    async def on_two(self, button: discord.Button, interaction: discord.Interaction):
+    async def on_two(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer()
         self.value = "2"
         self.stop()
 
     @discord.ui.button(emoji=kd(3))
-    async def on_three(self, button: discord.Button, interaction: discord.Interaction):
+    async def on_three(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer()
         self.value = "3"
         self.stop()
 
     @discord.ui.button(emoji=kd(4))
-    async def on_four(self, button: discord.Button, interaction: discord.Interaction):
+    async def on_four(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer()
         self.value = "4"
         self.stop()

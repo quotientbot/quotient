@@ -98,5 +98,6 @@ class GuildSelector(discord.ui.Select):
         super().__init__(options=_options, placeholder="Select a server to Upgrade")
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.stop()
         self.view.custom_id = interaction.data["values"][0]

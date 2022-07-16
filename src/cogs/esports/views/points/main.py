@@ -35,7 +35,7 @@ class PointsTable(QuotientView):
         self.message = await self.message.edit(embed=self.initial_msg, view=self)
 
     @discord.ui.button(label="Title & Footer")
-    async def set_title(self, btn: discord.Button, inter: discord.Interaction):
+    async def set_title(self, inter: discord.Interaction ,btn: discord.Button):
         modal = ...
         await inter.response.send_modal()
         await modal.wait()
@@ -46,7 +46,7 @@ class PointsTable(QuotientView):
         await self.refresh_view()
 
     @discord.ui.button(label="Add Team")
-    async def add_team(self, btn: discord.Button, inter: discord.Interaction):
+    async def add_team(self, inter: discord.Interaction ,btn: discord.Button):
         modal = TeamInput()
         await inter.response.send_modal(modal)
         await modal.wait()
@@ -72,7 +72,7 @@ class PointsTable(QuotientView):
         await self.refresh_view()
 
     @discord.ui.button(label="Remove Team")
-    async def remove_team(self, btn: discord.Button, inter: discord.Interaction):
+    async def remove_team(self, inter: discord.Interaction ,btn: discord.Button):
         await inter.response.defer()
         if not self.teams:
             return await self.ctx.error("No teams to remove.", 5)
@@ -89,7 +89,7 @@ class PointsTable(QuotientView):
         await self.refresh_view()
 
     @discord.ui.button(label="Create Image")
-    async def create_image(self, btn: discord.Button, inter: discord.Interaction):
+    async def create_image(self, inter: discord.Interaction ,btn: discord.Button):
         await inter.response.send_message(self.teams)
 
 
@@ -104,6 +104,8 @@ class HeaderInput(discord.ui.Modal, title="Set Title & Footer"):
         max_length=100,
         placeholder="Enter a footer for the table",
     )
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
 
 
 class TeamInput(discord.ui.Modal, title="Add New Team"):
@@ -140,7 +142,8 @@ class TeamInput(discord.ui.Modal, title="Add New Team"):
         min_length=1,
         required=True,
     )
-
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
 
 class TeamSelector(discord.ui.Select):
     view: QuotientView
@@ -153,5 +156,6 @@ class TeamSelector(discord.ui.Select):
         super().__init__(placeholder="Select the teams you want to remove...", max_values=len(teams), options=_options)
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values
         self.view.stop()

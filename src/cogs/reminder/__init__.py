@@ -107,5 +107,5 @@ class Reminders(Cog):
         return timer
 
 
-def setup(bot):
-    bot.add_cog(Reminders(bot))
+async def setup(bot):
+    await bot.add_cog(Reminders(bot))

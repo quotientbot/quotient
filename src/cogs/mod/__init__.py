@@ -748,7 +748,7 @@ class Mod(Cog):
                 await ctx.success(f"OK!")
 
 
-def setup(bot) -> None:
-    bot.add_cog(Mod(bot))
-    bot.add_cog(LockEvents(bot))
-    bot.add_cog(RoleEvents(bot))
+async def setup(bot) -> None:
+    await bot.add_cog(Mod(bot))
+    await bot.add_cog(LockEvents(bot))
+    await bot.add_cog(RoleEvents(bot))

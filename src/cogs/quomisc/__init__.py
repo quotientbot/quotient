@@ -307,6 +307,6 @@ class Quomisc(Cog, name="quomisc"):
         )
 
 
-def setup(bot) -> None:
-    bot.add_cog(Quomisc(bot))
-    bot.add_cog(Dev(bot))
+async def setup(bot) -> None:
+    await bot.add_cog(Quomisc(bot))
+    await bot.add_cog(Dev(bot))

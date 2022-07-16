@@ -32,7 +32,7 @@ class ScrimBanManager(ScrimsView):
         banned = [_ async for _ in self.record.banned_teams.all()]
 
         _e = discord.Embed(color=self.bot.color)
-        _e.description = f"**Start / Stop scrim registration of {self.record}**\n\n__Banned:__\n"
+        _e.description = f"**Ban / Unban users from {self.record}**\n\n__Banned:__\n"
 
         t = ""
         for idx, _ in enumerate(banned, 1):
@@ -198,7 +198,7 @@ class UnbanAll(ScrimsButton):
         return await self.view.refresh_view()
 
 
-class MainInput(discord.ui.Modal, title="Edit Embed Message"):
+class MainInput(discord.ui.Modal, title="Ban Time & Reason"):
     m_time = discord.ui.TextInput(
         label="Ban Duration (Optional)",
         placeholder="Eg: 7 days, 1d, 24h, Friday at 6pm, etc.",
@@ -214,6 +214,8 @@ class MainInput(discord.ui.Modal, title="Edit Embed Message"):
         required=False,
         style=discord.TextStyle.short,
     )
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
 
 
 class BanSelector(discord.ui.Select):
@@ -235,5 +237,6 @@ class BanSelector(discord.ui.Select):
         super().__init__(placeholder="Select the players to Unban...", options=_options, max_values=len(_options))
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         self.view.custom_id = self.values
         self.view.stop()
