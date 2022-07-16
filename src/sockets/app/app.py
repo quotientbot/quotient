@@ -17,6 +17,9 @@ class QuoSocket(socketio.AsyncClient):
     async def emit(self, event, data=None, namespace=None, callback=None):
         return await super().emit("response__" + event, data=data, namespace=namespace, callback=callback)
 
+    async def request(self, event, data=None, namespace=None, callback=None):
+        return await super().emit(event, data=data, namespace=namespace, callback=callback)
+
     @staticmethod
     def int_parse(data):
         if not isinstance(data, dict):

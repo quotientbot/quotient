@@ -25,6 +25,7 @@ class ScrimEvents(Cog):
         self.bot = bot
 
         self.__scrim_lock = asyncio.Lock()
+        self.__autoclean_lock = asyncio.Lock()
 
     @Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
@@ -165,30 +166,36 @@ class ScrimEvents(Cog):
         if not scrim.toggle:
             return
 
+        if scrim.closed_at and scrim.closed_at < self.bot.current_time - timedelta(hours=48):
+            return
+
         guild = scrim.guild
+        if not guild:
+            return
+
+        if not guild.chunked:
+            self.bot.loop.create_task(guild.chunk())
 
         async with self.__scrim_lock:
             if AutocleanType.channel in scrim.autoclean:
                 self.bot.loop.create_task(self.__purge_channel(scrim.registration_channel))
 
             if AutocleanType.role in scrim.autoclean:
-                async for slot in scrim.assigned_slots.all():
-                    member = await self.bot.get_or_fetch_member(guild, slot.user_id)
-                    if member:
-                        with suppress(discord.HTTPException):
-                            await member.remove_roles(discord.Object(id=scrim.role_id))
-
-                if guild and not guild.chunked:
-                    self.bot.loop.create_task(guild.chunk())
+                slots = await scrim.assigned_slots.all()
+                async for member in self.bot.resolve_member_ids(guild, [slot.user_id for slot in slots]):
+                    with suppress(discord.HTTPException):
+                        await member.remove_roles(discord.Object(scrim.role_id), reason="autoclean")
 
                 role = scrim.role
                 with suppress(AttributeError, discord.HTTPException):
                     for m in role.members:
-                        await m.remove_roles(role)
+                        await m.remove_roles(role, reason="autoclean")
 
-    async def __purge_channel(self, channel=None):
+            await asyncio.sleep(5)
+
+    async def __purge_channel(self, channel: discord.TextChannel = None):
         with suppress(discord.HTTPException, AttributeError):
-            await channel.purge(limit=100, check=lambda x: not x.pinned)
+            await channel.purge(limit=100, check=lambda x: not x.pinned, reason="autoclean")
 
     @Cog.listener()
     async def on_scrim_ban_timer_complete(self, timer: Timer):

@@ -11,7 +11,7 @@ import itertools
 import os
 import time
 from datetime import datetime
-from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union
+from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union, AsyncIterator, Iterable
 
 import aiohttp
 import dbl
@@ -242,6 +242,47 @@ class Quotient(commands.AutoShardedBot):
 
         if len(members) > 0:
             return members[0]
+
+    async def resolve_member_ids(self, guild: discord.Guild, member_ids: Iterable[int]) -> AsyncIterator[discord.Member]:
+        """Bulk resolves member IDs to member instances, if possible."""
+
+        needs_resolution = []
+        for member_id in member_ids:
+            member = guild.get_member(member_id)
+            if member is not None:
+                yield member
+            else:
+                needs_resolution.append(member_id)
+
+        if not needs_resolution:
+            return
+
+        total_need_resolution = len(needs_resolution)
+        if total_need_resolution == 1:
+            shard: discord.ShardInfo = self.get_shard(guild.shard_id)  # type: ignore  # will never be None
+            if shard.is_ws_ratelimited():
+                try:
+                    member = await guild.fetch_member(needs_resolution[0])
+                except discord.HTTPException:
+                    pass
+                else:
+                    yield member
+            else:
+                members = await guild.query_members(limit=1, user_ids=needs_resolution, cache=True)
+                if members:
+                    yield members[0]
+        elif total_need_resolution <= 100:
+            # Only a single resolution call needed here
+            resolved = await guild.query_members(limit=100, user_ids=needs_resolution, cache=True)
+            for member in resolved:
+                yield member
+        else:
+            # We need to chunk these in bits of 100...
+            for index in range(0, total_need_resolution, 100):
+                to_resolve = needs_resolution[index : index + 100]
+                members = await guild.query_members(limit=100, user_ids=to_resolve, cache=True)
+                for member in members:
+                    yield member
 
     @property
     def server(self) -> Optional[discord.Guild]:
