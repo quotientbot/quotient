@@ -643,6 +643,10 @@ class AssignedSlot(BaseSlot):
     message_id = fields.BigIntField(null=True)
     jump_url = fields.TextField(null=True)
 
+    @property
+    def owner(self) -> discord.User:
+        return self.bot.get_user(self.user_id)
+
 
 class ReservedSlot(BaseSlot):
     class Meta:

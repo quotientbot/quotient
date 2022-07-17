@@ -39,7 +39,7 @@ python-multipart = "^0.0.5"
 lru-dict = "^1.1.7"
 
 [tool.poetry.dev-dependencies]
-black = {version = "^21.5b1", allow-prereleases = true}
+black = {version = "^22.0.0", allow-prereleases = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -42,6 +42,7 @@ class EsportsBaseView(discord.ui.View):
                 await self.message.edit(view=self)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception, item) -> None:
+        print("Esports view error:", error)
         self.ctx.bot.dispatch("command_error", self.ctx, error)
 
     async def ask_embed(self, desc: str, *, image=None):

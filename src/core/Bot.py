@@ -11,20 +11,22 @@ import itertools
 import os
 import time
 from datetime import datetime
-from typing import Any, Callable, Coroutine, Dict, List, NoReturn, Optional, Union, AsyncIterator, Iterable
+from typing import (Any, AsyncIterator, Callable, Coroutine, Dict, Iterable,
+                    List, NoReturn, Optional, Union)
 
 import aiohttp
+import config as cfg
+import constants as csts
 import dbl
 import discord
 import mystbin
+from aiocache import cached
 from async_property import async_property
 from discord import AllowedMentions, Intents
 from discord.ext import commands
 from lru import LRU
+from models import Guild
 from tortoise import Tortoise
-
-import config as cfg
-import constants as csts
 
 from .cache import CacheManager
 from .Context import Context
@@ -77,7 +79,6 @@ class Quotient(commands.AutoShardedBot):
 
         self.message_cache: Dict[int, Any] = LRU(1000)
 
-
     @on_startup.append
     async def __load_extensions(self):
         for ext in self.config.EXTENSIONS:
@@ -87,12 +88,13 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
+        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
+                                        SlotlistEditButton, TourneySlotManager)
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
         async for record in ScrimsSlotManager.all():
-            self.add_view(ScrimsSlotmPublicView(self, record=record), message_id=record.message_id)
+            self.add_view(ScrimsSlotmPublicView(record), message_id=record.message_id)
 
         async for tourney in Tourney.filter(slotm_message_id__isnull=False):
             self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
@@ -174,7 +176,7 @@ class Quotient(commands.AutoShardedBot):
     async def close(self) -> NoReturn:
         await super().close()
 
-        if hasattr(self,"session"):
+        if hasattr(self, "session"):
             await self.session.close()
 
         await Tortoise.close_connections()
@@ -288,6 +290,11 @@ class Quotient(commands.AutoShardedBot):
                 members = await guild.query_members(limit=100, user_ids=to_resolve, cache=True)
                 for member in members:
                     yield member
+
+    @staticmethod
+    @cached(ttl=60)
+    async def is_premium_guild(guild_id: int) -> bool:
+        return await Guild.filter(pk=guild_id, is_premium=True).exists()
 
     @property
     def server(self) -> Optional[discord.Guild]:

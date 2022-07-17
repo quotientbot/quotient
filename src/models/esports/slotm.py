@@ -1,7 +1,5 @@
-import asyncio
-import re
 from contextlib import suppress
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import discord
 from tortoise import fields
@@ -56,7 +54,6 @@ class ScrimsSlotManager(BaseDbModel):
             _m = None
             with suppress(discord.HTTPException):
                 _m = await self.bot.get_or_fetch_message(channel, self.message_id)
-                # _m = await channel.fetch_message(self.message_id)
 
             return _m
 
@@ -88,22 +85,27 @@ class ScrimsSlotManager(BaseDbModel):
 
         await self.delete()
 
-    async def claimable_slots(self) -> List[str]:
+    @property
+    def claimable_slots(self):
+        return (
+            Scrim.filter(
+                pk__in=self.scrim_ids,
+                closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
+                available_slots__not=[],
+                match_time__gt=self.bot.current_time,
+                opened_at__isnull=True,
+            )
+            .order_by("open_time")
+            .limit(25)
+        )
+
+    async def _formatted_claimable(self) -> List[str]:
         """
         Returns a list of slots that can be claimed
         """
-
-        scrims = Scrim.filter(
-            pk__in=self.scrim_ids,
-            closed_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
-            available_slots__not=[],
-            match_time__gt=self.bot.current_time,
-            opened_at__isnull=True,
-        ).order_by("open_time")
-
         _list = []
 
-        async for idx, _ in aenumerate(scrims, start=1):
+        async for idx, _ in aenumerate(self.claimable_slots, start=1):
             _list.append(
                 f"`{idx}` {getattr(_.registration_channel,'mention','deleted-channel')}  ─  {plural(_.available_slots):Slot|Slots}"
             )
@@ -117,7 +119,7 @@ class ScrimsSlotManager(BaseDbModel):
 
         from cogs.esports.views.slotm import ScrimsSlotmPublicView
 
-        _claimable = await self.claimable_slots()
+        _claimable = await self._formatted_claimable()
 
         _claimable_slots = (
             ("\n" + "\n".join(_claimable))
@@ -132,7 +134,7 @@ class ScrimsSlotManager(BaseDbModel):
             f"● Available Slots: {_claimable_slots}"
         )
 
-        view = ScrimsSlotmPublicView(self.bot, record=self)
+        view = ScrimsSlotmPublicView(self)
 
         if not _claimable:
             view.children[1].disabled = True
@@ -159,41 +161,11 @@ class ScrimsSlotManager(BaseDbModel):
         with suppress(discord.HTTPException):
             return await m.edit(embed=_embed, view=_view)
 
-    async def get_team_name(self, interaction: discord.Interaction) -> str:
-        """
-        Get team name of user when they claim slot.
-        """
-        _c = interaction.channel
-
-        await _c.set_permissions(interaction.user, send_messages=True)
-        _m = None
-        with suppress(asyncio.TimeoutError):
-            _m: discord.Message = await self.bot.wait_for(
-                "message",
-                check=lambda msg: msg.author.id == interaction.user.id and msg.channel.id == _c.id,
-                timeout=30,
-            )
-
-        if not _m:
-            await interaction.followup.send("Timed out. Please try again.", ephemeral=True)
-
-        await _c.set_permissions(interaction.user, overwrite=None)
-
-        with suppress(AttributeError, discord.HTTPException):
-            await interaction.channel.purge(limit=5, check=lambda m: m.author == interaction.user and not m.pinned)
-
-            _content = _m.content.lower()
-
-            teamname = re.search(r"team.*", _content)
-            if teamname:
-                teamname = re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
-
-                teamname = f"Team {teamname.title()}" if teamname else truncate_string(_content, 22)
-
-            else:
-                teamname = "Team " + truncate_string(re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", _content).title(), 22)
-
-            return teamname
+    @staticmethod
+    async def refresh_guild_message(scrim_id: int):
+        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=scrim_id)
+        if slotm:
+            await slotm.refresh_public_message()
 
     async def setup(self, guild: discord.Guild, user: discord.Member):
         """
@@ -226,3 +198,25 @@ class ScrimsSlotManager(BaseDbModel):
         self.message_id = m.id
         await self.save()
         return self
+
+    async def user_slots(self, user_id: int) -> List[Any]:
+        query = """
+        (SELECT *
+		    FROM
+			(SELECT SCRIMS.ID AS SCRIM_ID,
+					*
+				FROM PUBLIC."sm.scrims" AS SCRIMS
+				FULL OUTER JOIN
+					(SELECT ID AS ASSIGNED_SLOT_ID,
+							*
+						FROM PUBLIC."sm.scrims_sm.assigned_slots" AS SCRIM_SLOT
+						INNER JOIN PUBLIC."sm.assigned_slots" AS SLOTS ON SLOTS.ID = SCRIM_SLOT.ASSIGNEDSLOT_ID) AS SCRIM_SLOT ON SCRIMS.ID = SCRIM_SLOT."sm.scrims_id"
+				WHERE (SCRIMS.ID = ANY ($1)
+											AND MATCH_TIME > NOW()
+											AND OPENED_AT IS NULL = TRUE
+											AND CLOSED_AT > CURRENT_DATE + interval '1 minute'
+											AND SCRIM_SLOT."sm.scrims_id" IS NOT NULL)) AS SM
+		WHERE USER_ID = $2)        
+        """
+
+        return await self.bot.db.fetch(query, self.scrim_ids, user_id)
