@@ -73,9 +73,11 @@ class ScrimsEditor(ScrimsView):
             "Autodelete Late Messages": ("`No!`", "`Yes!`")[scrim.autodelete_extras],
             "Slotlist Start from": "`{}`".format(scrim.start_from),
             "Autoclean": f"{dt(scrim.autoclean_time)} (`{', '.join(_.name.title() for _ in scrim.autoclean)}`)"
-            if scrim.autoclean
+            if scrim.autoclean_time
             else "`Turned OFF`",
-            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days)),
+            "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days))
+            if self.record.open_days
+            else "`Not set`",
         }
 
         for idx, (name, value) in enumerate(fields.items()):
