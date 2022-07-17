@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Any
 
 from models import TMSlot, Tourney
 from utils import BaseSelector, Prompt, emote, truncate_string
@@ -60,6 +60,11 @@ class TourneySlotManager(discord.ui.View):
             return await channel.set_permissions(user, send_messages=True)
 
         return await channel.set_permissions(user, overwrite=None)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item[Any]) -> None:
+        if isinstance(error, discord.NotFound):
+            return
+        print("Tourney Slotm Error:", error)
 
     @staticmethod
     def initial_embed(tourney: Tourney) -> discord.Embed:
@@ -191,7 +196,7 @@ class TourneySlotManager(discord.ui.View):
                 return await interaction.followup.send(f"{emote.check} | Your team name was changed.", ephemeral=True)
 
     @discord.ui.button(emoji="<:swap:954022423542509598>", label="Swap Groups", custom_id="tourney-swap-groups")
-    async def tourney_group_swap(self, inter: discord.Interaction,button: discord.Button):
+    async def tourney_group_swap(self, inter: discord.Interaction, button: discord.Button):
         await inter.response.defer()
 
         if not inter.user.guild_permissions.manage_guild and not Tourney.is_ignorable(inter.user):
