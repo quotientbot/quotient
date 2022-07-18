@@ -63,7 +63,16 @@ class ScrimsCancel(discord.ui.Button):
             await Scrim.filter(pk=scrim_id).update(available_slots=ArrayAppend("available_slots", _slot.num))
 
             link = f"https://discord.com/channels/{scrim.guild_id}/{interaction.channel_id}/{self.view.record.message_id}"
-            await scrim.dispatch_reminders(_slot, interaction.channel, link)
+            await scrim.dispatch_reminders(interaction.channel, link)
+            with suppress(discord.HTTPException, AttributeError):
+                user = interaction.user
+                await scrim.logschan.send(
+                    embed=discord.Embed(
+                        title="Slot-Cancelled",
+                        color=self.view.bot.color,
+                        description=f"{user} ({user.mention}) cancelled their `Slot {_slot.num}` from {scrim}.",
+                    )
+                )
 
         await m.edit(content=f"Alright, Cancelled your `{p_str}`.")
         await self.view.record.refresh_public_message()

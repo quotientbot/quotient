@@ -21,6 +21,13 @@ class ScrimsRemind(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction) -> T.Any:
         await interaction.response.defer(thinking=True, ephemeral=True)
 
+        if not await self.view.bot.is_premium_guild(interaction.guild_id):
+            return await interaction.followup.send(
+                "Cancel Reminder feature is only available for premium servers.\n\n"
+                f"*This server needs to purchase [Quotient Premium]({self.view.bot.prime_link}) to use this feature.*",
+                ephemeral=True,
+            )
+
         scrims = await Scrim.filter(
             pk__in=self.view.record.scrim_ids,
             closed_at__gt=self.view.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -30,6 +37,11 @@ class ScrimsRemind(discord.ui.Button):
         ).order_by("open_time")
 
         for scrim in await self.banned_from(interaction.user.id):
+            for _ in scrims:
+                if _.id == scrim["scrim_id"]:
+                    scrims.remove(_)
+
+        for scrim in await self.already_reminder_of(interaction.user.id):
             for _ in scrims:
                 if _.id == scrim["scrim_id"]:
                     scrims.remove(_)
@@ -57,9 +69,6 @@ class ScrimsRemind(discord.ui.Button):
         scrims = await Scrim.filter(pk__in=_view.custom_id)
 
         for _ in scrims:
-            if _.slot_reminders.filter(user_id=interaction.user.id).exists():
-                continue
-
             _r = await ScrimsSlotReminder.create(user_id=interaction.user.id)
             await _.slot_reminders.add(_r)
 
@@ -70,6 +79,7 @@ class ScrimsRemind(discord.ui.Button):
         await interaction.followup.send(embed=_e, ephemeral=True)
 
     async def banned_from(self, user_id: int) -> T.List[int]:
+        # now, can tortoise do this? - no way
         query = """
         (SELECT *
 		    FROM
@@ -86,4 +96,22 @@ class ScrimsRemind(discord.ui.Button):
 		WHERE USER_ID = $2)        
         """
 
+        return await self.view.bot.db.fetch(query, self.view.record.scrim_ids, user_id)
+
+    async def already_reminder_of(self, user_id: int) -> T.List[int]:
+        query = """
+        (SELECT *
+		    FROM
+			    (SELECT SCRIMS.ID AS SCRIM_ID,
+					*
+				    FROM PUBLIC."sm.scrims" AS SCRIMS
+				    FULL OUTER JOIN
+					    (SELECT ID AS REMINDER_SLOT_ID,
+							*
+						    FROM PUBLIC."sm.scrims_scrims_slot_reminders" AS REMINDER_SLOT
+						    INNER JOIN PUBLIC."scrims_slot_reminders" AS SLOTS ON SLOTS.ID = REMINDER_SLOT.SCRIMSSLOTREMINDER_ID) AS REMINDER_SLOT ON SCRIMS.ID = REMINDER_SLOT."sm.scrims_id"
+				    WHERE (SCRIMS.ID = ANY ($1)
+											AND REMINDER_SLOT."sm.scrims_id" IS NOT NULL)) AS SM
+		WHERE USER_ID = $2)
+        """
         return await self.view.bot.db.fetch(query, self.view.record.scrim_ids, user_id)

@@ -250,19 +250,21 @@ class Scrim(BaseDbModel):
 
         return _v.message
 
-    async def dispatch_reminders(self, slot: "AssignedSlot", channel: discord.TextChannel, link: str):
-        async for reminder in self.slot_reminders.all():
-            user = self.bot.get_user(reminder.user_id)
+    async def dispatch_reminders(self, channel: discord.TextChannel, link: str):
+        reminders = await self.slot_reminders.all().order_by("created_at")
 
-            with suppress(discord.HTTPException, AttributeError):
-                _e = discord.Embed(color=0x00FFB3, title=f"Slot Available to Claim - {channel.guild.name}", url=link)
-                _e.description = (
-                    f"A slot of {self} is available to claim in {channel.mention}!" "\nClaim it before anyone else do."
-                )
+        if not reminders:
+            return
 
+        _e = discord.Embed(color=0x00FFB3, title=f"Slot Available to Claim - {channel.guild.name}", url=link)
+        _e.description = f"A slot of {self} is available to claim in {channel.mention}!\nClaim it before anyone else do."
+
+        async for user in self.bot.resolve_member_ids(self.guild, [i.user_id for i in reminders]):
+
+            with suppress(discord.HTTPException):
                 await user.send(embed=_e)
 
-            await ScrimsSlotReminder.filter(pk=reminder.pk).delete()
+        await ScrimsSlotReminder.filter(pk__in=(i.pk for i in reminders)).delete()
 
     async def ensure_match_timer(self):
 

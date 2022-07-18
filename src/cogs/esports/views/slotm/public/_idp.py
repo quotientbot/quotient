@@ -21,6 +21,13 @@ class IdpTransfer(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction) -> T.Any:
         await interaction.response.defer(thinking=True, ephemeral=True)
 
+        if not await self.view.bot.is_premium_guild(interaction.guild_id):
+            return await interaction.followup.send(
+                "IDP Transfer feature is only available for premium servers.\n\n"
+                f"*This server needs to purchase [Quotient Premium]({self.view.bot.prime_link}) to use this feature.*",
+                ephemeral=True,
+            )
+
         if not (slots := await self.view.record.user_slots(interaction.user.id)):
             return await interaction.followup.send("You don't have any slot that can be transferred.", ephemeral=True)
 
