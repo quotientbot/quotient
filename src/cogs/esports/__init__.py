@@ -26,12 +26,6 @@ class ScrimManager(Cog, name="Esports"):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @property
-    def reminders(self):
-        return self.bot.get_cog("Reminders")
-
-    # ************************************************************************************************
-
     # ************************************************************************************************
     @Cog.listener()
     async def on_message_delete(self, message: discord.Message):

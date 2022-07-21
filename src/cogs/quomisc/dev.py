@@ -8,11 +8,11 @@ if T.TYPE_CHECKING:
 import asyncio
 import datetime
 
-from discord.ext import commands
-from prettytable import PrettyTable
-
+import discord
 from core import Cog, Context
+from discord.ext import commands
 from models import Commands, Premium, User
+from prettytable import PrettyTable
 from utils import get_ipm
 
 from .helper import tabulate_query
@@ -27,7 +27,32 @@ class Dev(Cog):
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
-    @commands.group(hiddent=True,invoke_without_command=True)
+    @commands.command(hidden=True)
+    async def sync(
+        self, ctx: Context, guilds: commands.Greedy[discord.Object], spec: T.Optional[T.Literal["~"]] = None
+    ) -> None:
+        if not guilds:
+            if spec == "~":
+                fmt = await ctx.bot.tree.sync(guild=ctx.guild)
+            else:
+                fmt = await ctx.bot.tree.sync()
+
+            await ctx.send(f"Synced {len(fmt)} commands {'globally' if spec is not None else 'to the current guild.'}")
+            return
+
+        assert guilds is not None
+        fmt = 0
+        for guild in guilds:
+            try:
+                await ctx.bot.tree.sync(guild=guild)
+            except discord.HTTPException:
+                pass
+            else:
+                fmt += 1
+
+        await ctx.send(f"Synced the tree to {fmt}/{len(guilds)} guilds.")
+
+    @commands.group(hiddent=True, invoke_without_command=True)
     async def botupdate(self, ctx: Context):
         await ctx.send_help(ctx.command)
 
@@ -140,7 +165,6 @@ class Dev(Cog):
         await tabulate_query(ctx, query, guild_id)
 
     @command_history.command(name="user", aliases=["member"])
-    @commands.is_owner()
     async def command_history_user(self, ctx, user_id: int):
         """Command history for a user."""
         query = """SELECT
