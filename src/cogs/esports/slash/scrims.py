@@ -90,4 +90,4 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
 
         banlog = await BanLog.get_or_none(guild_id=interaction.guild_id)
         if banlog:
-            await banlog.log_unban(user.id, interaction.user, [scrims], f"```{reason}```")
+            await banlog.log_unban(user.id, interaction.user, scrims, f"```{reason}```")
