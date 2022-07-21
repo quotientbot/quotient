@@ -20,6 +20,7 @@ from .errors import SMError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
 from .helpers import delete_denied_message
 from .views import *
+from .slash import *
 
 
 class ScrimManager(Cog, name="Esports"):
@@ -375,7 +376,7 @@ class ScrimManager(Cog, name="Esports"):
         _view.message = await ctx.send(embed=await _view.initial_message(), view=_view, embed_perms=True)
 
 
-async def setup(bot):
+async def setup(bot: Quotient):
     await bot.add_cog(ScrimManager(bot))
     await bot.add_cog(SMError(bot))
     await bot.add_cog(ScrimEvents(bot))
@@ -383,3 +384,4 @@ async def setup(bot):
     await bot.add_cog(TagEvents(bot))
     await bot.add_cog(Ssverification(bot))
     await bot.add_cog(SlotManagerEvents(bot))
+    await bot.add_cog(SlashCog(bot))

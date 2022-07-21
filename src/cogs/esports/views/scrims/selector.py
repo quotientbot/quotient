@@ -91,7 +91,8 @@ async def prompt_selector(ctx: Context, scrims: List[Scrim] = None, *, placehold
     )
     await view.wait()
     if view.custom_id:
-        await view.message.delete()
+        with suppress(discord.HTTPException):
+            await view.message.delete()
 
         if not len(view.custom_id) > 1:
             return await Scrim.get_or_none(pk=view.custom_id[0])

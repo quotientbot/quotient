@@ -10,7 +10,7 @@ import discord
 
 from core import Context, QuotientView
 from models import BanLog, BannedTeam, Scrim
-from utils import discord_timestamp, emote, plural, truncate_string
+from utils import discord_timestamp, emote, plural, truncate_string, get_chunks
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -151,7 +151,8 @@ class UnBan(ScrimsButton):
             return await self.view.ctx.error("No banned user found.", 5)
 
         v = QuotientView(self.view.ctx)
-        v.add_item(BanSelector(self.view.ctx, banned_teams[:25]))
+        for chunk in get_chunks(banned_teams, 25):
+            v.add_item(BanSelector(self.view.ctx, chunk))
         v.message = await interaction.followup.send("", view=v, ephemeral=True)
         await v.wait()
         if v.custom_id:
@@ -214,6 +215,7 @@ class MainInput(discord.ui.Modal, title="Ban Time & Reason"):
         required=False,
         style=discord.TextStyle.short,
     )
+
     async def on_submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
 
