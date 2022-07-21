@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import typing
+
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Coroutine, Dict, Iterable, List, NoReturn, Optional, Union
 from contextlib import suppress
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
 
 import asyncio
@@ -11,8 +12,6 @@ import itertools
 import os
 import time
 from datetime import datetime
-from typing import (Any, AsyncIterator, Callable, Coroutine, Dict, Iterable,
-                    List, NoReturn, Optional, Union)
 
 import aiohttp
 import config as cfg
@@ -88,8 +87,7 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
-                                        SlotlistEditButton, TourneySlotManager)
+        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
@@ -343,9 +341,8 @@ class Quotient(commands.AutoShardedBot):
         after = discord.Object(message_id - 1)
         if fetch:
             async for msg in channel.history(limit=1, before=before, after=after):
-                if msg:
-                    self.message_cache[msg.id] = msg
-                    return msg
+                self.message_cache[msg.id] = msg
+                return msg
 
     async def send_message(self, channel_id, content, **kwargs):
         await self.http.send_message(channel_id, content, **kwargs)

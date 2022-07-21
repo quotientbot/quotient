@@ -7,7 +7,6 @@ from typing import Optional
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import converter
 from PIL import ImageColor
 
 __all__ = (

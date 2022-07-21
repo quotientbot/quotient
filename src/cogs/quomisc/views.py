@@ -11,7 +11,6 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
-
 from constants import IST
 from core import Context, QuotientView
 from utils import emote
@@ -21,7 +20,7 @@ class BaseView(discord.ui.View):
     def __init__(self, ctx: Context, *, timeout=30.0):
 
         self.ctx = ctx
-        self.message: discord.Message = None
+        self.message: typing.Optional[discord.Message] = None
         self.bot: Quotient = ctx.bot
 
         super().__init__(timeout=timeout)
@@ -29,7 +28,8 @@ class BaseView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message(
-                "Sorry, you can't use this interaction as it is not started by you.", ephemeral=True
+                "Sorry, you can't use this interaction as it is not started by you.",
+                ephemeral=True,
             )
             return False
         return True
@@ -41,7 +41,8 @@ class BaseView(discord.ui.View):
                     b.style, b.disabled = discord.ButtonStyle.grey, True
 
             with suppress(discord.HTTPException):
-                await self.message.edit(view=self)
+                if self.message is not None:
+                    await self.message.edit(view=self)
 
 
 class VoteButton(BaseView):
@@ -64,7 +65,9 @@ class MoneyButton(BaseView):
         self.ctx = ctx
         self.bot: Quotient = ctx.bot
 
-    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="claim_prime", label="Claim Prime (120 coins)")
+    @discord.ui.button(
+        style=discord.ButtonStyle.green, custom_id="claim_prime", label="Claim Prime (120 coins)"
+    )
     async def claim_premium(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
@@ -78,16 +81,23 @@ class MoneyButton(BaseView):
             )
 
         end_time = (
-            _u.premium_expire_time + timedelta(days=30) if _u.is_premium else datetime.now(tz=IST) + timedelta(days=30)
+            _u.premium_expire_time + timedelta(days=30)
+            if _u.is_premium
+            else datetime.now(tz=IST) + timedelta(days=30)
         )
 
         await User.get(pk=self.ctx.author.id).update(
-            is_premium=True, premium_expire_time=end_time, money=_u.money - 120, premiums=_u.premiums + 1
+            is_premium=True,
+            premium_expire_time=end_time,
+            money=_u.money - 120,
+            premiums=_u.premiums + 1,
         )
 
         member = self.bot.server.get_member(self.ctx.author.id)
         if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
+            await member.add_roles(
+                discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium."
+            )
 
         await self.ctx.success(
             "Credited Quotient Prime for 1 Month to your account,\n\n"
@@ -107,4 +117,6 @@ class SetupButtonView(QuotientView):
 
     @discord.ui.button(label="setup tourney", custom_id="setup_tourney_button")
     async def setup_tourney_button(self, interaction: discord.Interaction, button: discord.Button):
-        return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament.")
+        return await self.ctx.simple(
+            f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament."
+        )

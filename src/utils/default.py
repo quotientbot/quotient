@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from datetime import datetime
 from itertools import islice
@@ -33,7 +35,7 @@ def find_team(message: discord.Message):
         return f"{author}'s team"
 
     # teamname = (re.sub(r"\b[0-9]+\b\s*|team|name|[^\w\s]", "", teamname.group())).strip()
-    teamname = re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
+    teamname: str = re.sub(r"<@*#*!*&*\d+>|team|name|[^\w\s]", "", teamname.group()).strip()
 
     teamname = f"Team {teamname.title()}" if teamname else f"{author}'s team"
     return teamname

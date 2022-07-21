@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import re
 from contextlib import suppress
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 import discord
-
 from constants import EsportsRole, RegDeny
 from models import TMSlot, Tourney
 
 
-def get_tourney_slots(slots: List[TMSlot]) -> int:
+def get_tourney_slots(slots: List[TMSlot]) -> Iterable[int]:
     for slot in slots:
         yield slot.leader_id
 
@@ -33,6 +32,8 @@ def tourney_work_role(tourney: Tourney, _type: EsportsRole):
 
 
 def before_registrations(message: discord.Message, role: discord.Role) -> bool:
+    assert message.guild is not None
+
     me = message.guild.me
     channel = message.channel
 
@@ -43,8 +44,8 @@ def before_registrations(message: discord.Message, role: discord.Role) -> bool:
         (
             me.guild_permissions.manage_roles,
             role < message.guild.me.top_role,
-            channel.permissions_for(me).add_reactions,
-            channel.permissions_for(me).use_external_emojis,
+            channel.permissions_for(me).add_reactions,  # type: ignore
+            channel.permissions_for(me).use_external_emojis,  # type: ignore
         )
     ):
         return False
@@ -109,3 +110,5 @@ async def get_tourney_from_channel(guild_id: int, channel_id: int) -> Optional[T
     for tourney in tourneys:
         if await tourney.media_partners.filter(pk=channel_id).exists():
             return tourney
+
+    return None

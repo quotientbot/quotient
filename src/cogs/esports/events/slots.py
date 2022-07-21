@@ -6,7 +6,6 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-
 from core import Cog
 from models import Scrim, ScrimsSlotManager, Timer
 

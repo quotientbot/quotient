@@ -1,9 +1,8 @@
 from typing import Optional
 
+import constants
 import discord
 from tortoise import fields, models
-
-import constants
 
 from .helpers import *
 

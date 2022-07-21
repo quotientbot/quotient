@@ -1,7 +1,6 @@
 from collections import Counter
 
 import discord
-
 from core import Context
 
 

@@ -15,12 +15,19 @@ import discord
 import pkg_resources
 import psutil
 import pygit2
-from discord.ext import commands
-
 from cogs.quomisc.helper import format_relative
 from core import Cog, Context, QuotientView
+from discord.ext import commands
 from models import Commands, Guild, User, Votes
-from utils import LinkButton, LinkType, QuoColor, checks, get_ipm, human_timedelta, truncate_string
+from utils import (
+    LinkButton,
+    LinkType,
+    QuoColor,
+    checks,
+    get_ipm,
+    human_timedelta,
+    truncate_string,
+)
 
 from .dev import *
 from .views import MoneyButton, SetupButtonView, VoteButton
@@ -286,7 +293,7 @@ class Quomisc(Cog, name="quomisc"):
 
         vote = await Votes.get_or_none(pk=ctx.author.id)
         if vote and vote.is_voter:
-            _b = discord.ui.Button(
+            _b: discord.ui.Button = discord.ui.Button(
                 disabled=True,
                 style=discord.ButtonStyle.grey,
                 custom_id="vote_quo",
@@ -307,6 +314,6 @@ class Quomisc(Cog, name="quomisc"):
         )
 
 
-async def setup(bot) -> None:
+async def setup(bot: Quotient) -> None:
     await bot.add_cog(Quomisc(bot))
     await bot.add_cog(Dev(bot))

@@ -8,7 +8,6 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
-
 from core import Context
 from utils import emote
 
@@ -39,7 +38,7 @@ class RoleRevertButton(discord.ui.Button):
 
 class RoleCancelButton(discord.ui.Button):
     def __init__(self, ctx: Context, *, role: discord.Role, members: typing.List[discord.Member]):
-        super().__init__(timeout=None)
+        super().__init__()
         self.ctx = ctx
         self.role = role
         self.members = members

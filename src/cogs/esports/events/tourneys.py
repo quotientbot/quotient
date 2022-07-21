@@ -12,17 +12,20 @@ import asyncio
 from unicodedata import normalize
 
 import discord
-from tortoise.exceptions import DoesNotExist
-
 import utils
 from constants import EsportsLog, RegDeny
 from core import Cog
 from models import MediaPartner, PartnerSlot, TGroupList, TMSlot, Tourney
+from tortoise.exceptions import DoesNotExist
 from utils import truncate_string
 
-from ..helpers import (before_registrations, cannot_take_registration,
-                       check_tourney_requirements, get_tourney_slots,
-                       update_confirmed_message)
+from ..helpers import (
+    before_registrations,
+    cannot_take_registration,
+    check_tourney_requirements,
+    get_tourney_slots,
+    update_confirmed_message,
+)
 
 
 class TourneyEvents(Cog):
@@ -50,10 +53,16 @@ class TourneyEvents(Cog):
 
         if tourney.no_duplicate_name and check_duplicate:
             if await tourney.assigned_slots.filter(team_name=teamname).exists():
-                return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
+                return self.bot.dispatch(
+                    "tourney_registration_deny", message, RegDeny.duplicate, tourney
+                )
 
-        if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
-            return self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
+        if not tourney.multiregister and message.author.id in get_tourney_slots(
+            await tourney.assigned_slots.all()
+        ):
+            return self.bot.dispatch(
+                "tourney_registration_deny", message, RegDeny.multiregister, tourney
+            )
 
         ctx = await self.bot.get_context(message)
 
@@ -176,7 +185,13 @@ class TourneyEvents(Cog):
 
     @Cog.listener(name="on_message")
     async def on_media_partner_message(self, message: discord.Message):
-        if not all((message.guild, not message.author.bot, message.channel.id in self.bot.cache.media_partner_channels)):
+        if not all(
+            (
+                message.guild,
+                not message.author.bot,
+                message.channel.id in self.bot.cache.media_partner_channels,
+            )
+        ):
             return
 
         media_partner = await MediaPartner.get_or_none(pk=message.channel.id)
@@ -184,7 +199,7 @@ class TourneyEvents(Cog):
         if not media_partner:
             return self.bot.cache.media_partner_channels.discard(message.channel.id)
 
-        tourney = await get_tourney_from_channel(message.guild.id, message.channel.id)
+        tourney = await get_tourney_from_channel(message.guild.id, message.channel.id)  # type: ignore # line guarded
 
         if not tourney:
             return self.bot.cache.media_partner_channels.discard(message.channel.id)
@@ -231,7 +246,9 @@ class TourneyEvents(Cog):
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         message_id = payload.message_id
-        _del = await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
+        _del = await Tourney.filter(slotm_message_id=message_id).update(
+            slotm_message_id=None, slotm_channel_id=None
+        )
 
         tourney = None
         if not _del:
@@ -246,7 +263,9 @@ class TourneyEvents(Cog):
             slot = await tourney.assigned_slots.filter(message_id=payload.message_id).first()
             if slot:
                 if slot.confirm_jump_url:
-                    self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
+                    self.bot.loop.create_task(
+                        update_confirmed_message(tourney, slot.confirm_jump_url)
+                    )
 
                 if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
                     m = tourney.guild.get_member(slot.leader_id)
@@ -259,7 +278,9 @@ class TourneyEvents(Cog):
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):
-        await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)
+        await Tourney.filter(slotm_channel_id=channel.id).update(
+            slotm_channel_id=None, slotm_message_id=None
+        )
         await MediaPartner.filter(channel_id=channel.id).delete()
 
     @Cog.listener()
@@ -292,12 +313,17 @@ class TourneyEvents(Cog):
                         await tourney.logschan.send(msg)
 
     @Cog.listener()
-    async def on_guild_channel_update(self, before: discord.TextChannel, after: discord.TextChannel):
+    async def on_guild_channel_update(
+        self, before: discord.TextChannel, after: discord.TextChannel
+    ):
         if before.name == after.name or not before.name == "quotient-tourney-logs":
             return
 
         if after.permissions_for(after.guild.me).manage_channels:
-            return await after.edit(name="quotient-tourney-logs", reason="tourney logging won't work if you rename this.")
+            return await after.edit(
+                name="quotient-tourney-logs",
+                reason="tourney logging won't work if you rename this.",
+            )
 
         _e = discord.Embed(
             color=discord.Color.red(),
@@ -306,7 +332,9 @@ class TourneyEvents(Cog):
                 "**Quotient Tourneys won't work without it.**"
             ),
         )
-        await after.send(embed=_e, content=after.guild.owner.mention)
+        await after.send(
+            embed=_e, content=getattr(after.guild.owner, "mention")
+        )  # there is very less chances of getting attribute error on `owner.mention`
 
     @Cog.listener()
     async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
@@ -314,7 +342,9 @@ class TourneyEvents(Cog):
             return
 
         if after.guild.me.guild_permissions.manage_roles:
-            return await after.edit(name="tourney-mod", reason="tourney mod role won't work if you rename this.")
+            return await after.edit(
+                name="tourney-mod", reason="tourney mod role won't work if you rename this."
+            )
 
         _e = discord.Embed(
             color=discord.Color.red(),
@@ -326,4 +356,6 @@ class TourneyEvents(Cog):
 
         c = discord.utils.get(after.guild.text_channels, name="quotient-tourney-logs")
         if c:
-            await c.send(embed=_e, content=after.guild.owner.mention)
+            await c.send(
+                embed=_e, content=getattr(after.guild.owner, "mention")
+            )  # there is very less chances of getting attribute error on `owner.mention`
