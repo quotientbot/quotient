@@ -3,10 +3,10 @@ import re
 from contextlib import suppress
 from typing import Union
 
-import discord
-
 import constants
+import discord
 from models import Scrim, Tourney
+
 from utils import find_team
 
 
@@ -25,13 +25,16 @@ async def available_to_reserve(scrim: Scrim):
 
 
 async def cannot_take_registration(message: discord.Message, obj: Union[Scrim, Tourney]):
+    assert message.guild is not None
+
     logschan = obj.logschan
 
     with suppress(AttributeError, discord.Forbidden):
         embed = discord.Embed(
-            color=discord.Color.red(), description=f"**Registration couldn't be accepted in {message.channel.mention}**"
+            color=discord.Color.red(),
+            description=f"**Registration couldn't be accepted in {message.channel.mention}**",
         )
-        embed.description += (
+        embed.description += (  # type: ignore # line guarded above
             "\nPossible reasons are:\n"
             "> Success Role of tourney has been deleted.\n"
             "> I don't have add reaction permission in the channel\n"
@@ -101,7 +104,9 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
     #     _bool = False
     #     bot.dispatch("scrim_registration_deny", message, constants.RegDeny.bannedteammate, scrim)
 
-    elif not scrim.multiregister and message.author.id in get_slots(await scrim.assigned_slots.all()):
+    elif not scrim.multiregister and message.author.id in get_slots(
+        await scrim.assigned_slots.all()
+    ):
         _bool = False
         bot.dispatch("scrim_registration_deny", message, constants.RegDeny.multiregister, scrim)
 
@@ -110,7 +115,9 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
         async for slot in scrim.assigned_slots.all():
             if slot.team_name == teamname:
                 _bool = False
-                bot.dispatch("scrim_registration_deny", message, constants.RegDeny.duplicate, scrim)
+                bot.dispatch(
+                    "scrim_registration_deny", message, constants.RegDeny.duplicate, scrim
+                )
                 break
             else:
                 continue
@@ -124,7 +131,9 @@ async def should_open_scrim(scrim: Scrim):
     role = scrim.role
     _bool = True
 
-    text = f"Registration of Scrim: `{scrim.id}` couldn't be opened due to the following reason:\n\n"
+    text = (
+        f"Registration of Scrim: `{scrim.id}` couldn't be opened due to the following reason:\n\n"
+    )
 
     if not registration_channel:
         _bool = False
@@ -132,7 +141,9 @@ async def should_open_scrim(scrim: Scrim):
 
     elif not registration_channel.permissions_for(guild.me).manage_channels:
         _bool = False
-        text += "I do not have `manage_channels` permission in {0}".format(registration_channel.mention)
+        text += "I do not have `manage_channels` permission in {0}".format(
+            registration_channel.mention
+        )
 
     elif role is None:
         _bool = False

@@ -7,7 +7,6 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-
 from constants import random_greeting, random_thanks
 from core import Cog
 

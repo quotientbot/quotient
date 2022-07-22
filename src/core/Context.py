@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 import io
 from contextlib import suppress
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import discord
 from async_property import async_property
@@ -11,12 +14,14 @@ import utils
 
 
 class Context(commands.Context):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
+    if TYPE_CHECKING:
         from .Bot import Quotient
 
-        self.bot: Quotient
+    bot: Quotient
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @property
     def db(self):
@@ -64,11 +69,11 @@ class Context(commands.Context):
 
         try:
             if delete_after:
-                await msg.delete()
+                await msg.delete(delay=0)
         finally:
             return view.value
 
-    async def error(self, message, delete_after=None, **kwargs):
+    async def error(self, message, delete_after=None, **kwargs) -> discord.Message:
         with suppress(discord.HTTPException):
 
             return await self.reply(
@@ -133,7 +138,7 @@ class Context(commands.Context):
         with suppress(AttributeError, discord.NotFound, discord.Forbidden):
             await message.delete()
 
-    async def send(self, content: any = None, **kwargs):
+    async def send(self, content: Any = None, **kwargs: Any) -> Optional[discord.Message]:
         if not (_perms := self.channel.permissions_for(self.me)).send_messages:
             try:
                 await self.author.send(
@@ -159,7 +164,9 @@ class Context(commands.Context):
 
         return await super().send(content, **kwargs)
 
-    async def wait_and_purge(self, channel, *, limit=100, wait_for=10, check=lambda m: True):
+    async def wait_and_purge(
+        self, channel: Union[discord.TextChannel, discord.Thread], *, limit=100, wait_for=10, check=lambda m: True
+    ):
         await asyncio.sleep(wait_for)
 
         with suppress(discord.HTTPException):

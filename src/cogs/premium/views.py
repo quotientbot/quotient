@@ -1,10 +1,9 @@
 import io
 from typing import List
 
+import config
 import discord
 from aiohttp import ClientSession
-
-import config
 from utils import emote
 
 

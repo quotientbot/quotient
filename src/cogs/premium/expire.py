@@ -3,18 +3,27 @@ from __future__ import annotations
 import typing
 from contextlib import suppress
 
-import discord
-
 import config
-from models import (EasyTag, Guild, Scrim, ScrimsSlotManager, SSVerify,
-                    TagCheck, Tourney, User)
+import discord
+from models import (
+    EasyTag,
+    Guild,
+    Scrim,
+    ScrimsSlotManager,
+    SSVerify,
+    TagCheck,
+    Tourney,
+    User,
+)
 from utils import discord_timestamp, plural
 
 from .views import PremiumView
 
 
 async def deactivate_premium(guild_id: int):
-    await Guild.filter(guild_id=guild_id).update(embed_color=config.COLOR, embed_footer=config.FOOTER, is_premium=False)
+    await Guild.filter(guild_id=guild_id).update(
+        embed_color=config.COLOR, embed_footer=config.FOOTER, is_premium=False
+    )
 
     _s: typing.List[Scrim] = (await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]
     await Scrim.filter(id__in=(s.pk for s in _s)).delete()
@@ -50,10 +59,14 @@ async def extra_guild_perks(guild_id: int):
     ]
 
     if (_s := await Scrim.filter(guild_id=guild_id).order_by("id"))[3:]:
-        _list.append(f"- {plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})")
+        _list.append(
+            f"- {plural(len(_s)):scrim|scrims} will be deleted. (ID: {', '.join((str(s.pk) for s in _s))})"
+        )
 
     if (_t := await Tourney.filter(guild_id=guild_id).order_by("id"))[1:]:
-        _list.append(f"- {plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})")
+        _list.append(
+            f"- {plural(len(_t)):tourney|tourneys} will be deleted. (ID: {', '.join(str(t.pk) for t in _t)})"
+        )
 
     if (_tc := await TagCheck.filter(guild_id=guild_id).order_by("id"))[1:]:
         _list.append(
@@ -81,7 +94,9 @@ async def extra_guild_perks(guild_id: int):
 async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
     if (_ch := model.private_ch) and _ch.permissions_for(_ch.guild.me).embed_links:
         _e = discord.Embed(
-            color=discord.Color.red(), title="⚠️__**Quotient Prime Ending Soon**__⚠️", url=config.SERVER_LINK
+            color=discord.Color.red(),
+            title="⚠️__**Quotient Prime Ending Soon**__⚠️",
+            url=config.SERVER_LINK,
         )
 
         _e.description = (
@@ -91,7 +106,9 @@ async def remind_guild_to_pay(guild: discord.Guild, model: Guild):
         )
 
         _roles = [
-            role.mention for role in guild.roles if all((role.permissions.administrator, not role.managed, role.members))
+            role.mention
+            for role in guild.roles
+            if all((role.permissions.administrator, not role.managed, role.members))
         ]
 
         _view = PremiumView(label="Buy Quotient Prime")

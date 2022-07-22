@@ -9,7 +9,6 @@ import re
 from contextlib import suppress
 
 import discord
-
 import utils
 from core import Cog
 from models import EasyTag, TagCheck
@@ -38,7 +37,7 @@ class TagEvents(Cog):
 
         ignore_role = tagcheck.ignorerole
 
-        if ignore_role is not None and ignore_role in message.author.roles:
+        if ignore_role is not None and ignore_role in message.author.roles:  # type: ignore # line guarded #25
             return
 
         with suppress(discord.HTTPException, AttributeError):
@@ -86,7 +85,7 @@ class TagEvents(Cog):
 
         ignore_role = eztag.ignorerole
 
-        if ignore_role is not None and ignore_role in message.author.roles:
+        if ignore_role is not None and ignore_role in message.author.roles:  # type: ignore # line guarded #74
             return
 
         with suppress(discord.HTTPException, AttributeError):

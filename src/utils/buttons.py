@@ -1,15 +1,16 @@
-from typing import List, NamedTuple, Union
+from __future__ import annotations
+
+from typing import List, NamedTuple, Optional, Union
 
 import discord
 
-from .default import split_list
 from .emote import TextChannel, VoiceChannel
 
 
 class LinkType(NamedTuple):
-    name: str = None
-    url: str = None
-    emoji: str = None
+    name: Optional[str] = None
+    url: Optional[str] = None
+    emoji: Optional[str] = None
 
 
 class LinkButton(discord.ui.View):
@@ -37,13 +38,13 @@ class Prompt(discord.ui.View):
         return True
 
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.green)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def confirm(self, interaction: discord.Interaction, _: discord.ui.Button):
         await interaction.response.defer()
         self.value = True
         self.stop()
 
     @discord.ui.button(label="Cancel", style=discord.ButtonStyle.grey)
-    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def cancel(self, interaction: discord.Interaction, _: discord.ui.Button):
         await interaction.response.defer()
         self.value = False
         self.stop()

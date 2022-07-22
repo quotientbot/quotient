@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import asyncio
 import typing as T
-from contextlib import suppress
 
 import discord
 

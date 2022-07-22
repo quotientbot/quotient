@@ -9,7 +9,6 @@ from contextlib import suppress
 from datetime import datetime, timedelta
 
 import discord
-
 from constants import IST
 from core import Cog
 from models import AutoPurge, Snipe, Timer
@@ -37,7 +36,11 @@ class AutoPurgeEvents(Cog):
 
         await Snipe.update_or_create(
             channel_id=channel.id,
-            defaults={"author_id": message.author.id, "content": content, "nsfw": channel.is_nsfw()},
+            defaults={
+                "author_id": message.author.id,
+                "content": content,
+                "nsfw": channel.is_nsfw(),
+            },
         )
 
     @Cog.listener()

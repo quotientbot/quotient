@@ -48,7 +48,9 @@ class Dev(Cog):
             else:
                 synced = await self.bot.tree.sync()
 
-            await ctx.send(f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}")
+            await ctx.send(
+                f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+            )
             return
 
         ret = 0
@@ -93,9 +95,13 @@ class Dev(Cog):
             else self.bot.current_time + datetime.timedelta(days=days)
         )
 
-        await User.get(pk=user).update(premiums=boosts, is_premium=True, premium_expire_time=end_time)
+        await User.get(pk=user).update(
+            premiums=boosts, is_premium=True, premium_expire_time=end_time
+        )
         self.bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=user))
-        return await ctx.success("Given {} boosts for {} days to {}".format(boosts, days, self.bot.get_user(user)))
+        return await ctx.success(
+            "Given {} boosts for {} days to {}".format(boosts, days, self.bot.get_user(user))
+        )
 
     @commands.command(hidden=True)
     async def cmds(self, ctx: Context):
@@ -116,7 +122,11 @@ class Dev(Cog):
 
         cmds = sum(1 for i in self.bot.walk_commands())
 
-        embed.set_footer(text="Total Commands: {}  | Invoke rate per minute: {}".format(cmds, round(get_ipm(ctx.bot), 2)))
+        embed.set_footer(
+            text="Total Commands: {}  | Invoke rate per minute: {}".format(
+                cmds, round(get_ipm(ctx.bot), 2)
+            )
+        )
 
         await ctx.send(embed=embed)
 
@@ -213,4 +223,6 @@ class Dev(Cog):
                        ORDER BY "total" DESC
                        LIMIT 30;
                     """
-            return await tabulate_query(ctx, query, [c.qualified_name for c in cog.walk_commands()], interval)
+            return await tabulate_query(
+                ctx, query, [c.qualified_name for c in cog.walk_commands()], interval
+            )
