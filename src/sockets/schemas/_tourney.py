@@ -1,10 +1,12 @@
-from typing import List
+from __future__ import annotations
+
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 
 class SockTourney(BaseModel):
-    id: int = None
+    id: Optional[int] = None
     guild_id: int
     name: str = "Quotient-Tourney"
     registration_channel_id: int
@@ -15,9 +17,9 @@ class SockTourney(BaseModel):
     banned_users: List[int]
     host_id: int
     multiregister: bool = False
-    open_role_id: int = None
+    open_role_id: Optional[int] = None
     teamname_compulsion: bool = False
-    ping_role_id: int = None
+    ping_role_id: Optional[int] = None
     no_duplicate_name: bool = True
     autodelete_rejected: bool = True
-    success_message: str = None
+    success_message: Optional[str] = None

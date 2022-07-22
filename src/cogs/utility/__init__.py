@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import typing
 
-from discord.utils import escape_markdown, escape_mentions
-
 from cogs.utility.events import AutoPurgeEvents, ReminderEvents
+from discord.utils import escape_markdown, escape_mentions
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -15,17 +14,34 @@ from datetime import timedelta
 from io import BytesIO
 
 import discord
+from core import Cog, Context
 from discord.ext import commands
 from humanize import precisedelta
-
-from core import Cog, Context
 from models import ArrayAppend, ArrayRemove, AutoPurge, Autorole, Snipe, Tag
-from utils import (QuoCategory, QuoColor, QuoMember, QuoPaginator, QuoRole,
-                   QuoTextChannel, UserFriendlyTime, checks, discord_timestamp,
-                   plural, simple_convert, strtime, truncate_string)
+from utils import (
+    QuoCategory,
+    QuoColor,
+    QuoMember,
+    QuoPaginator,
+    QuoRole,
+    QuoTextChannel,
+    UserFriendlyTime,
+    checks,
+    discord_timestamp,
+    plural,
+    simple_convert,
+    strtime,
+    truncate_string,
+)
 
-from .functions import (TagConverter, TagName, guild_tag_stats,
-                        increment_usage, is_valid_name, member_tag_stats)
+from .functions import (
+    TagConverter,
+    TagName,
+    guild_tag_stats,
+    increment_usage,
+    is_valid_name,
+    member_tag_stats,
+)
 
 
 class Utility(Cog, name="utility"):
@@ -649,7 +665,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"**{channel}** removed from autopurge channels.")
 
 
-async def setup(bot) -> None:
+async def setup(bot: Quotient) -> None:
     await bot.add_cog(Utility(bot))
     await bot.add_cog(AutoPurgeEvents(bot))
     await bot.add_cog(ReminderEvents(bot))

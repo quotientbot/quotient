@@ -10,17 +10,16 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from discord.ext import commands
-
 from core import Cog, Context, QuotientView
+from discord.ext import commands
 from models import *
 from utils import QuoRole, QuoTextChannel, checks
 
 from .errors import SMError
 from .events import ScrimEvents, Ssverification, TagEvents, TourneyEvents
 from .helpers import delete_denied_message
-from .views import *
 from .slash import *
+from .views import *
 
 
 class ScrimManager(Cog, name="Esports"):

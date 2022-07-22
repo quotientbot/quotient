@@ -9,18 +9,21 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 from datetime import datetime, timedelta
 
-import discord
-from discord.ext import commands, tasks
-from tortoise.query_utils import Q
-
 import config
+import discord
 from constants import random_greeting, random_thanks
 from core import Cog, Context
+from discord.ext import commands, tasks
 from models import ArrayAppend, Guild, Premium, Timer, User
+from tortoise.query_utils import Q
 from utils import IST, Prompt, checks, strtime
 
-from .expire import (deactivate_premium, extra_guild_perks,
-                     remind_guild_to_pay, remind_user_to_pay)
+from .expire import (
+    deactivate_premium,
+    extra_guild_perks,
+    remind_guild_to_pay,
+    remind_user_to_pay,
+)
 from .views import GuildSelector, PremiumView
 
 
@@ -316,5 +319,5 @@ class PremiumCog(Cog, name="Premium"):
     #     await channel.send("Quotient Change request timed out. Kindly use `qchangequo` command again.")
 
 
-async def setup(bot) -> None:
+async def setup(bot: Quotient) -> None:
     await bot.add_cog(PremiumCog(bot))

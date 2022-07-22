@@ -22,7 +22,9 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
         super().__init__()
 
     async def can_use_command(self, interaction: discord.Interaction) -> bool:
-        if not any((interaction.user.guild_permissions.manage_guild, Scrim.is_ignorable(interaction.user))):
+        if not any(
+            (interaction.user.guild_permissions.manage_guild, Scrim.is_ignorable(interaction.user))  # type: ignore # line guarded #25
+        ):
             await interaction.response.send_message(
                 embed=discord.Embed(
                     color=discord.Color.red(),
@@ -85,7 +87,8 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
                     await r.delete()
 
         await interaction.followup.send(
-            f"{emote.check} | {user.mention} has been unbanned from `{plural(scrims):scrim|scrims}`.", ephemeral=True
+            f"{emote.check} | {user.mention} has been unbanned from `{plural(scrims):scrim|scrims}`.",
+            ephemeral=True,
         )
 
         banlog = await BanLog.get_or_none(guild_id=interaction.guild_id)

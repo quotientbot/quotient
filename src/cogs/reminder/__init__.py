@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 import asyncpg
 import discord
-
 from core import Cog
 from models import Timer
 from utils import IST
@@ -107,5 +106,5 @@ class Reminders(Cog):
         return timer
 
 
-async def setup(bot):
+async def setup(bot: Quotient):
     await bot.add_cog(Reminders(bot))

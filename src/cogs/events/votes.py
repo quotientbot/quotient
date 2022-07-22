@@ -5,11 +5,10 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-import discord
-from discord import Webhook
-
 import constants
+import discord
 from core import Cog
+from discord import Webhook
 from models import Timer, User, Votes
 
 
@@ -54,5 +53,5 @@ class VotesCog(Cog):
             )
             try:
                 await member.send(embed=embed)
-            except:
+            except discord.Forbidden:
                 pass
