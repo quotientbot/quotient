@@ -7,8 +7,7 @@ from contextlib import suppress
 
 import discord
 
-from models import (ArrayAppend, ArrayRemove, AssignedSlot, Scrim,
-                    ScrimsSlotManager)
+from models import ArrayAppend, ArrayRemove, AssignedSlot, Scrim, ScrimsSlotManager
 from utils import emote, truncate_string
 
 from .select import prompt_slot_selection
@@ -135,7 +134,7 @@ class ScrimsSlotlistEditor(discord.ui.View):
 
             await interaction.followup.send(embed=_e, ephemeral=True)
 
-            slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.scrim.id)
+            slotm = await ScrimsSlotManager.get_or_none(guild_id=self.scrim.guild_id, scrim_ids__contains=self.scrim.id)
             if slotm:
                 await slotm.refresh_public_message()
 

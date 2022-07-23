@@ -1,5 +1,5 @@
 from contextlib import suppress
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Optional
 
 import discord
 from tortoise import fields
@@ -148,7 +148,7 @@ class ScrimsSlotManager(BaseDbModel):
 
         return _e, view
 
-    async def refresh_public_message(self) -> discord.Message:
+    async def refresh_public_message(self) -> Optional[discord.Message]:
         """
         Edit public slotm message to reflect current state.
         """
@@ -162,10 +162,10 @@ class ScrimsSlotManager(BaseDbModel):
             return await m.edit(embed=_embed, view=_view)
 
     @staticmethod
-    async def refresh_guild_message(scrim_id: int):
-        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=scrim_id)
+    async def refresh_guild_message(guild_id: int, scrim_id: int) -> Optional[discord.Message]:
+        slotm = await ScrimsSlotManager.get_or_none(guild_id=guild_id, scrim_ids__contains=scrim_id)
         if slotm:
-            await slotm.refresh_public_message()
+            return await slotm.refresh_public_message()
 
     async def setup(self, guild: discord.Guild, user: discord.Member):
         """

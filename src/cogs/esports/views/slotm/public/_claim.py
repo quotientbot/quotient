@@ -87,7 +87,7 @@ class ClaimSlotModal(discord.ui.Modal, title="Claim Scrims Slot"):
     async def proccess_claim(self, scrim: Scrim, slot: AssignedSlot):
         await scrim.refresh_slotlist_message()
 
-        await ScrimsSlotManager.refresh_guild_message(scrim.id)
+        await ScrimsSlotManager.refresh_guild_message(scrim.guild_id, scrim.id)
 
         with suppress(AttributeError, discord.HTTPException):
             await scrim.slotlist_channel.send(f"{slot.team_name} ({slot.owner.mention}) -> Claimed Slot {slot.num}")

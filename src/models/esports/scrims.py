@@ -288,9 +288,7 @@ class Scrim(BaseDbModel):
         if not check:
             await self.bot.reminders.create_timer(_time, "scrim_match", scrim_id=self.pk)
 
-        slotm = await ScrimsSlotManager.filter(scrim_ids__contains=self.pk).first()
-        if slotm:
-            await slotm.refresh_public_message()
+        await ScrimsSlotManager.refresh_guild_message(self.guild_id, self.pk)
 
     async def make_changes(self, **kwargs):
         await Scrim.filter(pk=self.pk).update(**kwargs)
@@ -485,7 +483,7 @@ class Scrim(BaseDbModel):
         _id = self.pk
         self.bot.cache.scrim_channels.discard(self.registration_channel.id)
 
-        slotm = await ScrimsSlotManager.filter(scrim_ids__contains=self.pk)
+        slotm = await ScrimsSlotManager.filter(guild_id =self.guild_id,scrim_ids__contains=self.pk)
         await ScrimsSlotManager.filter(pk__in=[_.pk for _ in slotm]).update(scrim_ids=ArrayRemove("scrim_ids", _id))
 
         _d = await self.assigned_slots.all()
@@ -538,7 +536,7 @@ class Scrim(BaseDbModel):
             )
             self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
 
-        slotm = await ScrimsSlotManager.get_or_none(scrim_ids__contains=self.id)
+        slotm = await ScrimsSlotManager.get_or_none(guild_id = self.guild_id,scrim_ids__contains=self.id)
         if slotm:
             await slotm.refresh_public_message()
 
