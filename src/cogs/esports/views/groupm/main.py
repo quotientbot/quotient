@@ -3,9 +3,6 @@ from __future__ import annotations
 import typing as T
 from contextlib import suppress
 
-if T.TYPE_CHECKING:
-    from core import Quotient
-
 import discord
 
 from core import Context
@@ -14,6 +11,7 @@ from utils import inputs, keycap_digit
 
 from ..base import EsportsBaseView
 from ._paginator import GroupPages
+from ..tourney._buttons import DiscardButton
 
 __all__ = ("TourneyGroupManager",)
 
@@ -166,6 +164,7 @@ class TourneyGroupManager(EsportsBaseView):
 
         self.stop()
         _v = GroupPages(self.ctx, self.tourney, ping_all=self.ping_all, category=self.category)
+        _v.add_item(DiscardButton(self.ctx, "Main Menu", 2))
         await _v.rendor(self.message)
 
     async def __get_or_create_role(self, name: str) -> T.Union[discord.Role, str]:

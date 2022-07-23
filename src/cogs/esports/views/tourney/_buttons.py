@@ -90,7 +90,7 @@ class SetRole(TourneyButton):
         super().__init__(emoji=ri(letter))
 
         self.ctx = ctx
-    
+
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
@@ -351,7 +351,7 @@ class DeleteTourney(TourneyButton):
 
         await self.view.record.full_delete()
         await self.ctx.success("Successfully deleted tourney.", 3)
-     
+
         from .main import TourneyManager as TM
 
         self.view.stop()
@@ -360,8 +360,8 @@ class DeleteTourney(TourneyButton):
 
 
 class DiscardButton(TourneyButton):
-    def __init__(self, ctx: Context):
-        super().__init__(label="Go Back", style=discord.ButtonStyle.red)
+    def __init__(self, ctx: Context, label: str = "Go Back", row: int = None):
+        super().__init__(label=label, style=discord.ButtonStyle.red, row=row)
         self.ctx = ctx
 
     async def callback(self, interaction: discord.Interaction):
