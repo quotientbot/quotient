@@ -32,8 +32,11 @@ class Errors(Cog):
         if isinstance(err, commands.NotOwner):
             return await ctx.send("Hmmm!😷")
 
+        if not hasattr(ctx, "error"):
+            ctx.error = ctx.reply
+
         if isinstance(err, exceptions.QuotientError):
-            return await ctx.error(err.__str__().format(ctx=ctx))
+            return await ctx.error(err.__str__().format(ctx=ctx), ephemeral=True)
 
         if isinstance(err, commands.MissingRequiredArgument):
             return await ctx.send(

@@ -32,7 +32,7 @@ class InputError(QuotientError):
 
 class SMNotUsable(QuotientError):
     def __init__(self):
-        super().__init__(f"You need either the `scrims-mod` role or `manage_guild` permissions to use scrims manager.")
+        super().__init__(f"You need either the `scrims-mod` role or `manage_guild` permissions to use this command.")
 
 
 class TMNotUsable(QuotientError):

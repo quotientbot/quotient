@@ -87,31 +87,37 @@ class ScrimManager(Cog, name="Esports"):
         view.add_item(QuotientView.tricky_invite_button())
         view.message = await ctx.send(embed=await view.initial_embed(), view=view)
 
-    @commands.command(extras={"examples": ["quickidp 1234 pass Miramar", "quickidp 1234 pass Sanhok @role"]})
+    @commands.hybrid_command(
+        aliases=("quickidp",),
+        extras={"examples": ["idp 1234 pass Miramar", "idp 1234 pass Sanhok @role"]},
+    )
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
-    @commands.cooldown(7, 1, type=commands.BucketType.guild)
-    async def quickidp(self, ctx: Context, room_id, password, map, role_to_ping: QuoRole = None):
+    async def idp(self, ctx: Context, room_id: str, password: str, map: str, role_to_ping: Optional[discord.Role] = None):
         """
         Share Id/pass with embed quickly.
         Message is automatically deleted after 30 minutes.
         """
-        await ctx.message.delete()
-        embed = self.bot.embed(ctx, title="New Custom Room. JOIN NOW!")
-        embed.set_thumbnail(url=ctx.guild.icon.url)
-        embed.add_field(name="Room ID", value=room_id)
-        embed.add_field(name="Password", value=password)
-        embed.add_field(name="Map", value=map)
-        embed.set_footer(
-            text=f"Shared by: {ctx.author} • Auto delete in 30 minutes.", icon_url=ctx.author.display_avatar.url
-        )
-        msg = await ctx.send(
-            content=role_to_ping.mention if role_to_ping else None,
-            embed=embed,
-            allowed_mentions=discord.AllowedMentions(roles=True),
-        )
+        await ctx.message.delete(delay=0)
+        room_id, password, map = truncate_string(room_id, 100), truncate_string(password, 100), truncate_string(map, 100)
 
-        self.bot.loop.create_task(delete_denied_message(msg, 30 * 60))
+        _e = discord.Embed(color=self.bot.color)
+        _e.set_thumbnail(url=getattr(ctx.guild.icon, "url", self.bot.user.avatar.url))
+        _e.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+        _e.add_field(name="Room ID", value=room_id)
+        _e.add_field(name="Password", value=password)
+        _e.add_field(name="Map", value=map)
+        _e.set_footer(text=f"Auto-delete time")
+        _e.timestamp = self.bot.current_time + timedelta(minutes=30)
+
+        view = IdpView(room_id, password, map)
+        await ctx.send(
+            content=role_to_ping.mention if role_to_ping else None,
+            embed=_e,
+            view=view,
+            allowed_mentions=discord.AllowedMentions(roles=True),
+            delete_after=30 * 60,
+        )
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):

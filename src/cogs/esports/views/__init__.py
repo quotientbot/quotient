@@ -4,3 +4,4 @@ from .slotm import *
 from .smslotlist import *
 from .ssmod import *
 from .tourney import *
+from .idp import *

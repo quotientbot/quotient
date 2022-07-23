@@ -17,7 +17,7 @@ class CmdEvents(Cog):
         self.bot = bot
 
     async def bot_check(self, ctx: Context):
-        if ctx.author.id in ctx.config.DEVS:
+        if ctx.author.id in self.bot.config.DEVS:
             return True
 
         if self.bot.lockdown is True:
