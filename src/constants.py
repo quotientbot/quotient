@@ -159,12 +159,16 @@ def random_thanks():
 
 tips = (
     "We have an awesome support server:\ndiscord.gg/aBM5xz6",
-    "You can set custom reactions for tourneys & scrims with Quotient Pro",
+    "You can set custom reactions for tourneys & scrims with Quotient Pro.",
     "I like your face : )",  # I really do
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "Quotient can detect and verify youtube/insta/loco,etc. screenshots (`ssverify` cmd).",
-    "You can buy Quotient Prime for 29INR only at <https://quotientbot.xyz/premium>",
-    "You get 1 Month Flantic & 1 Month Real Bot Premium with Quotient Prime, more info at <https://quotientbot.xyz/premium>",
+    "You can buy Quotient Pro for 29INR only at <https://quotientbot.xyz/premium>",
+    "You can customized embeds with `/embed` command."
+    "Scrims Slot Cancel-Claim is available for free with `slotm` command.",
+    "You can create tourney groups with `tourney` command.",
+    "Scrims Open & Close messages can be designed with `design` button on `sm` command.",
+    "With Quotient Pro you can set custom successs message that will be sent to the user after registration.",
 )
 
 
