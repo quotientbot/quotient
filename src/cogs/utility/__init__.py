@@ -14,13 +14,12 @@ from datetime import timedelta
 from io import BytesIO
 
 import discord
-from core import Cog, Context
+from core import Cog, Context, embeds
 from discord.ext import commands
 from humanize import precisedelta
 from models import ArrayAppend, ArrayRemove, AutoPurge, Autorole, Snipe, Tag
 from utils import (
     QuoCategory,
-    QuoColor,
     QuoMember,
     QuoPaginator,
     QuoRole,
@@ -43,13 +42,17 @@ from .functions import (
     member_tag_stats,
 )
 
+from .views import *
+
 
 class Utility(Cog, name="utility"):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
     @commands.group(aliases=("timer", "remind"), invoke_without_command=True)
-    async def reminder(self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")):  # noqa: F722
+    async def reminder(
+        self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")
+    ):  # noqa: F722
         """Reminds you of something after a certain amount of time.
 
         The input can be any direct date (e.g. YYYY-MM-DD) or a human
@@ -189,30 +192,17 @@ class Utility(Cog, name="utility"):
         embed.add_field(name="Bots", value=bots, inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(name="embed")
+    @commands.hybrid_command(name="embed")
     @commands.has_permissions(manage_messages=True)
-    async def embed_send(self, ctx: Context, channel: discord.TextChannel, color: QuoColor, *, text: str):
+    async def embed_send(self, ctx: Context, channel: discord.TextChannel):
         """
-        Generated and sends embed to specified channel. Use qqe <message> for quick embeds
-        Tip: You can send hyperlinks too. Example: `[anytext](any link)`
+        Generate and send embed to specified channel.
         """
         if not channel.permissions_for(ctx.me).embed_links:
             return await ctx.error(f"I need `embed_links` permission in {channel.mention}")
 
-        embed = discord.Embed(color=color, description=text)
-        if ctx.message.attachments and "image" in ctx.message.attachments[0].content_type:
-            embed.set_image(url=ctx.message.attachments[0].proxy_url)
-        await ctx.send(embed=embed)
-        prompt = await ctx.prompt(
-            "Should I deliver it?",
-        )
-
-        if prompt:
-            await channel.send(embed=embed)
-            await ctx.success(f"Successfully delivered.")
-
-        else:
-            await ctx.success("Ok Aborting")
+        view = embeds.EmbedBuilder(ctx, items=[EmbedSend(channel), EmbedCancel()])
+        await view.rendor()
 
     @commands.command(name="quickembed", aliases=["qe"])
     @commands.has_permissions(manage_messages=True, embed_links=True)

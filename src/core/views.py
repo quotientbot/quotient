@@ -6,7 +6,7 @@ import config
 from core import Context
 from utils import emote
 
-__all__ = ("QuotientView",)
+__all__ = ("QuotientView", "QuoInput")
 
 
 class QuotientView(discord.ui.View):
@@ -45,3 +45,12 @@ class QuotientView(discord.ui.View):
     @staticmethod
     def tricky_invite_button():  # yes lmao
         return discord.ui.Button(emoji=emote.info, url=config.SERVER_LINK)
+
+
+class QuoInput(discord.ui.Modal):
+    def __init__(self, title: str):
+        super().__init__(title=title)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        with suppress(discord.NotFound):
+            await interaction.response.defer()

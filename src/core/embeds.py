@@ -8,7 +8,7 @@ import discord
 from core.Context import Context
 from utils import QuoColor
 
-from .views import QuotientView
+from .views import QuotientView, QuoInput
 
 
 class EmbedOptions(discord.ui.Select):
@@ -68,64 +68,131 @@ class EmbedOptions(discord.ui.Select):
             await self.view.refresh_view()
 
         elif selected == "main":
-            modal = MainEdit()
+            modal = QuoInput("Set Embed Message")
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Title",
+                    placeholder="Enter text for title of embed here...",
+                    max_length=256,
+                    required=False,
+                    style=discord.TextStyle.short,
+                    default=self.view.embed.title,
+                )
+            )
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Description",
+                    placeholder="Enter text for description of embed here...",
+                    max_length=4000,
+                    required=False,
+                    style=discord.TextStyle.long,
+                    default=self.view.embed.description,
+                )
+            )
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Footer Text",
+                    placeholder="Enter text for footer of embed here...",
+                    style=discord.TextStyle.long,
+                    max_length=2048,
+                    required=False,
+                    default=self.view.embed.footer.text,
+                )
+            )
             await interaction.response.send_modal(modal)
             await modal.wait()
-            self.view.embed.title = modal.m_title.value or ""
-            self.view.embed.description = modal.m_description.value or ""
-            self.view.embed.set_footer(text=modal.m_footer.value or "", icon_url=self.view.embed.footer.icon_url)
+
+            t, d, f = str(modal.children[0]), str(modal.children[1]), str(modal.children[2])
+
+            self.view.embed.title = t or None
+            self.view.embed.description = d or None
+            self.view.embed.set_footer(text=f or None, icon_url=self.view.embed.footer.icon_url)
 
             await self.view.refresh_view()
 
         elif selected == "thumb":
-            modal = InputImage()
+            modal = QuoInput("Edit Thumbnail Image")
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Enter Image URL (Optional)",
+                    placeholder="Leave empty to remove Image.",
+                    required=False,
+                    default=getattr(self.view.embed.thumbnail, "url", None),
+                )
+            )
             await interaction.response.send_modal(modal)
             await modal.wait()
+            url = str(modal.children[0]) or None
 
-            if modal._image.value.startswith("http"):
-                self.view.embed.set_thumbnail(url=modal._image.value)
-
-            else:
+            if not url or not url.startswith("https"):
                 self.view.embed.set_thumbnail(url=None)
 
+            else:
+                self.view.embed.set_thumbnail(url=url)
             await self.view.refresh_view()
 
         elif selected == "image":
-            modal = InputImage()
+            modal = QuoInput("Edit Main Image")
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Enter Image URL (Optional)",
+                    placeholder="Leave empty to remove Image.",
+                    required=False,
+                    default=getattr(self.view.embed.image, "url", None),
+                )
+            )
             await interaction.response.send_modal(modal)
             await modal.wait()
+            url = str(modal.children[0]) or None
 
-            if modal._image.value.startswith("http"):
-                self.view.embed.set_image(url=modal._image.value)
+            if not url or not url.startswith("https"):
+                self.view.embed.set_image(url=None)
 
             else:
-                self.view.embed.set_image(url=None)
+                self.view.embed.set_image(url=url)
 
             await self.view.refresh_view()
 
         elif selected == "footer_icon":
-            modal = InputImage()
+            modal = QuoInput("Edit Footer Icon")
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Enter Image URL (Optional)",
+                    placeholder="Leave empty to remove Icon.",
+                    required=False,
+                    default=getattr(self.view.embed.footer, "icon_url", None),
+                )
+            )
             await interaction.response.send_modal(modal)
             await modal.wait()
+            url = str(modal.children[0]) or None
 
-            if modal._image.value.startswith("http"):
-                self.view.embed.set_footer(icon_url=modal._image.value, text=self.view.embed.footer.text)
+            if not url or not url.startswith("https"):
+                self.view.embed.set_footer(icon_url=None, text=self.view.embed.footer.text)
 
             else:
-                self.view.embed.set_footer(icon_url=None, text=self.view.embed.footer.text)
+                self.view.embed.set_footer(icon_url=url, text=self.view.embed.footer.text)
 
             await self.view.refresh_view()
 
         elif selected == "color":
-            modal = Color()
+            modal = QuoInput("Set Embed Color")
+            modal.add_item(
+                discord.ui.TextInput(
+                    label="Enter a valid Color",
+                    placeholder="Examples: red, yellow, #00ffb3, etc.",
+                    required=False,
+                    max_length="7",
+                )
+            )
             await interaction.response.send_modal(modal)
             await modal.wait()
 
             color = 0x36393E
 
             with suppress(ValueError):
-                if modal._color.value:
-                    color = int(str(await QuoColor.convert(self.ctx, modal._color.value)).replace("#", ""), 16)
+                if c := str(modal.children[0]):
+                    color = int(str(await QuoColor.convert(self.ctx, c)).replace("#", ""), 16)
 
             self.view.embed.color = color
 
@@ -178,35 +245,6 @@ class EmbedBuilder(QuotientView):
         )
 
 
-class MainEdit(discord.ui.Modal, title="Edit Embed Message"):
-    m_title = discord.ui.TextInput(
-        label="Title",
-        placeholder="Enter text for title of embed here...",
-        max_length=256,
-        required=False,
-        style=discord.TextStyle.short,
-    )
-
-    m_description = discord.ui.TextInput(
-        label="Description",
-        placeholder="Enter text for description of embed here...",
-        max_length=4000,
-        required=False,
-        style=discord.TextStyle.long,
-    )
-
-    m_footer = discord.ui.TextInput(
-        label="Footer Text",
-        placeholder="Enter text for footer of embed here...",
-        style=discord.TextStyle.long,
-        max_length=2048,
-        required=False,
-    )
-
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer()
-
-
 class Content(discord.ui.Modal, title="Edit Message Content"):
     _content = discord.ui.TextInput(
         label="Content",
@@ -216,23 +254,5 @@ class Content(discord.ui.Modal, title="Edit Message Content"):
         style=discord.TextStyle.long,
     )
 
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer()
-class Color(discord.ui.Modal, title="Edit Embed Color"):
-    _color = discord.ui.TextInput(
-        label="Enter a valid Color",
-        placeholder="Examples: red, yellow, #00ffb3, etc.",
-        required=False,
-        max_length="7",
-    )
-    async def on_submit(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer()
-
-class InputImage(discord.ui.Modal, title="Edit Image"):
-    _image = discord.ui.TextInput(
-        label="Input Image URL",
-        placeholder="Leave empty to remove Image.",
-        required=False,
-    )
     async def on_submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
