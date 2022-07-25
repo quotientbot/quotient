@@ -217,7 +217,7 @@ class EmbedBuilder(QuotientView):
     def formatted(self):
         return self.embed.to_dict()
 
-    async def refresh_view(self, to_del: discord.Message = None):
+    async def refresh_view(self, to_del: T.Optional[discord.Message] = None):
         if to_del is not None:
             await self.ctx.safe_delete(to_del)
 
