@@ -5,10 +5,11 @@ from contextlib import suppress
 
 import discord
 
-from core.Context import Context
-from utils import QuoColor
+if T.TYPE_CHECKING:
+    from core import Context
+    from utils import QuoColor
 
-from .views import QuotientView, QuoInput
+from .views import QuoInput, QuotientView
 
 
 class EmbedOptions(discord.ui.Select):
@@ -59,6 +60,9 @@ class EmbedOptions(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+
+        assert self.view is not None
+
         if (selected := self.values[0]) == "content":
             modal = Content()
             await interaction.response.send_modal(modal)
@@ -182,7 +186,7 @@ class EmbedOptions(discord.ui.Select):
                     label="Enter a valid Color",
                     placeholder="Examples: red, yellow, #00ffb3, etc.",
                     required=False,
-                    max_length="7",
+                    max_length=7,
                 )
             )
             await interaction.response.send_modal(modal)
@@ -200,7 +204,7 @@ class EmbedOptions(discord.ui.Select):
 
 
 class EmbedBuilder(QuotientView):
-    def __init__(self, ctx: Context, **kwargs):
+    def __init__(self, ctx: Context, **kwargs: T.Any):
         super().__init__(ctx, timeout=100)
 
         self.ctx = ctx
@@ -214,13 +218,15 @@ class EmbedBuilder(QuotientView):
         return self.embed.to_dict()
 
     async def refresh_view(self, to_del: discord.Message = None):
-        if to_del:
+        if to_del is not None:
             await self.ctx.safe_delete(to_del)
 
         with suppress(discord.HTTPException):
-            self.message = await self.message.edit(content=self.content, embed=self.embed, view=self)
+            self.message = await self.message.edit(
+                content=self.content, embed=self.embed, view=self
+            )
 
-    async def rendor(self, **kwargs):
+    async def rendor(self, **kwargs: T.Any):
         self.message: discord.Message = await self.ctx.send(
             kwargs.get("content", ""),
             embed=kwargs.get("embed", self.help_embed),
@@ -237,7 +243,9 @@ class EmbedBuilder(QuotientView):
             .set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/853174868551532564/860464565338898472/embed_thumbnail.png"
             )
-            .set_image(url="https://cdn.discordapp.com/attachments/853174868551532564/860462053063393280/embed_image.png")
+            .set_image(
+                url="https://cdn.discordapp.com/attachments/853174868551532564/860462053063393280/embed_image.png"
+            )
             .set_footer(
                 text="Footer Message",
                 icon_url="https://media.discordapp.net/attachments/853174868551532564/860464989164535828/embed_footer.png",
@@ -246,7 +254,7 @@ class EmbedBuilder(QuotientView):
 
 
 class Content(discord.ui.Modal, title="Edit Message Content"):
-    _content = discord.ui.TextInput(
+    _content: discord.ui.TextInput = discord.ui.TextInput(
         label="Content",
         placeholder="This text will be displayed over the embed",
         required=False,
