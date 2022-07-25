@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 from difflib import get_close_matches
 from typing import List, Mapping
 
+import config
 import discord
 from discord.ext import commands
-
-import config
-from utils import LinkButton, LinkType, QuoPaginator, get_ipm, truncate_string
+from utils import LinkButton, LinkType, QuoPaginator, truncate_string
 
 from .Cog import Cog
 
 
 class HelpCommand(commands.HelpCommand):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             verify_checks=False,
             command_attrs={
@@ -32,21 +33,30 @@ class HelpCommand(commands.HelpCommand):
 
         server = f"[Support Server]({config.SERVER_LINK})"
         invite = f"[Invite Me]({config.BOT_INVITE})"
-        dashboard = f"[Privacy Policy](https://github.com/quotientbot/Quotient-Bot/wiki/privacy-policy)"
+        dashboard = (
+            f"[Privacy Policy](https://github.com/quotientbot/Quotient-Bot/wiki/privacy-policy)"
+        )
 
         embed.description = f"{server} **|** {invite} **|** {dashboard}"
 
         for cog, cmds in mapping.items():
-            if cog and not cog.qualified_name in hidden and await self.filter_commands(cmds, sort=True):
+            if (
+                cog
+                and cog.qualified_name not in hidden
+                and await self.filter_commands(cmds, sort=True)
+            ):
                 embed.add_field(
                     inline=False,
                     name=cog.qualified_name.title(),
                     value=", ".join(map(lambda x: f"`{x}`", cog.get_commands())),
                 )
 
-        cmds = sum(1 for i in self.context.bot.walk_commands())
+        # cmds = len(list(self.context.bot.walk_commands()))
 
-        links = [LinkType("Support Server", config.SERVER_LINK), LinkType("Invite Me", config.BOT_INVITE)]
+        links = [
+            LinkType("Support Server", config.SERVER_LINK),
+            LinkType("Invite Me", config.BOT_INVITE),
+        ]
         await ctx.send(embed=embed, embed_perms=True, view=LinkButton(links))
 
     async def send_group_help(self, group: commands.Group):
@@ -60,14 +70,21 @@ class HelpCommand(commands.HelpCommand):
         embed.title = f"{group.qualified_name} {group.signature}"
         _help = group.help or "No description provided..."
 
-        _cmds = "\n".join(f"`{prefix}{c.qualified_name}` : {truncate_string(c.short_doc,60)}" for c in group.commands)
+        _cmds = "\n".join(
+            f"`{prefix}{c.qualified_name}` : {truncate_string(c.short_doc,60)}"
+            for c in group.commands
+        )
 
         embed.description = f"> {_help}\n\n**Subcommands**\n{_cmds}"
 
         embed.set_footer(text=f'Use "{prefix}help <command>" for more information.')
 
         if group.aliases:
-            embed.add_field(name="Aliases", value=", ".join(f"`{aliases}`" for aliases in group.aliases), inline=False)
+            embed.add_field(
+                name="Aliases",
+                value=", ".join(f"`{aliases}`" for aliases in group.aliases),
+                inline=False,
+            )
 
         examples = []
         if group.extras:
@@ -78,7 +95,7 @@ class HelpCommand(commands.HelpCommand):
                 examples = [f"{self.context.prefix}{i}" for i in _ex]
 
         if examples:
-            examples = "\n".join(examples)
+            examples: str = "\n".join(examples)  # type: ignore
             embed.add_field(name="Examples", value=f"```{examples}```")
 
         await self.context.send(embed=embed, embed_perms=True)
@@ -88,7 +105,11 @@ class HelpCommand(commands.HelpCommand):
         c = 0
         for cmd in cog.get_commands():
             if not cmd.hidden:
-                _brief = "No Information..." if not cmd.short_doc else truncate_string(cmd.short_doc, 60)
+                _brief = (
+                    "No Information..."
+                    if not cmd.short_doc
+                    else truncate_string(cmd.short_doc, 60)
+                )
                 paginator.add_line(f"`{cmd.qualified_name}` : {_brief}")
                 c += 1
 
@@ -116,7 +137,7 @@ class HelpCommand(commands.HelpCommand):
             if _ex := cmd.extras.get("examples"):
                 examples = [f"{self.context.prefix}{i}" for i in _ex]
 
-        examples = "\n".join(examples) if examples else "Command has no examples"
+        examples: str = "\n".join(examples) if examples else "Command has no examples"  # type: ignore
 
         _text += f"```{examples}```"
 

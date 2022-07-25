@@ -1,8 +1,17 @@
 from __future__ import annotations
 
-
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, Coroutine, Dict, Iterable, List, NoReturn, Optional, Union
-from contextlib import suppress
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    AsyncGenerator,
+    Callable,
+    Coroutine,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Union,
+)
 
 if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
@@ -48,7 +57,7 @@ on_startup: List[Callable[["Quotient"], Coroutine]] = []
 
 
 class Quotient(commands.AutoShardedBot):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super().__init__(
             command_prefix=self.get_prefix,
             intents=intents,
@@ -57,7 +66,9 @@ class Quotient(commands.AutoShardedBot):
             case_insensitive=True,
             help_command=HelpCommand(),
             chunk_guilds_at_startup=False,
-            allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
+            allowed_mentions=AllowedMentions(
+                everyone=False, roles=False, replied_user=True, users=True
+            ),
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
@@ -73,10 +84,10 @@ class Quotient(commands.AutoShardedBot):
         self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self.lockdown: bool = False
-        self.lockdown_msg: str = None
+        self.lockdown_msg: Optional[str] = None
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
-        self.message_cache: Dict[int, Any] = LRU(1000)
+        self.message_cache: Dict[int, Any] = LRU(1024)  # type: ignore
 
     @on_startup.append
     async def __load_extensions(self):
@@ -87,7 +98,12 @@ class Quotient(commands.AutoShardedBot):
     @on_startup.append
     async def __load_presistent_views(self):
 
-        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
+        from cogs.esports.views import (
+            GroupRefresh,
+            ScrimsSlotmPublicView,
+            SlotlistEditButton,
+            TourneySlotManager,
+        )
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
@@ -95,7 +111,9 @@ class Quotient(commands.AutoShardedBot):
             self.add_view(ScrimsSlotmPublicView(record), message_id=record.message_id)
 
         async for tourney in Tourney.filter(slotm_message_id__isnull=False):
-            self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
+            self.add_view(
+                TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id
+            )
 
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
@@ -152,10 +170,10 @@ class Quotient(commands.AutoShardedBot):
         for coro_func in on_startup:
             self.loop.create_task(coro_func(self))
 
-    async def get_prefix(self, message: discord.Message) -> str:
+    async def get_prefix(self, message: discord.Message) -> Union[str, Callable, List[str]]:
         """Get a guild's prefix"""
         if not message.guild:
-            return
+            return commands.when_mentioned_or("q")(self, message)
 
         prefix = None
         guild = self.cache.guild_data.get(message.guild.id)
@@ -163,15 +181,21 @@ class Quotient(commands.AutoShardedBot):
             prefix = guild.get("prefix")
 
         else:
-            self.cache.guild_data[message.guild.id] = {"prefix": "q", "color": self.color, "footer": cfg.FOOTER}
+            self.cache.guild_data[message.guild.id] = {
+                "prefix": "q",
+                "color": self.color,
+                "footer": cfg.FOOTER,
+            }
 
         prefix = prefix or "q"
 
         return commands.when_mentioned_or(
-            *tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
+            *tuple(
+                "".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper()))
+            )
         )(self, message)
 
-    async def close(self) -> NoReturn:
+    async def close(self) -> None:
         await super().close()
 
         if hasattr(self, "session"):
@@ -203,12 +227,14 @@ class Quotient(commands.AutoShardedBot):
     async def on_command(self, ctx: Context):
         self.cmd_invokes += 1
         await csts.show_tip(ctx)
-        await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
+        await self.db.execute(
+            "INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id
+        )
 
     async def on_ready(self):
         print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
 
-    def embed(self, ctx: Context, **kwargs) -> discord.Embed:
+    def embed(self, ctx: Context, **kwargs: Any) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
         embed_color = self.cache.guild_data[ctx.guild.id]["color"]
         embed_footer = self.cache.guild_data[ctx.guild.id]["footer"]
@@ -216,9 +242,7 @@ class Quotient(commands.AutoShardedBot):
         if embed_footer.strip().lower() == "none":
             embed_footer = None
 
-        embed = discord.Embed(**kwargs)
-        embed.color = embed_color
-        embed.set_footer(text=embed_footer)
+        embed = discord.Embed(**kwargs, color=embed_color).set_footer(text=embed_footer)
         return embed
 
     async def is_owner(self, user: Union[discord.Member, discord.User]) -> bool:
@@ -227,7 +251,9 @@ class Quotient(commands.AutoShardedBot):
 
         return user.id in cfg.DEVS
 
-    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
+    async def get_or_fetch_member(
+        self, guild: discord.Guild, member_id: int
+    ) -> Optional[discord.Member]:
         """Looks up a member in cache or fetches if not found."""
         member = guild.get_member(member_id)
         if member is not None:
@@ -243,12 +269,16 @@ class Quotient(commands.AutoShardedBot):
             else:
                 return member
 
-        members = await guild.query_members(limit=1, user_ids=(member_id,), cache=True)
+        members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
 
         if len(members) > 0:
             return members[0]
 
-    async def resolve_member_ids(self, guild: discord.Guild, member_ids: Iterable[int]) -> AsyncIterator[discord.Member]:
+        return None
+
+    async def resolve_member_ids(
+        self, guild: discord.Guild, member_ids: Iterable[int]
+    ) -> AsyncGenerator[discord.Member, None]:
         """Bulk resolves member IDs to member instances, if possible."""
 
         needs_resolution = []
@@ -299,8 +329,13 @@ class Quotient(commands.AutoShardedBot):
         return self.get_guild(746337818388987967)
 
     @property
-    def invite_url(self):
-        return f"https://discord.com/oauth2/authorize?client_id={self.user.id}&scope=applications.commands%20bot&permissions=21175985838"
+    def invite_url(self) -> str:
+        return discord.utils.oauth_url(
+            self.user.id,
+            permissions=discord.Permissions(21175985838),
+            scopes=("bot", "applications.commands"),
+            disable_guild_select=False,
+        )
 
     @property
     def reminders(self) -> Reminders:  # since we use it a lot
@@ -318,7 +353,9 @@ class Quotient(commands.AutoShardedBot):
         return f"{t2*1000:.2f} ms"
 
     @staticmethod
-    async def getch(get_method, fetch_method, _id) -> Any:  # why does c have all the fun?
+    async def getch(
+        get_method: Callable, fetch_method: Callable, _id: int
+    ) -> Any:  # why does c have all the fun?
         try:
             _result = get_method(_id) or await fetch_method(_id)
         except (discord.HTTPException, discord.NotFound):
@@ -327,7 +364,12 @@ class Quotient(commands.AutoShardedBot):
             return _result
 
     async def get_or_fetch_message(
-        self, channel: discord.TextChannel, message_id: int, *, cache: bool = True, fetch: bool = True
+        self,
+        channel: discord.TextChannel,
+        message_id: int,
+        *,
+        cache: bool = True,
+        fetch: bool = True,
     ) -> Optional[discord.Message]:
         # caching cause, due to rate limiting 50/1
         if cache and (msg := self.get_message(message_id)):
@@ -344,11 +386,18 @@ class Quotient(commands.AutoShardedBot):
                 self.message_cache[msg.id] = msg
                 return msg
 
-    async def send_message(self, channel_id, content, **kwargs):
+        return None
+
+    async def send_message(self, channel_id: discord.abc.Snowflake, content, **kwargs: Any):
         await self.http.send_message(channel_id, content, **kwargs)
 
     async def convey_important_message(
-        self, guild: discord.Guild, text: str, *, view=None, title="\N{WARNING SIGN}__**IMPORTANT**__\N{WARNING SIGN}"
+        self,
+        guild: discord.Guild,
+        text: str,
+        *,
+        view=None,
+        title="\N{WARNING SIGN}__**IMPORTANT**__\N{WARNING SIGN}",
     ):
         _e = discord.Embed(title=title, description=text)
 
@@ -363,13 +412,16 @@ class Quotient(commands.AutoShardedBot):
             ]
             await _c.send(
                 embed=_e,
-                content=", ".join(_roles[:2]) if _roles else guild.owner.mention,
+                content=", ".join(_roles[:2]) if _roles else getattr(guild.owner, "mention"),
                 allowed_mentions=AllowedMentions(roles=True),
                 view=view,
             )
 
-        with suppress(discord.HTTPException):
-            await guild.owner.send(embed=_e, view=view)
+        if guild.owner is not None:  # there is very little chance that `guild.owner` is None
+            try:
+                await guild.owner.send(embed=_e, view=view)
+            except discord.Forbidden:
+                return
 
 
 bot = Quotient()
@@ -377,5 +429,5 @@ bot = Quotient()
 
 @bot.before_invoke
 async def bot_before_invoke(ctx: Context):
-    if (_g := ctx.guild) != None and not _g.chunked:
-        bot.loop.create_task(_g.chunk())
+    if ctx.guild is not None and not ctx.guild.chunked:
+        bot.loop.create_task(ctx.guild.chunk())
