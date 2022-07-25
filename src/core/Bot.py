@@ -208,7 +208,7 @@ class Quotient(commands.AutoShardedBot):
         return self._connection._get_message(message_id)
 
     async def process_commands(self, message: discord.Message):
-        if message.content:
+        if message.content and message.guild is not None:
             ctx = await self.get_context(message, cls=Context)
 
             if ctx.command is None:
@@ -219,7 +219,7 @@ class Quotient(commands.AutoShardedBot):
     async def on_message(self, message: discord.Message):
         self.seen_messages += 1
 
-        if not message.guild or message.author.bot:
+        if message.guild is None or message.author.bot:
             return
 
         await self.process_commands(message)
