@@ -1,10 +1,14 @@
-from contextlib import suppress
+from __future__ import annotations
 
-import discord
+from contextlib import suppress
+from typing import Optional, TYPE_CHECKING
 
 import config
-from core import Context
+import discord
 from utils import emote
+
+if TYPE_CHECKING:
+    from .Context import Context
 
 __all__ = ("QuotientView", "QuoInput")
 
@@ -13,7 +17,7 @@ class QuotientView(discord.ui.View):
     message: discord.Message
     custom_id = None
 
-    def __init__(self, ctx: Context, *, timeout=30):
+    def __init__(self, ctx: Context, *, timeout: Optional[float]=30):
         super().__init__(timeout=timeout)
         self.ctx = ctx
         self.bot = ctx.bot
@@ -21,7 +25,8 @@ class QuotientView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != self.ctx.author.id:
             await interaction.response.send_message(
-                "Sorry, you can't use this interaction as it is not started by you.", ephemeral=True
+                "Sorry, you can't use this interaction as it is not started by you.",
+                ephemeral=True,
             )
             return False
         return True
@@ -36,7 +41,8 @@ class QuotientView(discord.ui.View):
                     b.disabled = True
 
             with suppress(discord.HTTPException):
-                return await self.message.edit(view=self)
+                await self.message.edit(view=self)
+                return
 
     async def on_error(self, interaction: discord.Interaction, error: Exception, item) -> None:
         print("Quotient View Error:", error)
