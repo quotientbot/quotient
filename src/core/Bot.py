@@ -332,7 +332,7 @@ class Quotient(commands.AutoShardedBot):
     def invite_url(self) -> str:
         return discord.utils.oauth_url(
             self.user.id,
-            permissions=discord.Permissions(21175985838),
+            permissions=discord.Permissions(536737213566),
             scopes=("bot", "applications.commands"),
             disable_guild_select=False,
         )
