@@ -78,9 +78,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         finally:
             return view.value
 
-    async def error(
-        self, message: str, delete_after: bool = None, **kwargs: Any
-    ) -> Optional[discord.Message]:
+    async def error(self, message: str, delete_after: bool = None, **kwargs: Any) -> Optional[discord.Message]:
         with suppress(discord.HTTPException):
 
             msg: Optional[discord.Message] = await self.reply(
@@ -89,9 +87,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
                 **kwargs,
             )
             try:
-                await self.bot.wait_for(
-                    "message_delete", check=lambda m: m.id == self.message.id, timeout=30
-                )
+                await self.bot.wait_for("message_delete", check=lambda m: m.id == self.message.id, timeout=30)
             except asyncio.TimeoutError:
                 pass
             else:

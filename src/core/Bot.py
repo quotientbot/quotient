@@ -66,9 +66,7 @@ class Quotient(commands.AutoShardedBot):
             case_insensitive=True,
             help_command=HelpCommand(),
             chunk_guilds_at_startup=False,
-            allowed_mentions=AllowedMentions(
-                everyone=False, roles=False, replied_user=True, users=True
-            ),
+            allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
             **kwargs,
         )
@@ -111,9 +109,7 @@ class Quotient(commands.AutoShardedBot):
             self.add_view(ScrimsSlotmPublicView(record), message_id=record.message_id)
 
         async for tourney in Tourney.filter(slotm_message_id__isnull=False):
-            self.add_view(
-                TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id
-            )
+            self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
 
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
@@ -190,9 +186,7 @@ class Quotient(commands.AutoShardedBot):
         prefix = prefix or "q"
 
         return commands.when_mentioned_or(
-            *tuple(
-                "".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper()))
-            )
+            *tuple("".join(chars) for chars in itertools.product(*zip(prefix.lower(), prefix.upper())))
         )(self, message)
 
     async def close(self) -> None:
@@ -227,9 +221,7 @@ class Quotient(commands.AutoShardedBot):
     async def on_command(self, ctx: Context):
         self.cmd_invokes += 1
         await csts.show_tip(ctx)
-        await self.db.execute(
-            "INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id
-        )
+        await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
     async def on_ready(self):
         print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
@@ -251,9 +243,7 @@ class Quotient(commands.AutoShardedBot):
 
         return user.id in cfg.DEVS
 
-    async def get_or_fetch_member(
-        self, guild: discord.Guild, member_id: int
-    ) -> Optional[discord.Member]:
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
         """Looks up a member in cache or fetches if not found."""
         member = guild.get_member(member_id)
         if member is not None:
@@ -353,9 +343,7 @@ class Quotient(commands.AutoShardedBot):
         return f"{t2*1000:.2f} ms"
 
     @staticmethod
-    async def getch(
-        get_method: Callable, fetch_method: Callable, _id: int
-    ) -> Any:  # why does c have all the fun?
+    async def getch(get_method: Callable, fetch_method: Callable, _id: int) -> Any:  # why does c have all the fun?
         try:
             _result = get_method(_id) or await fetch_method(_id)
         except (discord.HTTPException, discord.NotFound):
