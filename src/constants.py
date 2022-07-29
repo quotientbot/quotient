@@ -169,6 +169,7 @@ tips = (
     "You can create tourney groups with `tourney` command.",
     "Scrims Open & Close messages can be designed with `design` button on `sm` command.",
     "With Quotient Pro you can set custom successs message that will be sent to the user after registration.",
+    "With Quotient Premium, you get Rilp Bot Premium for free.",
 )
 
 

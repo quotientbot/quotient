@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing as T
-from contextlib import suppress
 
 if T.TYPE_CHECKING:
     from core import Quotient
@@ -17,7 +16,6 @@ class SockPrime(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.hook = discord.Webhook.from_url(self.bot.config.PUBLIC_LOG, session=self.bot.session)
-        # self.flantic_hook = discord.Webhook.from_url(self.bot.config.FLANTIC_PREMIUM, session=self.bot.session)
 
     @Cog.listener()
     async def on_request__perks(self, u, data):
@@ -26,10 +24,12 @@ class SockPrime(Cog):
             [
                 "Unlimited Scrims (3 for free)",
                 "Unlimited tournaments (1 for free)",
+                "Remind Me & Transfer Id-Pass button in Scrims Slotm.",
                 "Unlimited tagcheck and easytag channels.",
                 "Custom reactions for tourney and scrims.",
                 "Unlimited media partner channels.",
                 "Unlimited ssverification channels.",
+                "Rilp Bot Premium for 1 Month.",
                 "Premium role in our server + several other benefits...",
             ],
         )
@@ -46,7 +46,7 @@ class SockPrime(Cog):
 
         prime = "https://discord.com/oauth2/authorize?client_id=902856923311919104&scope=applications.commands%20bot&permissions=536737213566"
 
-        member = self.bot.server.get_member(user_id)
+        member = await self.bot.get_or_fetch_member(self.bot.server, user_id)
         if member is not None:
             await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
 
@@ -57,17 +57,18 @@ class SockPrime(Cog):
         _e.description = (
             f"{random_greeting()} {member.mention},\n"
             "Thanks for purchasing Quotient Premium.\n\n"
-            f"[Invite Prime Bot]({prime}) | [Support Server]({self.bot.config.SERVER_LINK}) | [Download Invoice]({invoice})"
+            f"[Invite Quotient Pro]({prime}) | [Support Server]({self.bot.config.SERVER_LINK}) | [Download Invoice]({invoice})"
         )
 
         _e.set_image(url=random_thanks())
 
-        with suppress(discord.HTTPException, AttributeError):
+        try:
             await member.send(embed=_e)
+        except discord.HTTPException:
+            pass
 
-            if data["details"]["amount"] != "29.00":
-                # await self.ping_flantic(user_id)
-                await self.give_real(member)
+        if data["details"]["amount"] != "29.00":
+            await self.give_rilp_premium(member)
 
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
@@ -75,39 +76,41 @@ class SockPrime(Cog):
         _e.set_image(url=random_thanks())
         await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
 
-    async def __transaction_failed(self, user_id: int):
-        # user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
-        # if user:
-        #     with suppress(discord.HTTPException):
-        #         await user.send(
-        #             embed=discord.Embed()
-        #         )
-
+    async def __transaction_failed(self, user_id: int) -> None:
         ...
 
-    async def give_real(self, member: discord.Member | discord.User):
-        async with self.bot.session.get(self.bot.config.REAL_PREMIUM + str(member.id)) as res:
+    async def give_rilp_premium(self, member: discord.Member | discord.User) -> None:
+
+        async with self.bot.session.post(
+            self.bot.config.RILP_PREMIUM,
+            headers=self.bot.config.RILP_HEADERS,
+            json={"userId": member.id, "subscriptionId": "Q_{}".format(self.bot.current_time.timestamp())},
+        ) as res:
             if not res.status == 200:
                 return
 
             res = await res.json()
-
-            _f = discord.Embed(color=self.bot.color, title="Quotient x RealMusic", url=self.bot.config.SERVER_LINK)
+            _f = discord.Embed(color=self.bot.color, title="Quotient x RILP BOT", url=self.bot.config.SERVER_LINK)
             _f.description = (
-                "Quotient has partnered with Real, An Extraordinary Music Bot With Slash Commands, "
-                "Spotify Support, DJ System, Request Channel, And Much More!\n\n"
-                "With your Quotient Prime purchase, you have received **One Month Premium of Real Bot.**"
+                "Quotient has partnered with Rilp Bot, a multipurpose bot that features Automoderation, "
+                "Invite Tracking, Starboard, Welcome and Leave messages, Giveaways, Polls, Moderation, "
+                "Captcha Security, and much more.\n\n"
+                "With this Quotient Pro purchase, you have received **Rilp Bot Premium (30 days)**"
                 "\n\n__Please follow these steps:__\n"
-                "1. [Invite Real Music Bot](https://top.gg/bot/802812378558889994)\n"
-                "2. Use `!!redeem {0}` in your server.".format(res["code"])
+                "➜ Head over to dashboard <https://rilp-bot.tech>\n"
+                "➜ Login with your discord account from which you bought Quotient Pro.\n"
+                "➜ Click on the dropdown beside avatar and then head over to `Manage Subscription`\n"
+                "➜ Click on 'Select Server' and choose your server to activate premium.\n\n"
+                "To Invite RILP BOT - <https://rilp-bot.tech/invite>\n"
+                "Dashboard - https://rilp-bot.tech\n"
+                "Support Server - <https://rilp-bot.tech/support>\n"
             )
 
-            _f.set_thumbnail(
-                url="https://media.discordapp.net/attachments/925259723379449908/941281803677892658/reals.png"
+            _f.set_image(
+                url="https://cdn.discordapp.com/attachments/1001770455016935536/1002246506981625947/rilpxquotient.jpg"
             )
-
-            with suppress(discord.HTTPException):
+            try:
                 await member.send(embed=_f)
 
-    # async def ping_flantic(self, user_id):
-    #     await self.flantic_hook.send(content=user_id)
+            except discord.Forbidden:
+                return
