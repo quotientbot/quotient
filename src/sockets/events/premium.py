@@ -1,4 +1,5 @@
 from __future__ import annotations
+from contextlib import suppress
 
 import typing as T
 
@@ -67,14 +68,15 @@ class SockPrime(Cog):
         except discord.HTTPException:
             pass
 
-        if data["details"]["amount"] != "29.00":
-            await self.give_rilp_premium(member)
+        finally:
+            _e = discord.Embed(
+                color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
+            )
+            _e.set_image(url=random_thanks())
+            await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
 
-        _e = discord.Embed(
-            color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
-        )
-        _e.set_image(url=random_thanks())
-        await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
+            if data["details"]["amount"] != "29.00":
+                await self.give_rilp_premium(member)
 
     async def __transaction_failed(self, user_id: int) -> None:
         ...
