@@ -86,7 +86,7 @@ class SockPrime(Cog):
         async with self.bot.session.post(
             self.bot.config.RILP_PREMIUM,
             headers=self.bot.config.RILP_HEADERS,
-            json={"userId": member.id, "subscriptionId": "Q_{}".format(self.bot.current_time.timestamp())},
+            json={"userId": str(member.id), "subscriptionId": "Q_{}".format(self.bot.current_time.timestamp())},
         ) as res:
             if not res.status == 200:
                 return
