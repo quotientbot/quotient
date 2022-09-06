@@ -1,4 +1,4 @@
-![discord.py Version](https://img.shields.io/badge/lib-discord.py%201.7.0-blue)
+![discord.py Version](https://img.shields.io/badge/lib-discord.py%202.0-blue)
 ![Language](https://img.shields.io/badge/lang-Python%203.9-green)
 
 <br />
