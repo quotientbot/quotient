@@ -7,7 +7,6 @@ import discord
 
 if T.TYPE_CHECKING:
     from core import Context
-    from utils import QuoColor
 
 from .views import QuoInput, QuotientView
 
@@ -180,6 +179,8 @@ class EmbedOptions(discord.ui.Select):
             await self.view.refresh_view()
 
         elif selected == "color":
+            from utils import QuoColor
+
             modal = QuoInput("Set Embed Color")
             modal.add_item(
                 discord.ui.TextInput(
@@ -222,9 +223,7 @@ class EmbedBuilder(QuotientView):
             await self.ctx.safe_delete(to_del)
 
         with suppress(discord.HTTPException):
-            self.message = await self.message.edit(
-                content=self.content, embed=self.embed, view=self
-            )
+            self.message = await self.message.edit(content=self.content, embed=self.embed, view=self)
 
     async def rendor(self, **kwargs: T.Any):
         self.message: discord.Message = await self.ctx.send(
@@ -243,9 +242,7 @@ class EmbedBuilder(QuotientView):
             .set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/853174868551532564/860464565338898472/embed_thumbnail.png"
             )
-            .set_image(
-                url="https://cdn.discordapp.com/attachments/853174868551532564/860462053063393280/embed_image.png"
-            )
+            .set_image(url="https://cdn.discordapp.com/attachments/853174868551532564/860462053063393280/embed_image.png")
             .set_footer(
                 text="Footer Message",
                 icon_url="https://media.discordapp.net/attachments/853174868551532564/860464989164535828/embed_footer.png",
