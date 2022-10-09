@@ -30,7 +30,6 @@ class SockPrime(Cog):
                 "Custom reactions for tourney and scrims.",
                 "Unlimited media partner channels.",
                 "Unlimited ssverification channels.",
-                "Rilp Bot Premium for 1 Month.",
                 "Premium role in our server + several other benefits...",
             ],
         )
@@ -75,44 +74,44 @@ class SockPrime(Cog):
             _e.set_image(url=random_thanks())
             await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config.PREMIUM_AVATAR)
 
-            if data["details"]["amount"] != "29.00":
-                await self.give_rilp_premium(member)
+            # if data["details"]["amount"] != "29.00":
+            #     await self.give_rilp_premium(member)
 
     async def __transaction_failed(self, user_id: int) -> None:
         ...
 
-    async def give_rilp_premium(self, member: discord.Member | discord.User) -> None:
+    # async def give_rilp_premium(self, member: discord.Member | discord.User) -> None:
 
-        async with self.bot.session.post(
-            self.bot.config.RILP_PREMIUM,
-            headers=self.bot.config.RILP_HEADERS,
-            json={"userId": str(member.id), "subscriptionId": "Q_{}".format(self.bot.current_time.timestamp())},
-        ) as res:
-            if not res.status == 200:
-                return
+    #     async with self.bot.session.post(
+    #         self.bot.config.RILP_PREMIUM,
+    #         headers=self.bot.config.RILP_HEADERS,
+    #         json={"userId": str(member.id), "subscriptionId": "Q_{}".format(self.bot.current_time.timestamp())},
+    #     ) as res:
+    #         if not res.status == 200:
+    #             return
 
-            res = await res.json()
-            _f = discord.Embed(color=self.bot.color, title="Quotient x RILP BOT", url=self.bot.config.SERVER_LINK)
-            _f.description = (
-                "Quotient has partnered with Rilp Bot, a multipurpose bot that features Automoderation, "
-                "Invite Tracking, Starboard, Welcome and Leave messages, Giveaways, Polls, Moderation, "
-                "Captcha Security, and much more.\n\n"
-                "With this Quotient Pro purchase, you have received **Rilp Bot Premium (30 days)**"
-                "\n\n__Please follow these steps:__\n"
-                "➜ Head over to dashboard <https://rilp-bot.tech>\n"
-                "➜ Login with your discord account from which you bought Quotient Pro.\n"
-                "➜ Click on the dropdown beside avatar and then head over to `Manage Subscription`\n"
-                "➜ Click on 'Select Server' and choose your server to activate premium.\n\n"
-                "To Invite RILP BOT - <https://rilp-bot.tech/invite>\n"
-                "Dashboard - https://rilp-bot.tech\n"
-                "Support Server - <https://rilp-bot.tech/support>\n"
-            )
+    #         res = await res.json()
+    #         _f = discord.Embed(color=self.bot.color, title="Quotient x RILP BOT", url=self.bot.config.SERVER_LINK)
+    #         _f.description = (
+    #             "Quotient has partnered with Rilp Bot, a multipurpose bot that features Automoderation, "
+    #             "Invite Tracking, Starboard, Welcome and Leave messages, Giveaways, Polls, Moderation, "
+    #             "Captcha Security, and much more.\n\n"
+    #             "With this Quotient Pro purchase, you have received **Rilp Bot Premium (30 days)**"
+    #             "\n\n__Please follow these steps:__\n"
+    #             "➜ Head over to dashboard <https://rilp-bot.tech>\n"
+    #             "➜ Login with your discord account from which you bought Quotient Pro.\n"
+    #             "➜ Click on the dropdown beside avatar and then head over to `Manage Subscription`\n"
+    #             "➜ Click on 'Select Server' and choose your server to activate premium.\n\n"
+    #             "To Invite RILP BOT - <https://rilp-bot.tech/invite>\n"
+    #             "Dashboard - https://rilp-bot.tech\n"
+    #             "Support Server - <https://rilp-bot.tech/support>\n"
+    #         )
 
-            _f.set_image(
-                url="https://cdn.discordapp.com/attachments/1001770455016935536/1002246506981625947/rilpxquotient.jpg"
-            )
-            try:
-                await member.send(embed=_f)
+    #         _f.set_image(
+    #             url="https://cdn.discordapp.com/attachments/1001770455016935536/1002246506981625947/rilpxquotient.jpg"
+    #         )
+    #         try:
+    #             await member.send(embed=_f)
 
-            except discord.Forbidden:
-                return
+    #         except discord.Forbidden:
+    #             return
