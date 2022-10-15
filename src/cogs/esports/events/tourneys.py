@@ -53,16 +53,10 @@ class TourneyEvents(Cog):
 
         if tourney.no_duplicate_name and check_duplicate:
             if await tourney.assigned_slots.filter(team_name=teamname).exists():
-                return self.bot.dispatch(
-                    "tourney_registration_deny", message, RegDeny.duplicate, tourney
-                )
+                return self.bot.dispatch("tourney_registration_deny", message, RegDeny.duplicate, tourney)
 
-        if not tourney.multiregister and message.author.id in get_tourney_slots(
-            await tourney.assigned_slots.all()
-        ):
-            return self.bot.dispatch(
-                "tourney_registration_deny", message, RegDeny.multiregister, tourney
-            )
+        if not tourney.multiregister and message.author.id in get_tourney_slots(await tourney.assigned_slots.all()):
+            return self.bot.dispatch("tourney_registration_deny", message, RegDeny.multiregister, tourney)
 
         ctx = await self.bot.get_context(message)
 
@@ -137,51 +131,55 @@ class TourneyEvents(Cog):
         async with self.__tourney_lock:
             await self.__process_tourney_message(message, tourney)
 
-    # @Cog.listener()
-    # async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-    #     if not all((payload.guild_id, payload.member, not payload.member.bot)):
-    #         return
+    @Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
 
-    #     if not payload.channel_id in self.bot.cache.tourney_channels:
-    #         return
+        if not all((payload.guild_id, payload.member, not payload.member.bot)):
+            return
 
-    #     tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
+        if not payload.channel_id in self.bot.cache.tourney_channels:
+            return
 
-    #     if not tourney:
-    #         return self.bot.cache.tourney_channels.discard(payload.channel_id)
+        tourney = await Tourney.get_or_none(registration_channel_id=payload.channel_id)
 
-    #     if not str(payload.emoji) in tourney.emojis.values():
-    #         return
+        if not tourney:
+            return self.bot.cache.tourney_channels.discard(payload.channel_id)
 
-    #     slot = await TMSlot.get_or_none(message_id=payload.message_id)
+        if not str(payload.emoji) in tourney.emojis.values():
+            return
 
-    #     e = str(payload.emoji)
+        if not tourney.is_ignorable(message.author):
+            return
 
-    #     message = None
-    #     with suppress(discord.HTTPException, AttributeError):
-    #         channel = self.bot.get_channel(payload.channel_id)
-    #         message = await channel.fetch_message(payload.message_id)
+        slot = await TMSlot.get_or_none(message_id=payload.message_id)
 
-    #     if not message:
-    #         return
+        e = str(payload.emoji)
 
-    #     member = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, payload.user_id)
+        message = None
+        with suppress(discord.HTTPException, AttributeError):
+            channel = self.bot.get_channel(payload.channel_id)
+            message = await self.bot.get_or_fetch_message(channel, payload.message_id)
 
-    #     if not slot and e == tourney.cross_emoji:
-    #         return  # no need to do anything kyuki already registered nai hai user
+        if not message:
+            return
 
-    #     if not slot and e == tourney.check_emoji:
-    #         if tourney.total_slots <= await tourney.assigned_slots.all().count():
-    #             return await channel.send(f"{getattr(member, 'mention','')}, Slots are already full.", delete_after=6)
+        member = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, payload.user_id)
 
-    #         # TODO:send log here
-    #         return await self.__process_tourney_message(message, tourney, check_duplicate=False)
+        # if not slot and e == tourney.cross_emoji:
+        #     return  # no need to do anything kyuki already registered nai hai user
 
-    #     if str(payload.emoji) == tourney.check_emoji:
-    #         return
+        if not slot and e == tourney.check_emoji:
+            if tourney.total_slots <= await tourney.assigned_slots.all().count():
+                return await channel.send(f"{getattr(member, 'mention','')}, Slots are already full.", delete_after=6)
 
-    #     if str(payload.emoji) == tourney.cross_emoji:
-    #         return await ...  # cancel kardo slot user ka
+            # TODO:send log here
+            return await self.__process_tourney_message(message, tourney, check_duplicate=False)
+
+        if str(payload.emoji) == tourney.check_emoji:
+            return
+
+        if str(payload.emoji) == tourney.cross_emoji:
+            return await ...  # cancel kardo slot user ka
 
     @Cog.listener(name="on_message")
     async def on_media_partner_message(self, message: discord.Message):
@@ -246,9 +244,7 @@ class TourneyEvents(Cog):
     @Cog.listener()
     async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
         message_id = payload.message_id
-        _del = await Tourney.filter(slotm_message_id=message_id).update(
-            slotm_message_id=None, slotm_channel_id=None
-        )
+        _del = await Tourney.filter(slotm_message_id=message_id).update(slotm_message_id=None, slotm_channel_id=None)
 
         tourney = None
         if not _del:
@@ -263,9 +259,7 @@ class TourneyEvents(Cog):
             slot = await tourney.assigned_slots.filter(message_id=payload.message_id).first()
             if slot:
                 if slot.confirm_jump_url:
-                    self.bot.loop.create_task(
-                        update_confirmed_message(tourney, slot.confirm_jump_url)
-                    )
+                    self.bot.loop.create_task(update_confirmed_message(tourney, slot.confirm_jump_url))
 
                 if await tourney.assigned_slots.filter(leader_id=slot.leader_id).count() == 1:
                     m = tourney.guild.get_member(slot.leader_id)
@@ -278,9 +272,7 @@ class TourneyEvents(Cog):
 
     @Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):
-        await Tourney.filter(slotm_channel_id=channel.id).update(
-            slotm_channel_id=None, slotm_message_id=None
-        )
+        await Tourney.filter(slotm_channel_id=channel.id).update(slotm_channel_id=None, slotm_message_id=None)
         await MediaPartner.filter(channel_id=channel.id).delete()
 
     @Cog.listener()
@@ -313,9 +305,7 @@ class TourneyEvents(Cog):
                         await tourney.logschan.send(msg)
 
     @Cog.listener()
-    async def on_guild_channel_update(
-        self, before: discord.TextChannel, after: discord.TextChannel
-    ):
+    async def on_guild_channel_update(self, before: discord.TextChannel, after: discord.TextChannel):
         if before.name == after.name or not before.name == "quotient-tourney-logs":
             return
 
@@ -342,9 +332,7 @@ class TourneyEvents(Cog):
             return
 
         if after.guild.me.guild_permissions.manage_roles:
-            return await after.edit(
-                name="tourney-mod", reason="tourney mod role won't work if you rename this."
-            )
+            return await after.edit(name="tourney-mod", reason="tourney mod role won't work if you rename this.")
 
         _e = discord.Embed(
             color=discord.Color.red(),
