@@ -63,7 +63,10 @@ class PremiumCog(Cog, name="Premium"):
         if not _bool:
             return await ctx.send("*Hmmmm*")
 
-        await ctx.success(f"Congratulations, this server has been upgraded to Premium till `{strtime(end_time)}`.")
+        await ctx.success(
+            f"Congratulations, this server has been upgraded to Premium till `{strtime(end_time)}`.\n\n"
+            f"[Click me to invite Quotient Pro bot]({config.PRO_LINK})"
+            )
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
