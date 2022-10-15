@@ -148,7 +148,7 @@ class TourneyEvents(Cog):
         if not str(payload.emoji) in tourney.emojis.values():
             return
 
-        if not tourney.is_ignorable(message.author):
+        if not tourney.is_ignorable(payload.member):
             return
 
         slot = await TMSlot.get_or_none(message_id=payload.message_id)
