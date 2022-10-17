@@ -6,7 +6,7 @@ from tortoise import fields
 
 from models import BaseDbModel
 from models.helpers import ArrayField
-from utils import aenumerate, plural, truncate_string
+from utils import aenumerate, plural
 
 from .scrims import Scrim
 

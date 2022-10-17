@@ -30,6 +30,7 @@ from utils import (
 )
 
 from .dev import *
+from .alerts import *
 from .views import MoneyButton, SetupButtonView, VoteButton
 
 
@@ -317,3 +318,4 @@ class Quomisc(Cog, name="quomisc"):
 async def setup(bot: Quotient) -> None:
     await bot.add_cog(Quomisc(bot))
     await bot.add_cog(Dev(bot))
+    await bot.add_cog(QuoAlerts(bot))

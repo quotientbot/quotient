@@ -1,7 +1,7 @@
 from typing import Optional
 
 import discord
-from tortoise import fields, models
+from tortoise import fields
 
 from models import BaseDbModel
 from models.helpers import *
