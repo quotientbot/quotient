@@ -66,6 +66,7 @@ class Quomisc(Cog, name="quomisc"):
         embed = self.bot.embed(ctx)
         embed.description = (
             f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n"
+            f"[Click Here to Invite Quotient Pro]({self.bot.config.PRO_LINK})\n"
             f"[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
         )
         await ctx.send(embed=embed, embed_perms=True)
