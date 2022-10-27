@@ -102,7 +102,7 @@ class Ban(ScrimsButton):
         if modal.m_time.value:
             with suppress(TypeError):
                 expires = dateparser.parse(
-                    modal.m_time.value,
+                    "in " + modal.m_time.value,
                     settings={
                         "RELATIVE_BASE": self.view.ctx.bot.current_time,
                         "TIMEZONE": "Asia/Kolkata",
