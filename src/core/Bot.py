@@ -221,6 +221,7 @@ class Quotient(commands.AutoShardedBot):
     async def on_command(self, ctx: Context):
         self.cmd_invokes += 1
         await csts.show_tip(ctx)
+        await csts.remind_premium(ctx)
         await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
 
     async def on_ready(self):

@@ -6,7 +6,8 @@ from typing import List, Mapping
 import config
 import discord
 from discord.ext import commands
-from utils import LinkButton, LinkType, QuoPaginator, truncate_string
+from models import Guild
+from utils import LinkButton, LinkType, QuoPaginator, truncate_string, discord_timestamp
 
 from .Cog import Cog
 
@@ -33,25 +34,21 @@ class HelpCommand(commands.HelpCommand):
 
         server = f"[Support Server]({config.SERVER_LINK})"
         invite = f"[Invite Me]({config.BOT_INVITE})"
-        dashboard = (
-            f"[Privacy Policy](https://github.com/quotientbot/Quotient-Bot/wiki/privacy-policy)"
-        )
+        dashboard = f"[Privacy Policy](https://github.com/quotientbot/Quotient-Bot/wiki/privacy-policy)"
 
-        embed.description = f"{server} **|** {invite} **|** {dashboard}"
+        embed.description = f"{server} **|** {invite} **|** {dashboard}\n\n"
+
+        guild = await Guild.get_or_none(pk=ctx.guild.id)
+        if guild and guild.is_premium:
+            embed.description += f"[<a:top_user:807911932299837460> __Server Premium ending:__]({config.SERVER_LINK}) {discord_timestamp(guild.premium_end_time)}"
 
         for cog, cmds in mapping.items():
-            if (
-                cog
-                and cog.qualified_name not in hidden
-                and await self.filter_commands(cmds, sort=True)
-            ):
+            if cog and cog.qualified_name not in hidden and await self.filter_commands(cmds, sort=True):
                 embed.add_field(
                     inline=False,
                     name=cog.qualified_name.title(),
                     value=", ".join(map(lambda x: f"`{x}`", cog.get_commands())),
                 )
-
-        # cmds = len(list(self.context.bot.walk_commands()))
 
         links = [
             LinkType("Support Server", config.SERVER_LINK),
@@ -70,10 +67,7 @@ class HelpCommand(commands.HelpCommand):
         embed.title = f"{group.qualified_name} {group.signature}"
         _help = group.help or "No description provided..."
 
-        _cmds = "\n".join(
-            f"`{prefix}{c.qualified_name}` : {truncate_string(c.short_doc,60)}"
-            for c in group.commands
-        )
+        _cmds = "\n".join(f"`{prefix}{c.qualified_name}` : {truncate_string(c.short_doc,60)}" for c in group.commands)
 
         embed.description = f"> {_help}\n\n**Subcommands**\n{_cmds}"
 
@@ -105,11 +99,7 @@ class HelpCommand(commands.HelpCommand):
         c = 0
         for cmd in cog.get_commands():
             if not cmd.hidden:
-                _brief = (
-                    "No Information..."
-                    if not cmd.short_doc
-                    else truncate_string(cmd.short_doc, 60)
-                )
+                _brief = "No Information..." if not cmd.short_doc else truncate_string(cmd.short_doc, 60)
                 paginator.add_line(f"`{cmd.qualified_name}` : {_brief}")
                 c += 1
 

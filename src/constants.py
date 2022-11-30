@@ -5,6 +5,7 @@ from enum import Enum
 import discord
 import pytz
 
+from datetime import datetime, timedelta
 import config
 
 
@@ -176,9 +177,34 @@ async def show_tip(ctx):
     if ctx.author.id in config.DEVS:
         return
 
-    if random.randint(40, 69) == 69:
+    if random.randint(45, 69) == 69:
         with suppress(discord.HTTPException, discord.Forbidden):
             await ctx.send(f"**Did You Know?:** {random.choice(tips)}")
+
+
+async def remind_premium(ctx):
+    if random.randint(1, 10) != 1:
+        return
+
+    from utils import discord_timestamp
+    from models import Guild
+
+    guild = await Guild.get_or_none(
+        pk=ctx.guild.id, is_premium=True, premium_end_time__lte=ctx.bot.current_time + timedelta(days=5)
+    )
+    if not guild:
+        return
+
+    _e = discord.Embed(color=discord.Color.red(), title="Premium Ending Soon....")
+    _e.description = (
+        f"Your Quotient Premium subscription is ending {discord_timestamp(guild.premium_end_time)}\n\n"
+        "[Click to Renew it Now](https://quotientbot.xyz/premium)"
+    )
+
+    try:
+        await ctx.reply(embed=_e)
+    except discord.HTTPException:
+        return
 
 
 class HelpGIF(Enum):
