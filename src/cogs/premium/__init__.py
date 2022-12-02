@@ -66,7 +66,7 @@ class PremiumCog(Cog, name="Premium"):
         await ctx.success(
             f"Congratulations, this server has been upgraded to Premium till `{strtime(end_time)}`.\n\n"
             f"[Click me to invite Quotient Pro bot]({config.PRO_LINK})"
-            )
+        )
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
@@ -287,39 +287,6 @@ class PremiumCog(Cog, name="Premium"):
         await self.bot.reminders.create_timer(end_time, "guild_premium", guild_id=guild.id)
 
         return True
-
-    # @commands.command()
-    # @commands.bot_has_permissions(embed_links=True)
-    # async def changequo(self, ctx: Context):
-    #     """Switch to another Quotient Premium bot."""
-
-    #     if not await ctx.is_premium_guild():
-    #         return await ctx.error("This server is not boosted. Please use `qboost`.")
-
-    #     await self.bot.reminders.create_timer(
-    #         datetime.now(tz=IST) + timedelta(minutes=1),
-    #         "premium_activation",
-    #         channel_id=ctx.channel.id,
-    #         guild_id=ctx.guild.id,
-    #     )
-
-    #     await Guild.get(pk=ctx.guild.id).update(waiting_activation=True)
-
-    #     _view = PremiumActivate(ctx.guild.id)
-    #     await ctx.send(_view.initial_message, view=_view, file=await _view.image)
-
-    # @Cog.listener()
-    # async def on_premium_activation_timer_complete(self, timer: Timer):
-    #     channel_id, guild_id = timer.kwargs["channel_id"], timer.kwargs["guild_id"]
-
-    #     guild = await Guild.get(pk=guild_id)
-    #     if not guild.is_premium or not guild.waiting_activation:
-    #         return
-
-    #     await guild.select_for_update().update(waiting_activation=False)
-
-    #     channel = self.bot.get_channel(channel_id)
-    #     await channel.send("Quotient Change request timed out. Kindly use `qchangequo` command again.")
 
 
 async def setup(bot: Quotient) -> None:

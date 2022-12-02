@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>Loading...</title>
+    </head>
+  
+    <body onload="document.payuForm.submit()">
+        <form action={{ posted.action }} method="post" name="payuForm">
+            <input type="hidden" name="key" value="{{posted.key}}" />
+            <input type="hidden" name="hash" value="{{ posted.hash }}" />
+            <input type="hidden" name="txnid" value="{{ posted.txnid }}" />
+
+            <input type="hidden" name="productinfo" value="{{ posted.productinfo }}" />
+
+            <input type="hidden" name="amount" value="{{ posted.amount }}" /></td>
+            <input type="hidden" name="firstname" id="firstname" value="{{ posted.firstname }}" /></td>
+            <input type="hidden" name="email" id="email" value="{{ posted.email}}" /></td>
+
+            <input type="hidden" name="surl" value="{{ posted.surl }}" size="64" /></td>
+            <input type="hidden" name="furl" value="{{ posted.furl }}" size="64" /></td>
+
+        </form>
+    </body>
+    </html>
