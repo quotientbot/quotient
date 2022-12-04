@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 import hashlib
 import config
-from models import PremiumTxn, PremiumPlan, User, Guild
+from models import PremiumTxn, PremiumPlan, User, Guild, Premium
 import constants
 from datetime import datetime
 
@@ -53,6 +53,9 @@ async def get_premium(request: Request, txnId: str):
 
 @router.post("/premium_success")
 async def premium_success(request: Request, txnId: str):
+
+    from core import bot
+
     try:
         form = await request.form()
     except:
@@ -71,24 +74,23 @@ async def premium_success(request: Request, txnId: str):
     if record.completed_at:
         return {"error": "Transaction is already complete."}
 
-    await PremiumTxn(txnid=txnId).update(raw_data=dict(form), completed_at=datetime.now(constants.IST))
+    await PremiumTxn.get(txnid=txnId).update(raw_data=dict(form), completed_at=datetime.now(constants.IST))
     u, b = await User.get_or_create(user_id=record.user_id)
     plan = await PremiumPlan.get(pk=record.plan_id)
 
     end_time = u.premium_expire_time + plan.duration if u.is_premium else datetime.now(constants.IST) + plan.duration
 
     await User.get(pk=u.pk).update(is_premium=True, premium_expire_time=end_time)
-    # self.bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=user))
+    bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=record.user_id))
 
     guild = await Guild.get(pk=record.guild_id)
     end_time = guild.premium_end_time + plan.duration if guild.is_premium else datetime.now(constants.IST) + plan.duration
     await Guild.get(pk=guild.pk).update(is_premium=True, premium_end_time=end_time)
-    # await bot.reminders.create_timer(end_time, "guild_premium", guild_id=guild.id)
 
     return {"success": "Transaction was successful. Please return to discord App."}
 
 
-@router.get("/premium_failed")
+@router.post("/premium_failed")
 async def premium_failed(request: Request, txnId: str):
     try:
         form = await request.form()

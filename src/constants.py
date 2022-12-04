@@ -195,6 +195,9 @@ async def remind_premium(ctx):
     if not guild:
         return
 
+    if guild.premium_end_time < ctx.bot.current_time:
+        return
+
     _e = discord.Embed(color=discord.Color.red(), title="Premium Ending Soon....")
     _e.description = (
         f"Your Quotient Premium subscription is ending {discord_timestamp(guild.premium_end_time)}\n\n"

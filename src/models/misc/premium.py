@@ -20,7 +20,8 @@ class PremiumPlan(BaseDbModel):
     async def insert_plans():
         await PremiumPlan.create(name="Trial", price=29, duration=timedelta(days=7))
         await PremiumPlan.create(name="Basic", price=79, duration=timedelta(days=28))
-        await PremiumPlan.create(name="Professional", price=199, duration=timedelta(days=84))
+        await PremiumPlan.create(name="Professional", price=229, duration=timedelta(days=84))
+        await PremiumPlan.create(name="Enterprise", price=469, duration=timedelta(days=168))
         await PremiumPlan.create(name="GodLike", price=4999, duration=timedelta(days=9999))
 
 
