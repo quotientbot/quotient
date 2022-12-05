@@ -4,7 +4,6 @@ import config
 import discord
 from utils import emote
 from models import PremiumPlan, PremiumTxn
-import humanize
 
 
 class PlanSelector(discord.ui.Select):
@@ -12,9 +11,7 @@ class PlanSelector(discord.ui.Select):
         super().__init__(placeholder="Select a Quotient Premium Plan... ")
 
         for _ in plans:
-            self.add_option(
-                label=f"{_.name} - ₹{_.price}", description=f"Duration: {humanize.naturaldelta(_.duration)}", value=_.id
-            )
+            self.add_option(label=f"{_.name} - ₹{_.price}", description=_.description, value=_.id)
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -39,9 +36,14 @@ class PremiumPurchaseBtn(discord.ui.Button):
             guild_id=interaction.guild.id,
             plan_id=v.plan,
         )
-
         _link = config.PAY_LINK + "getpremium" + "?txnId=" + txn.txnid
-        return await interaction.followup.send(_link)
+
+        await interaction.followup.send(
+            f"You are about to purchase Quotient Premium for **{interaction.guild.name}**.\n"
+            "If you want to purchase for another server, use `qgetpro` or `\getpro` command in that server.\n\n"
+            f"[*Click Me to Complete the Payment*]({_link})",
+            ephemeral=True,
+        )
 
 
 class PremiumView(discord.ui.View):

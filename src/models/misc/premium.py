@@ -18,11 +18,20 @@ class PremiumPlan(BaseDbModel):
 
     @staticmethod
     async def insert_plans():
-        await PremiumPlan.create(name="Trial", price=29, duration=timedelta(days=7))
-        await PremiumPlan.create(name="Basic", price=79, duration=timedelta(days=28))
-        await PremiumPlan.create(name="Professional", price=229, duration=timedelta(days=84))
-        await PremiumPlan.create(name="Enterprise", price=469, duration=timedelta(days=168))
-        await PremiumPlan.create(name="GodLike", price=4999, duration=timedelta(days=9999))
+        await PremiumPlan.all().delete()
+        await PremiumPlan.create(name="Trial (7d)", description="Duration: 7 days", price=29, duration=timedelta(days=7))
+        await PremiumPlan.create(
+            name="Basic (1m)", description="Duration: 28 days", price=79, duration=timedelta(days=28)
+        )
+        await PremiumPlan.create(
+            name="Professional (3M)", description="Duration: 84 days", price=229, duration=timedelta(days=84)
+        )
+        await PremiumPlan.create(
+            name="Enterprise (6m)", description="Duration: 168 days", price=469, duration=timedelta(days=168)
+        )
+        await PremiumPlan.create(
+            name="GodLike (Lifetime)", description="Duration: 69 years", price=4999, duration=timedelta(days=25185)
+        )
 
 
 class PremiumTxn(BaseDbModel):
