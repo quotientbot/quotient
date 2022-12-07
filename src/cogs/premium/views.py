@@ -26,9 +26,14 @@ class PremiumPurchaseBtn(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
         v = discord.ui.View(timeout=100)
+        v.plan: str = None
+
         v.add_item(PlanSelector(await PremiumPlan.all().order_by("id")))
-        await interaction.followup.send("Select the Quotient Pro plan, you want to use:", view=v, ephemeral=True)
+        await interaction.followup.send("Please select the Quotient Pro plan, you want to opt:", view=v, ephemeral=True)
         await v.wait()
+
+        if not v.plan:
+            return
 
         txn = await PremiumTxn.create(
             txnid=await PremiumTxn.gen_txnid(),
