@@ -533,7 +533,7 @@ class Scrim(BaseDbModel):
             check = lambda x: all(
                 (not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids)
             )
-            self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=20))
+            self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=60))
 
         slotm = await ScrimsSlotManager.get_or_none(guild_id=self.guild_id, scrim_ids__contains=self.id)
         if slotm:
