@@ -102,12 +102,12 @@ class PremiumCog(Cog, name="Premium"):
         """Get a list of all available perks you get when You purchase quotient premium."""
         return await ctx.premium_mango("Yes, Quotient Prime is cheaper than a 2L coke.")
 
-    @commands.hybrid_command()
-    async def premium(self, ctx: Context):
-        _e = discord.Embed(color=self.bot.color, description="Ramayann!")
-        v = discord.ui.View(timeout=None)
-        v.add_item(PremiumPurchaseBtn())
-        await ctx.send(embed=_e, view=v)
+    # @commands.hybrid_command()
+    # async def premium(self, ctx: Context):
+    #     _e = discord.Embed(color=self.bot.color, description="Ramayann!")
+    #     v = discord.ui.View(timeout=None)
+    #     v.add_item(PremiumPurchaseBtn())
+    #     await ctx.send(embed=_e, view=v)
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):
