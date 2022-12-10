@@ -45,7 +45,7 @@ class PremiumPurchaseBtn(discord.ui.Button):
 
         await interaction.followup.send(
             f"You are about to purchase Quotient Premium for **{interaction.guild.name}**.\n"
-            "If you want to purchase for another server, use `qgetpro` or `\getpro` command in that server.\n\n"
+            "If you want to purchase for another server, use `qpremium` or `\premium` command in that server.\n\n"
             f"[*Click Me to Complete the Payment*]({_link})",
             ephemeral=True,
         )

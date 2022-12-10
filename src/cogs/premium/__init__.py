@@ -16,7 +16,7 @@ from core import Cog, Context
 from discord.ext import commands, tasks
 from models import ArrayAppend, Guild, Premium, Timer, User
 from tortoise.query_utils import Q
-from utils import IST, Prompt, checks, strtime
+from utils import IST, Prompt, checks, strtime, emote
 
 from .expire import (
     deactivate_premium,
@@ -102,12 +102,23 @@ class PremiumCog(Cog, name="Premium"):
         """Get a list of all available perks you get when You purchase quotient premium."""
         return await ctx.premium_mango("Yes, Quotient Prime is cheaper than a 2L coke.")
 
-    # @commands.hybrid_command()
-    # async def premium(self, ctx: Context):
-    #     _e = discord.Embed(color=self.bot.color, description="Ramayann!")
-    #     v = discord.ui.View(timeout=None)
-    #     v.add_item(PremiumPurchaseBtn())
-    #     await ctx.send(embed=_e, view=v)
+    @commands.hybrid_command()
+    async def premium(self, ctx: Context):
+        _e = discord.Embed(
+            color=self.bot.color,
+            description=f"[**Features of Quotient Pro -**]({self.bot.config.SERVER_LINK})\n\n"
+            f"{emote.check} Access to `Quotient Pro` bot.\n"
+            f"{emote.check} Unlimited Scrims.\n"
+            f"{emote.check} Unlimited Tournaments.\n"
+            f"{emote.check} Custom Reactions for Regs.\n"
+            f"{emote.check} Smart SSverification.\n"
+            f"{emote.check} Cancel-Claim Panel.\n"
+            f"{emote.check} Premium Role + more...\n",
+        )
+
+        v = discord.ui.View(timeout=None)
+        v.add_item(PremiumPurchaseBtn())
+        await ctx.send(embed=_e, view=v)
 
     @tasks.loop(hours=48)
     async def remind_peeps_to_pay(self):
