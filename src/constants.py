@@ -183,11 +183,12 @@ async def show_tip(ctx):
 
 
 async def remind_premium(ctx):
-    if random.randint(1, 10) != 1:
+    if random.randint(1, 3) != 1:
         return
 
     from utils import discord_timestamp
     from models import Guild
+    from cogs.premium.views import PremiumPurchaseBtn
 
     guild = await Guild.get_or_none(
         pk=ctx.guild.id, is_premium=True, premium_end_time__lte=ctx.bot.current_time + timedelta(days=5)
@@ -201,11 +202,13 @@ async def remind_premium(ctx):
     _e = discord.Embed(color=discord.Color.red(), title="Premium Ending Soon....")
     _e.description = (
         f"Your Quotient Premium subscription is ending {discord_timestamp(guild.premium_end_time)}\n\n"
-        "[Click to Renew it Now](https://quotientbot.xyz/premium)"
+        "*Click the button to renew your subscription.*"
     )
+    v = discord.ui.View(timeout=None)
+    v.add_item(PremiumPurchaseBtn(label="Renew Premium"))
 
     try:
-        await ctx.reply(embed=_e)
+        await ctx.reply(embed=_e, view=v)
     except discord.HTTPException:
         return
 
