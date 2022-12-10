@@ -206,9 +206,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         with suppress(discord.HTTPException):
             await channel.purge(limit=limit, check=check)
 
-    async def premium_mango(
-        self, msg: str = "*This feature requires you to have Quotient Premium.*"
-    ) -> Optional[discord.Message]:
+    async def premium_mango(self, msg: str = "This feature requires Quotient Premium.") -> Optional[discord.Message]:
         from cogs.premium.views import PremiumView
 
         _view = PremiumView(msg)

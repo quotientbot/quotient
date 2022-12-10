@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 import hashlib
 import config
-from models import PremiumTxn, PremiumPlan, User, Guild, Premium
+from models import PremiumTxn, PremiumPlan, User, Guild, ArrayAppend
 import constants
 from datetime import datetime
 
@@ -81,11 +81,13 @@ async def premium_success(request: Request, txnId: str):
     end_time = u.premium_expire_time + plan.duration if u.is_premium else datetime.now(constants.IST) + plan.duration
 
     await User.get(pk=u.pk).update(is_premium=True, premium_expire_time=end_time)
-    bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=record.user_id))
+    await User.get(pk=u.user_id).update(made_premium=ArrayAppend("made_premium", u.user_id))
+
+    bot.dispatch("premium_purchase", record.txnid)
 
     guild = await Guild.get(pk=record.guild_id)
     end_time = guild.premium_end_time + plan.duration if guild.is_premium else datetime.now(constants.IST) + plan.duration
-    await Guild.get(pk=guild.pk).update(is_premium=True, premium_end_time=end_time)
+    await Guild.get(pk=guild.pk).update(is_premium=True, premium_end_time=end_time, made_premium_by=u.user_id)
 
     return {"success": "Transaction was successful. Please return to discord App."}
 

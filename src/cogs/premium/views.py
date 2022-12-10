@@ -52,67 +52,25 @@ class PremiumPurchaseBtn(discord.ui.Button):
 
 
 class PremiumView(discord.ui.View):
-    def __init__(self, text="*This feature requires you to have Quotient Premium.*", *, label="Try Premium"):
+    def __init__(self, text="This feature requires Quotient Premium.", *, label="Get Quotient Pro"):
         super().__init__(timeout=None)
         self.text = text
-        self.add_item(
-            discord.ui.Button(
-                url="https://quotientbot.xyz/premium",
-                emoji=emote.diamond,
-                label=label,
-            )
-        )
+        self.add_item(PremiumPurchaseBtn(label=label))
 
     @property
     def premium_embed(self) -> discord.Embed:
         _e = discord.Embed(
             color=0x00FFB3, description=f"**You discovered a premium feature <a:premium:807911675981201459>**"
         )
-
-        _e.description += f"\n`{self.text}`"
-        _e.set_image(url="https://cdn.discordapp.com/attachments/851846932593770496/991209774123339816/premium_plans.gif")
+        _e.description = (
+            f"\n*`{self.text}`*\n\n"
+            "__Perks you get with Quotient Pro:__\n"
+            f"{emote.check} Access to `Quotient Pro` bot.\n"
+            f"{emote.check} Unlimited Scrims.\n"
+            f"{emote.check} Unlimited Tournaments.\n"
+            f"{emote.check} Custom Reactions for Regs.\n"
+            f"{emote.check} Smart SSverification.\n"
+            f"{emote.check} Cancel-Claim Panel.\n"
+            f"{emote.check} Premium Role + more...\n"
+        )
         return _e
-
-
-class InvitePrime(discord.ui.View):
-    def __init__(self, guild_id: int):
-        super().__init__(timeout=None)
-        url = f"https://discord.com/oauth2/authorize?client_id={config.PREMIUM_BOT}&scope=applications.commands%20bot&permissions=21175985838&guild_id={guild_id}"
-        self.add_item(discord.ui.Button(url=url, emoji=config.PRIME_EMOJI, label="Invite Prime"))
-
-    @property
-    def embed_msg(self):
-        return discord.Embed(
-            color=config.PREMIUM_COLOR,
-            description=(
-                "It seems that you don't have the Quotient Prime bot on your server, Also its completely fine if you don't "
-                "invite it but We would suggest against it.\n\n*You are paying for the service, why not enjoy it properly?*"
-            ),
-        )
-
-
-class GuildSelector(discord.ui.Select):
-    def __init__(self, guilds: List[discord.Guild], default=[]):
-
-        _options = []
-        for guild in guilds:
-            _options.append(
-                discord.SelectOption(
-                    label=guild.name,
-                    value=guild.id,
-                    description=f"Owner: {guild.owner} (Members: {guild.member_count})",
-                    emoji=emote.diamond if guild.id in default else "<a:right_bullet:898869989648506921>",
-                )
-            )
-
-        _options.append(
-            discord.SelectOption(
-                label="Not Listed?", description="Select me if your server is not Listed", value=0, emoji=emote.error
-            )
-        )
-        super().__init__(options=_options, placeholder="Select a server to Upgrade")
-
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        self.view.stop()
-        self.view.custom_id = interaction.data["values"][0]

@@ -85,19 +85,6 @@ class Dev(Cog):
         await ctx.success("Okay, stopped reload.")
 
     @commands.command(hidden=True)
-    async def gprime(self, ctx: Context, user: int, boosts: int = 1, days: int = 28):
-        u, b = await User.get_or_create(user_id=user)
-        end_time = (
-            u.premium_expire_time + datetime.timedelta(days=days)
-            if u.is_premium
-            else self.bot.current_time + datetime.timedelta(days=days)
-        )
-
-        await User.get(pk=user).update(premiums=boosts, is_premium=True, premium_expire_time=end_time)
-        self.bot.dispatch("premium_purchase", Premium(order_id="abcd", user_id=user))
-        return await ctx.success("Given {} boosts for {} days to {}".format(boosts, days, self.bot.get_user(user)))
-
-    @commands.command(hidden=True)
     async def cmds(self, ctx: Context):
         total_uses = await Commands.all().count()
 
