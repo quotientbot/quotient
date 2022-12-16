@@ -165,11 +165,13 @@ tips = (
     "You can add a role to multiple users with `role @role @user @user2...` command.",
     "Quotient can detect and verify youtube/insta/loco,etc. screenshots (`ssverify` cmd).",
     "You can buy Quotient Pro for 29INR only at <https://quotientbot.xyz/premium>",
-    "You can customized embeds with `/embed` command."
+    "You can send customized embeds with `/embed` command."
     "Scrims Slot Cancel-Claim is available for free with `slotm` command.",
     "You can create tourney groups with `tourney` command.",
-    "Scrims Open & Close messages can be designed with `design` button on `sm` command.",
-    "With Quotient Pro you can set custom success message that will be sent to the user after registration.",
+    "Scrims Open & Close messages can be designed with `sm` command.",
+    "With Quotient Pro you can set custom DM message.",
+    "We also make custom bots, checkout: ",
+    
 )
 
 
