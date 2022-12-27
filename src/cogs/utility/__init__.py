@@ -401,7 +401,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx: Context, name: TagName, *, content=""):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ''):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
@@ -458,7 +458,7 @@ class Utility(Cog, name="utility"):
         await paginator.start()
 
     @tag.command(name="stats")
-    async def tag_stats(self, ctx: Context, *, member: QuoMember = None):
+    async def tag_stats(self, ctx: Context, *, member: typing.Optional[QuoMember]):
         """Tag statistics of the server or a member."""
         if member:
             await member_tag_stats(ctx, member)
