@@ -39,7 +39,7 @@ class Quomisc(Cog, name="quomisc"):
         self.bot = bot
 
     @commands.command(aliases=("src",))
-    async def source(self, ctx: Context, *, search: str = None):
+    async def source(self, ctx: Context, *, search: typing.Optional[str]):
         """Refer to the source code of the bot commands."""
         source_url = "https://github.com/quotientbot/Quotient-Bot"
 

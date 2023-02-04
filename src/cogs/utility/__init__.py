@@ -101,7 +101,7 @@ class Utility(Cog, name="utility"):
 
     @commands.group(invoke_without_command=True)
     @checks.is_mod()
-    async def autorole(self, ctx: Context, off: str = None):
+    async def autorole(self, ctx: Context, off: typing.Optional[str]):
         """
         Manage Quotient's autoroles.
         """
@@ -242,7 +242,7 @@ class Utility(Cog, name="utility"):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx: Context, *, name: TagConverter = None):
+    async def tag(self, ctx: Context, *, name: typing.Optional[TagConverter]):
         """Call a tag with its name or id"""
         if name is None:
             return await ctx.send_help(ctx.command)
@@ -275,7 +275,7 @@ class Utility(Cog, name="utility"):
         await ctx.send(main, allowed_mentions=discord.AllowedMentions.none())
 
     @tag.command(name="all", aliases=("list",))
-    async def all_tags(self, ctx: Context, member: QuoMember = None):
+    async def all_tags(self, ctx: Context, member: typing.Optional[QuoMember]):
         """Get all tags owned by the server or a member"""
         if not member:
             tags = await Tag.filter(guild_id=ctx.guild.id)
@@ -324,7 +324,7 @@ class Utility(Cog, name="utility"):
         await ctx.success("Transfered tag ownership to you.")
 
     @tag.command(name="create")
-    async def create_tag_command(self, ctx: Context, name: TagName, *, content=""):
+    async def create_tag_command(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ''):
         """Create a new tag"""
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
@@ -401,7 +401,7 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx: Context, name: TagName, *, content=""):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ''):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
@@ -458,7 +458,7 @@ class Utility(Cog, name="utility"):
         await paginator.start()
 
     @tag.command(name="stats")
-    async def tag_stats(self, ctx: Context, *, member: QuoMember = None):
+    async def tag_stats(self, ctx: Context, *, member: typing.Optional[QuoMember]):
         """Tag statistics of the server or a member."""
         if member:
             await member_tag_stats(ctx, member)
