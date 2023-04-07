@@ -24,7 +24,7 @@ class PremiumPlan(BaseDbModel):
             name="Basic (1m)", description="Duration: 28 days", price=79, duration=timedelta(days=28)
         )
         await PremiumPlan.create(
-            name="Professional (3M)", description="Duration: 84 days", price=229, duration=timedelta(days=84)
+            name="Professional (3m)", description="Duration: 84 days", price=229, duration=timedelta(days=84)
         )
         await PremiumPlan.create(
             name="Enterprise (6m)", description="Duration: 168 days", price=469, duration=timedelta(days=168)

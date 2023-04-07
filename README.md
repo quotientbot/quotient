@@ -1,37 +1,37 @@
+![Language](https://img.shields.io/badge/lang-Python%203.8-green)
 ![discord.py Version](https://img.shields.io/badge/lib-discord.py%202.0-blue)
-![Language](https://img.shields.io/badge/lang-Python%203.9-green)
+![Db](https://img.shields.io/badge/db-PostgreSQL-blue)
+![Library](https://img.shields.io/badge/orm-Tortoise%20ORM-purple)
 
-<br />
-<p align="center">
-  <a href="https://quotientbot.xyz/">
-    <img src="https://cdn.discordapp.com/attachments/782161513825042462/937419510447751249/quotient.png" alt="Logo" width="80" height="80">
-  </a>
+## <img src="https://cdn.discordapp.com/attachments/782161513825042462/937419510447751249/quotient.png" alt="Logo" height="23" width="23"> Quotient - The Ultimate Discord Bot for Esports Management
 
-  <h3 align="center">Quotient Bot</h3>
 
-  <p align="center">
-    A very powerful, multipurpose and fully customizable discord bot!
-    <br />
-    <a href="https://quotientbot.xyz/"><strong>Explore website »</strong></a>
-    <br />
-    <br />
-    <a href="https://discord.gg/aBM5xz6">Discord Server</a>
-    ·
-    <a href="https://discord.com/oauth2/authorize?client_id=746348747918934096&permissions=21175985838&redirect_uri=https://discord.gg/aBM5xz6&response_type=code&scope=bot">Invite Quotient</a>
-  </p>
-</p>
+Quotient is the ultimate open-source Discord bot designed specifically for esports servers. Our goal is to empower esports communities by simplifying and streamlining the organization and management of scrims, tournaments, and other events.
 
-## Can I self-host Quotient?
+> The source here is only for educational purposes.
 
-We would rather prefer you not running a direct cloned instance of Quotient. It would be a ton better to just [`Invite`](https://discord.com/oauth2/authorize?client_id=746348747918934096&permissions=21175985838&redirect_uri=https://discord.gg/aBM5xz6&response_type=code&scope=bot) the bot.The source here is only for educational purpose and to maintain transparency on how we collect, use your data and off-course on how Quotient's primary features work. We also do not take any responsibility if the code malfunctions on your side.
+## Features
+Quotient is a multi-functional bot that provides a comprehensive range of features, including:
 
-If you decide to edit, compile or use this code in any way. Kindly respect the [`LICENSE`](https://github.com/quotientbot/Quotient-Bot/blob/main/LICENSE).
+- Automated Scrims Management
+- Automated Tournaments Management
+- Easy to use Web-Dashboard
+- Community engagement tools
+- and much much more...
 
-<!-- CONTRIBUTION -->
+## Installation
+To install Quotient, simply add the bot to your Discord server using the following link: [`Add Quotient to your server`](https://discord.com/oauth2/authorize?client_id=746348747918934096&scope=applications.commands%20bot&permissions=536737213566). <br>
+We would rather prefer you not running a direct cloned instance of Quotient. It would be a ton better to just Invite the running instance.
 
-## How do I contribute?
+If you decide to edit, compile or use this code in any way. Kindly respect the [`LICENSE`](LICENSE).
 
-If you are looking forward to contribute to the project, we welcome you with open arms. kindly open an issue first for discussion.
-It's also a good option to join the [`Support Server`](https://discord.gg/aBM5xz6) and get into touch with anyone having @team role.
+### How do I contribute?
 
-There are also some easter eggs in the code, let's see if you can find some :wink:
+Contributions are Welcome:) kindly open an issue first for discussion.
+It's also a good option to join the [`Support Server`](https://discord.gg/aBM5xz6) 
+
+### Contact Us
+If you have any questions or feedback, please feel free to reach out to us on our [`Support Server`](https://discord.gg/aBM5xz6) or create an issue on this repository. Thank you for choosing Quotient!
+
+
+
