@@ -156,6 +156,7 @@ class PaginatorView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="first", emoji="<:double_left:878668594530099220>")
     async def first(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         page = self.pages.first_page
 
         self.update_embed(page)
@@ -164,6 +165,7 @@ class PaginatorView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="previous", emoji="<:left:878668491660623872>")
     async def previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         page = self.pages.previous_page
         self.update_embed(page)
         self.lock_bro()
@@ -171,6 +173,7 @@ class PaginatorView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="next", emoji="<:right:878668370331983913>")
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         page = self.pages.next_page
         self.update_embed(page)
 
@@ -179,6 +182,7 @@ class PaginatorView(discord.ui.View):
 
     @discord.ui.button(style=discord.ButtonStyle.green, custom_id="last", emoji="<:double_right:878668437193359392>")
     async def last(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
         page = self.pages.last_page
 
         self.update_embed(page)
