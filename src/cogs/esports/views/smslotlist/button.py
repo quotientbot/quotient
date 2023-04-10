@@ -128,3 +128,44 @@ class SlotlistEditButton(discord.ui.View):
                             ),
                         )
                         return await interaction.followup.send(embed=_e, ephermeral=True)
+
+    @discord.ui.button(label="Info", emoji="🧐", style=discord.ButtonStyle.green, custom_id="scrim_slotlist_info_b")
+    async def get_slot_info(self, interaction: discord.Interaction, button: discord.Button):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        __slots = await self.scrim.assigned_slots.all().order_by("num")
+        if not __slots:
+            return await interaction.followup.send("No slot in the scrim to fetch info.", ephemeral=True)
+
+        _v = await prompt_slot_selection(__slots, placeholder="Select the slot to get info...", multiple=False)
+
+        _e = discord.Embed(color=0x00FFB3, description="Kindly choose slots from the dropdown.")
+
+        await interaction.followup.send(embed=_e, view=_v, ephemeral=True)
+
+        await _v.wait()
+        if slot_id := _v.custom_id:
+            _slot = await AssignedSlot.filter(pk=slot_id).first()
+
+            if not _slot.user_id:
+                return await interaction.followup.send(
+                    "**This slot was manually added by a Scrims Moderator.**\n\n`No other info present.`", ephemeral=True
+                )
+
+            leader = await self.bot.get_or_fetch_member(interaction.guild, _slot.user_id)
+
+            _e = discord.Embed(
+                color=0x00FFB3,
+                description=(
+                    f"**Slot No:** `{_slot.num}`\n"
+                    f"**Name:** `{_slot.team_name}`\n"
+                    f"**Captain:** `{leader}` (<@{_slot.user_id}>)\n"
+                    f"**Team:** " + ", ".join([f"<@{i}>" for i in _slot.members])
+                ),
+            )
+
+            if _slot.jump_url:
+                _e.add_field(name="Registration Message", value=f"[Click me to Jump]({_slot.jump_url})", inline=False)
+
+            _e.set_author(name="Slot Info", icon_url=self.bot.user.display_avatar.url)
+            await interaction.followup.send(embed=_e, ephemeral=True)
