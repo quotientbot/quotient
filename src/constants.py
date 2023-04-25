@@ -76,6 +76,7 @@ class RegDeny(Enum):
     reqperms = "lack_permissions"
     duplicate = "duplicate_name"
     bannedteammate = "banned_teammate"
+    nolines = "no_lines"
 
 
 class RegMsg(Enum):
@@ -171,7 +172,6 @@ tips = (
     "Scrims Open & Close messages can be designed with `sm` command.",
     "With Quotient Pro you can set custom DM message.",
     "We also make custom bots, checkout: ",
-    
 )
 
 

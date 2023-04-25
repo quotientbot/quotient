@@ -11,11 +11,26 @@ from utils import regional_indicator as ri
 
 from ..paginator import NextButton, PrevButton, StopButton
 from ._base import TourneyView
-from ._buttons import (AutodeleteRejected, ConfirmChannel, DeleteTourney,
-                       DiscardButton, DuplicateTeamName, MultiReg, OpenRole,
-                       RegChannel, SetEmojis, SetGroupSize, SetMentions,
-                       SetPingRole, SetRole, SetSlots, SetTourneyname,
-                       SuccessMessage, TeamCompulsion)
+from ._buttons import (
+    AutodeleteRejected,
+    ConfirmChannel,
+    DeleteTourney,
+    DiscardButton,
+    DuplicateTeamName,
+    MultiReg,
+    OpenRole,
+    RegChannel,
+    SetEmojis,
+    SetGroupSize,
+    SetMentions,
+    SetPingRole,
+    SetRole,
+    SetSlots,
+    SetTourneyname,
+    SuccessMessage,
+    TeamCompulsion,
+    MinLines,
+)
 
 
 class TourneyEditor(TourneyView):
@@ -73,6 +88,9 @@ class TourneyEditor(TourneyView):
             "Autodelete Rejected": ("`No!`", "`Yes!`")[tourney.autodelete_rejected],
             "Success Message": f"`Click to view / edit`",
             "Teams per Group": f"`{self.record.group_size or 'Not set'}`",
+            f"Required Lines {self.bot.config.PRIME_EMOJI}": ("`Not set`", f"`{tourney.required_lines}`")[
+                bool(tourney.required_lines)
+            ],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -111,5 +129,6 @@ class TourneyEditor(TourneyView):
         self.add_item(AutodeleteRejected(ctx, "m"))
         self.add_item(SuccessMessage(ctx, "n"))
         self.add_item(SetGroupSize(ctx, "o"))
+        self.add_item(MinLines(ctx, "p"))
         self.add_item(DeleteTourney(ctx))
         self.add_item(DiscardButton(ctx))

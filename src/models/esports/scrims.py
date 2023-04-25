@@ -71,6 +71,8 @@ class Scrim(BaseDbModel):
     emojis = fields.JSONField(default=dict)  #!new
     cdn = fields.JSONField(default={"status": False, "countdown": 3, "msg": {}})  #!new
 
+    required_lines = fields.SmallIntField(default=0)
+
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
     banned_teams: fields.ManyToManyRelation["BannedTeam"] = fields.ManyToManyField("models.BannedTeam")

@@ -35,9 +35,7 @@ class SMError(Cog):
         return embed
 
     @Cog.listener()
-    async def on_tourney_registration_deny(
-        self, message: discord.Message, _type: RegDeny, tourney: Tourney
-    ):
+    async def on_tourney_registration_deny(self, message: discord.Message, _type: RegDeny, tourney: Tourney):
 
         logschan = tourney.logschan
         if not logschan:
@@ -76,9 +74,7 @@ class SMError(Cog):
 
             elif _type == RegDeny.multiregister:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, This server doesn't allow multiple registerations."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
                     delete_after=5,
                 )
 
@@ -86,21 +82,26 @@ class SMError(Cog):
 
             elif _type == RegDeny.noteamname:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, Team Name is required to register."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
                     delete_after=5,
                 )
                 text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `tourney edit {tourney.id}`"
 
             elif _type == RegDeny.duplicate:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, Someone already registered with the same team name."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, Someone already registered with the same team name."),
                     delete_after=5,
                 )
                 text += f"Duplicate teamname. Someone already registered with the same team name."
+
+            elif _type == RegDeny.nolines:
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, Your registration message is too short. It seems you missed some required information."
+                    ),
+                    delete_after=5,
+                )
+                text += f"Insufficient lines in their registration message."
 
             if tourney.autodelete_rejected:
                 self.bot.loop.create_task(delete_denied_message(message))
@@ -128,7 +129,9 @@ class SMError(Cog):
         if _type == EsportsLog.closed:
             permission_updated = kwargs.get("permission_updated")
 
-            embed.description = f"Registration closed for {open_role} in {registration_channel.mention}(TourneyID: `{tourney.id}`)"
+            embed.description = (
+                f"Registration closed for {open_role} in {registration_channel.mention}(TourneyID: `{tourney.id}`)"
+            )
             if not permission_updated:
                 important = True
                 embed.color = discord.Color.red()
@@ -137,7 +140,9 @@ class SMError(Cog):
         elif _type == EsportsLog.success:
             message: discord.Message = kwargs.get("message")
             embed.color = discord.Color.green()
-            embed.description = f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
+            embed.description = (
+                f"Registration of [{message.author}]({message.jump_url}) has been accepted in {message.channel.mention}"
+            )
 
         with suppress(discord.Forbidden, AttributeError):
             await logschan.send(
@@ -166,7 +171,9 @@ class SMError(Cog):
         with suppress(discord.NotFound, discord.Forbidden, AttributeError, discord.HTTPException):
 
             if _type == EsportsLog.open:
-                embed.description = f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)"
+                embed.description = (
+                    f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)"
+                )
 
             elif _type == EsportsLog.closed:
                 permission_updated = kwargs.get("permission_updated")
@@ -196,9 +203,7 @@ class SMError(Cog):
     # ==========================================================================================================================
 
     @Cog.listener()
-    async def on_scrim_registration_deny(
-        self, message: discord.Message, _type: RegDeny, scrim: Scrim
-    ):
+    async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim):
         logschan = scrim.logschan
         if logschan is None:
             return
@@ -222,33 +227,25 @@ class SMError(Cog):
                     ),
                     delete_after=5,
                 )
-                text += (
-                    f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
-                )
+                text += f"Insufficient Mentions (`{len(message.mentions)}/{scrim.required_mentions}`)"
 
             elif _type == RegDeny.banned:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, You are banned from the scrims. You cannot register."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, You are banned from the scrims. You cannot register."),
                     delete_after=5,
                 )
                 text += f"They are banned from scrims."
 
             elif _type == RegDeny.multiregister:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, This server doesn't allow multiple registerations."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, This server doesn't allow multiple registerations."),
                     delete_after=5,
                 )
                 text += f"They have already registered once.\n\nIf you wish to allow multiple registerations,\nuse: `smanager toggle {scrim.id} multiregister`"
 
             elif _type == RegDeny.noteamname:
                 await message.reply(
-                    embed=self.red_embed(
-                        f"{str(message.author)}, Team Name is required to register."
-                    ),
+                    embed=self.red_embed(f"{str(message.author)}, Team Name is required to register."),
                     delete_after=5,
                 )
                 text += f"Teamname compulsion is on and I couldn't find teamname in their registration\n\nIf you wish allow without teamname,\nUse: `smanager edit {scrim.id}`"
@@ -261,6 +258,15 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 text += f"No duplicate team names is ON and someone has already registered with the same team name\nIf you wish to allow duplicate team names,\nUse: `smanager edit {scrim.id}`"
+
+            elif _type == RegDeny.nolines:
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, Your registration message is too short. It seems you missed some required information."
+                    ),
+                    delete_after=5,
+                )
+                text += f"Insufficient lines in their registration message."
 
             # elif _type == RegDeny.bannedteammate:
             #     await message.reply(
@@ -337,9 +343,7 @@ class SMError(Cog):
 
         self.bot.loop.create_task(message.author.remove_roles(scrim.role))
         await AssignedSlot.filter(id=slot.id).delete()
-        await Scrim.filter(id=scrim.id).update(
-            available_slots=ArrayAppend("available_slots", slot.num)
-        )
+        await Scrim.filter(id=scrim.id).update(available_slots=ArrayAppend("available_slots", slot.num))
         if scrim.logschan is not None:
             embed = discord.Embed(color=discord.Color.red())
             embed.description = f"Slot of {message.author.mention} was deleted from Scrim: {scrim.id}, because their registration was deleted from {message.channel.mention}"

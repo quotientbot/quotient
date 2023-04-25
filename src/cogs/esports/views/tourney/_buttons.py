@@ -121,6 +121,25 @@ class SetMentions(TourneyButton):
         await self.view.refresh_view()
 
 
+class MinLines(TourneyButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error(
+                "**Quotient Premium is required to use this feature.**\n\n`Use qpro command to activate Premium.`", 5
+            )
+
+        m = await self.ctx.simple("How many lines in registration message are required for registration? (Max `100`)")
+        self.view.record.required_lines = await inputs.integer_input(self.ctx, delete_after=True, limits=(0, 10))
+        await self.ctx.safe_delete(m)
+
+        await self.view.refresh_view()
+
+
 class SetPingRole(TourneyButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))

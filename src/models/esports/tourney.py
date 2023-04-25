@@ -55,6 +55,8 @@ class Tourney(BaseDbModel):
     slotm_channel_id = fields.BigIntField(null=True)
     slotm_message_id = fields.BigIntField(null=True)
 
+    required_lines = fields.SmallIntField(default=0)
+
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
 

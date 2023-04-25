@@ -73,6 +73,10 @@ async def check_tourney_requirements(bot, message: discord.Message, tourney: Tou
         _bool = False
         bot.dispatch("tourney_registration_deny", message, RegDeny.banned, tourney)
 
+    elif len(message.content.splitlines()) < tourney.required_lines:
+        _bool = False
+        bot.dispatch("tourney_registration_deny", message, RegDeny.nolines, tourney)
+
     return _bool
 
 

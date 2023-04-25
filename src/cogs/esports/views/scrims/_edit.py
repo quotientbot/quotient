@@ -78,6 +78,9 @@ class ScrimsEditor(ScrimsView):
             "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days))
             if self.record.open_days
             else "`Not set`",
+            f"Required Lines {self.bot.config.PRIME_EMOJI}": ("`Not set`", "`{0}`".format(scrim.required_lines))[
+                bool(scrim.required_lines)
+            ],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
