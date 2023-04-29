@@ -30,8 +30,18 @@ class ScrimsSlotReserve(ScrimsView):
         reserved = await self.record.reserved_slots.order_by("num")
         _l = []
         for _ in range(self.record.start_from, self.record.total_slots + self.record.start_from):
-            _l.append(f"Slot {_:02}  -->  " + next((i.team_name for i in reserved if i.num == _), "❌") + "\n")
+            team_name = next(
+                (
+                    f"{i.team_name} [{'Lifetime' if not i.expires else i.expires.strftime('%b/%d')}]"
+                    for i in reserved
+                    if i.num == _
+                ),
+                "❌",
+            )
+            _l.append(f"Slot {_:02}  -->  " + team_name + "\n")
+
         _e.description += f"```{''.join(_l)}```"
+
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
