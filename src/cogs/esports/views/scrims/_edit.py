@@ -119,6 +119,7 @@ class ScrimsEditor(ScrimsView):
         self.add_item(SlotlistStart(self.ctx, "p"))
         self.add_item(SetAutoclean(self.ctx, "q"))
         self.add_item(OpenDays(self.ctx, "r"))
+        self.add_item(MinLines(self.ctx, "s"))
 
         self.add_item(DeleteScrim(self.ctx))
         self.add_item(Discard(self.ctx, "Main Menu"))
