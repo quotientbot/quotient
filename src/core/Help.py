@@ -50,6 +50,10 @@ class HelpCommand(commands.HelpCommand):
                     value=", ".join(map(lambda x: f"`{x}`", cog.get_commands())),
                 )
 
+        slash_cmds = await ctx.bot.tree.fetch_commands()
+        slash_cmds = [f"{i.mention}" for i in slash_cmds]
+        embed.add_field(name="Slash Commands", value=", ".join(slash_cmds), inline=False)
+
         links = [
             LinkType("Support Server", config.SERVER_LINK),
             LinkType("Invite Me", config.BOT_INVITE),
