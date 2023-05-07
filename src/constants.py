@@ -171,7 +171,7 @@ tips = (
     "You can create tourney groups with `tourney` command.",
     "Scrims Open & Close messages can be designed with `sm` command.",
     "With Quotient Pro you can set custom DM message.",
-    "We also make custom bots, checkout: ",
+    "We also make custom bots, checkout: https://discord.gg/7bKA8kZd44 ",
 )
 
 
