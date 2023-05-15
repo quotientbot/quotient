@@ -40,7 +40,7 @@ class HelpCommand(commands.HelpCommand):
 
         guild = await Guild.get_or_none(pk=ctx.guild.id)
         if guild and guild.is_premium:
-            embed.description += f"[<a:top_user:807911932299837460> __Server Premium ending:__]({config.SERVER_LINK}) {discord_timestamp(guild.premium_end_time)}"
+            embed.description += f"<a:top_user:807911932299837460> [__Server Premium ending:__]({config.SERVER_LINK}) {discord_timestamp(guild.premium_end_time)}"
 
         for cog, cmds in mapping.items():
             if cog and cog.qualified_name not in hidden and await self.filter_commands(cmds, sort=True):
