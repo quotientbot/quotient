@@ -238,10 +238,10 @@ class ScrimManager(Cog, name="Esports"):
     @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
     @checks.has_done_setup()
-    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int=4):
         """
         Set a channel for tagcheck.
-        mentions means required mentions, It's zero by default.
+        mentions defines required mentions, It's 4 by default.
         """
         count = await TagCheck.filter(guild_id=ctx.guild.id).count()
         guild = await Guild.get(guild_id=ctx.guild.id)
