@@ -286,7 +286,7 @@ class ScrimManager(Cog, name="Esports"):
         records = await TagCheck.filter(guild_id=ctx.guild.id)
         if not records:
             return await ctx.error(
-                f"You haven't set any tagcheck channel yet.\n\nUse `{ctx.prefix}tagcheck set #{ctx.channel}`"
+                f"You haven't set any tagcheck channel yet.\n\nUse `{ctx.prefix}tagcheck set #{ctx.channel} <mentions>`"
             )
 
         tags = []
