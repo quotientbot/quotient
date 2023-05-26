@@ -52,9 +52,7 @@ class TagConverter(commands.Converter):
 async def is_valid_name(ctx: Context, name: str) -> bool:
     tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
 
-    if tag:
-        return False
-    return True
+    return not tag
 
 
 async def increment_usage(ctx: Context, name) -> None:
@@ -97,7 +95,7 @@ async def guild_tag_stats(ctx: Context):
     records = await ctx.db.fetch(query, ctx.guild.id)
 
     if len(records) < 3:
-        records.extend((None, None) for i in range(0, 3 - len(records)))
+        records.extend((None, None) for _ in range(3 - len(records)))
 
     value = "\n".join(
         f"{emoji}: <@{author_id}> ({uses} times)" if author_id else f"{emoji}: No one!"
@@ -164,16 +162,12 @@ async def member_tag_stats(ctx: Context, member: QuoMember):
     e.add_field(name="Tag Command Uses", value=count[0])
 
     if len(records) < 3:
-        records.extend((None, None, None, None) for i in range(0, 3 - len(records)))
+        records.extend((None, None, None, None) for _ in range(3 - len(records)))
 
     emoji = 129351
 
     for (offset, (name, uses, _, _)) in enumerate(records):
-        if name:
-            value = f"{name} ({uses} uses)"
-        else:
-            value = "Nothing!"
-
+        value = f"{name} ({uses} uses)" if name else "Nothing!"
         e.add_field(name=f"{chr(emoji + offset)} Owned Tag", value=value)
 
     await ctx.send(embed=e, embed_perms=True)

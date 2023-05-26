@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import typing
 
-from cogs.utility.events import AutoPurgeEvents, ReminderEvents
 from discord.utils import escape_markdown, escape_mentions
+
+from cogs.utility.events import AutoPurgeEvents, ReminderEvents
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -14,9 +15,10 @@ from datetime import timedelta
 from io import BytesIO
 
 import discord
-from core import Cog, Context, embeds
 from discord.ext import commands
 from humanize import precisedelta
+
+from core import Cog, Context, embeds
 from models import ArrayAppend, ArrayRemove, AutoPurge, Autorole, Snipe, Tag
 from utils import (
     QuoCategory,
@@ -33,15 +35,7 @@ from utils import (
     truncate_string,
 )
 
-from .functions import (
-    TagConverter,
-    TagName,
-    guild_tag_stats,
-    increment_usage,
-    is_valid_name,
-    member_tag_stats,
-)
-
+from .functions import TagConverter, TagName, guild_tag_stats, increment_usage, is_valid_name, member_tag_stats
 from .views import *
 
 
@@ -78,7 +72,7 @@ class Utility(Cog, name="utility"):
         await ctx.send(f"Alright **{ctx.author}**, I'll remind you {discord_timestamp(expire)}: {when.arg}")
 
     @reminder.command(name="all", ignore_extra=False)
-    async def reminder_list(self, ctx):
+    async def reminder_list(self, ctx: Context):
         """Shows the 10 latest currently running reminders."""
         query = """SELECT id, expires, extra #>> '{args,2}'
                    FROM timer
@@ -105,7 +99,7 @@ class Utility(Cog, name="utility"):
         """
         Manage Quotient's autoroles.
         """
-        if not off or not off.lower() == "off":
+        if not off or off.lower() != "off":
             return await ctx.send_help(ctx.command)
 
         record = await Autorole.get_or_none(guild_id=ctx.guild.id)
@@ -227,10 +221,10 @@ class Utility(Cog, name="utility"):
 
         snipe = await Snipe.get_or_none(channel_id=channel.id)
         if not snipe:
-            return await ctx.error(f"There's nothing to snipe :c")
+            return await ctx.error("There's nothing to snipe :c")
 
         elif snipe.nsfw and not ctx.channel.is_nsfw():
-            return await ctx.error(f"The snipe is marked NSFW but the current channel isn't.")
+            return await ctx.error("The snipe is marked NSFW but the current channel isn't.")
 
         embed = self.bot.embed(ctx, timestamp=snipe.delete_time)
         embed.description = (
@@ -238,7 +232,7 @@ class Utility(Cog, name="utility"):
             f"\n**__Message Content__**\n{snipe.content}"
         )
 
-        embed.set_footer(text=f"Deleted")
+        embed.set_footer(text="Deleted")
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
@@ -251,8 +245,8 @@ class Utility(Cog, name="utility"):
             return await ctx.error("This tag can only be used in NSFW channels.")
 
         if name.is_embed is True:
-            dict = leval(name.content)
-            await ctx.send(embed=discord.Embed.from_dict(dict), reference=ctx.replied_reference)
+            _dict = leval(name.content)
+            await ctx.send(embed=discord.Embed.from_dict(_dict), reference=ctx.replied_reference)
 
         if not name.content:
             return await ctx.error("Tag doesn't have any content")
@@ -275,7 +269,7 @@ class Utility(Cog, name="utility"):
         await ctx.send(main, allowed_mentions=discord.AllowedMentions.none())
 
     @tag.command(name="all", aliases=("list",))
-    async def all_tags(self, ctx: Context, member: typing.Optional[QuoMember]):
+    async def all_tags(self, ctx: Context, *, member: typing.Optional[QuoMember]):
         """Get all tags owned by the server or a member"""
         if not member:
             tags = await Tag.filter(guild_id=ctx.guild.id)
@@ -307,8 +301,8 @@ class Utility(Cog, name="utility"):
         embed.add_field(name="Owner", value=getattr(user, "mention", "Invalid User!"))
         embed.add_field(name="ID:", value=tag.id)
         embed.add_field(name="Uses", value=tag.usage)
-        embed.add_field(name="NSFW", value="No" if not tag.is_nsfw else "Yes")
-        embed.add_field(name="Embed", value="No" if not tag.is_embed else "Yes")
+        embed.add_field(name="NSFW", value="Yes" if tag.is_nsfw else "No")
+        embed.add_field(name="Embed", value="Yes" if tag.is_embed else "No")
         embed.set_footer(text=f"Created At: {strtime(tag.created_at)}")
         await ctx.send(embed=embed)
 
@@ -324,7 +318,7 @@ class Utility(Cog, name="utility"):
         await ctx.success("Transfered tag ownership to you.")
 
     @tag.command(name="create")
-    async def create_tag_command(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ''):
+    async def create_tag_command(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ""):
         """Create a new tag"""
         if content == "" and not ctx.message.attachments:
             return await ctx.error("Cannot make an empty tag.")
@@ -336,7 +330,7 @@ class Utility(Cog, name="utility"):
             return await ctx.error("Tag content cannot contain more than 1990 characters.")
 
         if len(name) > 99:
-            return await ctx.error(f"Tag Name cannot contain more that 99 characters.")
+            return await ctx.error("Tag Name cannot contain more that 99 characters.")
 
         if await is_valid_name(ctx, name):
             tag = await Tag.create(name=name, content=content, guild_id=ctx.guild.id, owner_id=ctx.author.id)
@@ -347,14 +341,14 @@ class Utility(Cog, name="utility"):
             await ctx.error("Tag Name is already taken.")
 
     @tag.command(name="delete", aliases=["del"])
-    async def delete_tag(self, ctx: Context, *, tag_name: TagConverter):
+    async def delete_tag(self, ctx: Context, *, tag: TagConverter):
         """Delete a tag"""
-        tag = tag_name
-        if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+        tag = tag
+        if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error("This tag doesn't belong to you.")
 
-        await Tag.filter(guild_id=ctx.guild.id, name=tag_name.name, owner_id=tag.owner_id).delete()
-        await ctx.success(f"Deleted {tag_name.name}")
+        await Tag.filter(guild_id=ctx.guild.id, name=tag.name, owner_id=tag.owner_id).delete()
+        await ctx.success(f"Deleted {tag.name}")
 
     @tag.command(name="transfer")
     async def transfer_tag(self, ctx: Context, member: QuoMember, *, tag: TagConverter):
@@ -391,7 +385,7 @@ class Utility(Cog, name="utility"):
 
     @tag.command(name="purge")
     @commands.has_guild_permissions(manage_guild=True)
-    async def purge_tags(self, ctx: Context, member: QuoMember):
+    async def purge_tags(self, ctx: Context, *, member: QuoMember):
         """Delete all the tags of a member"""
         count = await Tag.filter(owner_id=member.id, guild_id=ctx.guild.id).count()
         if not count:
@@ -401,13 +395,13 @@ class Utility(Cog, name="utility"):
         await ctx.success(f"Deleted {plural(count): tag|tags} of **{member}**.")
 
     @tag.command(name="edit")
-    async def edit_tag(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ''):
+    async def edit_tag(self, ctx: Context, name: TagName, *, content: typing.Optional[str] = ""):
         """Edit a tag"""
         tag = await Tag.get_or_none(name=name, guild_id=ctx.guild.id)
         if not tag:
             return await ctx.error("Tag name is invalid.")
 
-        if not tag.owner_id == ctx.author.id and not ctx.author.guild_permissions.manage_guild:
+        if tag.owner_id != ctx.author.id and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error("This tag doesn't belong to you.")
 
         if len(content) > 1990:
@@ -444,7 +438,7 @@ class Utility(Cog, name="utility"):
     #         await embed.add_reaction(reaction)
 
     @tag.command(name="search")
-    async def search_tag(self, ctx: Context, *, name):
+    async def search_tag(self, ctx: Context, *, name: str):
         """Search in all your tags."""
         tags = await Tag.filter(guild_id=ctx.guild.id, name__icontains=name)
 
@@ -488,7 +482,7 @@ class Utility(Cog, name="utility"):
                 try:
                     await channel.delete()
                     success += 1
-                except:
+                except discord.HTTPException:
                     failed += 1
                     continue
 
@@ -522,7 +516,7 @@ class Utility(Cog, name="utility"):
                     perms.read_messages = False
                     await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
                     success += 1
-                except:
+                except discord.HTTPException:
                     failed += 1
                     continue
 
@@ -551,7 +545,7 @@ class Utility(Cog, name="utility"):
                     perms.read_messages = True
                     await channel.set_permissions(ctx.guild.default_role, overwrite=perms)
                     success += 1
-                except:
+                except discord.HTTPException:
                     failed += 1
                     continue
 
@@ -584,8 +578,7 @@ class Utility(Cog, name="utility"):
                         await channel.delete()
                         await clone.edit(position=position)
                         success += 1
-
-                    except:
+                    except discord.HTTPException:
                         failed += 1
                         continue
 
@@ -603,7 +596,7 @@ class Utility(Cog, name="utility"):
 
     @autopurge.command(name="set")
     @commands.has_permissions(manage_messages=True)
-    async def autopurge_set(self, ctx: Context, channel: QuoTextChannel, delete_after):
+    async def autopurge_set(self, ctx: Context, channel: QuoTextChannel, delete_after: str):
         """
         Set the autopurge for a channel
         `delete_after` should be in this format: s|m|h|d
@@ -613,7 +606,7 @@ class Utility(Cog, name="utility"):
 
         seconds = simple_convert(delete_after)
 
-        if not seconds > 4 or seconds > 604800:
+        if seconds <= 5 or seconds > 604800:
             return await ctx.error("Delete Time must be more than 5s and less than 7d.")
 
         if (count := await AutoPurge.filter(guild_id=ctx.guild.id).count()) >= 1 and not await ctx.is_premium_guild():
@@ -637,17 +630,17 @@ class Utility(Cog, name="utility"):
         if not records:
             return await ctx.error("This server doesn't have any autopurge channels.")
 
-        text = ""
-        for idx, record in enumerate(records, start=1):
-            text += f"`{idx:02}` | {getattr(record.channel, 'mention','Deleted Channel')} ({precisedelta(timedelta(seconds= record.delete_after))})\n"
-
+        text = "".join(
+            f"`{idx:02}` | {getattr(record.channel, 'mention', 'Deleted Channel')} ({precisedelta(timedelta(seconds=record.delete_after))})\n"
+            for idx, record in enumerate(records, start=1)
+        )
         await ctx.send(embed=self.bot.embed(ctx, description=text, title="AutoPurge List"), embed_perms=True)
 
     @autopurge.command(name="remove")
     @commands.has_permissions(manage_messages=True)
     async def autopurge_remove(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a channel from autopurge"""
-        if not channel.id in self.bot.cache.autopurge_channels:
+        if channel.id not in self.bot.cache.autopurge_channels:
             return await ctx.error(f"{channel} is not an autopurge channel.")
 
         self.bot.cache.autopurge_channels.discard(channel.id)
