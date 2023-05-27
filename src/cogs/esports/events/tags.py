@@ -111,3 +111,17 @@ class TagEvents(Cog):
             if eztag.delete_after:
                 self.bot.loop.create_task(delete_denied_message(message, 60))
                 self.bot.loop.create_task(delete_denied_message(msg, 60))
+
+    @Cog.listener(name="on_guild_channel_delete")
+    async def on_channel_delete(self, channel: discord.abc.GuildChannel):
+        channel_id = channel.id
+
+        # Delete EasyTag record if exists
+        easytag = await EasyTag.get_or_none(channel_id=channel_id)
+        if easytag:
+            await easytag.delete()
+
+        # Delete TagCheck record if exists
+        tagcheck = await TagCheck.get_or_none(channel_id=channel_id)
+        if tagcheck:
+            await tagcheck.delete()
