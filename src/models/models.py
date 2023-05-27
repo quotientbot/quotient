@@ -14,14 +14,8 @@ __all__ = (
     "Autorole",
     "Votes",
     "Premium",
-    "Redeem",
     "Lockdown",
     "Commands",
-    "Messages",
-    "Giveaway",
-    "WebLogs",
-    "Article",
-    "Partner",
     "AutoPurge",
 )
 
@@ -164,19 +158,6 @@ class Premium(models.Model):
     is_notified = fields.BooleanField(default=False, null=True)
 
 
-class Redeem(models.Model):
-    class Meta:
-        table = "redeem_codes"
-
-    user_id = fields.BigIntField()
-    code = fields.CharField(max_length=50, pk=True, index=True)
-    created_at = fields.DatetimeField(auto_now=True)
-    expire_time = fields.DatetimeField()
-    is_used = fields.BooleanField(default=False)
-    used_by = fields.BigIntField(null=True)
-    used_at = fields.DatetimeField(null=True)
-
-
 # ************************************************************************************************
 
 
@@ -224,114 +205,6 @@ class Commands(models.Model):
     failed = fields.BooleanField(default=False)
 
 
-class Messages(models.Model):
-    class Meta:
-        table = "messages"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField(index=True)
-    channel_id = fields.BigIntField()
-    author_id = fields.BigIntField(index=True)
-    bot = fields.BooleanField(default=False)
-    sent_at = fields.DatetimeField(auto_now=True, index=True)
-
-
-class TimedMessage(models.Model):
-    class Meta:
-        table = "timed_messages"
-
-    id = fields.BigIntField(pk=True, index=True)
-    guild_id = fields.BigIntField(index=True)
-    channel_id = fields.BigIntField()
-    msg = fields.TextField(null=True)
-    embed = fields.JSONField(null=True)
-    interval = fields.IntField(default=60)
-    send_time = fields.DatetimeField(index=True)
-    days = ArrayField(fields.CharEnumField(constants.Day), default=lambda: list(constants.Day))
-    stats = fields.IntField(default=0)
-    author_id = fields.BigIntField()
-
-
-class Article(models.Model):
-    class Meta:
-        table = "articles"
-
-    id = fields.BigIntField(pk=True)
-    user_id = fields.BigIntField()
-    title = fields.CharField(max_length=200)
-    aliases = ArrayField(fields.CharField(max_length=200), default=list)
-    content = fields.TextField()
-    url = fields.CharField(max_length=50, null=True)
-    views = fields.IntField(default=0)
-    created_at = fields.DatetimeField(auto_now=True)
-    edited_at = fields.DatetimeField(null=True)
-    edited_by = fields.BigIntField(null=True)
-
-
-class Giveaway(models.Model):
-    class Meta:
-        table = "giveaways"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    message_id = fields.BigIntField(index=True)
-    channel_id = fields.BigIntField()
-    host_id = fields.BigIntField()
-    prize = fields.CharField(max_length=50)
-    winners = fields.IntField(default=1)
-    jump_url = fields.TextField()
-
-    start_at = fields.DatetimeField(null=True)  # the times user set
-    end_at = fields.DatetimeField()
-
-    started_at = fields.DatetimeField()  # the times shit actually happens
-    ended_at = fields.DatetimeField(null=True)
-
-    required_msg = fields.IntField(default=0)
-    required_role_id = fields.BigIntField(null=True)
-
-    participants = ArrayField(fields.BigIntField(), default=list)
-
-    @property
-    def _guild(self):
-        return self.bot.get_guild(self.guild_id)
-
-    @property
-    def channel(self):
-        return self.bot.get_channel(self.channel_id)
-
-    @property
-    def host(self):
-        if self._guild is not None:
-            return self._guild.get_member(self.host_id)
-
-    @property
-    def req_role(self):
-        if self._guild is not None:
-            return self._guild.get_role(self.required_role_id)
-
-    @property
-    def message(self):
-        if self.channel is not None:
-            return self.channel.get_partial_message(self.message_id)
-
-    @property
-    def real_participants(self):
-        return map(self._guild.get_member, self.participants)
-
-
-class WebLogs(models.Model):
-    class Meta:
-        table = "web_logs"
-
-    id = fields.BigIntField(pk=True)
-    guild_id = fields.BigIntField()
-    user_id = fields.BigIntField()
-    username = fields.CharField(max_length=100)
-    action = fields.CharField(max_length=400)
-    executed_at = fields.DatetimeField(auto_now=True)
-
-
 class AutoPurge(models.Model):
     class Meta:
         table = "autopurge"
@@ -344,20 +217,3 @@ class AutoPurge(models.Model):
     @property
     def channel(self):
         return self.bot.get_channel(self.channel_id)
-
-
-class Partner(models.Model):
-    class Meta:
-        table = "partners"
-
-    id = fields.IntField(pk=True)
-    guild_id = fields.BigIntField()
-    description = fields.CharField(max_length=200)
-    invite = fields.CharField(max_length=100)
-    created_at = fields.DatetimeField(auto_now=True)
-
-    status = fields.CharEnumField(constants.PartnerRequest, default=constants.PartnerRequest.pending)
-    mod = fields.BigIntField(null=True)
-    review_note = fields.CharField(max_length=500, null=True)
-    review_time = fields.DatetimeField(null=True)
-    message_id = fields.BigIntField(null=True)
