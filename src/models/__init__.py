@@ -20,4 +20,3 @@ class BaseDbModel(models.Model):
 from .esports import *
 from .helpers import *
 from .misc import *
-from .models import *

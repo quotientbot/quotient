@@ -3,8 +3,6 @@ from datetime import timedelta
 from tortoise import fields
 import os
 
-__all__ = ("PremiumTxn", "PremiumPlan")
-
 
 class PremiumPlan(BaseDbModel):
     class Meta:
