@@ -2,7 +2,7 @@ from typing import Optional
 import constants
 import discord
 from models.helpers import ArrayField
-from tortoise import fields
+from tortoise import fields, models
 
 import config
 from models import BaseDbModel
