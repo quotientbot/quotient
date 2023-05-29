@@ -11,7 +11,7 @@ import datetime
 import discord
 from core import Cog, Context
 from discord.ext import commands
-from models import Commands, Premium, User
+from models import Commands
 from prettytable import PrettyTable
 from utils import get_ipm
 
