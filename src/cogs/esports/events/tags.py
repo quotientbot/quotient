@@ -116,16 +116,22 @@ class TagEvents(Cog):
     async def on_channel_delete(self, channel: discord.abc.GuildChannel) -> None:
         if not isinstance(channel, discord.TextChannel):
             return
+
         channel_id = channel.id
 
         # Delete EasyTag record if exists
-        easytag = await EasyTag.get_or_none(channel_id=channel_id)
-        if easytag:
-            await easytag.delete()
+        if channel_id in self.bot.cache.eztagchannels:
+            easytag = await EasyTag.get_or_none(channel_id=channel_id)
+            if easytag:
+                await easytag.delete()
+            self.bot.cache.eztagchannels.remove(channel_id)
 
         # Delete TagCheck record if exists
-        tagcheck = await TagCheck.get_or_none(channel_id=channel_id)
-        if tagcheck:
-            await tagcheck.delete()
+        if channel_id in self.bot.cache.tagcheck:
+            tagcheck = await TagCheck.get_or_none(channel_id=channel_id)
+            if tagcheck:
+                await tagcheck.delete()
+            self.bot.cache.tagcheck.remove(channel_id)
+
 
 
