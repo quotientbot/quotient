@@ -62,7 +62,7 @@ class ScrimsEditor(ScrimsView):
             "Success Role": getattr(scrim.role, "mention", "`role-deleted`"),
             "Mentions": f"`{scrim.required_mentions}`",
             "Slots": f"`{scrim.total_slots}`",
-            "Open Time": dt(scrim.open_time),
+            "Open Time": f"{dt(scrim.open_time,'t')} ({dt(scrim.open_time)})",
             f"Reactions {self.bot.config.PRIME_EMOJI}": f"{scrim.check_emoji},{scrim.cross_emoji}",
             "Ping Role": getattr(scrim.ping_role, "mention", "`Not-Set`"),
             "Open Role": getattr(scrim.open_role, "mention", "`role-deleted`"),
@@ -72,7 +72,7 @@ class ScrimsEditor(ScrimsView):
             "Autodelete Rejected": ("`No!`", "`Yes!`")[scrim.autodelete_rejects],
             "Autodelete Late Messages": ("`No!`", "`Yes!`")[scrim.autodelete_extras],
             "Slotlist Start from": "`{}`".format(scrim.start_from),
-            "Autoclean": f"{dt(scrim.autoclean_time)} (`{', '.join(_.name.title() for _ in scrim.autoclean)}`)"
+            "Autoclean": f"{dt(scrim.autoclean_time,'t')} (`{', '.join(_.name.title() for _ in scrim.autoclean)}`)"
             if scrim.autoclean_time
             else "`Turned OFF`",
             "Scrim Days": ", ".join(map(lambda x: "`{0}`".format(x.name.title()[:2]), self.record.open_days))
