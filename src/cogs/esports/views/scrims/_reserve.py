@@ -6,7 +6,7 @@ import discord
 
 from core import Context
 from models import ReservedSlot, Scrim
-from utils import BetterFutureTime, QuoMember, string_input, truncate_string
+from utils import BetterFutureTime, QuoMember, string_input, truncate_string, emote
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -172,7 +172,7 @@ class SlotSelect(discord.ui.Select):
                     label=f"Slot {_.num}",
                     description=f"Team: {_.team_name} ({_.leader or 'No leader'})",
                     value=_.id.__str__(),
-                    emoji="<:menu:972807297812275220>",
+                    emoji=emote.TextChannel,
                 )
             )
         super().__init__(

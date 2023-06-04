@@ -3,10 +3,10 @@ from .alerts import *
 from .premium import *
 from .AutoPurge import *
 from .Autorole import *
-from Commands import *
-from Lockdown import *
-from Snipe import *
-from Tag import *
-from Timer import *
-from User import *
-from Votes import *
+from .Commands import *
+from .Lockdown import *
+from .Snipe import *
+from .Tag import *
+from .Timer import *
+from .User import *
+from .Votes import *
