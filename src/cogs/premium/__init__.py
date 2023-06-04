@@ -16,7 +16,7 @@ from core import Cog, Context
 from discord.ext import commands, tasks
 from models import Guild, Timer, User, PremiumTxn
 from tortoise.query_utils import Q
-from utils import IST, strtime, emote
+from utils import IST, strtime, emote, discord_timestamp
 
 from .expire import (
     deactivate_premium,
@@ -44,7 +44,7 @@ class PremiumCog(Cog, name="Premium"):
             atext = "\n> Activated: No!"
 
         else:
-            atext = f"\n> Activated: Yes!\n> Expiry: `{strtime(user.premium_expire_time)}`\n> Boosts Left: {user.premiums}\n> Boosted Servers: {len(set(user.made_premium))}"
+            atext = f"\n> Activated: Yes!\n> Ending: {discord_timestamp(user.premium_expire_time,'f')}"
 
         if not guild.is_premium:
             btext = "\n> Activated: No!"
@@ -52,7 +52,7 @@ class PremiumCog(Cog, name="Premium"):
         else:
             booster = guild.booster or await self.bot.fetch_user(guild.made_premium_by)
             btext = (
-                f"\n> Activated: Yes!\n> Expiry Time: `{strtime(guild.premium_end_time)}`\n> Boosted by: **{booster}**"
+                f"\n> Activated: Yes!\n> Ending: {discord_timestamp(guild.premium_end_time,'f')}\n> Upgraded by: **{booster}**"
             )
 
         embed = self.bot.embed(ctx, title="Quotient Premium", url=f"{self.bot.config.WEBSITE}")
