@@ -89,7 +89,7 @@ async def premium_success(request: Request, txnId: str):
     end_time = guild.premium_end_time + plan.duration if guild.is_premium else datetime.now(constants.IST) + plan.duration
     await Guild.get(pk=guild.pk).update(is_premium=True, premium_end_time=end_time, made_premium_by=u.user_id)
 
-    return {"success": "Transaction was successful. Please return to discord App."}
+    return template.TemplateResponse("response.html", {"success": True})
 
 
 @router.post("/premium_failed")
@@ -104,4 +104,4 @@ async def premium_failed(request: Request, txnId: str):
 
     await PremiumTxn.get(txnid=txnId).update(completed_at=datetime.now(constants.IST), raw_data=dict(form))
 
-    return {"error": "Transaction Cancelled."}
+    return template.TemplateResponse("response.html", {"success": False})
