@@ -23,14 +23,14 @@ class ManageSlotlist(discord.ui.Select):
             options=[
                 discord.SelectOption(
                     label="Repost Slotlist",
-                    emoji="<:re:980844295303098438>",
+                    emoji="🔁",
                     description="Respost slotlist to a channel",
                     value="repost",
                 ),
                 discord.SelectOption(
                     label="Change Design",
                     description="Design slotlist of any scrim.",
-                    emoji="<:settings:980844348159688706>",
+                    emoji="⚙️",
                     value="format",
                 ),
                 discord.SelectOption(
