@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Response</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            background-color: #222;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: black;
+            padding: 20px;
+            text-align: center;
+            border-radius: 30px;
+        }
+
+        .success-message {
+            color: #00ffb3;
+        }
+
+        .error-message {
+            color: #e74c3c;
+        }
+        p{
+            color: white    ;
+        }
+        img{
+            height: 70px;
+            width: 70px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        {% if success %}
+        <h1 class="success-message">Transaction was Successful!</h1>
+        <img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png">
+        <p>Please return to the Discord App.</p>
+        {% else %}
+        <h1 class="error-message">An Error occurred during the Transaction.</h1>
+        <img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png">
+        <p>Please try again later or contact support.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>
