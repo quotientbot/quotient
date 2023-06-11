@@ -212,7 +212,7 @@ class TourneySlotManager(discord.ui.View):
             await first_msg.delete()
 
         except asyncio.TimeoutError:
-            await m.edit(content="Timed out. Please try again later.")
+            return await m.edit(content="Timed out. Please try again later.")
 
         if not first_msg.mentions:
             await m.edit(content="You didn't mention first user.")
