@@ -8,6 +8,7 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
+
 from core import Cog, Context
 from models import ArrayRemove, Autorole, Commands
 

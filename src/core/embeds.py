@@ -59,7 +59,6 @@ class EmbedOptions(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-
         assert self.view is not None
 
         if (selected := self.values[0]) == "content":

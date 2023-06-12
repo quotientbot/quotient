@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar, Uni
 import aiohttp
 import config as cfg
 import discord
-import utils
 from async_property import async_property
 from discord.ext import commands
+
+import utils
 
 BotT = TypeVar("BotT", bound=commands.Bot)
 
@@ -19,7 +20,6 @@ __all__ = ("Context",)
 
 
 class Context(commands.Context["commands.Bot"], Generic[BotT]):
-
     if TYPE_CHECKING:
         from .Bot import Quotient
 
@@ -38,6 +38,8 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
     @property
     def guild_color(self):
+        assert self.guild is not None
+
         return self.bot.cache.guild_color(self.guild.id)
 
     @property
@@ -47,6 +49,8 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
     @async_property
     async def banlog_channel(self):
         from models import BanLog
+
+        assert self.guild is not None
 
         record = await BanLog.get_or_none(guild_id=self.guild.id)
         if record:
@@ -78,12 +82,11 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         finally:
             return view.value
 
-    async def error(self, message: str, delete_after: bool = None, **kwargs: Any) -> Optional[discord.Message]:
+    async def error(self, message: str, delete_after: Optional[bool] = None, **kwargs: Any) -> Optional[discord.Message]:
         with suppress(discord.HTTPException):
-
             msg: Optional[discord.Message] = await self.reply(
                 embed=discord.Embed(description=message, color=discord.Color.red()),
-                delete_after=delete_after,
+                delete_after=delete_after,  # type: ignore
                 **kwargs,
             )
             try:
@@ -105,7 +108,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         await msg.delete(delay=0)
 
     async def success(
-        self, message: str, delete_after: Union[int, float] = None, **kwargs: Any
+        self, message: str, delete_after: Union[int, float, None] = None, **kwargs: Any
     ) -> Optional[discord.Message]:
         with suppress(discord.HTTPException):
             return await self.reply(
@@ -113,13 +116,13 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
                     description=f"{utils.check} | {message}",
                     color=self.bot.color,
                 ),
-                delete_after=delete_after,
+                delete_after=delete_after,  # type: ignore
                 **kwargs,
             )
         return None
 
     async def simple(
-        self, message: str, delete_after: Union[int, float] = None, **kwargs: Any
+        self, message: str, delete_after: Union[int, float, None] = None, **kwargs: Any
     ) -> Optional[discord.Message]:
         with suppress(discord.HTTPException):
             image = kwargs.pop("image", None)
@@ -133,7 +136,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
             return await self.reply(
                 embed=embed,
-                delete_after=delete_after,
+                delete_after=delete_after,  # type: ignore
                 **kwargs,
             )
         return None
@@ -142,6 +145,8 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         from models import Guild
 
         with suppress(AttributeError):
+            assert self.guild is not None
+
             return (await Guild.get(guild_id=self.guild.id)).is_premium
 
         return False
@@ -168,10 +173,12 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
             await message.delete(delay=0)
 
     async def send(self, content: Any = None, **kwargs: Any) -> Optional[discord.Message]:
+        assert isinstance(self.me, discord.Member)
         if not (_perms := self.channel.permissions_for(self.me)).send_messages:
             try:
                 await self.author.send(
-                    "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so."
+                    "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so.",
+                    view=self.get_dm_view(),
                 )
             except discord.Forbidden:
                 pass
@@ -211,3 +218,13 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
         _view = PremiumView(msg)
         return await self.send(embed=_view.premium_embed, view=_view, embed_perms=True)
+
+    def get_dm_view(self, *, msg: Optional[str] = None) -> discord.ui.View:
+        """Shortcut function to get a DM view"""
+
+        from .views import QuoDMView as QuoDMViewButton
+
+        assert self.guild is not None
+
+        label = f"Sent from {self.guild.name}"
+        return QuoDMViewButton(timeout=None, label=msg or label)

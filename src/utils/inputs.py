@@ -8,8 +8,7 @@ import aiohttp
 import dateparser
 import discord
 from discord.ext.commands import Context
-from discord.ext.commands.converter import (MemberConverter, RoleConverter,
-                                            TextChannelConverter)
+from discord.ext.commands.converter import MemberConverter, RoleConverter, TextChannelConverter
 
 from constants import IST
 from utils import keycap_digit

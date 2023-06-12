@@ -6,8 +6,9 @@ if TYPE_CHECKING:
     from core import Quotient
 
 import config
-from core import Cog
 from discord.ext import tasks
+
+from core import Cog
 
 
 class QuoTasks(Cog):

@@ -1,12 +1,11 @@
 import random
 from contextlib import suppress
+from datetime import datetime, timedelta
 from enum import Enum
 
+import config
 import discord
 import pytz
-
-from datetime import datetime, timedelta
-import config
 
 
 class _Sentinel:
@@ -188,9 +187,9 @@ async def remind_premium(ctx):
     if random.randint(1, 3) != 1:
         return
 
-    from utils import discord_timestamp
-    from models import Guild
     from cogs.premium.views import PremiumPurchaseBtn
+    from models import Guild
+    from utils import discord_timestamp
 
     guild = await Guild.get_or_none(
         pk=ctx.guild.id, is_premium=True, premium_end_time__lte=ctx.bot.current_time + timedelta(days=5)

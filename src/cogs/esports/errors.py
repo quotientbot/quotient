@@ -8,18 +8,10 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
+
 from constants import EsportsLog, EsportsRole, RegDeny
 from core import Cog
-from models import (
-    ArrayAppend,
-    AssignedSlot,
-    EasyTag,
-    ReservedSlot,
-    Scrim,
-    TagCheck,
-    Timer,
-    Tourney,
-)
+from models import ArrayAppend, AssignedSlot, EasyTag, ReservedSlot, Scrim, TagCheck, Timer, Tourney
 from utils import plural
 
 from .helpers import delete_denied_message, scrim_work_role, tourney_work_role
@@ -36,7 +28,6 @@ class SMError(Cog):
 
     @Cog.listener()
     async def on_tourney_registration_deny(self, message: discord.Message, _type: RegDeny, tourney: Tourney):
-
         logschan = tourney.logschan
         if not logschan:
             return
@@ -169,7 +160,6 @@ class SMError(Cog):
 
         embed = discord.Embed(color=0x00B1FF)
         with suppress(discord.NotFound, discord.Forbidden, AttributeError, discord.HTTPException):
-
             if _type == EsportsLog.open:
                 embed.description = (
                     f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)"

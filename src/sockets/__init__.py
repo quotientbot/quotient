@@ -10,8 +10,7 @@ from socketio import AsyncClient
 from core import Cog
 
 from .app import sio
-from .events import (DashboardGate, SocketScrims, SockGuild, SockPrime,
-                     SockSettings)
+from .events import DashboardGate, SocketScrims, SockGuild, SockPrime, SockSettings
 
 
 class SocketConnection(Cog):

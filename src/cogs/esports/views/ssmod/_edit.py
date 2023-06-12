@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from core import Quotient
 
 import config
+
 from core import Context
 from models import SSVerify
 
@@ -28,7 +29,6 @@ class SSmodEditor(EsportsBaseView):
         self.current_page = 1
 
     async def refresh_view(self):
-
         self.record = self.records[self.current_page - 1]
 
         _d = dict(self.record)

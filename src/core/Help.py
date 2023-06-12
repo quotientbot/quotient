@@ -6,8 +6,9 @@ from typing import List, Mapping
 import config
 import discord
 from discord.ext import commands
+
 from models import Guild
-from utils import LinkButton, LinkType, QuoPaginator, truncate_string, discord_timestamp
+from utils import LinkButton, LinkType, QuoPaginator, discord_timestamp, truncate_string
 
 from .Cog import Cog
 

@@ -9,10 +9,11 @@ import asyncio
 import datetime
 
 import discord
-from core import Cog, Context
 from discord.ext import commands
-from models import Commands
 from prettytable import PrettyTable
+
+from core import Cog, Context
+from models import Commands
 from utils import get_ipm
 
 from .helper import tabulate_query
@@ -35,7 +36,6 @@ class Dev(Cog):
         spec: T.Optional[T.Literal["~", "*", "^"]] = None,
     ) -> None:
         if not guilds:
-
             if spec == "~":
                 synced = await self.bot.tree.sync(guild=ctx.guild)
             elif spec == "*":

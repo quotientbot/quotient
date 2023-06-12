@@ -1,9 +1,9 @@
 from .cmds import CmdEvents
 from .errors import Errors
+from .interaction import InteractionErrors
 from .main import MainEvents
 from .tasks import QuoTasks
 from .votes import VotesCog
-from .interaction import InteractionErrors
 
 
 async def setup(bot):

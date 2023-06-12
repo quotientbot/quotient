@@ -5,6 +5,7 @@ from contextlib import suppress
 from typing import Iterable, List, Optional
 
 import discord
+
 from constants import EsportsRole, RegDeny
 from models import TMSlot, Tourney
 
@@ -15,7 +16,6 @@ def get_tourney_slots(slots: List[TMSlot]) -> Iterable[int]:
 
 
 def tourney_work_role(tourney: Tourney, _type: EsportsRole):
-
     if _type == EsportsRole.ping:
         role = tourney.ping_role
 

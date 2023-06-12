@@ -10,7 +10,7 @@ import discord
 
 from core import Context, QuotientView
 from models import BanLog, BannedTeam, Scrim
-from utils import discord_timestamp, emote, plural, truncate_string, get_chunks
+from utils import discord_timestamp, emote, get_chunks, plural, truncate_string
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard
@@ -28,7 +28,6 @@ class ScrimBanManager(ScrimsView):
 
     @property
     async def initial_message(self):
-
         banned = [_ async for _ in self.record.banned_teams.all()]
 
         _e = discord.Embed(color=self.bot.color)
@@ -125,7 +124,6 @@ class Ban(ScrimsButton):
                 await banlog.log_ban(user_id, interaction.user, [self.view.record], modal.m_reason.value, expires)
 
             if expires:
-
                 await self.view.bot.reminders.create_timer(
                     expires,
                     "scrim_ban",

@@ -1,7 +1,7 @@
+import config
 import discord
 from tortoise import fields
 
-import config
 from models import BaseDbModel
 from models.helpers import *
 

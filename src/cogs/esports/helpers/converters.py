@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord.ext.commands import Converter
-from models import *
 
+from models import *
 from utils import QuoMember
 
 

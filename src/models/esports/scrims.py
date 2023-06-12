@@ -8,17 +8,16 @@ from typing import List, Optional
 
 import discord
 import humanize
+from aiocache import cached
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
 import utils
 from constants import AutocleanType, Day, EsportsLog, EsportsRole
-from core import Context
+from core import Context, QuoDMView
 from models import BaseDbModel
 from models.helpers import *
 from utils import discord_timestamp, plural, truncate_string
-
-from aiocache import cached
 
 
 class Scrim(BaseDbModel):
@@ -200,7 +199,6 @@ class Scrim(BaseDbModel):
         )
 
     async def create_slotlist(self):
-
         _slots = await self.cleaned_slots()
 
         desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
@@ -260,15 +258,15 @@ class Scrim(BaseDbModel):
         _e = discord.Embed(color=0x00FFB3, title=f"Slot Available to Claim - {channel.guild.name}", url=link)
         _e.description = f"A slot of {self} is available to claim in {channel.mention}!\nClaim it before anyone else do."
 
-        async for user in self.bot.resolve_member_ids(self.guild, [i.user_id for i in reminders]):
+        assert self.guild is not None
 
+        async for user in self.bot.resolve_member_ids(self.guild, [i.user_id for i in reminders]):
             with suppress(discord.HTTPException):
-                await user.send(embed=_e)
+                await user.send(embed=_e, view=QuoDMView(label=f"Sent from {self.guild.name}"))
 
         await ScrimsSlotReminder.filter(pk__in=(i.pk for i in reminders)).delete()
 
     async def ensure_match_timer(self):
-
         from models import Timer
 
         from .slotm import ScrimsSlotManager
@@ -681,7 +679,6 @@ class BanLog(BaseDbModel):
         return self.bot.get_channel(self.channel_id)
 
     def __format_scrims(self, scrims: List[Scrim]):
-
         _scrims = []
         for idx, _ in enumerate(scrims, start=1):
             if idx < 4:
@@ -693,7 +690,6 @@ class BanLog(BaseDbModel):
         return ", ".join(_scrims)
 
     async def log_ban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason: str = None, dt: str = None):
-
         user: discord.User = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
 
         _e = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from {plural(scrims):scrim|scrims}")
@@ -713,7 +709,6 @@ class BanLog(BaseDbModel):
             await self.channel.send(getattr(user, "mention", ""), embed=_e)
 
     async def log_unban(self, user_id: int, mod: discord.Member, scrims: List[Scrim], reason: str = None):
-
         user = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, user_id)
         _e = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from {plural(scrims):Scrim|Scrims}")
         _e.add_field(name="User", value=f"{user} ({getattr(user, 'mention','unknown-user')})")

@@ -31,14 +31,11 @@ class LockEvents(Cog):
 
             perms = channel.overwrites_for(channel.guild.default_role)
             perms.send_messages = True
-            await channel.set_permissions(
-                channel.guild.default_role, overwrite=perms, reason="Lockdown timer complete!"
-            )
+            await channel.set_permissions(channel.guild.default_role, overwrite=perms, reason="Lockdown timer complete!")
             await Lockdown.filter(channel_id=channel.id).delete()
             await channel.send(f"Unlocked **{channel}**")
 
         elif _type == LockType.guild.value:
-
             guild_id = timer.kwargs["guild_id"]
 
             check = await Lockdown.get_or_none(guild_id=guild_id, type=LockType.guild)
@@ -46,11 +43,7 @@ class LockEvents(Cog):
                 return
 
             for channel in check.channels:
-                if (
-                    channel is not None
-                    and channel.permissions_for(channel.guild.me).manage_channels
-                ):
-
+                if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
                     perms = channel.overwrites_for(channel.guild.default_role)
                     perms.send_messages = True
                     await channel.set_permissions(

@@ -113,7 +113,6 @@ class ScrimsSlotlistEditor(discord.ui.View):
 
         await _v.wait()
         if slot_id := _v.custom_id:
-
             _slot = await AssignedSlot.get_or_none(pk=slot_id)
             if not _slot:
                 return

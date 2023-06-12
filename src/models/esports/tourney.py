@@ -2,14 +2,12 @@ import io
 from contextlib import suppress
 from typing import List, Optional, Union
 
-from typing import Optional, List, Union
-from models.helpers import *  # noqa: F401, F403
 import discord
 from discord.ext.commands import BadArgument
 from tortoise import exceptions, fields
 
 from models import BaseDbModel
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 from utils import split_list
 
 _dict = {
@@ -145,7 +143,6 @@ class Tourney(BaseDbModel):
         return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
 
     async def get_group(self, num: int) -> List["TMSlot"]:
-
         _all = await self._get_groups()
         for group in _all:
             if _all.index(group) == num - 1:
@@ -172,8 +169,8 @@ class Tourney(BaseDbModel):
         """
         Add role to user and reaction to the message
         """
+        assert isinstance(ctx.author, discord.Member) and ctx.guild is not None
         with suppress(discord.HTTPException):
-
             if not (_role := self.role) in ctx.author.roles:
                 await ctx.author.add_roles(_role)
 
@@ -184,10 +181,9 @@ class Tourney(BaseDbModel):
                 embed.title = f"Message from {ctx.guild.name}"
                 embed.url = slot.jump_url
 
-                await ctx.author.send(embed=embed)
+                await ctx.author.send(embed=embed, view=ctx.get_dm_view())
 
     async def end_process(self):
-
         from cogs.esports.helpers.utils import toggle_channel
 
         closed_at = self.bot.current_time
@@ -247,7 +243,6 @@ class Tourney(BaseDbModel):
 
     @staticmethod
     async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
-
         placeholder = placeholder or "Choose a tourney to contine..."
 
         from cogs.esports.views.tourney._select import QuotientView, TourneySelector

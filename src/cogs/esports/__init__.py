@@ -10,8 +10,9 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from core import Cog, Context, QuotientView
 from discord.ext import commands
+
+from core import Cog, Context, QuotientView
 from models import *
 from utils import QuoRole, QuoTextChannel, checks
 
@@ -238,7 +239,7 @@ class ScrimManager(Cog, name="Esports"):
     @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
     @checks.has_done_setup()
-    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int=4):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int = 4):
         """
         Set a channel for tagcheck.
         mentions defines required mentions, It's 4 by default.

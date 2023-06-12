@@ -12,11 +12,12 @@ import asyncio
 from unicodedata import normalize
 
 import discord
+from tortoise.exceptions import DoesNotExist
+
 import utils
 from constants import EsportsLog, RegDeny
 from core import Cog
 from models import MediaPartner, PartnerSlot, TGroupList, TMSlot, Tourney
-from tortoise.exceptions import DoesNotExist
 from utils import truncate_string
 
 from ..helpers import (
@@ -100,7 +101,6 @@ class TourneyEvents(Cog):
 
     @Cog.listener("on_message")
     async def on_tourney_registration(self, message: discord.Message):
-
         if not message.guild or message.author.bot:
             return
 
@@ -133,7 +133,6 @@ class TourneyEvents(Cog):
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-
         if not all((payload.guild_id, payload.member, not payload.member.bot)):
             return
 

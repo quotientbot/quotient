@@ -166,7 +166,7 @@ async def member_tag_stats(ctx: Context, member: QuoMember):
 
     emoji = 129351
 
-    for (offset, (name, uses, _, _)) in enumerate(records):
+    for offset, (name, uses, _, _) in enumerate(records):
         value = f"{name} ({uses} uses)" if name else "Nothing!"
         e.add_field(name=f"{chr(emoji + offset)} Owned Tag", value=value)
 

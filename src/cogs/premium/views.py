@@ -2,8 +2,9 @@ from typing import List
 
 import config
 import discord
-from utils import emote
+
 from models import PremiumPlan, PremiumTxn
+from utils import emote
 
 
 class PlanSelector(discord.ui.Select):

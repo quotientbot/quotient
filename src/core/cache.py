@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 import config
+
 from constants import IST
 from models import AutoPurge, EasyTag, Guild, Scrim, SSVerify, TagCheck, Tourney
 
@@ -25,7 +26,6 @@ class CacheManager:
         self.ssverify_channels = set()
 
     async def fill_temp_cache(self):
-
         async for record in Guild.all():
             self.guild_data[record.guild_id] = {
                 "prefix": record.prefix,

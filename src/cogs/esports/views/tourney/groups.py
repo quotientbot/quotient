@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 import asyncio
 
+import config
 import discord
 from discord.ext import commands
 from humanize import precisedelta
 
-import config
 from core import Context
 from utils import QuoRole, emote, get_chunks, inputs, truncate_string
 

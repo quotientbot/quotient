@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 import typing as T
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from discord.ext.commands import Cog
+import config
 from aiohttp import web
 from aiohttp_asgi import ASGIResource
+from discord.ext.commands import Cog
+
 from .app import fastapi_app
-import config
 
 
 class ApiServer(Cog):

@@ -1,17 +1,6 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Callable,
-    Coroutine,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Coroutine, Dict, Iterable, List, Optional, Union
 
 if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
@@ -24,7 +13,6 @@ from datetime import datetime
 
 import aiohttp
 import config as cfg
-import constants as csts
 import dbl
 import discord
 import mystbin
@@ -33,8 +21,10 @@ from async_property import async_property
 from discord import AllowedMentions, Intents
 from discord.ext import commands
 from lru import LRU
-from models import Guild
 from tortoise import Tortoise
+
+import constants as csts
+from models import Guild
 
 from .cache import CacheManager
 from .Context import Context
@@ -95,13 +85,7 @@ class Quotient(commands.AutoShardedBot):
 
     @on_startup.append
     async def __load_presistent_views(self):
-
-        from cogs.esports.views import (
-            GroupRefresh,
-            ScrimsSlotmPublicView,
-            SlotlistEditButton,
-            TourneySlotManager,
-        )
+        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
@@ -354,7 +338,7 @@ class Quotient(commands.AutoShardedBot):
 
     async def get_or_fetch_message(
         self,
-        channel: discord.TextChannel,
+        channel: discord.abc.MessageableChannel,
         message_id: int,
         *,
         cache: bool = True,

@@ -21,7 +21,6 @@ class DashboardGate(Cog):
 
     @Cog.listener()
     async def on_request__guild_permissions(self, u, data):
-
         guild_ids = data["guild_ids"]
         user_id = data["user_id"]
 

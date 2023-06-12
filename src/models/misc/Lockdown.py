@@ -1,6 +1,7 @@
+from tortoise import fields, models
+
 import constants
 from models.helpers import ArrayField
-from tortoise import fields, models
 
 
 class Lockdown(models.Model):

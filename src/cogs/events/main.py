@@ -10,6 +10,7 @@ from contextlib import suppress
 
 import config
 import discord
+
 from constants import random_greeting
 from core import Cog, Context
 from models import Guild

@@ -5,10 +5,11 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-import constants
 import discord
-from core import Cog
 from discord import Webhook
+
+import constants
+from core import Cog
 from models import Timer, User, Votes
 
 
@@ -21,7 +22,7 @@ class VotesCog(Cog):
     async def on_member_join(self, member: discord.Member):
         """we grant users voter, premium role if they join later."""
 
-        if not member.guild or not member.guild.id == self.bot.config.SERVER_ID:
+        if not member.guild or member.guild.id != self.bot.config.SERVER_ID:
             return
 
         if await Votes.get(user_id=member.id, is_voter=True).exists():

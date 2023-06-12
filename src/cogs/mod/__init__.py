@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Union, List
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from core import Quotient
@@ -8,11 +8,11 @@ if TYPE_CHECKING:
 import re
 
 import discord
+from discord.ext import commands
+
 from constants import LockType
 from core import Cog, Context, QuotientView, role_command_check
-from discord.ext import commands
 from models import Lockdown
-
 from utils import ActionReason, BannedMember, FutureTime, MemberID, QuoUser, emote, human_timedelta, plural
 
 from .events import *
@@ -274,7 +274,6 @@ class Mod(Cog):
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
     async def role_bots(self, ctx: Context, role: discord.Role):
-
         """Add a role to all bot users."""
         members = [m for m in ctx.guild.members if all([not role in m.roles, m.bot])]
 
@@ -611,7 +610,6 @@ class Mod(Cog):
         success = 0
         for channel in check.channels:
             if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
-
                 perms = channel.overwrites_for(channel.guild.default_role)
                 perms.send_messages = True
                 await channel.set_permissions(
@@ -721,7 +719,6 @@ class Mod(Cog):
         success = 0
         for channel in check.channels:
             if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
-
                 perms = channel.overwrites_for(role)
                 perms.read_messages = True
                 await channel.set_permissions(role, overwrite=perms, reason="Lockdown timer complete!")

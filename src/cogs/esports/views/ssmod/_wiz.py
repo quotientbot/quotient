@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import config
 import discord
 
-import config
 from core import Context
 from models import SSVerify
 from utils import keycap_digit as kd

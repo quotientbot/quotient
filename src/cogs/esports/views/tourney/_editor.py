@@ -17,6 +17,7 @@ from ._buttons import (
     DeleteTourney,
     DiscardButton,
     DuplicateTeamName,
+    MinLines,
     MultiReg,
     OpenRole,
     RegChannel,
@@ -29,12 +30,10 @@ from ._buttons import (
     SetTourneyname,
     SuccessMessage,
     TeamCompulsion,
-    MinLines,
 )
 
 
 class TourneyEditor(TourneyView):
-
     record: Tourney
 
     def __init__(self, ctx: Context, records):

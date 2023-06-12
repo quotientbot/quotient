@@ -93,7 +93,6 @@ class GroupRefresh(discord.ui.View):
                 await interaction.followup.send(embed=_e, ephemeral=True)
 
     async def __do_checks(self, interaction: discord.Interaction, refresh_too=False):
-
         record = await TGroupList.get_or_none(pk=interaction.message.id)
         tourney = None
         if record:

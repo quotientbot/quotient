@@ -4,6 +4,7 @@ import typing as T
 from contextlib import suppress
 
 import discord
+
 from models import AssignedSlot, Scrim
 from utils import BaseSelector, emote
 
