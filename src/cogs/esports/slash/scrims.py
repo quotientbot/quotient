@@ -36,6 +36,7 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
         return True
 
     @app_commands.command()
+    @app_commands.describe(user="The user you want to ban from scrims.", reason="The reason for banning the user.")
     async def unban(self, interaction: discord.Interaction, user: discord.User, reason: str = None):
         """Unban any user from scrims."""
         if not await self.can_use_command(interaction):
@@ -94,3 +95,53 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
         banlog = await BanLog.get_or_none(guild_id=interaction.guild_id)
         if banlog:
             await banlog.log_unban(user.id, interaction.user, scrims, f"```{reason}```")
+
+    @app_commands.command()
+    @app_commands.describe(user="The user whose slots you want to see.")
+    async def slotinfo(self, interaction: discord.Interaction, user: discord.Member):
+        """Get info about all the slots a user has."""
+
+        if not await self.can_use_command(interaction):
+            return
+
+        await interaction.response.defer(thinking=True)
+
+        # I hope one day these ORMs will be able to do this
+        query = """
+        
+        	(SELECT *
+		FROM
+			(SELECT SCRIMS.ID AS SCRIM_ID,
+					*
+				FROM PUBLIC."sm.scrims" AS SCRIMS
+				FULL OUTER JOIN
+					(SELECT ID AS ASSIGNED_SLOT_ID,
+							*
+						FROM PUBLIC."sm.scrims_sm.assigned_slots" AS ASSIGNED_SLOT
+						INNER JOIN PUBLIC."sm.assigned_slots" AS SLOTS ON SLOTS.ID = ASSIGNED_SLOT.ASSIGNEDSLOT_ID) AS ASSIGNED_SLOT ON SCRIMS.ID = ASSIGNED_SLOT."sm.scrims_id"
+				WHERE (SCRIMS.GUILD_ID = $1
+											AND ASSIGNED_SLOT."sm.scrims_id" IS NOT NULL)) AS SM
+		WHERE USER_ID = $2)
+
+        
+        """
+
+        records: T.List[T.Any] = await self.bot.db.fetch(query, interaction.guild_id, user.id)
+        if not records:
+            embed = discord.Embed(
+                color=discord.Color.red(),
+                description=f"{user.mention} doesn't have any slot in any scrim of this server.",
+            )
+            return await interaction.followup.send(embed=embed)
+
+        embed = discord.Embed(color=self.bot.color)
+        embed.set_author(name=f"{user}'s slots", icon_url=user.display_avatar.url)
+        embed.description = ""
+        for idx, record in enumerate(records, start=1):
+            embed.description += (
+                f"`[{idx:02}] ` [**{record['team_name']}**]({record['jump_url']}) - <#{record['registration_channel_id']}>\n"
+                "Team: {0}\n\n".format(", ".join([f"<@{member}>" for member in record["members"]]))
+            )
+
+        embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+        await interaction.followup.send(embed=embed)
