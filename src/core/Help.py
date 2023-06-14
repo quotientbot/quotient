@@ -17,6 +17,7 @@ class HelpCommand(commands.HelpCommand):
         super().__init__(
             verify_checks=False,
             command_attrs={
+                "cooldown": commands.CooldownMapping.from_cooldown(1, 8.0, commands.BucketType.member),
                 "help": "Shows help about the bot, a command, or a category",
             },
         )
