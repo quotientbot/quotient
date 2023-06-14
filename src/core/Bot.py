@@ -95,7 +95,6 @@ class Quotient(commands.AutoShardedBot):
 
     @on_startup.append
     async def __load_presistent_views(self):
-
         from cogs.esports.views import (
             GroupRefresh,
             ScrimsSlotmPublicView,

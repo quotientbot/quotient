@@ -50,6 +50,7 @@ class Mod(Cog):
 
     @commands.group(invoke_without_command=True, aliases=["purge"])
     @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(7, 1, type=commands.BucketType.guild)
     async def clear(self, ctx: Context, Choice: Union[discord.Member, int], amount: int = 5):
         """
         An all in one purge command.
@@ -143,7 +144,7 @@ class Mod(Cog):
     @commands.command()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
-    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    @commands.cooldown(3, 1, type=commands.BucketType.user)
     async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Kicks a member from the server.
         In order for this to work, the bot must have Kick Member permissions.
@@ -157,7 +158,7 @@ class Mod(Cog):
 
     @commands.command()
     @commands.has_permissions(ban_members=True)
-    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    @commands.cooldown(3, 1, type=commands.BucketType.user)
     @commands.bot_has_guild_permissions(ban_members=True)
     async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Bans a member from the server.
@@ -175,7 +176,7 @@ class Mod(Cog):
     @commands.command()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
-    @commands.cooldown(2, 1, type=commands.BucketType.user)
+    @commands.cooldown(3, 1, type=commands.BucketType.user)
     async def unban(self, ctx: Context, member: BannedMember, *, reason: ActionReason = None):
         """Unbans a member from the server.
         You can pass either the ID of the banned member or the Name#Discrim
@@ -199,6 +200,7 @@ class Mod(Cog):
     )
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
+    @commands.cooldown(4, 1, type=commands.BucketType.guild)
     @role_command_check()
     async def role(self, ctx: Context, role: discord.Role, members: commands.Greedy[discord.Member]):
         """
@@ -235,6 +237,7 @@ class Mod(Cog):
     @role.command(name="humans", extras={"examples": ["role humans @role", "role humans role_id"]})
     @commands.has_guild_permissions(manage_roles=True)
     @commands.bot_has_guild_permissions(manage_roles=True)
+    @commands.cooldown(5, 1, type=commands.BucketType.guild)
     @role_command_check()
     async def role_humans(self, ctx: Context, role: discord.Role):
         """Add a role to all human users."""
@@ -274,7 +277,6 @@ class Mod(Cog):
     @commands.bot_has_guild_permissions(manage_roles=True)
     @role_command_check()
     async def role_bots(self, ctx: Context, role: discord.Role):
-
         """Add a role to all bot users."""
         members = [m for m in ctx.guild.members if all([not role in m.roles, m.bot])]
 
@@ -611,7 +613,6 @@ class Mod(Cog):
         success = 0
         for channel in check.channels:
             if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
-
                 perms = channel.overwrites_for(channel.guild.default_role)
                 perms.send_messages = True
                 await channel.set_permissions(
@@ -721,7 +722,6 @@ class Mod(Cog):
         success = 0
         for channel in check.channels:
             if channel is not None and channel.permissions_for(channel.guild.me).manage_channels:
-
                 perms = channel.overwrites_for(role)
                 perms.read_messages = True
                 await channel.set_permissions(role, overwrite=perms, reason="Lockdown timer complete!")
