@@ -56,7 +56,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command(aliases=("s", "sm"))
     @commands.bot_has_permissions(embed_links=True, add_reactions=True, manage_messages=True)
     @commands.bot_has_guild_permissions(manage_channels=True, manage_roles=True, manage_messages=True)
-    @commands.cooldown(1, 10, type=commands.BucketType.guild)
+    @commands.cooldown(1, 15, type=commands.BucketType.guild)
     async def smanager(self, ctx: Context):
         """
         Contains commands related to Quotient's powerful scrims manager.
@@ -75,7 +75,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.bot_has_guild_permissions(
         manage_channels=True, manage_permissions=True, manage_roles=True, manage_messages=True
     )
-    @commands.cooldown(1, 10, type=commands.BucketType.guild)
+    @commands.cooldown(1, 15, type=commands.BucketType.guild)
     async def tourney(self, ctx: Context):
         """Create & Manage tournaments with Quotient"""
         if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:
@@ -93,6 +93,7 @@ class ScrimManager(Cog, name="Esports"):
     )
     @commands.bot_has_permissions(embed_links=True, manage_messages=True)
     @checks.can_use_sm()
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def idp(self, ctx: Context, room_id: str, password: str, map: str, role_to_ping: Optional[discord.Role] = None):
         """
         Share Id/pass with embed quickly.
@@ -128,6 +129,7 @@ class ScrimManager(Cog, name="Esports"):
     @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def set_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Set a channel as eztag channel."""
         count = await EasyTag.filter(guild_id=ctx.guild.id).count()
@@ -176,6 +178,7 @@ class ScrimManager(Cog, name="Esports"):
     @easytag.command(name="remove")
     @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a eztag channel"""
         if not channel.id in self.bot.cache.eztagchannels:
@@ -188,6 +191,7 @@ class ScrimManager(Cog, name="Esports"):
     @easytag.command(name="config")
     @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def config_eztag(self, ctx: Context):
         """Get a list of all your easytag channels."""
         records = await EasyTag.filter(guild_id=ctx.guild.id)
@@ -209,6 +213,7 @@ class ScrimManager(Cog, name="Esports"):
     @easytag.command(name="autodelete")
     @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
         """Enable/Disable autodelete for eztag."""
         record = await EasyTag.get_or_none(channel_id=channel.id)
@@ -237,8 +242,9 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     @checks.has_done_setup()
-    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int=4):
+    async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int = 4):
         """
         Set a channel for tagcheck.
         mentions defines required mentions, It's 4 by default.
@@ -279,6 +285,7 @@ class ScrimManager(Cog, name="Esports"):
     @tagcheck.command(name="config")
     @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_config(self, ctx: Context):
         """
         Get tagcheck config.
@@ -301,6 +308,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="remove")
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_remove(self, ctx: Context, *, channel: QuoTextChannel):
         """Remove a channel from tagcheck"""
         if not channel.id in self.bot.cache.tagcheck:
@@ -312,6 +320,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @tagcheck.command(name="autodelete")
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_autodelete(self, ctx: Context, *, channel: QuoTextChannel):
         """Enable/Disable autodelete wrong tagchecks."""
         record = await TagCheck.get_or_none(channel_id=channel.id)
@@ -334,6 +343,7 @@ class ScrimManager(Cog, name="Esports"):
     @commands.command(aliases=("slotm",))
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
     @checks.has_done_setup()
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def slotmanager(self, ctx: Context):
         """
         SlotManager helps people to setup scrims-slots cancel and claim manager.
@@ -346,6 +356,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.command(name="banlog")
     @checks.can_use_sm()
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def _banlog(self, ctx: Context, *, channel: discord.TextChannel = None):
         """
         Set a channel for all scrims ban/unban logs
@@ -368,6 +379,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.group(invoke_without_command=True, aliases=("ss",))
     @checks.can_use_tm()
+    @commands.cooldown(1, 10, type=commands.BucketType.guild)
     @commands.bot_has_permissions(manage_channels=True, add_reactions=True, embed_links=True, manage_roles=True)
     async def ssverify(self, ctx: Context):
         """
