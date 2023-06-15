@@ -20,7 +20,7 @@ import asyncio
 import itertools
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import aiohttp
 import config as cfg
@@ -39,6 +39,7 @@ from tortoise import Tortoise
 from .cache import CacheManager
 from .Context import Context
 from .Help import HelpCommand
+from .cooldown import UserCommandLimits, QuotientRatelimiter
 
 intents = Intents.default()
 intents.members = True
@@ -86,6 +87,9 @@ class Quotient(commands.AutoShardedBot):
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         self.message_cache: Dict[int, Any] = LRU(1024)  # type: ignore
+
+        self.command_ratelimited_users = {}
+        self.command_ratelimiter = UserCommandLimits(QuotientRatelimiter)
 
     @on_startup.append
     async def __load_extensions(self):
@@ -200,12 +204,26 @@ class Quotient(commands.AutoShardedBot):
         """Gets the message from the cache"""
         return self._connection._get_message(message_id)
 
+    async def remove_from_ratelimited_users(self, user_id: int, after: int):
+        await asyncio.sleep(after)
+        self.command_ratelimited_users.pop(user_id, None)
+
     async def process_commands(self, message: discord.Message):
         if message.content and message.guild is not None:
             ctx = await self.get_context(message, cls=Context)
 
             if ctx.command is None:
                 return
+
+            if retry_after := self.command_ratelimiter[message.author].is_ratelimited(message.author):
+                if message.author.id in self.command_ratelimited_users:
+                    return
+
+                self.command_ratelimited_users[message.author.id] = self.current_time + timedelta(seconds=retry_after)
+                await self.remove_from_ratelimited_users(message.author.id, retry_after)
+                return await ctx.error(
+                    f"You are being ratelimited for using commands too fast. \n\n**Try again after `{retry_after:.2f} seconds`**."
+                )
 
             await self.invoke(ctx)
 
