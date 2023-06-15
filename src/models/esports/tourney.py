@@ -236,6 +236,8 @@ class Tourney(BaseDbModel):
         return discord.File(fp, filename=f"tourney_data_{self.id}_{self.bot.current_time.timestamp()}.csv")
 
     async def full_delete(self) -> None:
+        if self.logschan is not None:
+            await self.logschan.send(file=await self.get_csv())
         self.bot.cache.tourney_channels.discard(self.registration_channel_id)
         _data = await self.assigned_slots.all()
         await TMSlot.filter(pk__in=[_.id for _ in _data]).delete()
