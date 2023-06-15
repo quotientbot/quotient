@@ -55,7 +55,7 @@ class GroupRefresh(discord.ui.View):
         )
         _e.set_footer(text=tourney.guild.name, icon_url=getattr(tourney.guild.icon, "url", None))
 
-        await interaction.edit_original_message(embed=_e, view=self)
+        await interaction.edit_original_response(embed=_e, view=self)
         await interaction.followup.send("Grouplist message was refreshed successfully.", ephemeral=True)
 
     @discord.ui.button(custom_id="gl_info_b", emoji=emote.info, label="Info")
@@ -93,7 +93,6 @@ class GroupRefresh(discord.ui.View):
                 await interaction.followup.send(embed=_e, ephemeral=True)
 
     async def __do_checks(self, interaction: discord.Interaction, refresh_too=False):
-
         record = await TGroupList.get_or_none(pk=interaction.message.id)
         tourney = None
         if record:
@@ -101,7 +100,7 @@ class GroupRefresh(discord.ui.View):
 
         if not record or not tourney:
             self.children[0].disabled = True
-            return await interaction.edit_original_message(view=self)
+            return await interaction.edit_original_response(view=self)
 
         if refresh_too:
             if (record.bot.current_time - record.refresh_at).total_seconds() < 120:
@@ -109,7 +108,7 @@ class GroupRefresh(discord.ui.View):
 
         group = await tourney.get_group(record.group_number)
         if not group:
-            await interaction.delete_original_message()
+            await interaction.delete_original_response()
             return await interaction.followup.send("Group not found.", ephemeral=True)
 
         return record, tourney, group
