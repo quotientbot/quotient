@@ -36,7 +36,7 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
         return True
 
     @app_commands.command()
-    @app_commands.describe(user="The user you want to ban from scrims.", reason="The reason for banning the user.")
+    @app_commands.describe(user="The user you want to unban from scrims.", reason="The reason for unbanning the user.")
     async def unban(self, interaction: discord.Interaction, user: discord.User, reason: str = None):
         """Unban any user from scrims."""
         if not await self.can_use_command(interaction):
