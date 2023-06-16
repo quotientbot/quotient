@@ -285,6 +285,23 @@ class TeamCompulsion(TourneyButton):
         await self.view.refresh_view()
 
 
+class DuplicateTags(TourneyButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        self.view.record.no_duplicate_tag = not self.view.record.no_duplicate_tag
+        await self.ctx.success(
+            f"Registrations with fake / duplicate mentions are now **{'allowed' if self.view.record.allow_duplicate_tags else 'not allowed'}**.",
+            3,
+        )
+        await self.view.refresh_view()
+
+
 class DuplicateTeamName(TourneyButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))

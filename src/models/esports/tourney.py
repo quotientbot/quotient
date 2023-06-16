@@ -56,6 +56,7 @@ class Tourney(BaseDbModel):
     slotm_message_id = fields.BigIntField(null=True)
 
     required_lines = fields.SmallIntField(default=0)
+    allow_duplicate_tags = fields.BooleanField(default=True)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
@@ -145,7 +146,6 @@ class Tourney(BaseDbModel):
         return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
 
     async def get_group(self, num: int) -> List["TMSlot"]:
-
         _all = await self._get_groups()
         for group in _all:
             if _all.index(group) == num - 1:
@@ -173,7 +173,6 @@ class Tourney(BaseDbModel):
         Add role to user and reaction to the message
         """
         with suppress(discord.HTTPException):
-
             if not (_role := self.role) in ctx.author.roles:
                 await ctx.author.add_roles(_role)
 
@@ -187,7 +186,6 @@ class Tourney(BaseDbModel):
                 await ctx.author.send(embed=embed)
 
     async def end_process(self):
-
         from cogs.esports.helpers.utils import toggle_channel
 
         closed_at = self.bot.current_time
@@ -247,7 +245,6 @@ class Tourney(BaseDbModel):
 
     @staticmethod
     async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
-
         placeholder = placeholder or "Choose a tourney to contine..."
 
         from cogs.esports.views.tourney._select import QuotientView, TourneySelector
