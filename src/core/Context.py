@@ -171,7 +171,8 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
         if not (_perms := self.channel.permissions_for(self.me)).send_messages:
             try:
                 await self.author.send(
-                    "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so."
+                    "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so.",
+                    view=self.get_dm_view(f"Sent from #{self.channel.name} in {self.guild.name}")
                 )
             except discord.Forbidden:
                 pass
@@ -211,3 +212,9 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
         _view = PremiumView(msg)
         return await self.send(embed=_view.premium_embed, view=_view, embed_perms=True)
+    
+    @staticmethod
+    def get_dm_view(msg: str) -> discord.ui.View:
+        from .views import QuoDMView
+
+        return QuoDMView(label=msg)

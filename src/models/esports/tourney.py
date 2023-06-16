@@ -184,7 +184,7 @@ class Tourney(BaseDbModel):
                 embed.title = f"Message from {ctx.guild.name}"
                 embed.url = slot.jump_url
 
-                await ctx.author.send(embed=embed)
+                await ctx.author.send(embed=embed, view=ctx.get_dm_view(f"Sent from {ctx.guild.name}"))
 
     async def end_process(self):
 

@@ -102,7 +102,10 @@ class Errors(Cog):
                 await ctx.send(message)
             except discord.Forbidden:
                 try:
-                    await ctx.author.send(f"Hey It looks like, I can't send messages in that channel.")
+                    await ctx.author.send(
+                        "Hey It looks like, I can't send messages in that channel.", 
+                        view=ctx.get_dm_view(f"Sent from {ctx.guild.name}")
+                    )
                 except discord.Forbidden:
                     pass
 
