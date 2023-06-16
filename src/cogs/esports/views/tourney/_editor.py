@@ -91,7 +91,9 @@ class TourneyEditor(TourneyView):
             f"Required Lines {self.bot.config.PRIME_EMOJI}": ("`Not set`", f"`{tourney.required_lines}`")[
                 bool(tourney.required_lines)
             ],
-            "Duplicate / Fake Tags": ("`Not allowed!`", "`Allowed`")[tourney.allow_duplicate_tags],
+            f"Duplicate / Fake Tags {self.bot.config.PRIME_EMOJI}": ("`Not allowed!`", "`Allowed`")[
+                tourney.allow_duplicate_tags
+            ],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
