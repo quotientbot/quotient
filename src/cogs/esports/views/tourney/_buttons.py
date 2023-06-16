@@ -294,7 +294,12 @@ class DuplicateTags(TourneyButton):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        self.view.record.no_duplicate_tag = not self.view.record.no_duplicate_tag
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error(
+                "[Quotient Premium](https://quotientbot.xyz/premium) is required to use this feature.", 4
+            )
+
+        self.view.record.allow_duplicate_tags = not self.view.record.allow_duplicate_tags
         await self.ctx.success(
             f"Registrations with fake / duplicate mentions are now **{'allowed' if self.view.record.allow_duplicate_tags else 'not allowed'}**.",
             3,
