@@ -414,6 +414,17 @@ class Tourney(BaseDbModel):
         finally:
             return True
 
+    async def check_fake_tags(self, message: discord.Message):
+        query = """
+        SELECT *
+            FROM PUBLIC."tm.tourney_tm.register" AS ASSIGNED_SLOT
+            INNER JOIN PUBLIC."tm.register" AS SLOTS ON SLOTS.ID = ASSIGNED_SLOT.TMSLOT_ID
+        WHERE ASSIGNED_SLOT."tm.tourney_id" = $1
+        AND $2 && SLOTS.MEMBERS;
+
+        """
+        return await self.bot.db.fetch(query, self.id, [i.id for i in message.mentions])
+
 
 class TMSlot(BaseDbModel):
     class Meta:
