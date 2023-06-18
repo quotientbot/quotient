@@ -5,13 +5,18 @@ from enum import Enum
 import discord
 import pytz
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 import config
 
 
 class _Sentinel:
     def __repr__(self):
         return "<MISSING>"
+
+
+class BotType:
+    main = "746348747918934096"
+    pro = "902856923311919104"
 
 
 class Day(Enum):
