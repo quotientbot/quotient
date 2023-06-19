@@ -221,7 +221,7 @@ class Quotient(commands.AutoShardedBot):
                     return
 
                 self.command_ratelimited_users[message.author.id] = self.current_time + timedelta(seconds=retry_after)
-                await self.remove_from_ratelimited_users(message.author.id, retry_after)
+                self.loop.create_task(self.remove_from_ratelimited_users(message.author.id, retry_after))
                 return await ctx.error(
                     f"You are being ratelimited for using commands too fast. \n\n**Try again after `{retry_after:.2f} seconds`**."
                 )
