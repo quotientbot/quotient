@@ -69,6 +69,7 @@ class Quotient(commands.AutoShardedBot):
             chunk_guilds_at_startup=False,
             allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
+            proxy=getattr(cfg, "PROXY_URI", None),
             **kwargs,
         )
 
