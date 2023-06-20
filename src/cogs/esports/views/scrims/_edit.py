@@ -81,6 +81,9 @@ class ScrimsEditor(ScrimsView):
             f"Required Lines {self.bot.config.PRIME_EMOJI}": ("`Not set`", "`{0}`".format(scrim.required_lines))[
                 bool(scrim.required_lines)
             ],
+            f"Duplicate / Fake Tags {self.bot.config.PRIME_EMOJI}": ("`Not allowed!`", "`Allowed`")[
+                scrim.allow_duplicate_tags
+            ],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -88,7 +91,7 @@ class ScrimsEditor(ScrimsView):
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
-        # _e.add_field(name="\u200b", value="\u200b")  # invisible field
+        _e.add_field(name="\u200b", value="\u200b")  # invisible field
         _e.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
         return _e
 
@@ -120,6 +123,7 @@ class ScrimsEditor(ScrimsView):
         self.add_item(SetAutoclean(self.ctx, "q"))
         self.add_item(OpenDays(self.ctx, "r"))
         self.add_item(MinLines(self.ctx, "s"))
+        self.add_item(DuplicateTags(self.ctx, "t"))
 
         self.add_item(DeleteScrim(self.ctx))
         self.add_item(Discard(self.ctx, "Main Menu"))
