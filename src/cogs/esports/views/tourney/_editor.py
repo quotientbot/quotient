@@ -30,11 +30,11 @@ from ._buttons import (
     SuccessMessage,
     TeamCompulsion,
     MinLines,
+    DuplicateTags,
 )
 
 
 class TourneyEditor(TourneyView):
-
     record: Tourney
 
     def __init__(self, ctx: Context, records):
@@ -91,6 +91,9 @@ class TourneyEditor(TourneyView):
             f"Required Lines {self.bot.config.PRIME_EMOJI}": ("`Not set`", f"`{tourney.required_lines}`")[
                 bool(tourney.required_lines)
             ],
+            f"Duplicate / Fake Tags {self.bot.config.PRIME_EMOJI}": ("`Not allowed!`", "`Allowed`")[
+                tourney.allow_duplicate_tags
+            ],
         }
 
         for idx, (name, value) in enumerate(fields.items()):
@@ -98,6 +101,8 @@ class TourneyEditor(TourneyView):
                 name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
+
+        _e.add_field(name="\u200b", value="\u200b")
         _e.set_footer(text=f"Page {self.current_page}/{len(self.records)}")
         return _e
 
@@ -130,5 +135,6 @@ class TourneyEditor(TourneyView):
         self.add_item(SuccessMessage(ctx, "n"))
         self.add_item(SetGroupSize(ctx, "o"))
         self.add_item(MinLines(ctx, "p"))
+        self.add_item(DuplicateTags(ctx, "q"))
         self.add_item(DeleteTourney(ctx))
         self.add_item(DiscardButton(ctx))

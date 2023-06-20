@@ -15,7 +15,6 @@ def get_tourney_slots(slots: List[TMSlot]) -> Iterable[int]:
 
 
 def tourney_work_role(tourney: Tourney, _type: EsportsRole):
-
     if _type == EsportsRole.ping:
         role = tourney.ping_role
 
@@ -76,6 +75,12 @@ async def check_tourney_requirements(bot, message: discord.Message, tourney: Tou
     elif len(message.content.splitlines()) < tourney.required_lines:
         _bool = False
         bot.dispatch("tourney_registration_deny", message, RegDeny.nolines, tourney)
+
+    elif not tourney.allow_duplicate_tags:
+        records = await tourney.check_fake_tags(message)
+        if records:
+            _bool = False
+            bot.dispatch("tourney_registration_deny", message, RegDeny.faketag, tourney, records=records)
 
     return _bool
 

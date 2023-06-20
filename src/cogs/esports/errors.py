@@ -35,8 +35,7 @@ class SMError(Cog):
         return embed
 
     @Cog.listener()
-    async def on_tourney_registration_deny(self, message: discord.Message, _type: RegDeny, tourney: Tourney):
-
+    async def on_tourney_registration_deny(self, message: discord.Message, _type: RegDeny, tourney: Tourney, **kwargs):
         logschan = tourney.logschan
         if not logschan:
             return
@@ -102,6 +101,19 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 text += f"Insufficient lines in their registration message."
+
+            elif _type == RegDeny.faketag:
+                records = kwargs.get("records")
+                jump_url = records[0]["jump_url"]
+
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, Someone already registered with the same mentions {jump_url}"
+                        "\n\n`If you think this is a mistake contact moderators ASAP.`"
+                    ),
+                    delete_after=10,
+                )
+                text += f"Fake tag used. {jump_url}"
 
             if tourney.autodelete_rejected:
                 self.bot.loop.create_task(delete_denied_message(message))
@@ -169,7 +181,6 @@ class SMError(Cog):
 
         embed = discord.Embed(color=0x00B1FF)
         with suppress(discord.NotFound, discord.Forbidden, AttributeError, discord.HTTPException):
-
             if _type == EsportsLog.open:
                 embed.description = (
                     f"Registration opened for {open_role} in {registration_channel.mention}(ScrimsID: `{scrim.id}`)"

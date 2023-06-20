@@ -77,6 +77,7 @@ class RegDeny(Enum):
     duplicate = "duplicate_name"
     bannedteammate = "banned_teammate"
     nolines = "no_lines"
+    faketag = "fake_tag"
 
 
 class RegMsg(Enum):
