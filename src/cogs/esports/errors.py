@@ -214,7 +214,7 @@ class SMError(Cog):
     # ==========================================================================================================================
 
     @Cog.listener()
-    async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim):
+    async def on_scrim_registration_deny(self, message: discord.Message, _type: RegDeny, scrim: Scrim, **kwargs):
         logschan = scrim.logschan
         if logschan is None:
             return
@@ -278,6 +278,19 @@ class SMError(Cog):
                     delete_after=5,
                 )
                 text += f"Insufficient lines in their registration message."
+
+            elif _type == RegDeny.faketag:
+                records = kwargs.get("records")
+                jump_url = records[0]["jump_url"]
+
+                await message.reply(
+                    embed=self.red_embed(
+                        f"{str(message.author)}, Someone already registered with the same mentions {jump_url}"
+                        "\n\n`If you think this is a mistake contact moderators ASAP.`"
+                    ),
+                    delete_after=10,
+                )
+                text += f"Fake tag used. {jump_url}"
 
             # elif _type == RegDeny.bannedteammate:
             #     await message.reply(

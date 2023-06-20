@@ -623,6 +623,17 @@ class Scrim(BaseDbModel):
     async def scrim_count(guild_id: int):
         return await Scrim.filter(guild_id=guild_id).count()
 
+    async def check_fake_tags(self, message: discord.Message):
+        query = """
+        SELECT *
+            FROM PUBLIC."sm.scrims_sm.assigned_slots" AS ASSIGNED_SLOT
+            INNER JOIN PUBLIC."sm.assigned_slots" AS SLOTS ON SLOTS.ID = ASSIGNED_SLOT.ASSIGNEDSLOT_ID
+        WHERE ASSIGNED_SLOT."sm.scrims_id" = $1
+        AND $2 && SLOTS.MEMBERS;
+
+        """
+        return await self.bot.db.fetch(query, self.id, [i.id for i in message.mentions])
+
 
 class BaseSlot(models.Model):
     class Meta:
