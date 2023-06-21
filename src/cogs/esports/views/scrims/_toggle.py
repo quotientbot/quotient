@@ -53,14 +53,17 @@ class StartReg(ScrimsButton):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        if not self.view.record.closed_at:
+        if not self.view.record.closed_at and self.view.record.opened_at:
             return await self.view.ctx.error("Registration is already open. To restart, pls stop registration first.", 4)
 
         try:
             await self.view.record.start_registration()
-            await self.view.ctx.success(f"Registration opened {self.view.record}.", 5)
         except Exception as e:
             return await self.view.ctx.error(e, 10)
+
+        else:
+            await self.view.ctx.success(f"Registration opened {self.view.record}.", 5)
+            await self.view.record.refresh_from_db()
 
 
 class StopReg(ScrimsButton):
@@ -73,5 +76,11 @@ class StopReg(ScrimsButton):
         if not self.view.record.opened_at:
             return await self.view.ctx.error("Registration is already closed.", 5)
 
-        await self.view.record.close_registration()
-        await self.view.ctx.success(f"Registration closed {self.view.record}.", 5)
+        try:
+            await self.view.record.close_registration()
+        except Exception as e:
+            return await self.view.ctx.error(e, 10)
+
+        else:
+            await self.view.record.refresh_from_db()
+            await self.view.ctx.success(f"Registration closed {self.view.record}.", 5)
