@@ -22,8 +22,8 @@ class CmdEvents(Cog):
 
         if self.bot.lockdown is True:
             t = (
-                "**Quotient is getting new features** 🥳\n"
-                "Dear user, Quotient is updating and is not accepting any commands.\n"
+                f"**{self.bot.name} is getting new features** 🥳\n"
+                f"Dear user, {self.bot.name} is updating and is not accepting any commands.\n"
                 "It will back within **2 minutes**.\n"
             )
 

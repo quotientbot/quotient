@@ -91,6 +91,10 @@ class Quotient(commands.AutoShardedBot):
         self.command_ratelimited_users = {}
         self.command_ratelimiter = UserCommandLimits(QuotientRatelimiter)
 
+    @discord.utils.cached_property
+    def name(self):
+        return ("Quotient Pro", "Quotient")[self.user.id == csts.BotType.main]
+
     @on_startup.append
     async def __load_extensions(self):
         for ext in self.config.EXTENSIONS:
