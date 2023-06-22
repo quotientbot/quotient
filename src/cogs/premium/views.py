@@ -4,6 +4,7 @@ import config
 import discord
 from utils import emote
 from models import PremiumPlan, PremiumTxn
+from core import Quotient
 
 
 class PlanSelector(discord.ui.Select):
@@ -55,7 +56,18 @@ class PremiumView(discord.ui.View):
     def __init__(self, text="This feature requires Quotient Premium.", *, label="Get Quotient Pro"):
         super().__init__(timeout=None)
         self.text = text
-        self.add_item(PremiumPurchaseBtn(label=label))
+
+        if Quotient.is_pro_bot():
+            self.add_item(
+                discord.ui.Button(
+                    url="https://quotientbot.xyz/premium",
+                    emoji=emote.diamond,
+                    label=label,
+                )
+            )
+
+        else:
+            self.add_item(PremiumPurchaseBtn(label=label))
 
     @property
     def premium_embed(self) -> discord.Embed:

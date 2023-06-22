@@ -4,6 +4,7 @@ from .main import MainEvents
 from .tasks import QuoTasks
 from .votes import VotesCog
 from .interaction import InteractionErrors
+from .pro_checks import ProCheckEvents
 
 
 async def setup(bot):
@@ -15,5 +16,8 @@ async def setup(bot):
 
     from core import Quotient
 
-    if not Quotient.is_pro_bot():
+    if Quotient.is_pro_bot():
+        await bot.add_cog(ProCheckEvents(bot))
+
+    else:
         await bot.add_cog(VotesCog(bot))
