@@ -10,6 +10,10 @@ async def setup(bot):
     await bot.add_cog(MainEvents(bot))
     await bot.add_cog(QuoTasks(bot))
     await bot.add_cog(CmdEvents(bot))
-    await bot.add_cog(VotesCog(bot))
     await bot.add_cog(Errors(bot))
     await bot.add_cog(InteractionErrors(bot))
+
+    from core import Quotient
+
+    if not Quotient.is_pro_bot():
+        await bot.add_cog(VotesCog(bot))

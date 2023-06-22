@@ -15,8 +15,8 @@ class _Sentinel:
 
 
 class BotType:
-    main = "746348747918934096"
-    pro = "902856923311919104"
+    MAIN = "746348747918934096"
+    PRO = "902856923311919104"
 
 
 class Day(Enum):

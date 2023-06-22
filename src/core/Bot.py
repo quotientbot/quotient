@@ -93,7 +93,11 @@ class Quotient(commands.AutoShardedBot):
 
     @discord.utils.cached_property
     def name(self):
-        return ("Quotient Pro", "Quotient")[self.user.id == csts.BotType.main]
+        return ("Quotient", "Quotient Pro")[self.is_pro_bot()]
+
+    @staticmethod
+    def is_pro_bot():
+        return cfg.BOT_TYPE == csts.BotType.PRO
 
     @on_startup.append
     async def __load_extensions(self):
