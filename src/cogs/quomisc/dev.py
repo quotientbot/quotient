@@ -35,7 +35,6 @@ class Dev(Cog):
         spec: T.Optional[T.Literal["~", "*", "^"]] = None,
     ) -> None:
         if not guilds:
-
             if spec == "~":
                 synced = await self.bot.tree.sync(guild=ctx.guild)
             elif spec == "*":
@@ -76,8 +75,7 @@ class Dev(Cog):
         if not self.bot.lockdown:
             return await ctx.error("Lockdown mode has been cancelled")
 
-        await ctx.success("Reloading...")
-        self.bot.reboot()
+        self.bot.lockdown = False
 
     @botupdate.command(name="off")
     async def botmaintenance_off(self, ctx: Context):

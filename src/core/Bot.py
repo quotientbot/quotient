@@ -152,9 +152,6 @@ class Quotient(commands.AutoShardedBot):
     def color(self):
         return self.config.COLOR
 
-    def reboot(self):
-        return os.system("pm2 reload quotient")
-
     async def init_quo(self):
         """Instantiating aiohttps ClientSession and telling tortoise to create relations"""
         self.session = aiohttp.ClientSession(loop=self.loop)
