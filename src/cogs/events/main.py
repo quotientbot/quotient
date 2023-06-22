@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from collections import Counter
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -10,6 +11,8 @@ from contextlib import suppress
 
 import config
 import discord
+from discord.ext import commands
+
 from constants import random_greeting
 from core import Cog, Context
 from models import Guild
@@ -18,6 +21,10 @@ from models import Guild
 class MainEvents(Cog, name="Main Events"):
     def __init__(self, bot: Quotient) -> None:
         self.bot = bot
+        self.__spam_control_cd = commands.CooldownMapping.from_cooldown(
+            3, 5, commands.BucketType.user
+        )
+        self.__spam_control_counter: "Counter[int]" = Counter()
 
     # incomplete?, I know
     @Cog.listener()
@@ -35,7 +42,24 @@ class MainEvents(Cog, name="Main Events"):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot or message.guild is None:
             return
+
+        # if not re.fullmatch(rf"<@!?{self.user.id}>", message.content):
+        #    return
+
         if re.match(f"^<@!?{self.bot.user.id}>$", message.content):
+
+            # https://discord.com/channels/746337818388987967/829945992048148480/1121167123369164831
+
+            if bucket := self.__spam_control_cd.get_bucket(message):
+                if bucket.update_rate_limit(message.created_at.timestamp()):
+                    self.__spam_control_counter[message.author.id] += 1
+                    if self.__spam_control_counter[message.author.id] > 3:
+                        # message.author is spamming the mentions
+                        # continously for 3 times
+                        return
+                else:
+                    self.__spam_control_counter.pop(message.author.id, None)
+
             ctx: Context = await self.bot.get_context(message)
             self.bot.dispatch("mention", ctx)
 
