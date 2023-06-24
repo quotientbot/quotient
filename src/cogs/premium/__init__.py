@@ -15,7 +15,7 @@ from constants import random_greeting, random_thanks
 from core import Cog, Context
 from discord.ext import commands, tasks
 from models import Guild, Timer, User, PremiumTxn
-from tortoise.query_utils import Q
+from tortoise.expressions import Q
 from utils import IST, strtime, emote, discord_timestamp
 
 from .expire import (
@@ -51,9 +51,7 @@ class PremiumCog(Cog, name="Premium"):
 
         else:
             booster = guild.booster or await self.bot.fetch_user(guild.made_premium_by)
-            btext = (
-                f"\n> Activated: Yes!\n> Ending: {discord_timestamp(guild.premium_end_time,'f')}\n> Upgraded by: **{booster}**"
-            )
+            btext = f"\n> Activated: Yes!\n> Ending: {discord_timestamp(guild.premium_end_time,'f')}\n> Upgraded by: **{booster}**"
 
         embed = self.bot.embed(ctx, title="Quotient Premium", url=f"{self.bot.config.WEBSITE}")
         embed.add_field(name="User", value=atext, inline=False)
@@ -128,7 +126,6 @@ class PremiumCog(Cog, name="Premium"):
         await deactivate_premium(guild_id)
 
         if (_ch := _g.private_ch) and _ch.permissions_for(_ch.guild.me).embed_links:
-
             _e = discord.Embed(
                 color=discord.Color.red(), title="⚠️__**Quotient Pro Subscription Ended**__⚠️", url=config.SERVER_LINK
             )
