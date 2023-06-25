@@ -21,7 +21,7 @@ from tortoise import Tortoise
 
 import config as cfg
 import constants as csts
-from models import Guild
+from models import Guild, Timer
 
 from .cache import CacheManager
 from .Context import Context
@@ -212,6 +212,26 @@ class Quotient(commands.AutoShardedBot):
 
     async def on_ready(self):
         print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
+
+    async def wait_and_delete(self, message: discord.Message, delay: int = 10):
+        """Waits for `delay` seconds and deletes the message"""
+        return await self.reminders.create_timer(
+            self.current_time + timedelta(seconds=delay),
+            "msg_delete",
+            message_id=message.id,
+            channel_id=message.channel.id,
+        )
+
+    async def on_msg_delete_timer_complete(self, timer: Timer):
+        """Deletes the message"""
+        channel_id, message_id = timer.kwargs["channel_id"], timer.kwargs["message_id"]
+
+        channel: discord.TextChannel = await self.getch(self.get_channel, self.fetch_channel, channel_id)
+        if channel is None:
+            return
+
+        message = channel.get_partial_message(message_id)
+        await message.delete(delay=0)
 
     def embed(self, ctx: Context, **kwargs: Any) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
