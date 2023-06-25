@@ -138,6 +138,7 @@ class DuplicateTags(ScrimsButton):
             3,
         )
         await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, allow_duplicate_tags=self.view.record.allow_duplicate_tags)
 
 
 class TotalSlots(ScrimsButton):
