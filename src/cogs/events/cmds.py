@@ -7,18 +7,51 @@ if typing.TYPE_CHECKING:
 
 from contextlib import suppress
 
+import asyncio
 import discord
-from core import Cog, Context
+from core import Cog, Context, cooldown
+from datetime import timedelta
 from models import ArrayRemove, Autorole, Commands
+from collections import defaultdict
+
+
+class UserCommandLimits(defaultdict):
+    def __missing__(self, key):
+        r = self[key] = cooldown.QuotientRatelimiter(2, 10)
+        return r
 
 
 class CmdEvents(Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
+        self.command_ratelimited_users = {}
+        self.command_ratelimiter = UserCommandLimits(cooldown.QuotientRatelimiter)
+
     async def bot_check(self, ctx: Context):
-        if ctx.author.id in self.bot.config.DEVS:
+        author = ctx.author
+        message = ctx.message
+
+        if author.id in self.bot.config.DEVS:
             return True
+
+        if not ctx.guild:
+            return False
+
+        if author.id in self.bot.cache.blocked_ids or ctx.guild.id in self.bot.cache.blocked_ids:
+            return False
+
+        if retry_after := self.command_ratelimiter[message.author].is_ratelimited(message.author):
+            if author.id in self.command_ratelimited_users:
+                return
+
+            self.command_ratelimited_users[author.id] = self.bot.current_time + timedelta(seconds=retry_after)
+            self.bot.loop.create_task(self.remove_from_ratelimited_users(author.id, retry_after))
+
+            await ctx.error(
+                f"You are being ratelimited for using commands too fast. \n\n**Try again after `{retry_after:.2f} seconds`**."
+            )
+            return False
 
         if self.bot.lockdown is True:
             t = (
@@ -33,10 +66,11 @@ class CmdEvents(Cog):
             await ctx.error(t)
             return False
 
-        if not ctx.guild:
-            return False
-
         return True
+
+    async def remove_from_ratelimited_users(self, user_id: int, after: int):
+        await asyncio.sleep(after)
+        self.command_ratelimited_users.pop(user_id, None)
 
     @Cog.listener()
     async def on_command_completion(self, ctx: Context):

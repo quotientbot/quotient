@@ -18,7 +18,6 @@ class Errors(Cog):
 
     @Cog.listener()
     async def on_command_error(self, ctx: Context, err):
-
         ignored = (
             commands.CommandNotFound,
             commands.NoPrivateMessage,
@@ -103,8 +102,8 @@ class Errors(Cog):
             except discord.Forbidden:
                 try:
                     await ctx.author.send(
-                        "Hey It looks like, I can't send messages in that channel.", 
-                        view=ctx.get_dm_view(f"Sent from {ctx.guild.name}")
+                        "Hey It looks like, I can't send messages in that channel.",
+                        view=ctx.get_dm_view(f"Sent from {ctx.guild.name}"),
                     )
                 except discord.Forbidden:
                     pass

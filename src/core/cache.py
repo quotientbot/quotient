@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import config
 from constants import IST
-from models import AutoPurge, EasyTag, Guild, Scrim, SSVerify, TagCheck, Tourney
+from models import AutoPurge, EasyTag, Guild, Scrim, SSVerify, TagCheck, Tourney, BlockList
 
 
 class CacheManager:
@@ -24,8 +24,9 @@ class CacheManager:
         self.media_partner_channels = set()
         self.ssverify_channels = set()
 
-    async def fill_temp_cache(self):
+        self.blocked_ids = set()
 
+    async def fill_temp_cache(self):
         async for record in Guild.all():
             self.guild_data[record.guild_id] = {
                 "prefix": record.prefix,
@@ -54,6 +55,9 @@ class CacheManager:
 
         async for record in SSVerify.all():
             self.ssverify_channels.add(record.channel_id)
+
+        async for record in BlockList.all():
+            self.blocked_ids.add(record.block_id)
 
     def guild_color(self, guild_id: int):
         return self.guild_data.get(guild_id, {}).get("color", config.COLOR)

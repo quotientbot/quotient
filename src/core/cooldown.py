@@ -7,7 +7,7 @@ from discord.ext import commands
 from collections import defaultdict
 
 
-__all__ = ("QuotientRatelimiter", "UserCommandLimits")
+__all__ = ("QuotientRatelimiter",)
 
 
 class CooldownByMember(commands.CooldownMapping):
@@ -30,9 +30,3 @@ class QuotientRatelimiter:
             return self.by_guild.get_bucket(obj).update_rate_limit()
 
         return self.by_member.get_bucket(obj).update_rate_limit()
-
-
-class UserCommandLimits(defaultdict):
-    def __missing__(self, key):
-        r = self[key] = QuotientRatelimiter(2, 10)
-        return r
