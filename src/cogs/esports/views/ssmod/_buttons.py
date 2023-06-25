@@ -94,7 +94,6 @@ class ScreenshotType(discord.ui.Button):
                     return await self.ctx.error("You need Quotient Prime to set this filter. (Use `qperks`)", 4)
 
             if _v.custom_id == "custom":
-
                 _m = await self.ctx.simple(
                     "What name do want to give this filter?\n\n" "Enter any name relevant to what you want to verify.\n"
                 )

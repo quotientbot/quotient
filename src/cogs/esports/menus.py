@@ -333,9 +333,7 @@ class IDPMenu(menus.Menu):
 
     @menus.button(regional_indicator("T"))
     async def set_title(self, payload):
-        msg = await self.cembed(
-            f"What do you want the title to be?\n\nTitle cannot exceed 256 characters."
-        )
+        msg = await self.cembed(f"What do you want the title to be?\n\nTitle cannot exceed 256 characters.")
 
         title = await inputs.string_input(self.ctx, self.check, delete_after=True)
         if len(title) > 256:
@@ -413,9 +411,7 @@ class IDPMenu(menus.Menu):
                 return await self.ctx.error(f"This is not a valid Image URL", delete_after=3)
 
             if not check:
-                return await self.ctx.error(
-                    f"The URL didn't contain a valid Image format.", delete_after=3
-                )
+                return await self.ctx.error(f"The URL didn't contain a valid Image format.", delete_after=3)
 
             self.embed.set_thumbnail(url=image)
             await self.refresh()
@@ -430,9 +426,7 @@ class IDPMenu(menus.Menu):
         msg = await self.cembed(
             f"After how many minutes do you want me to delete the idp message?\nIt can be between 1-30"
         )
-        delete_time = await inputs.integer_input(
-            self.ctx, self.check, delete_after=True, limits=(None, None)
-        )
+        delete_time = await inputs.integer_input(self.ctx, self.check, delete_after=True, limits=(None, None))
         await inputs.safe_delete(msg)
         self.delete_in = delete_time
         self.embed.set_footer(
@@ -474,9 +468,7 @@ class AutocleanMenu(menus.Menu):
 
     def initial_embed(self):
         scrim = self.scrim
-        autoclean_time = (
-            (scrim.autoclean_time).strftime("%I:%M %p") if scrim.autoclean_time else "Not Set!"
-        )
+        autoclean_time = (scrim.autoclean_time).strftime("%I:%M %p") if scrim.autoclean_time else "Not Set!"
 
         embed = discord.Embed(color=config.COLOR)
         embed.title = "Edit Autoclean: {0}".format(scrim.id)
@@ -498,17 +490,13 @@ class AutocleanMenu(menus.Menu):
     @menus.button(keycap_digit(1))
     async def on_one(self, payload):
         func = (ArrayAppend, ArrayRemove)[constants.AutocleanType.channel in self.scrim.autoclean]
-        await Scrim.filter(pk=self.scrim.id).update(
-            autoclean=func("autoclean", constants.AutocleanType.channel)
-        )
+        await Scrim.filter(pk=self.scrim.id).update(autoclean=func("autoclean", constants.AutocleanType.channel))
         await self.refresh()
 
     @menus.button(keycap_digit(2))
     async def on_two(self, payload):
         func = (ArrayAppend, ArrayRemove)[constants.AutocleanType.role in self.scrim.autoclean]
-        await Scrim.filter(pk=self.scrim.id).update(
-            autoclean=func("autoclean", constants.AutocleanType.role)
-        )
+        await Scrim.filter(pk=self.scrim.id).update(autoclean=func("autoclean", constants.AutocleanType.role))
         await self.refresh()
 
     @menus.button(keycap_digit(3))
@@ -604,11 +592,7 @@ class ConfigEditMenu(menus.Menu):
         open_time = (scrim.open_time).strftime("%I:%M %p")
 
         ping_role = scrim_work_role(scrim, constants.EsportsRole.ping)
-        open_role = (
-            getattr(scrim.open_role, "mention", "`Role Deleted!`")
-            if scrim.open_role_id
-            else "@everyone"
-        )
+        open_role = getattr(scrim.open_role, "mention", "`Role Deleted!`") if scrim.open_role_id else "@everyone"
 
         embed = discord.Embed(color=discord.Color(config.COLOR))
         embed.title = f"Edit Scrims Configuration: {scrim.id}"

@@ -96,7 +96,6 @@ class SSVerify(BaseDbModel):
         return 0 if diff <= 0 else diff
 
     async def full_delete(self):
-
         self.bot.cache.ssverify_channels.discard(self.channel_id)
         data = await self.data.all()
 
@@ -122,7 +121,6 @@ class SSVerify(BaseDbModel):
         await self.data.add(data)
 
     async def _match_for_duplicate(self, dhash: str, phash: str, author_id: int) -> Tuple[bool, str]:
-
         _dhash = imagehash.hex_to_hash(dhash)
         async for record in self.data.filter(author_id=author_id).order_by("submitted_at"):
             if _dhash - imagehash.hex_to_hash(record.dhash) <= 7:
@@ -186,7 +184,6 @@ class SSVerify(BaseDbModel):
         return f"{self.emoji(True)} | Verified successfully.\n"
 
     async def verify_custom(self, ctx: Context, image: ImageResponse):
-
         if not any(_ in image.lower_text for _ in self.filtered_keywords):
             return f"{self.emoji()} | This is not a valid {self.keywords[0]} ss.\n"
 

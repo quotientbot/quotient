@@ -23,26 +23,18 @@ class ReminderEvents(Cog):
         author_id, channel_id, message = timer.args
 
         try:
-            channel = self.bot.get_channel(channel_id) or (
-                await self.bot.fetch_channel(channel_id)
-            )
+            channel = self.bot.get_channel(channel_id) or (await self.bot.fetch_channel(channel_id))
         except discord.HTTPException:
             return
 
-        guild_id = (
-            channel.guild.id
-            if isinstance(channel, (discord.TextChannel, discord.Thread))
-            else "@me"
-        )
+        guild_id = channel.guild.id if isinstance(channel, (discord.TextChannel, discord.Thread)) else "@me"
         message_id = timer.kwargs["message_id"]
         msg = f"{discord_timestamp(timer.created)}: {message}"
 
         if message_id:
             msg = f"{msg}\n\n**Original Message**\n<https://discord.com/channels/{guild_id}/{channel.id}/{message_id}>"
 
-        embed = discord.Embed(
-            color=self.bot.color, title=f"Reminders #{timer.id}", description=msg
-        )
+        embed = discord.Embed(color=self.bot.color, title=f"Reminders #{timer.id}", description=msg)
 
         with suppress(discord.HTTPException, discord.Forbidden, AttributeError):
             await channel.send(f"<@{author_id}>", embed=embed)

@@ -19,8 +19,7 @@ from core import Cog, Context
 from models import Guild, PremiumTxn, Timer, User
 from utils import IST, discord_timestamp, emote, strtime
 
-from .expire import (deactivate_premium, extra_guild_perks,
-                     remind_guild_to_pay, remind_user_to_pay)
+from .expire import deactivate_premium, extra_guild_perks, remind_guild_to_pay, remind_user_to_pay
 from .views import PremiumPurchaseBtn, PremiumView
 
 

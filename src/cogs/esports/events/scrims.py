@@ -17,8 +17,7 @@ from constants import IST, AutocleanType, Day
 from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
-from ..helpers import (before_registrations, cannot_take_registration,
-                       check_scrim_requirements, should_open_scrim)
+from ..helpers import before_registrations, cannot_take_registration, check_scrim_requirements, should_open_scrim
 
 
 class ScrimEvents(Cog):
@@ -30,7 +29,6 @@ class ScrimEvents(Cog):
 
     @Cog.listener("on_message")
     async def on_scrim_registration(self, message: discord.Message):
-
         if not message.guild or message.author.bot:
             return
 

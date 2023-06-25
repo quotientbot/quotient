@@ -28,7 +28,6 @@ class ScrimBanManager(ScrimsView):
 
     @property
     async def initial_message(self):
-
         banned = [_ async for _ in self.record.banned_teams.all()]
 
         _e = discord.Embed(color=self.bot.color)
@@ -125,7 +124,6 @@ class Ban(ScrimsButton):
                 await banlog.log_ban(user_id, interaction.user, [self.view.record], modal.m_reason.value, expires)
 
             if expires:
-
                 await self.view.bot.reminders.create_timer(
                     expires,
                     "scrim_ban",

@@ -98,7 +98,6 @@ class ClaimSlotSelector(discord.ui.Select):
     view: BaseSelector
 
     def __init__(self, scrims: T.List[Scrim], multiple_slots: bool):
-
         _options = []
         for scrim in scrims:
             slots = sorted(scrim.available_slots)

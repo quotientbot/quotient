@@ -42,7 +42,6 @@ class SockSettings(Cog):
             member = await self.bot.getch(self.bot.get_user, self.bot.fetch_user, record.pk)
 
         with suppress(discord.HTTPException, AttributeError):
-
             embed = discord.Embed(color=discord.Color.green(), description=f"Thanks **{member}** for voting.")
             embed.set_image(url=constants.random_thanks())
             embed.set_footer(text=f"Your total votes: {record.total_votes}")

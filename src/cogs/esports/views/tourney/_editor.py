@@ -11,12 +11,27 @@ from utils import regional_indicator as ri
 
 from ..paginator import NextButton, PrevButton, StopButton
 from ._base import TourneyView
-from ._buttons import (AutodeleteRejected, ConfirmChannel, DeleteTourney,
-                       DiscardButton, DuplicateTags, DuplicateTeamName,
-                       MinLines, MultiReg, OpenRole, RegChannel, SetEmojis,
-                       SetGroupSize, SetMentions, SetPingRole, SetRole,
-                       SetSlots, SetTourneyname, SuccessMessage,
-                       TeamCompulsion)
+from ._buttons import (
+    AutodeleteRejected,
+    ConfirmChannel,
+    DeleteTourney,
+    DiscardButton,
+    DuplicateTags,
+    DuplicateTeamName,
+    MinLines,
+    MultiReg,
+    OpenRole,
+    RegChannel,
+    SetEmojis,
+    SetGroupSize,
+    SetMentions,
+    SetPingRole,
+    SetRole,
+    SetSlots,
+    SetTourneyname,
+    SuccessMessage,
+    TeamCompulsion,
+)
 
 
 class TourneyEditor(TourneyView):

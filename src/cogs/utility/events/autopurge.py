@@ -62,7 +62,6 @@ class AutoPurgeEvents(Cog):
 
     @Cog.listener()
     async def on_autopurge_timer_complete(self, timer: Timer):
-
         message_id, channel_id = timer.kwargs["message_id"], timer.kwargs["channel_id"]
 
         check = await AutoPurge.get_or_none(channel_id=channel_id)

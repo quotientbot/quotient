@@ -5,8 +5,9 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog
 import discord
+
+from core import Cog
 
 
 class LogEvents(Cog):

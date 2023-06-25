@@ -6,8 +6,7 @@ from contextlib import suppress
 import discord
 
 import config
-from models import (EasyTag, Guild, Scrim, ScrimsSlotManager, SSVerify,
-                    TagCheck, Tourney, User)
+from models import EasyTag, Guild, Scrim, ScrimsSlotManager, SSVerify, TagCheck, Tourney, User
 from utils import discord_timestamp, plural
 
 from .views import PremiumView
@@ -42,7 +41,6 @@ async def deactivate_premium(guild_id: int):
 
 
 async def extra_guild_perks(guild_id: int):
-
     _list = [
         "- Can't use Quotient Pro bot.",
         "- Tourney reactions emojis will be changed to default.",

@@ -1,10 +1,10 @@
 from .cmds import CmdEvents
 from .errors import Errors
 from .interaction import InteractionErrors
+from .logs import LogEvents
 from .main import MainEvents
 from .tasks import QuoTasks
 from .votes import VotesCog
-from .logs import LogEvents
 
 
 async def setup(bot):

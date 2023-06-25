@@ -19,7 +19,6 @@ from utils import emote
 
 class BaseView(discord.ui.View):
     def __init__(self, ctx: Context, *, timeout=30.0):
-
         self.ctx = ctx
         self.message: typing.Optional[discord.Message] = None
         self.bot: Quotient = ctx.bot
@@ -66,9 +65,7 @@ class MoneyButton(BaseView):
         self.ctx = ctx
         self.bot: Quotient = ctx.bot
 
-    @discord.ui.button(
-        style=discord.ButtonStyle.green, custom_id="claim_prime", label="Claim Prime (120 coins)"
-    )
+    @discord.ui.button(style=discord.ButtonStyle.green, custom_id="claim_prime", label="Claim Prime (120 coins)")
     async def claim_premium(self, interaction: discord.Interaction, button: discord.Button):
         await interaction.response.defer(ephemeral=True)
 
@@ -82,9 +79,7 @@ class MoneyButton(BaseView):
             )
 
         end_time = (
-            _u.premium_expire_time + timedelta(days=30)
-            if _u.is_premium
-            else datetime.now(tz=IST) + timedelta(days=30)
+            _u.premium_expire_time + timedelta(days=30) if _u.is_premium else datetime.now(tz=IST) + timedelta(days=30)
         )
 
         await User.get(pk=self.ctx.author.id).update(
@@ -96,9 +91,7 @@ class MoneyButton(BaseView):
 
         member = self.bot.server.get_member(self.ctx.author.id)
         if member is not None:
-            await member.add_roles(
-                discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium."
-            )
+            await member.add_roles(discord.Object(id=self.bot.config.PREMIUM_ROLE), reason="They purchased premium.")
 
         await self.ctx.success(
             "Credited Quotient Prime for 1 Month to your account,\n\n"
@@ -118,6 +111,4 @@ class SetupButtonView(QuotientView):
 
     @discord.ui.button(label="setup tourney", custom_id="setup_tourney_button")
     async def setup_tourney_button(self, interaction: discord.Interaction, button: discord.Button):
-        return await self.ctx.simple(
-            f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament."
-        )
+        return await self.ctx.simple(f"Kindly use `{self.ctx.prefix}t setup` to setup a tournament.")

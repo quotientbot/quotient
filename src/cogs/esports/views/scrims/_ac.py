@@ -108,7 +108,7 @@ class OnThree(ScrimsButton):
         t = await time_input(self.view.ctx, delete_after=True)
         await self.view.ctx.safe_delete(m)
         self.view.record.autoclean_time = t
-        
+
         await Timer.filter(extra={"args": [], "kwargs": {"scrim_id": self.view.record.id}}, event="autoclean").delete()
 
         await self.view.bot.reminders.create_timer(t, "autoclean", scrim_id=self.view.record.id)

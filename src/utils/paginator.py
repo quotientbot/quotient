@@ -100,7 +100,6 @@ class PaginatorView(discord.ui.View):
     message: discord.Message
 
     def __init__(self, ctx, pages: Pages, embed, timeout, show_page_count):
-
         super().__init__(timeout=timeout)
 
         self.ctx = ctx
@@ -113,7 +112,6 @@ class PaginatorView(discord.ui.View):
             self.children[1].disabled = True
 
     def lock_bro(self):
-
         if self.pages.cur_page == self.pages.total:
             self.children[0].disabled = False
             self.children[1].disabled = False
@@ -147,7 +145,6 @@ class PaginatorView(discord.ui.View):
         return True
 
     async def on_timeout(self) -> None:
-
         for b in self.children:
             b.style, b.disabled = discord.ButtonStyle.grey, True
 

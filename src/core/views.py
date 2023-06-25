@@ -18,7 +18,7 @@ class QuotientView(discord.ui.View):
     message: discord.Message
     custom_id = None
 
-    def __init__(self, ctx: Context, *, timeout: Optional[float]=30):
+    def __init__(self, ctx: Context, *, timeout: Optional[float] = 30):
         super().__init__(timeout=timeout)
         self.ctx = ctx
         self.bot = ctx.bot
@@ -62,10 +62,9 @@ class QuoInput(discord.ui.Modal):
         with suppress(discord.NotFound):
             await interaction.response.defer()
 
+
 class QuoDMView(discord.ui.View):
-    def __init__(
-        self, *, timeout: float = 180, label: Optional[str] = None
-    ):
+    def __init__(self, *, timeout: float = 180, label: Optional[str] = None):
         super().__init__(timeout=timeout)
 
         self.add_item(

@@ -3,8 +3,7 @@ from __future__ import annotations
 import asyncio
 import io
 from contextlib import suppress
-from typing import (TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar,
-                    Union)
+from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar, Union
 
 import aiohttp
 import discord

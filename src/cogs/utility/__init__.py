@@ -20,12 +20,22 @@ from humanize import precisedelta
 
 from core import Cog, Context, embeds
 from models import ArrayAppend, ArrayRemove, AutoPurge, Autorole, Snipe, Tag
-from utils import (QuoCategory, QuoMember, QuoPaginator, QuoRole,
-                   QuoTextChannel, UserFriendlyTime, checks, discord_timestamp,
-                   plural, simple_convert, strtime, truncate_string)
+from utils import (
+    QuoCategory,
+    QuoMember,
+    QuoPaginator,
+    QuoRole,
+    QuoTextChannel,
+    UserFriendlyTime,
+    checks,
+    discord_timestamp,
+    plural,
+    simple_convert,
+    strtime,
+    truncate_string,
+)
 
-from .functions import (TagConverter, TagName, guild_tag_stats,
-                        increment_usage, is_valid_name, member_tag_stats)
+from .functions import TagConverter, TagName, guild_tag_stats, increment_usage, is_valid_name, member_tag_stats
 from .views import *
 
 

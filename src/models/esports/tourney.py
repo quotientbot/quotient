@@ -245,8 +245,7 @@ class Tourney(BaseDbModel):
     async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
         placeholder = placeholder or "Choose a tourney to contine..."
 
-        from cogs.esports.views.tourney._select import (QuotientView,
-                                                        TourneySelector)
+        from cogs.esports.views.tourney._select import QuotientView, TourneySelector
 
         tourneys = tourneys or await Tourney.filter(guild_id=ctx.guild.id).order_by("id").limit(25)
 

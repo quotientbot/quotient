@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import (TYPE_CHECKING, Any, AsyncGenerator, Callable, Coroutine,
-                    Dict, Iterable, List, Optional, Union)
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Coroutine, Dict, Iterable, List, Optional, Union
 
 if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
@@ -82,8 +81,7 @@ class Quotient(commands.AutoShardedBot):
 
     @on_startup.append
     async def __load_presistent_views(self):
-        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
-                                        SlotlistEditButton, TourneySlotManager)
+        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views

@@ -13,8 +13,7 @@ from discord.ext import commands
 from constants import LockType
 from core import Cog, Context, QuotientView, role_command_check
 from models import Lockdown
-from utils import (ActionReason, BannedMember, FutureTime, MemberID, QuoUser,
-                   emote, human_timedelta, plural)
+from utils import ActionReason, BannedMember, FutureTime, MemberID, QuoUser, emote, human_timedelta, plural
 
 from .events import *
 from .utils import _complex_cleanup_strategy, _self_clean_system, do_removal

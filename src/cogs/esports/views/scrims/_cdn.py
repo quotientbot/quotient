@@ -56,14 +56,14 @@ class ScrimsCDN(ScrimsView):
         self.message = await self.message.edit(embed=self.initial_embed, view=self)
 
     @discord.ui.button(emoji=kd(1))
-    async def change_status(self, inter: discord.Interaction ,btn: discord.Button):
+    async def change_status(self, inter: discord.Interaction, btn: discord.Button):
         await inter.response.defer()
 
         self.scrim.cdn["status"] = not self.scrim.cdn["status"]
         await self.refresh_view(cdn=self.scrim.cdn)
 
     @discord.ui.button(emoji=kd(2))
-    async def set_time(self, inter: discord.Interaction ,btn: discord.Button):
+    async def set_time(self, inter: discord.Interaction, btn: discord.Button):
         await inter.response.defer()
 
         _m = await self.ctx.simple("How many seconds should the countdown be? (Min: `3` Max: `10`)")
@@ -72,12 +72,11 @@ class ScrimsCDN(ScrimsView):
         await self.refresh_view(cdn=self.scrim.cdn)
 
     @discord.ui.button(emoji=kd(3))
-    async def set_msg(self, inter: discord.Interaction ,btn: discord.Button):
+    async def set_msg(self, inter: discord.Interaction, btn: discord.Button):
         await inter.response.defer()
         await self.scrim.refresh_from_db()
 
-        from ._design import (BackBtn, MsgType, SaveMessageBtn, ScrimDesign,
-                              SetDefault)
+        from ._design import BackBtn, MsgType, SaveMessageBtn, ScrimDesign, SetDefault
 
         if len(self.scrim.cdn["msg"]) <= 1:
             _e = ScrimDesign.default_countdown_msg()
@@ -107,7 +106,7 @@ class ScrimsCDN(ScrimsView):
         await _v.rendor(embed=_e)
 
     @discord.ui.button(style=discord.ButtonStyle.red, label="Back")
-    async def go_back(self, inter: discord.Interaction ,btn: discord.Button):
+    async def go_back(self, inter: discord.Interaction, btn: discord.Button):
         await inter.response.defer()
 
         from ._design import ScrimDesign

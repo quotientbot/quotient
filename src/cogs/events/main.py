@@ -10,6 +10,7 @@ import re
 from contextlib import suppress
 
 import discord
+
 import config
 from constants import random_greeting
 from core import Cog, Context, cooldown

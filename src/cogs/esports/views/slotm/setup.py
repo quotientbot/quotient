@@ -23,7 +23,6 @@ __all__ = ("ScrimsSlotManagerSetup",)
 
 class ScrimsSlotmSelector(discord.ui.Select):
     def __init__(self, records: List[ScrimsSlotManager]):
-
         _o = []
         for record in records:
             _o.append(
@@ -159,7 +158,9 @@ class ScrimsSlotManagerSetup(EsportsBaseView):
             f"Match time means the time when `ID/Pass` \nof that particular scrim is shared.\n```{_to_show}```"
         )
 
-        _e.set_footer(text="Users cannot cancel/claim slots after this time.", icon_url=self.ctx.guild.me.display_avatar.url)
+        _e.set_footer(
+            text="Users cannot cancel/claim slots after this time.", icon_url=self.ctx.guild.me.display_avatar.url
+        )
 
         _view = QuotientView(self.ctx)
         _view.add_item(MatchTimeEditor(self.ctx))

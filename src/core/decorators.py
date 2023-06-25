@@ -31,7 +31,6 @@ class right_bot_check:
                 for arg in args:
                     # check for both guild and guild_id
                     if hasattr(arg, "guild"):
-
                         guild_id = arg.guild.id
                         break
                     elif hasattr(arg, "guild_id"):
@@ -42,9 +41,7 @@ class right_bot_check:
                     # guild id can be none here
                     guild_id = _obj.id if isinstance(_obj, discord.Guild) else _obj
 
-                if guild_id is not None and not await CacheManager.match_bot_guild(
-                    guild_id, bot.user.id
-                ):
+                if guild_id is not None and not await CacheManager.match_bot_guild(guild_id, bot.user.id):
                     return
 
             return await fn(*args, **kwargs)
@@ -78,9 +75,7 @@ class role_command_check:
                 return await ctx.error(f"Role is an integrated role and cannot be added manually.")
 
             if ctx.me.top_role.position <= role.position:
-                return await ctx.error(
-                    f"The position of {role.mention} is above my toprole ({ctx.me.top_role.mention})"
-                )
+                return await ctx.error(f"The position of {role.mention} is above my toprole ({ctx.me.top_role.mention})")
 
             if not ctx.author == ctx.guild.owner and ctx.author.top_role.position <= role.position:
                 return await ctx.error(
