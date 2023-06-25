@@ -76,7 +76,8 @@ class ScrimsCDN(ScrimsView):
         await inter.response.defer()
         await self.scrim.refresh_from_db()
 
-        from ._design import BackBtn, MsgType, SaveMessageBtn, ScrimDesign, SetDefault
+        from ._design import (BackBtn, MsgType, SaveMessageBtn, ScrimDesign,
+                              SetDefault)
 
         if len(self.scrim.cdn["msg"]) <= 1:
             _e = ScrimDesign.default_countdown_msg()

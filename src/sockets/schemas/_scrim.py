@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from datetime import datetime, timedelta
 
 import dateparser
+
 from constants import IST, AutocleanType, Day
 from models import Guild, Scrim, Timer
 
@@ -24,7 +25,7 @@ def str_to_time(_t: str = None):
     parsed = dateparser.parse(
         _t,
         settings={
-            "RELATIVE_BASE": datetime.now(tz=IST),
+            # "RELATIVE_BASE": datetime.now(tz=IST),
             "TIMEZONE": "Asia/Kolkata",
             "RETURN_AS_TIMEZONE_AWARE": True,
         },
@@ -102,7 +103,6 @@ class BaseScrim(BaseModel):
         return True, True
 
     async def create_scrim(self, bot: Quotient):
-
         if not await Guild.filter(guild_id=self.guild_id, is_premium=True).exists():
             if await Scrim.filter(guild_id=self.guild_id).count() >= 3:
                 return False, "Cannot create more than 3 scrims without Premium."
@@ -146,7 +146,6 @@ class BaseScrim(BaseModel):
         return True, True
 
     async def __check_bot_perms(self, bot: Quotient):
-
         g = await bot.getch(bot.get_guild, bot.fetch_guild, self.guild_id)
 
         if g:

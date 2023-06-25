@@ -7,8 +7,9 @@ if TYPE_CHECKING:
 
 from contextlib import suppress
 
-import constants
 import discord
+
+import constants
 from core import Cog
 from models import Votes
 

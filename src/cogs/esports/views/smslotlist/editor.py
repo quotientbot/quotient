@@ -7,7 +7,8 @@ from contextlib import suppress
 
 import discord
 
-from models import ArrayAppend, ArrayRemove, AssignedSlot, Scrim, ScrimsSlotManager
+from models import (ArrayAppend, ArrayRemove, AssignedSlot, Scrim,
+                    ScrimsSlotManager)
 from utils import emote, truncate_string
 
 from .select import prompt_slot_selection

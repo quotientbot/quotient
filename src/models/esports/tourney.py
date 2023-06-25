@@ -2,14 +2,12 @@ import io
 from contextlib import suppress
 from typing import List, Optional, Union
 
-from typing import Optional, List, Union
-from models.helpers import *  # noqa: F401, F403
 import discord
 from discord.ext.commands import BadArgument
 from tortoise import exceptions, fields
 
 from models import BaseDbModel
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 from utils import split_list
 
 _dict = {
@@ -247,7 +245,8 @@ class Tourney(BaseDbModel):
     async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
         placeholder = placeholder or "Choose a tourney to contine..."
 
-        from cogs.esports.views.tourney._select import QuotientView, TourneySelector
+        from cogs.esports.views.tourney._select import (QuotientView,
+                                                        TourneySelector)
 
         tourneys = tourneys or await Tourney.filter(guild_id=ctx.guild.id).order_by("id").limit(25)
 

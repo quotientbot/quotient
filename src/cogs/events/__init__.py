@@ -1,9 +1,10 @@
 from .cmds import CmdEvents
 from .errors import Errors
+from .interaction import InteractionErrors
 from .main import MainEvents
 from .tasks import QuoTasks
 from .votes import VotesCog
-from .interaction import InteractionErrors
+from .logs import LogEvents
 
 
 async def setup(bot):
@@ -13,3 +14,4 @@ async def setup(bot):
     await bot.add_cog(VotesCog(bot))
     await bot.add_cog(Errors(bot))
     await bot.add_cog(InteractionErrors(bot))
+    await bot.add_cog(LogEvents(bot))

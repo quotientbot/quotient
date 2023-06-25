@@ -15,22 +15,16 @@ import discord
 import pkg_resources
 import psutil
 import pygit2
+from discord.ext import commands
+
 from cogs.quomisc.helper import format_relative
 from core import Cog, Context, QuotientView
-from discord.ext import commands
 from models import Commands, Guild, User, Votes
-from utils import (
-    LinkButton,
-    LinkType,
-    QuoColor,
-    checks,
-    get_ipm,
-    human_timedelta,
-    truncate_string,
-)
+from utils import (LinkButton, LinkType, QuoColor, checks, get_ipm,
+                   human_timedelta, truncate_string)
 
-from .dev import *
 from .alerts import *
+from .dev import *
 from .views import MoneyButton, SetupButtonView, VoteButton
 
 

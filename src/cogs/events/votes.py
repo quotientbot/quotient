@@ -5,10 +5,11 @@ import typing
 if typing.TYPE_CHECKING:
     from core import Quotient
 
-import constants
 import discord
-from core import Cog
 from discord import Webhook
+
+import constants
+from core import Cog
 from models import Timer, User, Votes
 
 

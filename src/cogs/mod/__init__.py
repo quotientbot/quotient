@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, Union, List
+from typing import TYPE_CHECKING, List, Optional, Union
 
 if TYPE_CHECKING:
     from core import Quotient
@@ -8,12 +8,13 @@ if TYPE_CHECKING:
 import re
 
 import discord
+from discord.ext import commands
+
 from constants import LockType
 from core import Cog, Context, QuotientView, role_command_check
-from discord.ext import commands
 from models import Lockdown
-
-from utils import ActionReason, BannedMember, FutureTime, MemberID, QuoUser, emote, human_timedelta, plural
+from utils import (ActionReason, BannedMember, FutureTime, MemberID, QuoUser,
+                   emote, human_timedelta, plural)
 
 from .events import *
 from .utils import _complex_cleanup_strategy, _self_clean_system, do_removal

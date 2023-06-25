@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, Any
+from typing import TYPE_CHECKING, Any, List
 
 from models import TMSlot, Tourney
 from utils import BaseSelector, Prompt, emote, truncate_string
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 import asyncio
 
 import discord
-from tortoise.query_utils import Q
+from tortoise.expressions import Q
 
 import config
 
@@ -21,7 +21,6 @@ from ...helpers import update_confirmed_message
 
 class TCancelSlotSelector(discord.ui.Select):
     def __init__(self, bot: Quotient, slots: List[TMSlot], placeholder: str = "Select a slot to cancel"):
-
         _options = []
         for slot in slots:
             slot.members.append(slot.leader_id)
@@ -46,7 +45,6 @@ class TCancelSlotSelector(discord.ui.Select):
 
 class TourneySlotManager(discord.ui.View):
     def __init__(self, bot: Quotient, *, tourney: Tourney):
-
         self.tourney = tourney
         self.bot = bot
         self.title = "Tourney Slot Manager"
@@ -100,7 +98,6 @@ class TourneySlotManager(discord.ui.View):
         await cancel_view.wait()
 
         if _id := cancel_view.custom_id:
-
             prompt = Prompt(interaction.user.id)
             await interaction.followup.send("Are you sure you want to cancel your slot?", view=prompt, ephemeral=True)
             await prompt.wait()

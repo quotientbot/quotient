@@ -13,7 +13,7 @@ from contextlib import suppress
 
 import discord
 from discord import ButtonStyle
-from tortoise.query_utils import Q
+from tortoise.expressions import Q
 
 from core import Context, QuotientView
 from models import Tourney

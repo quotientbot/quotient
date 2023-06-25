@@ -4,8 +4,9 @@ import typing as T
 from contextlib import suppress
 
 import discord
+
 from models import ArrayAppend, AssignedSlot, Scrim
-from utils import BaseSelector, Prompt, plural, emote
+from utils import BaseSelector, Prompt, emote, plural
 
 from ..public import ScrimsSlotmPublicView
 

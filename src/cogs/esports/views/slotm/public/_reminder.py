@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import typing as T
 
-from models import Scrim, ScrimsSlotReminder
 import discord
-from ..public import ScrimsSlotmPublicView
-from cogs.esports.views.scrims import ScrimSelectorView
 
+from cogs.esports.views.scrims import ScrimSelectorView
+from models import Scrim, ScrimsSlotReminder
 from utils import plural
+
+from ..public import ScrimsSlotmPublicView
 
 __all__ = ("ScrimsRemind",)
 

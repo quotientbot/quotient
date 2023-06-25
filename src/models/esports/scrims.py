@@ -8,6 +8,7 @@ from typing import List, Optional
 
 import discord
 import humanize
+from aiocache import cached
 from PIL import Image, ImageDraw, ImageFont
 from tortoise import fields, models
 
@@ -17,8 +18,6 @@ from core import Context
 from models import BaseDbModel
 from models.helpers import *
 from utils import discord_timestamp, plural, truncate_string
-
-from aiocache import cached
 
 
 class Scrim(BaseDbModel):
@@ -540,7 +539,9 @@ class Scrim(BaseDbModel):
             await slotm.refresh_public_message()
 
     async def start_registration(self):
-        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+        from cogs.esports.helpers.utils import (available_to_reserve,
+                                                scrim_work_role,
+                                                toggle_channel)
 
         oldslots = await self.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()

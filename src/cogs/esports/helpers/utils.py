@@ -3,10 +3,10 @@ import re
 from contextlib import suppress
 from typing import Union
 
-import constants
 import discord
-from models import Scrim, Tourney
 
+import constants
+from models import Scrim, Tourney
 from utils import find_team
 
 

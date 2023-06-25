@@ -176,7 +176,7 @@ async def time_input(ctx: Context, check=None, timeout=120, delete_after=False):
             parsed = dateparser.parse(
                 message.content,
                 settings={
-                    "RELATIVE_BASE": datetime.now(tz=IST),
+                    # "RELATIVE_BASE": datetime.now(tz=IST),
                     "TIMEZONE": "Asia/Kolkata",
                     "RETURN_AS_TIMEZONE_AWARE": True,
                 },

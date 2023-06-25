@@ -6,10 +6,11 @@ import typing as T
 from contextlib import suppress
 
 import discord
-from models import ArrayRemove, Scrim, AssignedSlot, ScrimsSlotManager
+
+from models import ArrayRemove, AssignedSlot, Scrim, ScrimsSlotManager
+from utils import BaseSelector, emote
 
 from ..public import ScrimsSlotmPublicView
-from utils import emote, BaseSelector
 
 claim_lock = asyncio.Lock()
 

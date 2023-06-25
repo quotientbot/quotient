@@ -10,7 +10,7 @@ import discord
 
 from core import Context, QuotientView
 from models import BanLog, BannedTeam, Scrim
-from utils import discord_timestamp, emote, plural, truncate_string, get_chunks
+from utils import discord_timestamp, emote, get_chunks, plural, truncate_string
 
 from ._base import ScrimsButton, ScrimsView
 from ._btns import Discard

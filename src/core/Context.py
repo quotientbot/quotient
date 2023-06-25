@@ -3,14 +3,15 @@ from __future__ import annotations
 import asyncio
 import io
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar, Union
+from typing import (TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar,
+                    Union)
 
 import aiohttp
-import config as cfg
 import discord
-import utils
-from async_property import async_property
 from discord.ext import commands
+
+import config as cfg
+import utils
 
 BotT = TypeVar("BotT", bound=commands.Bot)
 
@@ -19,7 +20,6 @@ __all__ = ("Context",)
 
 
 class Context(commands.Context["commands.Bot"], Generic[BotT]):
-
     if TYPE_CHECKING:
         from .Bot import Quotient
 
@@ -44,7 +44,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
     def config(self) -> cfg:
         return self.bot.config
 
-    @async_property
+    @property
     async def banlog_channel(self):
         from models import BanLog
 
@@ -80,7 +80,6 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
     async def error(self, message: str, delete_after: bool = None, **kwargs: Any) -> Optional[discord.Message]:
         with suppress(discord.HTTPException):
-
             msg: Optional[discord.Message] = await self.reply(
                 embed=discord.Embed(description=message, color=discord.Color.red()),
                 delete_after=delete_after,
@@ -172,7 +171,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
             try:
                 await self.author.send(
                     "I can't send any messages in that channel. \nPlease give me sufficient permissions to do so.",
-                    view=self.get_dm_view(f"Sent from #{self.channel.name} in {self.guild.name}")
+                    view=self.get_dm_view(f"Sent from #{self.channel.name} in {self.guild.name}"),
                 )
             except discord.Forbidden:
                 pass
@@ -212,7 +211,7 @@ class Context(commands.Context["commands.Bot"], Generic[BotT]):
 
         _view = PremiumView(msg)
         return await self.send(embed=_view.premium_embed, view=_view, embed_perms=True)
-    
+
     @staticmethod
     def get_dm_view(msg: str) -> discord.ui.View:
         from .views import QuoDMView
