@@ -1,7 +1,9 @@
-from models.helpers import ArrayField
-from tortoise import fields, models
 from typing import Optional
+
 import discord
+from tortoise import fields, models
+
+from models.helpers import ArrayField
 
 
 class Autorole(models.Model):

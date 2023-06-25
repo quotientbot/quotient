@@ -5,6 +5,7 @@ from contextlib import suppress
 from typing import Iterable, List, Optional
 
 import discord
+
 from constants import EsportsRole, RegDeny
 from models import TMSlot, Tourney
 

@@ -1,17 +1,7 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Callable,
-    Coroutine,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Union,
-)
+from typing import (TYPE_CHECKING, Any, AsyncGenerator, Callable, Coroutine,
+                    Dict, Iterable, List, Optional, Union)
 
 if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
@@ -23,20 +13,20 @@ import time
 from datetime import datetime, timedelta
 
 import aiohttp
-import config as cfg
-import constants as csts
 import discord
 from aiocache import cached
 from discord import AllowedMentions, Intents
 from discord.ext import commands
 from lru import LRU
-from models import Guild
 from tortoise import Tortoise
+
+import config as cfg
+import constants as csts
+from models import Guild
 
 from .cache import CacheManager
 from .Context import Context
 from .Help import HelpCommand
-
 
 intents = Intents.default()
 intents.members = True
@@ -92,12 +82,8 @@ class Quotient(commands.AutoShardedBot):
 
     @on_startup.append
     async def __load_presistent_views(self):
-        from cogs.esports.views import (
-            GroupRefresh,
-            ScrimsSlotmPublicView,
-            SlotlistEditButton,
-            TourneySlotManager,
-        )
+        from cogs.esports.views import (GroupRefresh, ScrimsSlotmPublicView,
+                                        SlotlistEditButton, TourneySlotManager)
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views

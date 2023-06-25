@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from models import BaseDbModel
 from tortoise import fields
+
+from models import BaseDbModel
 from models.helpers import *
 
 

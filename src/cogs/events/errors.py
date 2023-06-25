@@ -6,9 +6,10 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
+from discord.ext import commands
+
 from constants import random_greeting
 from core import Cog, Context
-from discord.ext import commands
 from utils import exceptions
 
 

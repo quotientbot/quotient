@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List
 
 import aiohttp
 import discord
+
 from constants import SSType
 
 if TYPE_CHECKING:
@@ -14,6 +15,7 @@ from collections import defaultdict
 from contextlib import suppress
 
 import humanize
+
 from core import Cog, Context, QuotientRatelimiter
 from models import ImageResponse, SSVerify
 from utils import emote, plural

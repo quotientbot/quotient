@@ -3,11 +3,13 @@ from __future__ import annotations
 from difflib import get_close_matches
 from typing import List, Mapping
 
-import config
 import discord
 from discord.ext import commands
+
+import config
 from models import Guild
-from utils import LinkButton, LinkType, QuoPaginator, truncate_string, discord_timestamp
+from utils import (LinkButton, LinkType, QuoPaginator, discord_timestamp,
+                   truncate_string)
 
 from .Cog import Cog
 

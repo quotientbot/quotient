@@ -3,19 +3,17 @@ from __future__ import annotations
 import string
 
 import aiohttp
-import config
-import constants
 from discord.ext import menus
 from discord.ext.menus import Button
+
+import config
+import constants
 from models import Scrim
 from models.helpers import *  # noqa: F401, F403
 from utils import *  # noqa: F401, F403
 
 from .errors import ScrimError
-from .helpers import (
-    delete_denied_message,
-    scrim_work_role,
-)
+from .helpers import delete_denied_message, scrim_work_role
 
 # class PointsConfigEditor(menus.Menu):
 #     def __init__(self, points: PointsInfo):

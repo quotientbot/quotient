@@ -3,13 +3,15 @@ from __future__ import annotations
 import asyncio
 import io
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar, Union
+from typing import (TYPE_CHECKING, Any, Callable, Generic, Optional, TypeVar,
+                    Union)
 
 import aiohttp
-import config as cfg
 import discord
-import utils
 from discord.ext import commands
+
+import config as cfg
+import utils
 
 BotT = TypeVar("BotT", bound=commands.Bot)
 

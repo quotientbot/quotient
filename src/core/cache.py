@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 
 import config
 from constants import IST
-from models import AutoPurge, EasyTag, Guild, Scrim, SSVerify, TagCheck, Tourney, BlockList
+from models import (AutoPurge, BlockList, EasyTag, Guild, Scrim, SSVerify,
+                    TagCheck, Tourney)
 
 
 class CacheManager:

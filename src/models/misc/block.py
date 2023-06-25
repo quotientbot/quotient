@@ -1,6 +1,8 @@
-from models import BaseDbModel
-from tortoise import fields
 from enum import IntEnum
+
+from tortoise import fields
+
+from models import BaseDbModel
 
 __all__ = ("BlockList", "BlockIdType")
 

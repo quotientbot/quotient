@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import typing as T
+from collections import defaultdict
 
 import discord
 from discord.ext import commands
-from collections import defaultdict
-
 
 __all__ = ("QuotientRatelimiter",)
 

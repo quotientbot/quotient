@@ -1,11 +1,14 @@
 from __future__ import annotations
-from contextlib import suppress
+
 import typing as T
+from contextlib import suppress
+
+import discord
+
+from core import Context, QuotientView
+from utils import emote
 
 from .conts import Team
-from core import Context, QuotientView
-import discord
-from utils import emote
 
 
 class PointsTable(QuotientView):

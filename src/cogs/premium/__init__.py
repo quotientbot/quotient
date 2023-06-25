@@ -9,22 +9,19 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 from datetime import datetime, timedelta
 
-import config
 import discord
+from discord.ext import commands, tasks
+from tortoise.expressions import Q
+
+import config
 from constants import random_greeting, random_thanks
 from core import Cog, Context
-from discord.ext import commands, tasks
-from models import Guild, Timer, User, PremiumTxn
-from tortoise.expressions import Q
-from utils import IST, strtime, emote, discord_timestamp
+from models import Guild, PremiumTxn, Timer, User
+from utils import IST, discord_timestamp, emote, strtime
 
-from .expire import (
-    deactivate_premium,
-    extra_guild_perks,
-    remind_guild_to_pay,
-    remind_user_to_pay,
-)
-from .views import PremiumView, PremiumPurchaseBtn
+from .expire import (deactivate_premium, extra_guild_perks,
+                     remind_guild_to_pay, remind_user_to_pay)
+from .views import PremiumPurchaseBtn, PremiumView
 
 
 class PremiumCog(Cog, name="Premium"):

@@ -8,8 +8,9 @@ if typing.TYPE_CHECKING:
 import re
 from contextlib import suppress
 
-import config
 import discord
+
+import config
 from constants import random_greeting
 from core import Cog, Context
 from models import Guild

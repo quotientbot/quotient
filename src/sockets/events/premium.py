@@ -1,12 +1,13 @@
 from __future__ import annotations
-from contextlib import suppress
 
 import typing as T
+from contextlib import suppress
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
 import discord
+
 from constants import random_greeting, random_thanks
 from core import Cog
 

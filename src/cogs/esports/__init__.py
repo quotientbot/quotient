@@ -10,8 +10,9 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from core import Cog, Context, QuotientView
 from discord.ext import commands
+
+from core import Cog, Context, QuotientView
 from models import *
 from utils import QuoRole, QuoTextChannel, checks
 

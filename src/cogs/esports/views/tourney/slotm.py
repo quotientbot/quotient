@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, Any
+from typing import TYPE_CHECKING, Any, List
 
 from models import TMSlot, Tourney
 from utils import BaseSelector, Prompt, emote, truncate_string

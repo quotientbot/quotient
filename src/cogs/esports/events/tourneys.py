@@ -12,20 +12,17 @@ import asyncio
 from unicodedata import normalize
 
 import discord
+from tortoise.exceptions import DoesNotExist
+
 import utils
 from constants import EsportsLog, RegDeny
 from core import Cog
 from models import MediaPartner, PartnerSlot, TGroupList, TMSlot, Tourney
-from tortoise.exceptions import DoesNotExist
 from utils import truncate_string
 
-from ..helpers import (
-    before_registrations,
-    cannot_take_registration,
-    check_tourney_requirements,
-    get_tourney_slots,
-    update_confirmed_message,
-)
+from ..helpers import (before_registrations, cannot_take_registration,
+                       check_tourney_requirements, get_tourney_slots,
+                       update_confirmed_message)
 
 
 class TourneyEvents(Cog):

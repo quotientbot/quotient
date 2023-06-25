@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
+import discord
 
 import config
-import discord
 from utils import emote
 
 if TYPE_CHECKING:

@@ -8,6 +8,7 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
+
 from core import Cog
 from models import Timer
 from utils import discord_timestamp

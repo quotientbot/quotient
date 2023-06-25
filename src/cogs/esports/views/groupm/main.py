@@ -10,8 +10,8 @@ from models import Tourney
 from utils import inputs, keycap_digit
 
 from ..base import EsportsBaseView
-from ._paginator import GroupPages
 from ..tourney._buttons import DiscardButton
+from ._paginator import GroupPages
 
 __all__ = ("TourneyGroupManager",)
 
