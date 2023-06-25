@@ -11,7 +11,7 @@ import datetime
 import discord
 from core import Cog, Context
 from discord.ext import commands
-from models import Commands
+from models import Commands, BlockList, BlockIdType
 from prettytable import PrettyTable
 from utils import get_ipm
 
@@ -27,6 +27,38 @@ class Dev(Cog):
     def cog_check(self, ctx: Context):
         return ctx.author.id in ctx.config.DEVS
 
+    @commands.group(hidden=True, invoke_without_command=True)
+    async def bl(self, ctx: Context):
+        """Blocklist commands."""
+        await ctx.send_help(ctx.command)
+
+    @bl.command(name="add")
+    async def bl_add(self, ctx: Context, item: discord.User | int, *, reason: str = None):
+        """Block a user or guild from using the bot."""
+        block_id_type = BlockIdType.USER if isinstance(item, discord.User) else BlockIdType.GUILD
+        block_id = item.id if isinstance(item, discord.User) else item
+
+        record = await BlockList.get_or_none(block_id=block_id, block_id_type=block_id_type)
+        if record:
+            return await ctx.error(f"{item} is already blocked.")
+
+        await BlockList.create(block_id=block_id, block_id_type=block_id_type, reason=reason)
+        self.bot.cache.blocked_ids.add(block_id)
+        await ctx.success(f"{item} has been blocked.")
+
+    @bl.command(name="remove")
+    async def bl_remove(self, ctx: Context, item: discord.User | int):
+        """Unblock a user or guild from using the bot."""
+        block_id = item.id if isinstance(item, discord.User) else item
+
+        record = await BlockList.get_or_none(block_id=block_id)
+        if not record:
+            return await ctx.error(f"{item} is not blocked.")
+
+        await record.delete()
+        self.bot.cache.blocked_ids.remove(block_id)
+        await ctx.success(f"{item} has been unblocked.")
+
     @commands.command(hidden=True)
     async def sync(
         self,
@@ -35,7 +67,6 @@ class Dev(Cog):
         spec: T.Optional[T.Literal["~", "*", "^"]] = None,
     ) -> None:
         if not guilds:
-
             if spec == "~":
                 synced = await self.bot.tree.sync(guild=ctx.guild)
             elif spec == "*":
@@ -62,7 +93,7 @@ class Dev(Cog):
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
-    @commands.group(hiddent=True, invoke_without_command=True)
+    @commands.group(hidden=True, invoke_without_command=True)
     async def botupdate(self, ctx: Context):
         await ctx.send_help(ctx.command)
 
