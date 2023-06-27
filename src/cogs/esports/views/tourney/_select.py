@@ -13,7 +13,6 @@ class TourneySelector(discord.ui.Select):
     view: QuotientView
 
     def __init__(self, placeholder: str, tourneys: T.List[Tourney]):
-
         _options = []
         for tourney in tourneys:
             _options.append(
@@ -54,4 +53,4 @@ class TourneySlotSelec(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
         self.view.stop()
-        self.view.custom_id  = interaction.data["values"]
+        self.view.custom_id = interaction.data["values"]

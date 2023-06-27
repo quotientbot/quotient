@@ -6,10 +6,11 @@ import typing as T
 from contextlib import suppress
 
 import discord
-from models import ArrayRemove, Scrim, AssignedSlot, ScrimsSlotManager
+
+from models import ArrayRemove, AssignedSlot, Scrim, ScrimsSlotManager
+from utils import BaseSelector, emote
 
 from ..public import ScrimsSlotmPublicView
-from utils import emote, BaseSelector
 
 claim_lock = asyncio.Lock()
 
@@ -97,7 +98,6 @@ class ClaimSlotSelector(discord.ui.Select):
     view: BaseSelector
 
     def __init__(self, scrims: T.List[Scrim], multiple_slots: bool):
-
         _options = []
         for scrim in scrims:
             slots = sorted(scrim.available_slots)

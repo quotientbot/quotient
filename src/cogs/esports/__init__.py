@@ -10,8 +10,9 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from core import Cog, Context, QuotientView
 from discord.ext import commands
+
+from core import Cog, Context, QuotientView
 from models import *
 from utils import QuoRole, QuoTextChannel, checks
 
@@ -112,13 +113,13 @@ class ScrimManager(Cog, name="Esports"):
         _e.timestamp = self.bot.current_time + timedelta(minutes=30)
 
         view = IdpView(room_id, password, map)
-        await ctx.send(
+        msg = await ctx.send(
             content=role_to_ping.mention if role_to_ping else None,
             embed=_e,
             view=view,
             allowed_mentions=discord.AllowedMentions(roles=True),
-            delete_after=30 * 60,
         )
+        await self.bot.wait_and_delete(msg, 30 * 60)
 
     @commands.group(aliases=("eztag",), invoke_without_command=True)
     async def easytag(self, ctx: Context):

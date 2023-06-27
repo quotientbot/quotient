@@ -6,8 +6,9 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from core import Cog
 from discord.app_commands import AppCommandError
+
+from core import Cog
 
 __all__ = ("InteractionErrors",)
 

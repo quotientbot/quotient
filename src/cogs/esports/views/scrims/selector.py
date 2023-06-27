@@ -16,7 +16,6 @@ class ScrimSelector(discord.ui.Select):
     view: "ScrimSelectorView"
 
     def __init__(self, placeholder: str, scrims: List[Scrim], max_values=25):
-
         _options = []
         for scrim in scrims:
             _options.append(

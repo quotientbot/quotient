@@ -366,7 +366,6 @@ class TimeText(commands.Converter):
         self.converter = converter
 
     def __final_checks(self, dt, remaining=None):
-
         self.arg = remaining
         if remaining and remaining.strip() == "":
             self.arg = None

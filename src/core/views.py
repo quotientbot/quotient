@@ -1,23 +1,24 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
+import discord
 
 import config
-import discord
 from utils import emote
 
 if TYPE_CHECKING:
     from .Context import Context
 
-__all__ = ("QuotientView", "QuoInput")
+__all__ = ("QuotientView", "QuoInput", "QuoDMView")
 
 
 class QuotientView(discord.ui.View):
     message: discord.Message
     custom_id = None
 
-    def __init__(self, ctx: Context, *, timeout: Optional[float]=30):
+    def __init__(self, ctx: Context, *, timeout: Optional[float] = 30):
         super().__init__(timeout=timeout)
         self.ctx = ctx
         self.bot = ctx.bot
@@ -60,3 +61,16 @@ class QuoInput(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction) -> None:
         with suppress(discord.NotFound):
             await interaction.response.defer()
+
+
+class QuoDMView(discord.ui.View):
+    def __init__(self, *, timeout: float = 180, label: Optional[str] = None):
+        super().__init__(timeout=timeout)
+
+        self.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.blurple,
+                label=label,
+                disabled=True,
+            )
+        )

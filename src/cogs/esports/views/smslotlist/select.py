@@ -13,10 +13,8 @@ from utils import truncate_string as ts
 
 class ScrimSlotSelector(discord.ui.Select):
     def __init__(self, slots: List[AssignedSlot], *, placeholder: str, multiple=False):
-
         _options = []
         for slot in slots:
-
             _options.append(
                 discord.SelectOption(
                     label=f"Slot {slot.num}", description=ts(slot.team_name, 22), emoji=emote.TextChannel, value=slot.id

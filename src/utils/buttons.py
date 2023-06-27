@@ -75,7 +75,6 @@ class BaseSelector(discord.ui.View):
 
 class ChannelSelector(discord.ui.Select):
     def __init__(self, placeholder: str, channels: List[Union[discord.TextChannel, discord.VoiceChannel]]):
-
         _options = []
         for channel in channels:
             _options.append(

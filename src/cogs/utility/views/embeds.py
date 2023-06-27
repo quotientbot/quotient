@@ -1,8 +1,11 @@
 from __future__ import annotations
-from core.embeds import EmbedBuilder
-import discord
-from utils import emote
+
 import typing as T
+
+import discord
+
+from core.embeds import EmbedBuilder
+from utils import emote
 
 __all__ = ("EmbedSend", "EmbedCancel")
 

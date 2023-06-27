@@ -6,6 +6,7 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 from core import Cog
+
 from .scrims import *
 
 __all__ = ("SlashCog",)

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import typing as T
 
-from models import Scrim, ScrimsSlotReminder
 import discord
-from ..public import ScrimsSlotmPublicView
-from cogs.esports.views.scrims import ScrimSelectorView
 
+from cogs.esports.views.scrims import ScrimSelectorView
+from models import Scrim, ScrimsSlotReminder
 from utils import plural
+
+from ..public import ScrimsSlotmPublicView
 
 __all__ = ("ScrimsRemind",)
 
@@ -33,8 +34,9 @@ class ScrimsRemind(discord.ui.Button):
             closed_at__gt=self.view.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
             match_time__gt=self.view.bot.current_time,
             opened_at__isnull=True,
-            available_slots=[],
         ).order_by("open_time")
+
+        scrims = [scrim for scrim in scrims if not scrim.available_slots]
 
         for scrim in await self.banned_from(interaction.user.id):
             for _ in scrims:

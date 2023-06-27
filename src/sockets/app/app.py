@@ -15,9 +15,7 @@ class QuoSocket(socketio.AsyncClient):
         super().__init__(**kwargs)
 
     async def emit(self, event, data=None, namespace=None, callback=None):
-        return await super().emit(
-            "response__" + event, data=data, namespace=namespace, callback=callback
-        )
+        return await super().emit("response__" + event, data=data, namespace=namespace, callback=callback)
 
     async def request(self, event, data=None, namespace=None, callback=None):
         return await super().emit(event, data=data, namespace=namespace, callback=callback)

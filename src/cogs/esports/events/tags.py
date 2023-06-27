@@ -9,6 +9,7 @@ import re
 from contextlib import suppress
 
 import discord
+
 import utils
 from core import Cog
 from models import EasyTag, TagCheck

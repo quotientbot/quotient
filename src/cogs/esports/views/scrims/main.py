@@ -1,9 +1,10 @@
 from __future__ import annotations
-from contextlib import suppress
 
-import typing as T
 import asyncio
 import random
+import typing as T
+from contextlib import suppress
+
 import discord
 from discord import ButtonStyle, Interaction, ui
 

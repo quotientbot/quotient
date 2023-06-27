@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing as T
 
 import discord as d
+
 from models import Scrim, ScrimsSlotManager
 
 __all__ = ("ScrimsSlotmPublicView",)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from collections import defaultdict
 
 if typing.TYPE_CHECKING:
     from core import Quotient
@@ -8,16 +9,24 @@ if typing.TYPE_CHECKING:
 import re
 from contextlib import suppress
 
-import config
 import discord
+
+import config
 from constants import random_greeting
-from core import Cog, Context
+from core import Cog, Context, cooldown
 from models import Guild
+
+
+class MentionLimits(defaultdict):
+    def __missing__(self, key):
+        r = self[key] = cooldown.QuotientRatelimiter(2, 12)
+        return r
 
 
 class MainEvents(Cog, name="Main Events"):
     def __init__(self, bot: Quotient) -> None:
         self.bot = bot
+        self.mentions_limiter = MentionLimits(cooldown.QuotientRatelimiter)
 
     # incomplete?, I know
     @Cog.listener()
@@ -35,7 +44,11 @@ class MainEvents(Cog, name="Main Events"):
     async def on_message(self, message: discord.Message) -> None:
         if message.author.bot or message.guild is None:
             return
+
         if re.match(f"^<@!?{self.bot.user.id}>$", message.content):
+            if self.mentions_limiter[message.author].is_ratelimited(message.author):
+                return
+
             ctx: Context = await self.bot.get_context(message)
             self.bot.dispatch("mention", ctx)
 

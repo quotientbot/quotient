@@ -6,9 +6,10 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 import discord
-from core import Context
 from discord import app_commands
 from discord.ext import commands
+
+from core import Context
 from models import BanLog, Scrim
 from utils import emote, plural
 

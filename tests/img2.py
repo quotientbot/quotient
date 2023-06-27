@@ -77,7 +77,6 @@ top = 10
 left = 35
 
 for idx, item in enumerate(_dict.items(), start=1):
-
     image = Image.open("rectangle.png")
     image = image.convert("RGBA")
 

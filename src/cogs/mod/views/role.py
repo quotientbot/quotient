@@ -8,6 +8,7 @@ if typing.TYPE_CHECKING:
 from contextlib import suppress
 
 import discord
+
 from core import Context
 from utils import emote
 

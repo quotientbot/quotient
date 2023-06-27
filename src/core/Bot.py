@@ -1,17 +1,6 @@
 from __future__ import annotations
 
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Callable,
-    Coroutine,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, AsyncGenerator, Callable, Coroutine, Dict, Iterable, List, Optional, Union
 
 if TYPE_CHECKING:
     from ..cogs.reminder import Reminders
@@ -23,23 +12,20 @@ import time
 from datetime import datetime, timedelta
 
 import aiohttp
-import config as cfg
-import constants as csts
-import dbl
 import discord
-import mystbin
 from aiocache import cached
-from async_property import async_property
 from discord import AllowedMentions, Intents
 from discord.ext import commands
 from lru import LRU
-from models import Guild
 from tortoise import Tortoise
+
+import config as cfg
+import constants as csts
+from models import Guild, Timer
 
 from .cache import CacheManager
 from .Context import Context
 from .Help import HelpCommand
-from .cooldown import UserCommandLimits, QuotientRatelimiter
 
 intents = Intents.default()
 intents.members = True
@@ -69,6 +55,7 @@ class Quotient(commands.AutoShardedBot):
             chunk_guilds_at_startup=False,
             allowed_mentions=AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             activity=discord.Activity(type=discord.ActivityType.listening, name="qsetup | qhelp"),
+            proxy=getattr(cfg, "PROXY_URI", None),
             **kwargs,
         )
 
@@ -76,20 +63,15 @@ class Quotient(commands.AutoShardedBot):
         self.start_time = datetime.now(tz=csts.IST)
         self.cmd_invokes = 0
         self.seen_messages = 0
-        self.binclient = mystbin.Client()
 
         self.persistent_views_added = False
         self.sio = None
-        self.dblpy = dbl.DBLClient(self, self.config.DBL_TOKEN, autopost=True)
 
         self.lockdown: bool = False
         self.lockdown_msg: Optional[str] = None
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
 
         self.message_cache: Dict[int, Any] = LRU(1024)  # type: ignore
-
-        self.command_ratelimited_users = {}
-        self.command_ratelimiter = UserCommandLimits(QuotientRatelimiter)
 
     @discord.utils.cached_property
     def name(self):
@@ -107,12 +89,7 @@ class Quotient(commands.AutoShardedBot):
 
     @on_startup.append
     async def __load_presistent_views(self):
-        from cogs.esports.views import (
-            GroupRefresh,
-            ScrimsSlotmPublicView,
-            SlotlistEditButton,
-            TourneySlotManager,
-        )
+        from cogs.esports.views import GroupRefresh, ScrimsSlotmPublicView, SlotlistEditButton, TourneySlotManager
         from models import Scrim, ScrimsSlotManager, TGroupList, Tourney
 
         # Persistent views
@@ -120,7 +97,10 @@ class Quotient(commands.AutoShardedBot):
             self.add_view(ScrimsSlotmPublicView(record), message_id=record.message_id)
 
         async for tourney in Tourney.filter(slotm_message_id__isnull=False):
-            self.add_view(TourneySlotManager(self, tourney=tourney), message_id=tourney.slotm_message_id)
+            self.add_view(
+                TourneySlotManager(self, tourney=tourney),
+                message_id=tourney.slotm_message_id,
+            )
 
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(SlotlistEditButton(self, scrim), message_id=scrim.slotlist_message_id)
@@ -209,26 +189,12 @@ class Quotient(commands.AutoShardedBot):
         """Gets the message from the cache"""
         return self._connection._get_message(message_id)
 
-    async def remove_from_ratelimited_users(self, user_id: int, after: int):
-        await asyncio.sleep(after)
-        self.command_ratelimited_users.pop(user_id, None)
-
     async def process_commands(self, message: discord.Message):
         if message.content and message.guild is not None:
             ctx = await self.get_context(message, cls=Context)
 
             if ctx.command is None:
                 return
-
-            if retry_after := self.command_ratelimiter[message.author].is_ratelimited(message.author):
-                if message.author.id in self.command_ratelimited_users:
-                    return
-
-                self.command_ratelimited_users[message.author.id] = self.current_time + timedelta(seconds=retry_after)
-                await self.remove_from_ratelimited_users(message.author.id, retry_after)
-                return await ctx.error(
-                    f"You are being ratelimited for using commands too fast. \n\n**Try again after `{retry_after:.2f} seconds`**."
-                )
 
             await self.invoke(ctx)
 
@@ -244,10 +210,33 @@ class Quotient(commands.AutoShardedBot):
         self.cmd_invokes += 1
         await csts.show_tip(ctx)
         await csts.remind_premium(ctx)
-        await self.db.execute("INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING", ctx.author.id)
+        await self.db.execute(
+            "INSERT INTO user_data (user_id) VALUES ($1) ON CONFLICT DO NOTHING",
+            ctx.author.id,
+        )
 
     async def on_ready(self):
         print(f"[Quotient] Logged in as {self.user.name}({self.user.id})")
+
+    async def wait_and_delete(self, message: discord.Message, delay: int = 10):
+        """Waits for `delay` seconds and deletes the message"""
+        return await self.reminders.create_timer(
+            self.current_time + timedelta(seconds=delay),
+            "msg_delete",
+            message_id=message.id,
+            channel_id=message.channel.id,
+        )
+
+    async def on_msg_delete_timer_complete(self, timer: Timer):
+        """Deletes the message"""
+        channel_id, message_id = timer.kwargs["channel_id"], timer.kwargs["message_id"]
+
+        channel: discord.TextChannel = await self.getch(self.get_channel, self.fetch_channel, channel_id)
+        if channel is None:
+            return
+
+        message = channel.get_partial_message(message_id)
+        await message.delete(delay=0)
 
     def embed(self, ctx: Context, **kwargs: Any) -> discord.Embed:
         """This is how we deliver features like custom footer and custom color :)"""
@@ -358,7 +347,7 @@ class Quotient(commands.AutoShardedBot):
     def current_time(self):
         return datetime.now(tz=csts.IST)
 
-    @async_property
+    @property
     async def db_latency(self):
         t1 = time.perf_counter()
         await self.db.fetchval("SELECT 1;")

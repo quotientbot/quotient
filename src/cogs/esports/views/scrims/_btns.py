@@ -118,6 +118,29 @@ class MinLines(ScrimsButton):
         await self.view.refresh_view()
 
 
+class DuplicateTags(ScrimsButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error(
+                "[Quotient Premium](https://quotientbot.xyz/premium) is required to use this feature.", 4
+            )
+
+        self.view.record.allow_duplicate_tags = not self.view.record.allow_duplicate_tags
+        await self.ctx.success(
+            f"Registrations with fake / duplicate mentions are now **{'allowed' if self.view.record.allow_duplicate_tags else 'not allowed'}**.",
+            3,
+        )
+        await self.view.refresh_view()
+        await self.view.record.confirm_all_scrims(self.ctx, allow_duplicate_tags=self.view.record.allow_duplicate_tags)
+
+
 class TotalSlots(ScrimsButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))

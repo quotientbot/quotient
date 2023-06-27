@@ -1,7 +1,7 @@
 from __future__ import annotations
-from contextlib import suppress
 
 import typing as T
+from contextlib import suppress
 
 import discord
 

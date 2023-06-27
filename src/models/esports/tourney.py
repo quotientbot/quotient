@@ -2,14 +2,12 @@ import io
 from contextlib import suppress
 from typing import List, Optional, Union
 
-from typing import Optional, List, Union
-from models.helpers import *  # noqa: F401, F403
 import discord
 from discord.ext.commands import BadArgument
 from tortoise import exceptions, fields
 
 from models import BaseDbModel
-from models.helpers import *
+from models.helpers import *  # noqa: F401, F403
 from utils import split_list
 
 _dict = {
@@ -56,6 +54,7 @@ class Tourney(BaseDbModel):
     slotm_message_id = fields.BigIntField(null=True)
 
     required_lines = fields.SmallIntField(default=0)
+    allow_duplicate_tags = fields.BooleanField(default=True)
 
     assigned_slots: fields.ManyToManyRelation["TMSlot"] = fields.ManyToManyField("models.TMSlot")
     media_partners: fields.ManyToManyRelation["MediaPartner"] = fields.ManyToManyField("models.MediaPartner")
@@ -145,7 +144,6 @@ class Tourney(BaseDbModel):
         return split_list(await self.assigned_slots.all().order_by("num"), self.group_size)
 
     async def get_group(self, num: int) -> List["TMSlot"]:
-
         _all = await self._get_groups()
         for group in _all:
             if _all.index(group) == num - 1:
@@ -173,7 +171,6 @@ class Tourney(BaseDbModel):
         Add role to user and reaction to the message
         """
         with suppress(discord.HTTPException):
-
             if not (_role := self.role) in ctx.author.roles:
                 await ctx.author.add_roles(_role)
 
@@ -184,10 +181,9 @@ class Tourney(BaseDbModel):
                 embed.title = f"Message from {ctx.guild.name}"
                 embed.url = slot.jump_url
 
-                await ctx.author.send(embed=embed)
+                await ctx.author.send(embed=embed, view=ctx.get_dm_view(f"Sent from {ctx.guild.name}"))
 
     async def end_process(self):
-
         from cogs.esports.helpers.utils import toggle_channel
 
         closed_at = self.bot.current_time
@@ -207,13 +203,14 @@ class Tourney(BaseDbModel):
         from cogs.esports.views.tourney.slotm import TourneySlotManager
 
         _view = TourneySlotManager(self.bot, tourney=self)
-        _category = self.registration_channel.category
+        _category = self.registration_channel.category or self.registration_channel.guild
         overwrites = {
             self.guild.default_role: discord.PermissionOverwrite(
                 read_messages=True, send_messages=False, read_message_history=True
             ),
             self.guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
         }
+
         slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
         return await slotm_channel.send(embed=TourneySlotManager.initial_embed(self), view=_view)
 
@@ -247,7 +244,6 @@ class Tourney(BaseDbModel):
 
     @staticmethod
     async def prompt_selector(ctx: Context, *, tourneys: List["Tourney"] = None, placeholder: str = None):
-
         placeholder = placeholder or "Choose a tourney to contine..."
 
         from cogs.esports.views.tourney._select import QuotientView, TourneySelector
@@ -416,6 +412,17 @@ class Tourney(BaseDbModel):
 
         finally:
             return True
+
+    async def check_fake_tags(self, message: discord.Message):
+        query = """
+        SELECT *
+            FROM PUBLIC."tm.tourney_tm.register" AS ASSIGNED_SLOT
+            INNER JOIN PUBLIC."tm.register" AS SLOTS ON SLOTS.ID = ASSIGNED_SLOT.TMSLOT_ID
+        WHERE ASSIGNED_SLOT."tm.tourney_id" = $1
+        AND $2 && SLOTS.MEMBERS;
+
+        """
+        return await self.bot.db.fetch(query, self.id, [i.id for i in message.mentions])
 
 
 class TMSlot(BaseDbModel):

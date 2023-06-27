@@ -53,7 +53,7 @@ class RegChannel(TourneyButton):
         self.ctx.bot.cache.tourney_channels.add(channel.id)
 
         if not self.view.record.confirm_channel_id:
-            with suppress(StopIteration):
+            with suppress(StopIteration, AttributeError):
                 self.view.record.confirm_channel_id = next(
                     (c.id for c in channel.category.text_channels if "confirm" in c.name.lower())
                 )
@@ -285,6 +285,28 @@ class TeamCompulsion(TourneyButton):
         await self.view.refresh_view()
 
 
+class DuplicateTags(TourneyButton):
+    def __init__(self, ctx: Context, letter: str):
+        super().__init__(emoji=ri(letter))
+
+        self.ctx = ctx
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        if not await self.ctx.is_premium_guild():
+            return await self.ctx.error(
+                "[Quotient Premium](https://quotientbot.xyz/premium) is required to use this feature.", 4
+            )
+
+        self.view.record.allow_duplicate_tags = not self.view.record.allow_duplicate_tags
+        await self.ctx.success(
+            f"Registrations with fake / duplicate mentions are now **{'allowed' if self.view.record.allow_duplicate_tags else 'not allowed'}**.",
+            3,
+        )
+        await self.view.refresh_view()
+
+
 class DuplicateTeamName(TourneyButton):
     def __init__(self, ctx: Context, letter: str):
         super().__init__(emoji=ri(letter))
@@ -296,7 +318,7 @@ class DuplicateTeamName(TourneyButton):
 
         self.view.record.no_duplicate_name = not self.view.record.no_duplicate_name
         await self.ctx.success(
-            f"Duplicate team names are now **{'allowed' if self.view.record.no_duplicate_name else 'not allowed'}**.", 3
+            f"Duplicate team names are now **{'not allowed' if self.view.record.no_duplicate_name else 'allowed'}**.", 3
         )
         await self.view.refresh_view()
 

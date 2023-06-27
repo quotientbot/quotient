@@ -1,17 +1,18 @@
 from __future__ import annotations
-from os import truncate
 
 import typing as T
+from os import truncate
 
 if T.TYPE_CHECKING:
     from core import Quotient
 
-from core import Cog, embeds, Context, QuotientView
-from discord.ext import commands
 from datetime import timedelta
-from models import Timer, Alert, Prompt, Read
-import discord
 
+import discord
+from discord.ext import commands
+
+from core import Cog, Context, QuotientView, embeds
+from models import Alert, Prompt, Read, Timer
 from utils import QuoPaginator, discord_timestamp
 
 __all__ = ("QuoAlerts",)

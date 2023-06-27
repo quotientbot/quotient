@@ -61,5 +61,4 @@ class StopButton(discord.ui.Button):
         super().__init__(emoji="⏹️")
 
     async def callback(self, interaction: discord.Interaction):
-
         await self.view.on_timeout()

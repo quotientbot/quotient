@@ -3,10 +3,10 @@ import re
 from contextlib import suppress
 from typing import Union
 
-import constants
 import discord
-from models import Scrim, Tourney
 
+import constants
+from models import Scrim, Tourney
 from utils import find_team
 
 
@@ -121,6 +121,12 @@ async def check_scrim_requirements(bot, message: discord.Message, scrim: Scrim) 
                 break
             else:
                 continue
+
+    elif not scrim.allow_duplicate_tags:
+        records = await scrim.check_fake_tags(message)
+        if records:
+            _bool = False
+            bot.dispatch("tourney_registration_deny", message, constants.RegDeny.faketag, scrim, records=records)
 
     return _bool
 

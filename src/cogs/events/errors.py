@@ -6,9 +6,10 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import discord
+from discord.ext import commands
+
 from constants import random_greeting
 from core import Cog, Context
-from discord.ext import commands
 from utils import exceptions
 
 
@@ -18,7 +19,6 @@ class Errors(Cog):
 
     @Cog.listener()
     async def on_command_error(self, ctx: Context, err):
-
         ignored = (
             commands.CommandNotFound,
             commands.NoPrivateMessage,
@@ -102,7 +102,10 @@ class Errors(Cog):
                 await ctx.send(message)
             except discord.Forbidden:
                 try:
-                    await ctx.author.send(f"Hey It looks like, I can't send messages in that channel.")
+                    await ctx.author.send(
+                        "Hey It looks like, I can't send messages in that channel.",
+                        view=ctx.get_dm_view(f"Sent from {ctx.guild.name}"),
+                    )
                 except discord.Forbidden:
                     pass
 
