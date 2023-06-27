@@ -318,7 +318,7 @@ class DuplicateTeamName(TourneyButton):
 
         self.view.record.no_duplicate_name = not self.view.record.no_duplicate_name
         await self.ctx.success(
-            f"Duplicate team names are now **{'allowed' if self.view.record.no_duplicate_name else 'not allowed'}**.", 3
+            f"Duplicate team names are now **{'not allowed' if self.view.record.no_duplicate_name else 'allowed'}**.", 3
         )
         await self.view.refresh_view()
 
