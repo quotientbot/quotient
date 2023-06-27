@@ -53,7 +53,7 @@ class RegChannel(TourneyButton):
         self.ctx.bot.cache.tourney_channels.add(channel.id)
 
         if not self.view.record.confirm_channel_id:
-            with suppress(StopIteration):
+            with suppress(StopIteration, AttributeError):
                 self.view.record.confirm_channel_id = next(
                     (c.id for c in channel.category.text_channels if "confirm" in c.name.lower())
                 )

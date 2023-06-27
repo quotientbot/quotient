@@ -203,13 +203,14 @@ class Tourney(BaseDbModel):
         from cogs.esports.views.tourney.slotm import TourneySlotManager
 
         _view = TourneySlotManager(self.bot, tourney=self)
-        _category = self.registration_channel.category
+        _category = self.registration_channel.category or self.registration_channel.guild
         overwrites = {
             self.guild.default_role: discord.PermissionOverwrite(
                 read_messages=True, send_messages=False, read_message_history=True
             ),
             self.guild.me: discord.PermissionOverwrite(manage_channels=True, manage_permissions=True),
         }
+
         slotm_channel = await _category.create_text_channel(name="tourney-slotmanager", overwrites=overwrites)
         return await slotm_channel.send(embed=TourneySlotManager.initial_embed(self), view=_view)
 
