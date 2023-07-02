@@ -53,7 +53,7 @@ class RegChannel(TourneyButton):
         self.ctx.bot.cache.tourney_channels.add(channel.id)
 
         if not self.view.record.confirm_channel_id:
-            with suppress(StopIteration):
+            with suppress(StopIteration, AttributeError):
                 self.view.record.confirm_channel_id = next(
                     (c.id for c in channel.category.text_channels if "confirm" in c.name.lower())
                 )
@@ -318,7 +318,7 @@ class DuplicateTeamName(TourneyButton):
 
         self.view.record.no_duplicate_name = not self.view.record.no_duplicate_name
         await self.ctx.success(
-            f"Duplicate team names are now **{'allowed' if self.view.record.no_duplicate_name else 'not allowed'}**.", 3
+            f"Duplicate team names are now **{'not allowed' if self.view.record.no_duplicate_name else 'allowed'}**.", 3
         )
         await self.view.refresh_view()
 
