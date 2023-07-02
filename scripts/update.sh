@@ -24,4 +24,4 @@ docker stop "${directory_name}"
 docker rm "${directory_name}"
 
 # Start a new container with the updated image
-docker run -d --name "${directory_name}" "${directory_name}_img"
+docker run -d -p 8888:8888 --name "${directory_name}" "${directory_name}_img"
