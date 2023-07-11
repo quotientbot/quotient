@@ -45,7 +45,6 @@ class Tourney(BaseDbModel):
 
     slotlist_start = fields.SmallIntField(default=2)
     group_size = fields.SmallIntField(null=True)
-
     success_message = fields.CharField(max_length=500, null=True)
 
     emojis = fields.JSONField(default=_dict)
@@ -232,7 +231,15 @@ class Tourney(BaseDbModel):
 
         return discord.File(fp, filename=f"tourney_data_{self.id}_{self.bot.current_time.timestamp()}.csv")
 
-    async def full_delete(self) -> None:
+    async def full_delete(self, member:discord.Member=None) -> None:
+        if self.logschan != None:
+            member = member.mention if member else "Unknown"
+            embed = discord.Embed(color=discord.Color.red())
+            embed.title=f"A tournament was completely deleted."
+            embed.description=f"Tourney name : {self.name} [{self.id}]" + f"\nDeleted by: {member}"
+            await self.logschan.send(embed=embed,file=await self.get_csv())
+
+ 
         self.bot.cache.tourney_channels.discard(self.registration_channel_id)
         _data = await self.assigned_slots.all()
         await TMSlot.filter(pk__in=[_.id for _ in _data]).delete()

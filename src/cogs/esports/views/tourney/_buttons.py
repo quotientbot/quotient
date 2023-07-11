@@ -390,7 +390,7 @@ class DeleteTourney(TourneyButton):
         if not prompt:
             return await self.ctx.simple("Okay, not deleting.", 3)
 
-        await self.view.record.full_delete()
+        await self.view.record.full_delete(interaction.user)
         await self.ctx.success("Successfully deleted tourney.", 3)
 
         from .main import TourneyManager as TM
