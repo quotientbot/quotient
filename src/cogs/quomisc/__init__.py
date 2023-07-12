@@ -308,6 +308,26 @@ class Quomisc(Cog, name="quomisc"):
             f"Here is the direct link to this server's dashboard:\n<https://quotientbot.xyz/dashboard/{ctx.guild.id}>"
         )
 
+    @commands.hybrid_command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def contributors(self, ctx):
+        """People who made Quotient Possible."""
+        url = f"https://api.github.com/repos/quotientbot/Quotient-Bot/contributors"
+
+        e = discord.Embed(title=f"Project Contributors", color=self.bot.color, timestamp=self.bot.current_time)
+        e.description = ""
+        async with self.bot.session.get(url) as response:
+            data = await response.json()
+            for idx, contributor in enumerate(data, start=1):
+                if contributor["type"] == "Bot":
+                    continue
+
+                e.description += (
+                    f"`{idx:02}.` [{contributor['login']} ({contributor['contributions']})]({contributor['html_url']})\n"
+                )
+
+        await ctx.send(embed=e)
+
 
 async def setup(bot: Quotient) -> None:
     await bot.add_cog(Quomisc(bot))
