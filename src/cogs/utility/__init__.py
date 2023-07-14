@@ -26,7 +26,7 @@ from utils import (
     QuoPaginator,
     QuoRole,
     QuoTextChannel,
-    UserFriendlyTime,
+    TimeText,
     checks,
     discord_timestamp,
     plural,
@@ -44,9 +44,7 @@ class Utility(Cog, name="utility"):
         self.bot = bot
 
     @commands.group(aliases=("timer", "remind"), invoke_without_command=True)
-    async def reminder(
-        self, ctx: Context, *, when: UserFriendlyTime(commands.clean_content, default="\u2026")
-    ):  # noqa: F722
+    async def reminder(self, ctx: Context, *, when: TimeText(commands.clean_content)):  # noqa: F722
         """Reminds you of something after a certain amount of time.
 
         The input can be any direct date (e.g. YYYY-MM-DD) or a human
@@ -60,7 +58,12 @@ class Utility(Cog, name="utility"):
         """
         expire = when.dt
 
-        timer = await self.bot.reminders.create_timer(
+        if not expire:
+            return await ctx.error(
+                "I couldn't find time in your input. \n\nTry it like: `qremind me at 9pm to get laid.`"
+            )
+
+        await self.bot.reminders.create_timer(
             expire,
             "reminder",
             ctx.author.id,
