@@ -31,10 +31,18 @@ class ReminderEvents(Cog):
         message_id = timer.kwargs["message_id"]
         msg = f"{discord_timestamp(timer.created)}: {message}"
 
-        if message_id:
-            msg = f"{msg}\n\n**Original Message**\n<https://discord.com/channels/{guild_id}/{channel.id}/{message_id}>"
+        jump_url = f"https://discord.com/channels/{guild_id}/{channel.id}/{message_id}"
 
-        embed = discord.Embed(color=self.bot.color, title=f"Reminders #{timer.id}", description=msg)
+        v = discord.ui.View(timeout=None)
+        v.add_item(discord.ui.Button(label="Jump to Original Message", url=jump_url, style=discord.ButtonStyle.link))
+
+        embed = discord.Embed(
+            color=self.bot.color,
+            title=f"Reminder #{timer.id}",
+            description=msg,
+            url=jump_url,
+            timestamp=self.bot.current_time,
+        )
 
         with suppress(discord.HTTPException, discord.Forbidden, AttributeError):
-            await channel.send(f"<@{author_id}>", embed=embed)
+            await channel.send(f"<@{author_id}>", embed=embed, view=v)
