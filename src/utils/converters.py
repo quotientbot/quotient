@@ -44,12 +44,13 @@ class to_async:
 class QuoColor:
     @classmethod
     async def convert(cls, ctx, arg):
+        match, check = None, False
         with contextlib.suppress(AttributeError):
             match = re.match(r"\(?(\d+),?\s*(\d+),?\s*(\d+)\)?", arg)
             check = all(0 <= int(x) <= 255 for x in match.groups())
 
         if match and check:
-            return discord.Color.from_rgb([int(i) for i in match.groups()])
+            return discord.Color.from_rgb(*[int(i) for i in match.groups()])
 
         _converter = commands.ColorConverter()
         result = None
