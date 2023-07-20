@@ -31,6 +31,8 @@ class Guild(BaseDbModel):
 
     dashboard_access = fields.JSONField(default=_dict)
 
+    claimed_trial = fields.BooleanField(default=False)
+
     @property
     def _guild(self) -> discord.Guild:
         return self.bot.get_guild(self.guild_id)
