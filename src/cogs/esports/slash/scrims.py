@@ -5,17 +5,17 @@ import typing as T
 if T.TYPE_CHECKING:
     from core import Quotient
 
-import dateparser
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+from random import randint
 
+import dateparser
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from core import Context
-from random import randint
-from models import BanLog, Scrim, ReservedSlot, Guild
-from utils import emote, plural, discord_timestamp, split_list, Prompt
+from models import BanLog, Guild, ReservedSlot, Scrim
+from utils import Prompt, discord_timestamp, emote, plural, split_list
 
 __all__ = ("ScrimsSlash",)
 

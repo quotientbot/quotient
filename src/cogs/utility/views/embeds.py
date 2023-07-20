@@ -20,9 +20,11 @@ class EmbedSend(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction) -> T.Any:
         user = interaction.user
         if not self.channel.permissions_for(user).send_messages:
-            return await interaction.response.send_message(f"You do not have the `send_messages` permission for the {self.channel.mention} channel.")
+            return await interaction.response.send_message(
+                f"You do not have the `send_messages` permission for the {self.channel.mention} channel."
+            )
 
-        try: 
+        try:
             m: T.Optional[discord.Message] = await self.channel.send(embed=self.view.embed)
 
         except Exception as e:
