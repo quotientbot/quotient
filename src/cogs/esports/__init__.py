@@ -127,7 +127,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send_help(ctx.command)
 
     @easytag.command(name="set")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
@@ -177,7 +177,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @easytag.command(name="remove")
-    @checks.has_done_setup()
+    # # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
@@ -190,7 +190,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Removed {channel} from EasyTag channels.")
 
     @easytag.command(name="config")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def config_eztag(self, ctx: Context):
@@ -212,7 +212,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.send(embed=embed)
 
     @easytag.command(name="autodelete")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
@@ -244,7 +244,7 @@ class ScrimManager(Cog, name="Esports"):
     @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int = 4):
         """
         Set a channel for tagcheck.
@@ -284,7 +284,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @tagcheck.command(name="config")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_config(self, ctx: Context):
@@ -343,7 +343,7 @@ class ScrimManager(Cog, name="Esports"):
 
     @commands.command(aliases=("slotm",))
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
-    @checks.has_done_setup()
+    # # @checks.has_done_setup()
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def slotmanager(self, ctx: Context):
         """
