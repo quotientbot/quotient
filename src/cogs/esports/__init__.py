@@ -126,7 +126,7 @@ class ScrimManager(Cog, name="Esports"):
         """Commands related to quotient's eztag"""
         await ctx.send_help(ctx.command)
 
-    @easytag.command(name="set")
+    @easytag.command(name="set", extras={"examples": ["eztag set #channel"]})
     # @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
@@ -176,8 +176,8 @@ class ScrimManager(Cog, name="Esports"):
             f"Successfully added **{channel}** to easy tag channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
         )
 
-    @easytag.command(name="remove")
-    # # @checks.has_done_setup()
+    @easytag.command(name="remove", extras={"examples": ["eztag remove #channel"]})
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
@@ -211,8 +211,8 @@ class ScrimManager(Cog, name="Esports"):
         embed = self.bot.embed(ctx, title="EasyTag config", description="\n".join(eztags))
         await ctx.send(embed=embed)
 
-    @easytag.command(name="autodelete")
-    # @checks.has_done_setup()
+    @easytag.command(name="autodelete", extras={"examples": ["eztag autodelete #channel"]})
+    #    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
@@ -307,7 +307,7 @@ class ScrimManager(Cog, name="Esports"):
         embed = self.bot.embed(ctx, title="TagCheck config", description="\n".join(tags))
         await ctx.send(embed=embed)
 
-    @tagcheck.command(name="remove")
+    @tagcheck.command(name="remove", extras={"examples": ["tagcheck remove #channel"]})
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_remove(self, ctx: Context, *, channel: QuoTextChannel):
@@ -319,7 +319,7 @@ class ScrimManager(Cog, name="Esports"):
         self.bot.cache.tagcheck.discard(channel.id)
         await ctx.success(f"Removed {channel} from TagCheck channels.")
 
-    @tagcheck.command(name="autodelete")
+    @tagcheck.command(name="autodelete", extras={"examples": ["tagcheck autodelete #channel"]})
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_autodelete(self, ctx: Context, *, channel: QuoTextChannel):
@@ -355,7 +355,7 @@ class ScrimManager(Cog, name="Esports"):
         _view.add_item(QuotientView.tricky_invite_button())
         _view.message = await ctx.send(embed=_e, view=_view, embed_perms=True)
 
-    @commands.command(name="banlog")
+    @commands.command(name="banlog", extras={"examples": ["banlog #channel"]})
     @checks.can_use_sm()
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def _banlog(self, ctx: Context, *, channel: discord.TextChannel = None):

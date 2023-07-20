@@ -479,7 +479,7 @@ class Scrim(BaseDbModel):
         from .slotm import ScrimsSlotManager
 
         _id = self.pk
-        self.bot.cache.scrim_channels.discard(self.registration_channel.id)
+        self.bot.cache.scrim_channels.discard(self.registration_channel_id)
 
         slotm = await ScrimsSlotManager.filter(guild_id=self.guild_id, scrim_ids__contains=self.pk)
         await ScrimsSlotManager.filter(pk__in=[_.pk for _ in slotm]).update(scrim_ids=ArrayRemove("scrim_ids", _id))
