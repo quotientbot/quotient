@@ -114,7 +114,7 @@ class BetterFutureTime:
         parsed = dateparser.parse(
             argument,
             settings={
-                "RELATIVE_BASE": dtm.datetime.now(tz=IST),
+                # "RELATIVE_BASE": dtm.datetime.now(tz=IST),
                 "TIMEZONE": "Asia/Kolkata",
                 "RETURN_AS_TIMEZONE_AWARE": True,
             },

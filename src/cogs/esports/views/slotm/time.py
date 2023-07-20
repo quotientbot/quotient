@@ -50,7 +50,7 @@ class MatchTimeEditor(discord.ui.Button):
                 parsed = dateparser.parse(
                     time,
                     settings={
-                        "RELATIVE_BASE": self.ctx.bot.current_time,
+                        # "RELATIVE_BASE": self.ctx.bot.current_time,
                         "TIMEZONE": "Asia/Kolkata",
                         "RETURN_AS_TIMEZONE_AWARE": True,
                     },
