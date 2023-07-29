@@ -81,7 +81,7 @@ class ScrimManager(Cog, name="Esports"):
         """Create & Manage tournaments with Quotient"""
         if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error(
-                "You need either `manage-server` permissions or `@tourney-mod` role to manage tournaments."
+                "You need either `Manage Server` permissions or `@tourney-mod` role to manage tournaments."
             )
 
         view = TourneyManager(ctx)
@@ -150,7 +150,7 @@ class ScrimManager(Cog, name="Esports"):
             or not channel.permissions_for(ctx.me).manage_messages
         ):
             return await ctx.error(
-                f"I need `send_messages`, `embed_links` and `manage_messages` permission in {channel.mention}"
+                f"I need `send messages`, `embed links` and `manage messages` permission in {channel.mention}"
             )
 
         role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
