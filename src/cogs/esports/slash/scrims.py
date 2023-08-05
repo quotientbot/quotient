@@ -565,3 +565,23 @@ class ScrimsSlash(commands.GroupCog, name="scrims"):
 
         embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command()
+    @app_commands.describe(registration_channel="Scrims registration channel.")
+    async def slotlist(self, interaction: discord.Interaction, registration_channel: discord.TextChannel):
+        """Post scrims slotlist to current channel."""
+
+        if not await self.can_use_command(interaction):
+            return
+
+        scrim = await Scrim.get_or_none(registration_channel_id=registration_channel.id, guild_id=interaction.guild_id)
+        if not scrim:
+            return await interaction.response.send_message(
+                f"No scrim found in {registration_channel.mention}.", ephemeral=True
+            )
+
+        if not await scrim.teams_registered.count():
+            return await interaction.response.send_message(f"{scrim} has no registrations.")
+
+        embed, schannel = await scrim.create_slotlist()
+        await interaction.response.send_message(embed=embed)
