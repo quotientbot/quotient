@@ -41,7 +41,7 @@ class ScrimsMain(ScrimsView):
         _e.description = truncate_string(_e.description, 3999)
 
         _e.set_footer(
-            text="Quotient Prime allows unlimited scrims.",
+            text=f"Total Scrims in this server: {len(to_show)}",
             icon_url=getattr(self.ctx.author.display_avatar, "url", None),
         )
 

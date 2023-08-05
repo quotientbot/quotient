@@ -342,6 +342,7 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @commands.command(aliases=("slotm",))
+    @checks.can_use_sm()
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
     # # @checks.has_done_setup()
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
