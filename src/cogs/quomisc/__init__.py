@@ -53,16 +53,27 @@ class Quomisc(Cog, name="quomisc"):
         final_url = f"<{source_url}/blob/main/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>"
         await ctx.send(final_url)
 
-    @commands.command()
+    @commands.command(aliases=("inv",))
     async def invite(self, ctx: Context):
-        """Invite ME : )"""
-        embed = self.bot.embed(ctx)
-        embed.description = (
-            f"[Click Here to Invite Me]({self.bot.config.BOT_INVITE})\n"
-            f"[Click Here to Invite Quotient Pro]({self.bot.config.PRO_LINK})\n"
-            f"[Click Here to join Support Server]({self.bot.config.SERVER_LINK})"
+        """Quotient Invite Links."""
+        v = discord.ui.View(timeout=None)
+        v.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link, label="Invite Quotient (Me)", url=self.bot.config.BOT_INVITE, row=1
+            )
         )
-        await ctx.send(embed=embed, embed_perms=True)
+        v.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link, label="Invite Quotient Pro", url=self.bot.config.PRO_LINK, row=2
+            )
+        )
+        v.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link, label="Join Support Server", url=self.bot.config.SERVER_LINK, row=3
+            )
+        )
+
+        await ctx.reply(view=v)
 
     async def make_private_channel(self, ctx: Context) -> discord.TextChannel:
         support_link = f"[Support Server]({ctx.config.SERVER_LINK})"
