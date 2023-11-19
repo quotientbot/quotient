@@ -355,13 +355,27 @@ class Tourney(BaseDbModel):
         await registration_channel.send(
             _ping, embed=_e, allowed_mentions=discord.AllowedMentions(roles=True, everyone=True)
         )
-        await registration_channel.set_permissions(self.open_role, send_messages=True)
+
+        overwrite = registration_channel.overwrites_for(self.open_role)
+        overwrite.update(send_messages=True)
+        await registration_channel.set_permissions(
+            self.open_role,
+            overwrite=overwrite,
+            reason="Open for Registrations!",
+        )
         return True, True
 
     async def __stop_registrations(self):
         registration_channel = self.registration_channel
 
-        await registration_channel.set_permissions(self.open_role, send_messages=False)
+        overwrite = registration_channel.overwrites_for(self.open_role)
+        overwrite.update(send_messages=False)
+        await registration_channel.set_permissions(
+            self.open_role,
+            overwrite=overwrite,
+            reason="Closed Registrations!",
+        )
+
         await registration_channel.send(
             embed=discord.Embed(color=self.bot.color, description=f"**{self.name} registration paused.**")
         )
