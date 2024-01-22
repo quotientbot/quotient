@@ -62,7 +62,7 @@ class ScrimEvents(Cog):
         async with self.__scrim_lock:
             ctx = await self.bot.get_context(message)
 
-            teamname = utils.find_team(message)
+            teamname, drop_location = utils.find_team(message), utils.find_drop_location(message)
 
             scrim = await Scrim.get_or_none(pk=scrim.id)
 
@@ -82,6 +82,7 @@ class ScrimEvents(Cog):
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=utils.truncate_string(teamname, 30),
+                drop_location=utils.truncate_string(drop_location, 30),
                 num=slot_num,
                 jump_url=message.jump_url,
                 message_id=message.id,

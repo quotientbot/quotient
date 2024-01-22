@@ -72,6 +72,7 @@ class Scrim(BaseDbModel):
 
     required_lines = fields.SmallIntField(default=0)
     allow_duplicate_tags = fields.BooleanField(default=True)
+    require_drop_location = fields.BooleanField(default=False)
 
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
@@ -651,6 +652,7 @@ class BaseSlot(models.Model):
     num = fields.IntField(null=True)  # this will never be null but there are already records in the table so
     user_id = fields.BigIntField(null=True)
     team_name = fields.TextField(null=True)
+    drop_location = fields.CharField(max_length=30, null=True)
     members = ArrayField(fields.BigIntField(), default=list)
 
 

@@ -28,10 +28,11 @@ def split_list(data: list, per_list: int):
 
 
 def find_team(message: discord.Message):
-    """Finds team name from a message"""
-    content = message.content.lower()
+    """
+    Finds team name from a message
+    """
     author = message.author
-    teamname = re.search(r"team.*", content)
+    teamname = re.search(r"team.*", message.content)
     if teamname is None:
         return f"{author}'s team"
 
@@ -40,6 +41,19 @@ def find_team(message: discord.Message):
 
     teamname = f"Team {teamname.title()}" if teamname else f"{author}'s team"
     return teamname
+
+
+def find_drop_location(message: discord.Message):
+    """
+    Find team's drop location from message, if provided.
+    """
+    drop_location = re.search(r"drop.*", message.content)
+    if drop_location is None:
+        return None
+
+    drop_location = re.sub(r"<@*#*!*&*\d+>|drop|location|[^\w\s]", "", drop_location.group()).strip()
+
+    return drop_location.title() if drop_location else None
 
 
 def regional_indicator(c: str) -> str:
