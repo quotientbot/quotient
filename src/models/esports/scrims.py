@@ -203,7 +203,11 @@ class Scrim(BaseDbModel):
     async def create_slotlist(self):
         _slots = await self.cleaned_slots()
 
-        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
+        desc = "\n".join(
+            f"Slot {slot.num:02}  ->  {slot.team_name}"
+            + (f"( {slot.drop_location} )" if slot.drop_location != "None" else "")
+            for slot in _slots
+        )
 
         if len(self.slotlist_format) <= 1:
             text = str(self.default_slotlist_format().to_dict())
