@@ -231,15 +231,14 @@ class Tourney(BaseDbModel):
 
         return discord.File(fp, filename=f"tourney_data_{self.id}_{self.bot.current_time.timestamp()}.csv")
 
-    async def full_delete(self, member:discord.Member=None) -> None:
+    async def full_delete(self, member: discord.Member = None) -> None:
         if self.logschan != None:
             member = member.mention if member else "Unknown"
             embed = discord.Embed(color=discord.Color.red())
-            embed.title=f"A tournament was completely deleted."
-            embed.description=f"Tourney name : {self.name} [{self.id}]" + f"\nDeleted by: {member}"
-            await self.logschan.send(embed=embed,file=await self.get_csv())
+            embed.title = f"A tournament was completely deleted."
+            embed.description = f"Tourney name : {self.name} [{self.id}]" + f"\nDeleted by: {member}"
+            await self.logschan.send(embed=embed, file=await self.get_csv())
 
- 
         self.bot.cache.tourney_channels.discard(self.registration_channel_id)
         _data = await self.assigned_slots.all()
         await TMSlot.filter(pk__in=[_.id for _ in _data]).delete()
@@ -356,13 +355,27 @@ class Tourney(BaseDbModel):
         await registration_channel.send(
             _ping, embed=_e, allowed_mentions=discord.AllowedMentions(roles=True, everyone=True)
         )
-        await registration_channel.set_permissions(self.open_role, send_messages=True)
+
+        overwrite = registration_channel.overwrites_for(self.open_role)
+        overwrite.update(send_messages=True)
+        await registration_channel.set_permissions(
+            self.open_role,
+            overwrite=overwrite,
+            reason="Open for Registrations!",
+        )
         return True, True
 
     async def __stop_registrations(self):
         registration_channel = self.registration_channel
 
-        await registration_channel.set_permissions(self.open_role, send_messages=False)
+        overwrite = registration_channel.overwrites_for(self.open_role)
+        overwrite.update(send_messages=False)
+        await registration_channel.set_permissions(
+            self.open_role,
+            overwrite=overwrite,
+            reason="Closed Registrations!",
+        )
+
         await registration_channel.send(
             embed=discord.Embed(color=self.bot.color, description=f"**{self.name} registration paused.**")
         )

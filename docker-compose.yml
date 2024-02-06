@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  quotient-bot:
+    build:
+      context: .
+    ports:
+      - "8888:8888"
+    restart: always
+
+    environment:
+      - PYTHONUNBUFFERED=1 # Ensure Python output is not buffered
+
+    volumes:
+      - ./logs:/app/logs # Mount a volume for logs

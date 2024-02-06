@@ -10,7 +10,7 @@ from discord import ButtonStyle, Interaction, ui
 
 from core import Context
 from models import Scrim
-from utils import discord_timestamp, emote
+from utils import discord_timestamp, emote, truncate_string
 
 from ._ban import ScrimBanManager
 from ._base import ScrimsView
@@ -38,9 +38,10 @@ class ScrimsMain(ScrimsView):
             )
 
         _e.description = "\n".join(to_show) if to_show else "```Click Create button for new Scrim.```"
+        _e.description = truncate_string(_e.description, 3999)
 
         _e.set_footer(
-            text="Quotient Prime allows unlimited scrims.",
+            text=f"Total Scrims in this server: {len(to_show)}",
             icon_url=getattr(self.ctx.author.display_avatar, "url", None),
         )
 

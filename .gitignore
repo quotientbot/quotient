@@ -7,3 +7,4 @@ env/*
 config.py
 *.log
 migrations/
+.DS_Store

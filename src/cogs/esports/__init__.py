@@ -81,7 +81,7 @@ class ScrimManager(Cog, name="Esports"):
         """Create & Manage tournaments with Quotient"""
         if not Tourney.is_ignorable(ctx.author) and not ctx.author.guild_permissions.manage_guild:
             return await ctx.error(
-                "You need either `manage-server` permissions or `@tourney-mod` role to manage tournaments."
+                "You need either `Manage Server` permissions or `@tourney-mod` role to manage tournaments."
             )
 
         view = TourneyManager(ctx)
@@ -126,8 +126,8 @@ class ScrimManager(Cog, name="Esports"):
         """Commands related to quotient's eztag"""
         await ctx.send_help(ctx.command)
 
-    @easytag.command(name="set",extras={"examples": ["eztag set #channel"]})
-    @checks.has_done_setup()
+    @easytag.command(name="set", extras={"examples": ["eztag set #channel"]})
+    # @checks.has_done_setup()
     @commands.bot_has_guild_permissions(manage_roles=True)
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
@@ -150,7 +150,7 @@ class ScrimManager(Cog, name="Esports"):
             or not channel.permissions_for(ctx.me).manage_messages
         ):
             return await ctx.error(
-                f"I need `send_messages`, `embed_links` and `manage_messages` permission in {channel.mention}"
+                f"I need `send messages`, `embed links` and `manage messages` permission in {channel.mention}"
             )
 
         role = discord.utils.get(ctx.guild.roles, name="quotient-tag-ignore")
@@ -176,8 +176,8 @@ class ScrimManager(Cog, name="Esports"):
             f"Successfully added **{channel}** to easy tag channels.\n\nAdd {role.mention} to your roles to ignore your messages in **{channel}**"
         )
 
-    @easytag.command(name="remove",extras={"examples": ["eztag remove #channel"]})
-    @checks.has_done_setup()
+    @easytag.command(name="remove", extras={"examples": ["eztag remove #channel"]})
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def remove_eztag(self, ctx: Context, *, channel: QuoTextChannel):
@@ -190,7 +190,7 @@ class ScrimManager(Cog, name="Esports"):
         await ctx.success(f"Removed {channel} from EasyTag channels.")
 
     @easytag.command(name="config")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def config_eztag(self, ctx: Context):
@@ -211,8 +211,8 @@ class ScrimManager(Cog, name="Esports"):
         embed = self.bot.embed(ctx, title="EasyTag config", description="\n".join(eztags))
         await ctx.send(embed=embed)
 
-    @easytag.command(name="autodelete",extras={"examples": ["eztag autodelete #channel"]})
-    @checks.has_done_setup()
+    @easytag.command(name="autodelete", extras={"examples": ["eztag autodelete #channel"]})
+    #    @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def delete_eztag(self, ctx: Context, channel: QuoTextChannel):
@@ -244,7 +244,7 @@ class ScrimManager(Cog, name="Esports"):
     @tagcheck.command(name="set", extras={"examples": ["tc set #channel 4", "tagcheck set #channel 2"]})
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     async def tagcheck_set(self, ctx: Context, channel: discord.TextChannel, mentions: int = 4):
         """
         Set a channel for tagcheck.
@@ -284,7 +284,7 @@ class ScrimManager(Cog, name="Esports"):
         )
 
     @tagcheck.command(name="config")
-    @checks.has_done_setup()
+    # @checks.has_done_setup()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def tagcheck_config(self, ctx: Context):
@@ -342,8 +342,9 @@ class ScrimManager(Cog, name="Esports"):
     # ************************************************************************************************
 
     @commands.command(aliases=("slotm",))
+    @checks.can_use_sm()
     @commands.bot_has_guild_permissions(embed_links=True, manage_messages=True, manage_channels=True)
-    @checks.has_done_setup()
+    # # @checks.has_done_setup()
     @commands.cooldown(1, 10, type=commands.BucketType.guild)
     async def slotmanager(self, ctx: Context):
         """

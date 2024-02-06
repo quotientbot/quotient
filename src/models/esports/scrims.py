@@ -72,6 +72,7 @@ class Scrim(BaseDbModel):
 
     required_lines = fields.SmallIntField(default=0)
     allow_duplicate_tags = fields.BooleanField(default=True)
+    require_drop_location = fields.BooleanField(default=False)
 
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
@@ -202,7 +203,11 @@ class Scrim(BaseDbModel):
     async def create_slotlist(self):
         _slots = await self.cleaned_slots()
 
-        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
+        desc = "\n".join(
+            f"Slot {slot.num:02}  ->  {slot.team_name}"
+            + (f"( {slot.drop_location} )" if slot.drop_location != "None" else "")
+            for slot in _slots
+        )
 
         if len(self.slotlist_format) <= 1:
             text = str(self.default_slotlist_format().to_dict())
@@ -538,6 +543,16 @@ class Scrim(BaseDbModel):
         if slotm:
             await slotm.refresh_public_message()
 
+    async def __add_role_to_reserved_users(self, member_ids: set[int]):
+        role = discord.Object(id=self.role_id)
+        async for member in self.bot.resolve_member_ids(self.guild, member_ids):
+            try:
+                if not member._roles.has(role.id):
+                    await member.add_roles(role, reason=f"Reserved Slot [{self.pk}]")
+                    await asyncio.sleep(0.2)
+            except discord.HTTPException:
+                continue
+
     async def start_registration(self):
         from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
 
@@ -554,9 +569,10 @@ class Scrim(BaseDbModel):
             self.id,
         )
 
-        scrim_role = self.role
+        reserved_slots = await self.reserved_slots.all().order_by("num")
+        reserved_user_ids = {slot.user_id for slot in reserved_slots if slot.user_id is not None}
 
-        async for slot in self.reserved_slots.all():
+        for slot in reserved_slots:
             assinged_slot = await AssignedSlot.create(
                 num=slot.num,
                 user_id=slot.user_id,
@@ -566,9 +582,7 @@ class Scrim(BaseDbModel):
 
             await self.assigned_slots.add(assinged_slot)
 
-            if slot.user_id:
-                with suppress(AttributeError):
-                    self.bot.loop.create_task(self.guild.get_member(slot.user_id).add_roles(scrim_role))
+        self.bot.loop.create_task(self.__add_role_to_reserved_users(reserved_user_ids))
 
         await Scrim.filter(pk=self.id).update(
             opened_at=self.bot.current_time,
@@ -642,6 +656,7 @@ class BaseSlot(models.Model):
     num = fields.IntField(null=True)  # this will never be null but there are already records in the table so
     user_id = fields.BigIntField(null=True)
     team_name = fields.TextField(null=True)
+    drop_location = fields.CharField(max_length=30, null=True)
     members = ArrayField(fields.BigIntField(), default=list)
 
 

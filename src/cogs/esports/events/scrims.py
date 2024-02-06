@@ -6,7 +6,6 @@ if typing.TYPE_CHECKING:
     from core import Quotient
 
 import asyncio
-from contextlib import suppress
 from datetime import datetime, timedelta
 from unicodedata import normalize
 
@@ -63,7 +62,7 @@ class ScrimEvents(Cog):
         async with self.__scrim_lock:
             ctx = await self.bot.get_context(message)
 
-            teamname = utils.find_team(message)
+            teamname, drop_location = utils.find_team(message), utils.find_drop_location(message)
 
             scrim = await Scrim.get_or_none(pk=scrim.id)
 
@@ -83,6 +82,7 @@ class ScrimEvents(Cog):
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=utils.truncate_string(teamname, 30),
+                drop_location=utils.truncate_string(drop_location, 30),
                 num=slot_num,
                 jump_url=message.jump_url,
                 message_id=message.id,
@@ -153,16 +153,18 @@ class ScrimEvents(Cog):
 
         scrim = await Scrim.get_or_none(pk=scrim_id)
 
-        if not scrim:
+        if not scrim:  # deleted probably
             return
 
         if timer.expires != scrim.autoclean_time:
             return
 
-        await Scrim.filter(pk=scrim.id).update(autoclean_time=scrim.autoclean_time + timedelta(hours=24))
-        await self.bot.reminders.create_timer(scrim.autoclean_time + timedelta(hours=24), "autoclean", scrim_id=scrim.id)
+        next_autoclean_time = scrim.autoclean_time + timedelta(hours=24)
 
-        if not scrim.toggle:
+        await Scrim.filter(pk=scrim.id).update(autoclean_time=next_autoclean_time)
+        await self.bot.reminders.create_timer(next_autoclean_time, "autoclean", scrim_id=scrim.id)
+
+        if not scrim.toggle:  # scrim is disabled
             return
 
         if scrim.closed_at and scrim.closed_at < self.bot.current_time - timedelta(hours=48):
@@ -178,23 +180,36 @@ class ScrimEvents(Cog):
         async with self.__autoclean_lock:
             if AutocleanType.channel in scrim.autoclean:
                 self.bot.loop.create_task(self.__purge_channel(scrim.registration_channel))
+                await asyncio.sleep(2)
 
             if AutocleanType.role in scrim.autoclean:
-                slots = await scrim.assigned_slots.all()
-                async for member in self.bot.resolve_member_ids(guild, [slot.user_id for slot in slots]):
-                    with suppress(discord.HTTPException):
+                slots = await scrim.assigned_slots.filter(user_id__isnull=False)
+
+                users = {slot.user_id for slot in slots}
+                if scrim_role := scrim.role:
+                    for m in scrim_role.members:
+                        users.add(m.id)
+
+                reserved_slots = await scrim.reserved_slots.filter(user_id__isnull=False)
+                for slot in reserved_slots:
+                    users.discard(slot.user_id)
+
+                async for member in self.bot.resolve_member_ids(guild, users):
+                    try:
                         await member.remove_roles(discord.Object(scrim.role_id), reason="autoclean")
+                        await asyncio.sleep(0.2)
+                    except discord.HTTPException:
+                        continue
 
-                role = scrim.role
-                with suppress(AttributeError, discord.HTTPException):
-                    for m in role.members:
-                        await m.remove_roles(role, reason="autoclean")
-
-            await asyncio.sleep(5)
+            await asyncio.sleep(7)
 
     async def __purge_channel(self, channel: discord.TextChannel = None):
-        with suppress(discord.HTTPException, AttributeError):
+        if not channel:
+            return
+        try:
             await channel.purge(limit=100, check=lambda x: not x.pinned, reason="autoclean")
+        except discord.HTTPException:
+            pass
 
     @Cog.listener()
     async def on_scrim_ban_timer_complete(self, timer: Timer):
