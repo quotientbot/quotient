@@ -1,9 +1,14 @@
 import logging
+import os
 
 import discord
 from discord.ext import commands
 
 __all__ = ("Quotient",)
+
+intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
 
 
 class Quotient(commands.AutoShardedBot):
@@ -11,14 +16,8 @@ class Quotient(commands.AutoShardedBot):
         super().__init__(
             command_prefix="q",
             enable_debug_events=True,
-            intents=discord.Intents.all(),
+            intents=intents,
         )
 
     async def start(self) -> None:
-        print("Bot is ready.")
-        logging.info("Bot is ready.")
-
-        log = logging.getLogger()
-        log.info(f"Bot is ready. {self.user}")
-
-        await super().start("", reconnect=True)
+        await super().start(os.getenv("DISCORD_TOKEN"), reconnect=True)

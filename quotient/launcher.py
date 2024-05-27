@@ -1,7 +1,8 @@
 import asyncio
 import contextlib
 import logging
-import logging.handlers
+import os
+from logging.handlers import RotatingFileHandler
 
 import discord
 from core import Quotient
@@ -37,8 +38,8 @@ def setup_logging():
         logging.getLogger("discord.state").addFilter(RemoveNoise())
 
         log.setLevel(logging.INFO)
-        handler = logging.handlers.RotatingFileHandler(
-            filename="quotient.log",
+        handler = RotatingFileHandler(
+            filename=f"../logs/{os.getenv('INSTANCE_TYPE')}.log",
             encoding="utf-8",
             mode="w",
             maxBytes=max_bytes,
