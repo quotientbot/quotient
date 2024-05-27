@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "quotient"
+version = "0.1.0"
+description = "An open source discord bot designed to empower E sports communities."
+authors = ["deadaf <gahlyanrohit18@gmail.com>"]
+license = "MPL-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+discord-py = "^2.3.2"
+tortoise-orm = "^0.21.2"
+asyncpg = "^0.29.0"
+python-decouple = "^3.8"
+colorama = "^0.4.6"
+psutil = "^5.9.8"
+jishaku = "^2.5.2"
+uvloop = "^0.19.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
