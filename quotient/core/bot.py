@@ -105,7 +105,6 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def my_pool(self) -> Pool:
-
         return Tortoise.get_connection(os.getenv("INSTANCE_TYPE"))._pool
 
     @property
@@ -119,6 +118,10 @@ class Quotient(commands.AutoShardedBot):
     @property
     def reminders(self) -> T.Optional[Reminders]:
         return self.get_cog("Reminders")
+
+    @property
+    def color(self) -> int:
+        return int(os.getenv("DEFAULT_COLOR"))
 
     def get_message(self, message_id: int) -> T.Optional[discord.Message]:
         """Gets the message from the cache"""
