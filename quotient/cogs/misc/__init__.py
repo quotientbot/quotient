@@ -7,6 +7,7 @@ if T.TYPE_CHECKING:
 
 import inspect
 import os
+import time
 
 import discord
 from core import Context
@@ -121,6 +122,19 @@ class Miscellaneous(commands.Cog):
         await ctx.reply(
             embed=self.bot.success_embed(f"Updated server prefix to: `{new_prefix}`")
         )
+
+    @commands.command()
+    async def ping(self, ctx: Context):
+        """Check how the bot is doing"""
+        await ctx.send(
+            f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Database: `{await self.get_db_latency()}`"
+        )
+
+    async def get_db_latency(self):
+        t1 = time.perf_counter()
+        await self.bot.my_pool.fetchval("SELECT 1;")
+        t2 = time.perf_counter() - t1
+        return f"{t2*1000:.2f} ms"
 
 
 async def setup(bot: Quotient):
