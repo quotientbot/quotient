@@ -15,6 +15,9 @@ from tortoise import Tortoise
 if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
+from lib import CROSS, TICK
+
+from .cache import CacheManager
 from .ctx import Context
 
 __all__ = ("Quotient",)
@@ -31,13 +34,22 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 log = logging.getLogger(os.getenv("INSTANCE_TYPE"))
 
 
+def _prefix_callable(bot: Quotient, msg: discord.Message):
+    bot_id = bot.user.id
+
+    base = [f"<@{bot_id}> ", f"<@!{bot_id}> "]
+    base.append(bot.cache.prefixes.get(msg.guild.id, os.getenv("DEFAULT_PREFIX")))
+
+    return base
+
+
 class Quotient(commands.AutoShardedBot):
 
     session: aiohttp.ClientSession
 
     def __init__(self):
         super().__init__(
-            command_prefix=os.getenv("DEFAULT_PREFIX"),
+            command_prefix=_prefix_callable,
             enable_debug_events=True,
             intents=intents,
             strip_after_prefix=True,
@@ -49,6 +61,7 @@ class Quotient(commands.AutoShardedBot):
 
         self.seen_messages: int = 0
         self.logger: logging.Logger = log
+        self.cache = CacheManager()
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
@@ -93,6 +106,9 @@ class Quotient(commands.AutoShardedBot):
         for model_name, model in Tortoise.apps.get("default").items():
             model.bot = self
 
+        await self.cache.populate_internal_cache()
+        log.info("Internal cache has been populated.")
+
         for extension in os.getenv("EXTENSIONS").split(","):
             try:
                 await self.load_extension(extension)
@@ -123,9 +139,30 @@ class Quotient(commands.AutoShardedBot):
     def color(self) -> int:
         return int(os.getenv("DEFAULT_COLOR"))
 
+    @property
+    def default_prefix(self) -> str:
+        return os.getenv("DEFAULT_PREFIX")
+
     def get_message(self, message_id: int) -> T.Optional[discord.Message]:
         """Gets the message from the cache"""
         return self._connection._get_message(message_id)
+
+    def simple_embed(self, description: str, title: str = None) -> discord.Embed:
+        return discord.Embed(color=self.color, description=description, title=title)
+
+    def success_embed(self, description: str, title: str = None) -> discord.Embed:
+        return discord.Embed(
+            color=self.color,
+            description=TICK + " | " + description,
+            title=title,
+        )
+
+    def error_embed(self, description: str, title: str = None) -> discord.Embed:
+        return discord.Embed(
+            color=discord.Color.red(),
+            description=CROSS + " | " + description,
+            title=title,
+        )
 
     async def process_commands(self, message: discord.Message):
 

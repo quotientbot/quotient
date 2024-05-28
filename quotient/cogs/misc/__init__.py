@@ -3,13 +3,15 @@ from __future__ import annotations
 import typing as T
 
 if T.TYPE_CHECKING:
-    from core import Quotient, Context
+    from core import Quotient
 
 import inspect
 import os
 
 import discord
+from core import Context
 from discord.ext import commands
+from models import Guild
 
 
 class Miscellaneous(commands.Cog):
@@ -89,6 +91,36 @@ class Miscellaneous(commands.Cog):
                 e.description += f"`{idx:02}.` [{contributor['login']} ({contributor['contributions']})]({contributor['html_url']})\n"
 
         await ctx.reply(embed=e)
+
+    @commands.hybrid_command()
+    @commands.has_permissions(manage_guild=True)
+    async def prefix(self, ctx: Context, *, new_prefix: str = None):
+        """Change your server's prefix"""
+
+        if not new_prefix:
+
+            return await ctx.send(
+                embed=self.bot.simple_embed(
+                    "Current prefix of this server is `{0}`".format(
+                        self.bot.cache.prefixes.get(
+                            ctx.guild.id, self.bot.default_prefix
+                        )
+                    )
+                )
+            )
+
+        if len(new_prefix) > 5:
+            return await ctx.reply(
+                embed=self.bot.error_embed(
+                    "Prefix cannot contain more than `5 characters`."
+                )
+            )
+
+        self.bot.cache.prefixes[ctx.guild.id] = new_prefix
+        await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
+        await ctx.reply(
+            embed=self.bot.success_embed(f"Updated server prefix to: `{new_prefix}`")
+        )
 
 
 async def setup(bot: Quotient):

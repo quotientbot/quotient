@@ -1,14 +1,20 @@
-from core import Quotient
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from tortoise import models
 
 
 class BaseDbModel(models.Model):
     """Base Model for all tortoise models"""
 
-    class Meta:
-        abstract = True
+    if TYPE_CHECKING:
+        from core import Quotient
 
     bot: Quotient
+
+    class Meta:
+        abstract = True
 
 
 from .esports import *
