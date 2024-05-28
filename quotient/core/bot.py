@@ -15,6 +15,8 @@ from tortoise import Tortoise
 if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
+from .ctx import Context
+
 __all__ = ("Quotient",)
 
 intents = discord.Intents.default()
@@ -115,13 +117,32 @@ class Quotient(commands.AutoShardedBot):
         return Tortoise.get_connection("pro")._pool
 
     @property
-    def reminders(self) -> Reminders | None:
+    def reminders(self) -> T.Optional[Reminders]:
         return self.get_cog("Reminders")
+
+    def get_message(self, message_id: int) -> T.Optional[discord.Message]:
+        """Gets the message from the cache"""
+        return self._connection._get_message(message_id)
+
+    async def process_commands(self, message: discord.Message):
+
+        ctx = await self.get_context(message, cls=Context)
+
+        if ctx.command is None:
+            return
+
+        await self.invoke(ctx)
 
     async def on_message(self, message: discord.Message) -> None:
         self.seen_messages += 1
 
-        if message.guild is None or message.author.bot:
+        if any(
+            [
+                message.author.bot,
+                message.guild is None,
+                message.content in (None, ""),
+            ]
+        ):
             return
 
         await self.process_commands(message)
