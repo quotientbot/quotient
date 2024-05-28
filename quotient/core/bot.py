@@ -1,12 +1,19 @@
+from __future__ import annotations
+
 import logging
 import os
+import typing as T
 from datetime import datetime
 
 import aiohttp
 import discord
+import pytz
 from asyncpg import Pool
 from discord.ext import commands
-from tortoise import Tortoise, timezone
+from tortoise import Tortoise
+
+if T.TYPE_CHECKING:
+    from cogs.reminders import Reminders
 
 __all__ = ("Quotient",)
 
@@ -23,6 +30,7 @@ log = logging.getLogger(os.getenv("INSTANCE_TYPE"))
 
 
 class Quotient(commands.AutoShardedBot):
+
     session: aiohttp.ClientSession
 
     def __init__(self):
@@ -38,6 +46,7 @@ class Quotient(commands.AutoShardedBot):
         )
 
         self.seen_messages: int = 0
+        self.logger: logging.Logger = log
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
@@ -90,7 +99,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def current_time(self) -> datetime:
-        return timezone.now()
+        return datetime.now(tz=pytz.timezone("Asia/Kolkata"))
 
     @property
     def my_pool(self) -> Pool:
@@ -106,6 +115,9 @@ class Quotient(commands.AutoShardedBot):
         return Tortoise.get_connection("pro")._pool
 
     @property
+    def reminders(self) -> Reminders | None:
+        return self.get_cog("Reminders")
+
     async def on_message(self, message: discord.Message) -> None:
         self.seen_messages += 1
 
