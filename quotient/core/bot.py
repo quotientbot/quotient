@@ -16,6 +16,7 @@ if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
 from lib import CROSS, TICK
+from models import create_user_if_not_exists
 
 from .cache import CacheManager
 from .ctx import Context
@@ -62,6 +63,7 @@ class Quotient(commands.AutoShardedBot):
         self.seen_messages: int = 0
         self.logger: logging.Logger = log
         self.cache = CacheManager()
+        self.tree.interaction_check = self.global_interaction_check
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
@@ -114,6 +116,9 @@ class Quotient(commands.AutoShardedBot):
                 await self.load_extension(extension)
             except Exception as _:
                 log.exception("Failed to load extension %s.", extension)
+
+        if os.getenv("INSTANCE_TYPE") == "quotient":
+            await self.load_extension("server")
 
     async def get_or_fetch_member(
         self, guild: discord.Guild, member_id: int
@@ -192,12 +197,31 @@ class Quotient(commands.AutoShardedBot):
             title=title,
         )
 
+    async def global_interaction_check(self, interaction: discord.Interaction):
+        self.loop.create_task(
+            create_user_if_not_exists(self.my_pool, interaction.user.id)
+        )
+
+        if not interaction.guild_id:
+            await interaction.response.send_message(
+                embed=self.error_embed(
+                    "Application commands can not be used in Private Messages."
+                ),
+                ephemeral=True,
+            )
+
+            return False
+
+        return True
+
     async def process_commands(self, message: discord.Message):
 
         ctx = await self.get_context(message, cls=Context)
 
         if ctx.command is None:
             return
+
+        self.loop.create_task(create_user_if_not_exists(self.my_pool, ctx.author.id))
 
         await self.invoke(ctx)
 

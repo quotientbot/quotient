@@ -1,8 +1,9 @@
 import os
+import re
 
 import discord
 from lib import emojis
-from models import PremiumPlan, PremiumTxn
+from models import PremiumPlan, PremiumTxn, User
 
 from .consts import get_pro_features_formatted
 
@@ -22,17 +23,33 @@ class PlanSelector(discord.ui.Select):
         self.view.stop()
 
 
-class PremiumPurchaseBtn(discord.ui.Button):
-    def __init__(
-        self,
-        label="Get Quotient Pro",
-        emoji=emojis.DIAMOND,
-        style=discord.ButtonStyle.grey,
-    ):
-        super().__init__(style=style, label=label, emoji=emoji)
+def valid_email(email: str):
+    return bool(re.search(r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$", email))
 
-    async def callback(self, interaction: discord.Interaction):
+
+class UserDetailsForm(discord.ui.Modal):
+    def __init__(self):
+        super().__init__(title="Fill your details")
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(thinking=True, ephemeral=True)
+
+        email, phone = str(self.children[0]), str(self.children[1])
+
+        if not valid_email(email):
+            return await interaction.followup.send(
+                "Invalid email format, please enter a valid email.", ephemeral=True
+            )
+
+        if not phone.isdigit() or len(phone) < 10:
+            return await interaction.followup.send(
+                "Invalid phone number format, please enter a valid phone number.",
+                ephemeral=True,
+            )
+
+        await User.get(pk=interaction.user.id).update(
+            email_id=email, phone_number=phone
+        )
 
         v = discord.ui.View(timeout=100)
         v.selected_plan = None
@@ -72,6 +89,41 @@ class PremiumPurchaseBtn(discord.ui.Button):
             view=v,
             ephemeral=True,
         )
+
+
+class PremiumPurchaseBtn(discord.ui.Button):
+    def __init__(
+        self,
+        label="Get Quotient Pro",
+        emoji=emojis.DIAMOND,
+        style=discord.ButtonStyle.grey,
+    ):
+        super().__init__(style=style, label=label, emoji=emoji)
+
+    async def callback(self, interaction: discord.Interaction):
+        user = await User.get(pk=interaction.user.id)
+        form = UserDetailsForm()
+
+        form.add_item(
+            discord.ui.TextInput(
+                label="Email",
+                placeholder="Used to send payment receipt...",
+                value=user.email_id or "",
+                min_length=5,
+                max_length=50,
+            )
+        )
+        form.add_item(
+            discord.ui.TextInput(
+                label="Phone Number",
+                placeholder="Used to send payment receipt...",
+                value=user.phone_number or "",
+                min_length=10,
+                max_length=10,
+            )
+        )
+
+        await interaction.response.send_modal(form)
 
 
 class PremiumView(discord.ui.View):

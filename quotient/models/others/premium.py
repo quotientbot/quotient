@@ -11,7 +11,7 @@ class PremiumPlan(BaseDbModel):
     class Meta:
         table = "premium_plans"
 
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     name = fields.CharField(max_length=50)
     description = fields.CharField(max_length=250, null=True)
     price = fields.IntField()
@@ -56,7 +56,7 @@ class PremiumTxn(BaseDbModel):
     class Meta:
         table = "premium_txns"
 
-    id = fields.IntField(pk=True)
+    id = fields.IntField(primary_key=True)
     txnid = fields.CharField(max_length=100)
     user_id = fields.BigIntField()
     guild_id = fields.BigIntField()
