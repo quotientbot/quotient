@@ -1,2 +1,4 @@
 TICK = "<:check:807913701151342592>"
 CROSS = "<:xmark:807913737805234176>"
+
+DIAMOND = "<a:diamond:899295009289949235>"  # Quotient Premium

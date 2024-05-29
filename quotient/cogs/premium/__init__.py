@@ -12,6 +12,9 @@ from core import Context
 from discord.ext import commands
 from models import Guild
 
+from .consts import get_pro_features_formatted
+from .views import PremiumPurchaseBtn
+
 
 class Premium(commands.Cog):
     def __init__(self, bot: Quotient):
@@ -47,6 +50,29 @@ class Premium(commands.Cog):
 
         embed.set_thumbnail(url=ctx.guild.me.display_avatar.url)
         return await ctx.reply(embed=embed)
+
+    @commands.hybrid_command(aliases=("perks", "pro"))
+    async def premium(self, ctx: Context):
+        """Checkout Quotient Premium Plans."""
+
+        g = await Guild.get(pk=ctx.guild.id)
+
+        _e = discord.Embed(
+            color=self.bot.color,
+            description=f"[**Features of Quotient Pro -**]({self.bot.config("SUPPORT_SERVER_LINK")})\n\n{get_pro_features_formatted()}",
+        )
+
+        v = discord.ui.View(timeout=None)
+        v.add_item(
+            PremiumPurchaseBtn(
+                label=(
+                    "Get Quotient Pro"
+                    if not g.is_premium
+                    else "Extend / Renew Quotient Pro"
+                )
+            )
+        )
+        await ctx.send(embed=_e, view=v)
 
 
 async def setup(bot: Quotient):

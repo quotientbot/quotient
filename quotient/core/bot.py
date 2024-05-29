@@ -168,6 +168,9 @@ class Quotient(commands.AutoShardedBot):
     def default_prefix(self) -> str:
         return os.getenv("DEFAULT_PREFIX")
 
+    def config(self, key: str) -> str | None:
+        return os.getenv(key)
+
     def get_message(self, message_id: int) -> T.Optional[discord.Message]:
         """Gets the message from the cache"""
         return self._connection._get_message(message_id)
