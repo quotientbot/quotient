@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    
+    ports:
+      - "6000:6000"
 
     restart: always
     container_name: quotient-main-bot

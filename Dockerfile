@@ -26,5 +26,6 @@ COPY quotient quotient
 # Copy .git directory
 COPY .git .git
 
+EXPOSE 6000
 
 ENTRYPOINT ["python","quotient/launcher.py"]
