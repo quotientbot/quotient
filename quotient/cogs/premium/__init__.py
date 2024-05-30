@@ -78,13 +78,18 @@ class Premium(commands.Cog):
     async def on_premium_purchase(self, txnId: str):
         record = await PremiumTxn.get(txnid=txnId)
 
+        upgraded_guild_asyncpg = await self.bot.my_pool.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", record.guild_id)
+        await self.bot.pro_pool.execute(
+            "UPDATE guilds SET is_premium = TRUE, premium_end_time = $1, made_premium_by = $2 WHERE guild_id = $3", 
+            upgraded_guild_asyncpg['premium_end_time'] + record.duration, record.user_id, record.guild_id
+            )
+
         member = self.bot.support_server.get_member(record.user_id)
         if member is not None:
             await member.add_roles(discord.Object(id=self.bot.config('PREMIUM_ROLE_ID')), reason="They purchased premium.")
 
         else:
             member = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, record.user_id)
-
 
         _e = discord.Embed(
             color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium."
@@ -105,7 +110,6 @@ class Premium(commands.Cog):
                 f"has access to Quotient Pro features until `{_guild.premium_end_time.strftime('%d-%b-%Y %I:%M %p')} IST`.\n\n"
             ),
         )
-
 
         v = discord.ui.View(timeout=None)
         v.add_item(

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import typing as T
 
-import discord
 from discord.ext import commands
 
 if T.TYPE_CHECKING:
