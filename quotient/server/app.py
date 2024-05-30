@@ -33,9 +33,7 @@ async def get_premium(request: Request, txnId: str):
 
     plan = await PremiumPlan.get(pk=record.plan_id)
 
-    payu_hash = create_hash(
-        txnId, plan.price, "premium", record.user_id, "abcd@gmail.com"
-    )
+    payu_hash = create_hash(txnId, plan.price, "premium", record.user_id, user.email_id)
 
     data = {
         "key": os.getenv("PAYU_MERCHANT_KEY"),
@@ -44,8 +42,8 @@ async def get_premium(request: Request, txnId: str):
         "productinfo": "premium",
         "firstname": record.user_id,
         "email": user.email_id,
-        "surl": f"{os.getenv('PAYU_SUCCESS_URL')}/{txnId}",
-        "furl": f"{os.getenv('PAYU_FAILED_URL')}/{txnId}",
+        "surl": f"{os.getenv('PAYU_SUCCESS_URL')}{txnId}",
+        "furl": f"{os.getenv('PAYU_FAILED_URL')}{txnId}",
         "phone": user.phone_number,
         "action": os.getenv("PAYU_PAYMENT_LINK"),
         "hash": payu_hash,
@@ -56,7 +54,6 @@ async def get_premium(request: Request, txnId: str):
 
 @fastapi_app.post("/premium_success")
 async def premium_success(request: Request, txnId: str):
-    from core import bot
 
     try:
         form = await request.form()
@@ -82,15 +79,9 @@ async def premium_success(request: Request, txnId: str):
     u, b = await User.get_or_create(user_id=record.user_id)
     plan = await PremiumPlan.get(pk=record.plan_id)
 
-    end_time = (
-        u.premium_expire_time + plan.duration
-        if u.is_premium
-        else get_current_time() + plan.duration
-    )
+    from core.bot import BOT_INSTANCE
 
-    await User.get(pk=u.pk).update(is_premium=True, premium_expire_time=end_time)
-
-    bot.dispatch("premium_purchase", record.txnid)
+    BOT_INSTANCE.dispatch("premium_purchase", record.txnid)
 
     guild = await Guild.get(pk=record.guild_id)
     end_time = (

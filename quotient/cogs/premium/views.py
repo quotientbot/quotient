@@ -108,7 +108,7 @@ class PremiumPurchaseBtn(discord.ui.Button):
             discord.ui.TextInput(
                 label="Email",
                 placeholder="Used to send payment receipt...",
-                value=user.email_id or "",
+                default=user.email_id or "",
                 min_length=5,
                 max_length=50,
             )
@@ -117,7 +117,7 @@ class PremiumPurchaseBtn(discord.ui.Button):
             discord.ui.TextInput(
                 label="Phone Number",
                 placeholder="Used to send payment receipt...",
-                value=user.phone_number or "",
+                default=user.phone_number or "",
                 min_length=10,
                 max_length=10,
             )

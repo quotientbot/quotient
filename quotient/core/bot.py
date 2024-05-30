@@ -44,6 +44,9 @@ def _prefix_callable(bot: Quotient, msg: discord.Message):
     return base
 
 
+BOT_INSTANCE = None
+
+
 class Quotient(commands.AutoShardedBot):
 
     session: aiohttp.ClientSession
@@ -120,6 +123,10 @@ class Quotient(commands.AutoShardedBot):
         if os.getenv("INSTANCE_TYPE") == "quotient":
             await self.load_extension("server")
 
+        global BOT_INSTANCE
+
+        BOT_INSTANCE = self
+
     async def get_or_fetch_member(
         self, guild: discord.Guild, member_id: int
     ) -> discord.Member | None:
@@ -144,6 +151,19 @@ class Quotient(commands.AutoShardedBot):
             return members[0]
 
         return None
+
+    @staticmethod
+    async def get_or_fetch(
+        get_method: T.Callable,
+        fetch_method: T.Callable,
+        _id: int,
+    ) -> T.Any:
+        try:
+            _result = get_method(_id) or await fetch_method(_id)
+        except (discord.HTTPException, discord.NotFound):
+            return None
+        else:
+            return _result
 
     @property
     def current_time(self) -> datetime:
@@ -172,6 +192,10 @@ class Quotient(commands.AutoShardedBot):
     @property
     def default_prefix(self) -> str:
         return os.getenv("DEFAULT_PREFIX")
+
+    @property
+    def support_server(self):
+        return self.get_guild(746337818388987967)
 
     def config(self, key: str) -> str | None:
         return os.getenv(key)
