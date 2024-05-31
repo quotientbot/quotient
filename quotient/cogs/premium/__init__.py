@@ -80,8 +80,12 @@ class Premium(commands.Cog):
 
         upgraded_guild_asyncpg = await self.bot.my_pool.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", record.guild_id)
         await self.bot.pro_pool.execute(
-            "UPDATE guilds SET is_premium = TRUE, premium_end_time = $1, made_premium_by = $2 WHERE guild_id = $3", 
-            upgraded_guild_asyncpg['premium_end_time'] + record.duration, record.user_id, record.guild_id
+            """
+            INSERT INTO guilds (guild_id, prefix, is_premium, premium_end_time, made_premium_by) 
+            VALUES ($1, $2, $3, $4, $5) 
+            ON CONFLICT (guild_id) 
+            DO UPDATE SET is_premium = $3, premium_end_time = $4, made_premium_by = $5""",
+            record.guild_id, self.bot.default_prefix, True, upgraded_guild_asyncpg['premium_end_time'], record.user_id,
             )
 
         member = self.bot.support_server.get_member(record.user_id)

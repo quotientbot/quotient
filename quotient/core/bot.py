@@ -197,6 +197,10 @@ class Quotient(commands.AutoShardedBot):
     def support_server(self):
         return self.get_guild(746337818388987967)
 
+    @property
+    def is_main_instance(self) -> bool:
+        return os.getenv("INSTANCE_TYPE") == "quotient"
+
     def config(self, key: str) -> str | None:
         return os.getenv(key)
 
