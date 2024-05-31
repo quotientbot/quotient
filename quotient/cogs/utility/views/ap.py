@@ -5,9 +5,13 @@ import typing as T
 if T.TYPE_CHECKING:
     from core import Quotient
 
+import asyncio
+
 import discord
+from cogs.premium import consts, views
 from core import QuoView
 from discord.ext import commands
+from lib import simple_time_input, text_channel_input
 from models import AutoPurge
 
 
@@ -43,10 +47,70 @@ class AutopurgeView(QuoView):
 
     @discord.ui.button(label="Set New Channel", style=discord.ButtonStyle.primary)
     async def set_ap_channel(self, inter: discord.Interaction, btn: discord.ui.Button):
-        await inter.response.send_message(
-            embed=self.bot.error_embed("This feature is not yet implemented."),
+        await inter.response.defer(thinking=True, ephemeral=True)
+
+        # Check if guild can create more ap channels
+        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= 2:
+            if not await self.bot.is_premium(inter.guild_id):
+                v = views.RequirePremiumView(
+                    text="You can only have 2 AutoPurge channels in the free tier."
+                )
+                return await inter.followup.send(embed=v.premium_embed, view=v)
+
+        await inter.followup.send(
+            embed=self.bot.simple_embed(
+                "Please mention the channel you want to set autopurge."
+            )
+        )
+        try:
+            channel = await text_channel_input(self.ctx, timeout=60, delete_after=True)
+        except asyncio.TimeoutError:
+            return await inter.followup.send(
+                embed=self.bot.error_embed(
+                    "You failed to select a channel in time. Try again!"
+                )
+            )
+
+        self.bot.logger.info(f"Channel: {channel}")
+
+        check = await AutoPurge.filter(channel_id=channel.id).exists()
+        if check:
+            return await inter.followup.send(
+                embed=self.bot.error_embed("This channel is already set for AutoPurge.")
+            )
+
+        await inter.followup.send(
+            embed=self.bot.simple_embed(
+                "Please input the time for the message to be deleted.\n\n```Example: 10s, 10m, 10h, etc.```"
+            ),
             ephemeral=True,
         )
+        try:
+            time_in_seconds = await simple_time_input(self.ctx, delete_after=True)
+        except asyncio.TimeoutError:
+            return await inter.followup.send(
+                embed=self.bot.error_embed("You failed to input in time. Try again!")
+            )
+
+        # Check if guild can create more ap channels
+        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= 2:
+            if not await self.bot.is_premium(inter.guild_id):
+                v = views.RequirePremiumView(
+                    text="You can only have 2 AutoPurge channels in the free tier."
+                )
+                return await inter.followup.send(embed=v.premium_embed, view=v)
+
+        await AutoPurge.create(
+            guild_id=inter.guild_id, channel_id=channel.id, delete_after=time_in_seconds
+        )
+
+        await inter.followup.send(
+            embed=self.bot.success_embed(
+                f"Successfully set {channel.mention}, every new msg will be deleted after `x seconds.`"
+            ),
+            ephemeral=True,
+        )
+        await self.refresh_view()
 
     @discord.ui.button(label="Remove Channel", style=discord.ButtonStyle.danger)
     async def del_ap_channel(self, inter: discord.Interaction, btnn: discord.ui.Button):

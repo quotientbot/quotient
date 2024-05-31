@@ -126,7 +126,7 @@ class PremiumPurchaseBtn(discord.ui.Button):
         await interaction.response.send_modal(form)
 
 
-class PremiumView(discord.ui.View):
+class RequirePremiumView(discord.ui.View):
     def __init__(
         self,
         text="This feature requires Quotient Pro.",

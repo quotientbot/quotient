@@ -16,7 +16,7 @@ if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
 from lib import CROSS, TICK
-from models import create_user_if_not_exists
+from models import Guild, create_user_if_not_exists
 
 from .cache import CacheManager
 from .ctx import Context
@@ -203,6 +203,10 @@ class Quotient(commands.AutoShardedBot):
 
     def config(self, key: str) -> str | None:
         return os.getenv(key)
+
+    @staticmethod
+    async def is_pro_guild(guild_id: int) -> bool:
+        return bool(await Guild.filter(pk=guild_id, is_premium=True).exists())
 
     def get_message(self, message_id: int) -> T.Optional[discord.Message]:
         """Gets the message from the cache"""
