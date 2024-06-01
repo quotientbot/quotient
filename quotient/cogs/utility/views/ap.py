@@ -6,11 +6,13 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 import asyncio
+from datetime import timedelta
 
 import discord
 from cogs.premium import consts, views
 from core import QuoView
 from discord.ext import commands
+from humanize import precisedelta
 from lib import simple_time_input, text_channel_input
 from models import AutoPurge
 
@@ -33,9 +35,13 @@ class AutopurgeView(QuoView):
 
         if not records:
             e.description += "```Click 'Set New Channel' to get started.```"
+            self.children[1].disabled = True
             return e
+
+        self.children[1].disabled = False
+
         for idx, record in enumerate(records, start=1):
-            e.description += f"`[{idx:02}]` {getattr(record.channel, 'mention', 'deleted-channel')}: \n"
+            e.description += f"`[{idx:02}]` {getattr(record.channel, 'mention', 'deleted-channel')}: `{precisedelta(timedelta(seconds=record.delete_after))}`\n"
 
         return e
 
@@ -50,10 +56,13 @@ class AutopurgeView(QuoView):
         await inter.response.defer(thinking=True, ephemeral=True)
 
         # Check if guild can create more ap channels
-        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= 2:
-            if not await self.bot.is_premium(inter.guild_id):
+        if (
+            await AutoPurge.filter(guild_id=inter.guild_id).count()
+            >= consts.AUTOPURGE_LIMIT
+        ):
+            if not await self.bot.is_pro_guild(inter.guild_id):
                 v = views.RequirePremiumView(
-                    text="You can only have 2 AutoPurge channels in the free tier."
+                    text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier."
                 )
                 return await inter.followup.send(embed=v.premium_embed, view=v)
 
@@ -71,8 +80,13 @@ class AutopurgeView(QuoView):
                 )
             )
 
-        self.bot.logger.info(f"Channel: {channel}")
-
+        if not channel.permissions_for(inter.user).manage_messages:
+            return await inter.followup.send(
+                embed=self.bot.error_embed(
+                    f"You must have`Manage Messages` permission in {channel.mention}."
+                ),
+                ephemeral=True,
+            )
         check = await AutoPurge.filter(channel_id=channel.id).exists()
         if check:
             return await inter.followup.send(
@@ -92,29 +106,75 @@ class AutopurgeView(QuoView):
                 embed=self.bot.error_embed("You failed to input in time. Try again!")
             )
 
+        if time_in_seconds <= 5 or time_in_seconds > 604800:
+            return await inter.followup.send(
+                embed=self.bot.error_embed(
+                    "Delete Time must be more than 5s and less than 7d."
+                ),
+                ephemeral=True,
+            )
+
         # Check if guild can create more ap channels
-        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= 2:
+        if (
+            await AutoPurge.filter(guild_id=inter.guild_id).count()
+            >= consts.AUTOPURGE_LIMIT
+        ):
             if not await self.bot.is_premium(inter.guild_id):
                 v = views.RequirePremiumView(
-                    text="You can only have 2 AutoPurge channels in the free tier."
+                    text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier."
                 )
-                return await inter.followup.send(embed=v.premium_embed, view=v)
+                return await inter.followup.send(
+                    embed=v.premium_embed, view=v, ephemeral=True
+                )
 
         await AutoPurge.create(
             guild_id=inter.guild_id, channel_id=channel.id, delete_after=time_in_seconds
         )
+        self.bot.cache.autopurge_channel_ids.add(channel.id)
 
         await inter.followup.send(
             embed=self.bot.success_embed(
-                f"Successfully set {channel.mention}, every new msg will be deleted after `x seconds.`"
+                f"Successfully set {channel.mention}, every new msg will be deleted after `{precisedelta(timedelta(seconds=time_in_seconds))}`."
             ),
             ephemeral=True,
         )
         await self.refresh_view()
 
     @discord.ui.button(label="Remove Channel", style=discord.ButtonStyle.danger)
-    async def del_ap_channel(self, inter: discord.Interaction, btnn: discord.ui.Button):
-        await inter.response.send_message(
-            embed=self.bot.error_embed("This feature is not yet implemented."),
+    async def del_ap_channel(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer(thinking=True, ephemeral=True)
+
+        await inter.followup.send(
+            embed=self.bot.simple_embed(
+                "Please select the channel you want to remove from AutoPurge."
+            ),
             ephemeral=True,
         )
+        try:
+            channel = await text_channel_input(
+                self.ctx, timeout=60, delete_after=True, check_perms=False
+            )
+        except asyncio.TimeoutError:
+            return await inter.followup.send(
+                embed=self.bot.error_embed(
+                    "You failed to select a channel in time. Try again!"
+                ),
+                ephemeral=True,
+            )
+
+        record = await AutoPurge.filter(channel_id=channel.id).first()
+        if not record:
+            return await inter.followup.send(
+                embed=self.bot.error_embed("This channel is not set for AutoPurge."),
+                ephemeral=True,
+            )
+
+        await record.delete()
+        self.bot.cache.autopurge_channel_ids.discard(channel.id)
+        await inter.followup.send(
+            embed=self.bot.success_embed(
+                f"Successfully removed {channel.mention} from AutoPurge."
+            ),
+            ephemeral=True,
+        )
+        await self.refresh_view()
