@@ -12,13 +12,13 @@ discord-py = "^2.3.2"
 tortoise-orm = "^0.21.2"
 asyncpg = "^0.29.0"
 psutil = "^5.9.8"
-jishaku = "^2.5.2"
 uvloop = "^0.19.0"
 uvicorn = "^0.30.0"
 fastapi = "^0.111.0"
 aiohttp-asgi = "^0.5.2"
 aiocache = "^0.12.2"
 humanize = "^4.9.0"
+jishaku = {git = "https://github.com/Gorialis/jishaku.git", rev = "master"}
 
 
 [build-system]

@@ -185,21 +185,6 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.23)"]
 
 [[package]]
-name = "astunparse"
-version = "1.6.3"
-description = "An AST unparser for Python"
-optional = false
-python-versions = "*"
-files = [
-    {file = "astunparse-1.6.3-py2.py3-none-any.whl", hash = "sha256:c2652417f2c8b5bb325c885ae329bdf3f86424075c4fd1a128674bc6fba4b8e8"},
-    {file = "astunparse-1.6.3.tar.gz", hash = "sha256:5ad93a8456f0d084c3456d059fd9a92cce667963232cbf763eac3bc5b7940872"},
-]
-
-[package.dependencies]
-six = ">=1.6.1,<2.0"
-wheel = ">=0.23.0,<1.0"
-
-[[package]]
 name = "asyncpg"
 version = "0.29.0"
 description = "An asyncio PostgreSQL driver"
@@ -635,17 +620,17 @@ files = [
 
 [[package]]
 name = "import-expression"
-version = "1.1.5"
+version = "2.0.0"
 description = "Parses a superset of Python allowing for inline module import expressions"
 optional = false
 python-versions = "*"
 files = [
-    {file = "import_expression-1.1.5-py3-none-any.whl", hash = "sha256:f60c3765dbf2f41928b9c6ef79d632209b6705fc8f30e281ed1a492ed026b10f"},
-    {file = "import_expression-1.1.5.tar.gz", hash = "sha256:9959588fcfc8dcb144a0725176cfef6c28c7db1fc2d683625025e687516d40c1"},
+    {file = "import_expression-2.0.0-py3-none-any.whl", hash = "sha256:549b8f467d601b445a437b221ef814a0a418475b69f58ca7f3bf7242e5ce8dc6"},
+    {file = "import_expression-2.0.0.tar.gz", hash = "sha256:062c3b74838f29b0dca982520b27aa0bfb1e4447158a1499b9a28d15f8234dec"},
 ]
 
 [package.dependencies]
-astunparse = ">=1.6.3,<2.0.0"
+typing-extensions = ">=4.3,<5"
 
 [package.extras]
 test = ["pytest", "pytest-cov"]
@@ -680,28 +665,34 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jishaku"
-version = "2.5.2"
+version = "2.5.2a501+gf68f439.master"
 description = "A discord.py extension including useful tools for bot development and debugging."
 optional = false
 python-versions = ">=3.8.0"
-files = [
-    {file = "jishaku-2.5.2-py3-none-any.whl", hash = "sha256:87f34942ee44865f5ce08e36723b7c74a313d8a13a4db8a6b7cc12618cc3496c"},
-    {file = "jishaku-2.5.2.tar.gz", hash = "sha256:56d38c333036e37481df5e3c9e81d6033b5097738f0d171a81e2752124f0df5c"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 braceexpand = ">=0.1.7"
-click = ">=8.0.1"
-import-expression = ">=1.0.0,<2.0.0"
+click = ">=8.1.7"
+"discord.py" = ">=2.3.2"
+import-expression = ">=2.0.0,<3.0.0"
+tabulate = ">=0.9.0"
+typing-extensions = ">=4.3,<5"
 
 [package.extras]
-discordpy = ["discord.py (>=1.7.3)"]
 docs = ["Sphinx (>=4.4.0)", "sphinxcontrib-trio (>=1.1.2)"]
-procinfo = ["psutil (>=5.8.0)"]
-profiling = ["line-profiler (>=3.5.1)"]
-publish = ["Jinja2 (>=3.0.3)"]
-test = ["coverage (>=6.3.2)", "flake8 (>=4.0.1)", "isort (>=5.10.1)", "pylint (>=2.11.1)", "pytest (>=7.0.1)", "pytest-asyncio (>=0.18.1)", "pytest-cov (>=3.0.0)", "pytest-mock (>=3.7.0)"]
-voice = ["yt-dlp (>=2022.3.8)"]
+procinfo = ["psutil (>=5.9.5)"]
+profiling = ["line-profiler (>=4.1.1)"]
+publish = ["Jinja2 (>=3.1.2)"]
+test = ["coverage (>=7.3.2)", "flake8 (>=6.1.0)", "isort (>=5.12.0)", "pylint (>=3.0.1)", "pytest (>=7.4.2)", "pytest-asyncio (>=0.21.0)", "pytest-cov (>=4.1.0)", "pytest-mock (>=3.11.1)"]
+voice = ["discord.py[voice] (>=2.3.2)", "yt-dlp (>=2023.10.13)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/Gorialis/jishaku.git"
+reference = "master"
+resolved_reference = "f68f4395cc58fca247b86967b52b35d95f2b7cd3"
 
 [[package]]
 name = "markdown-it-py"
@@ -1253,17 +1244,6 @@ files = [
 ]
 
 [[package]]
-name = "six"
-version = "1.16.0"
-description = "Python 2 and 3 compatibility utilities"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-files = [
-    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
-    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
-]
-
-[[package]]
 name = "sniffio"
 version = "1.3.1"
 description = "Sniff out which async library your code is running under"
@@ -1290,6 +1270,20 @@ anyio = ">=3.4.0,<5"
 
 [package.extras]
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.7)", "pyyaml"]
+
+[[package]]
+name = "tabulate"
+version = "0.9.0"
+description = "Pretty-print tabular data"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f"},
+    {file = "tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c"},
+]
+
+[package.extras]
+widechars = ["wcwidth"]
 
 [[package]]
 name = "tortoise-orm"
@@ -1670,20 +1664,6 @@ files = [
 ]
 
 [[package]]
-name = "wheel"
-version = "0.43.0"
-description = "A built-package format for Python"
-optional = false
-python-versions = ">=3.8"
-files = [
-    {file = "wheel-0.43.0-py3-none-any.whl", hash = "sha256:55c570405f142630c6b9f72fe09d9b67cf1477fcf543ae5b8dcb1f5b7377da81"},
-    {file = "wheel-0.43.0.tar.gz", hash = "sha256:465ef92c69fa5c5da2d1cf8ac40559a8c940886afcef87dcf14b9470862f1d85"},
-]
-
-[package.extras]
-test = ["pytest (>=6.0.0)", "setuptools (>=65)"]
-
-[[package]]
 name = "yarl"
 version = "1.9.4"
 description = "Yet another URL library"
@@ -1789,4 +1769,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "24888c4dac9263c81da89f9034502c78e4016640277acae7fffe1b1f403f5d17"
+content-hash = "df6100282f782ffd0eb88af5f3e710b701394c0489b0081a127520556e9f2e4d"
