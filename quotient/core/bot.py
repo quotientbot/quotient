@@ -15,7 +15,7 @@ from tortoise import Tortoise
 if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
-from lib import CROSS, TICK
+from lib import CROSS, INFO, TICK
 from models import Guild, create_user_if_not_exists
 
 from .cache import CacheManager
@@ -58,9 +58,7 @@ class Quotient(commands.AutoShardedBot):
             intents=intents,
             strip_after_prefix=True,
             case_insensitive=True,
-            allowed_mentions=discord.AllowedMentions(
-                everyone=False, roles=False, replied_user=True, users=True
-            ),
+            allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
         )
 
         self.seen_messages: int = 0
@@ -127,9 +125,7 @@ class Quotient(commands.AutoShardedBot):
 
         BOT_INSTANCE = self
 
-    async def get_or_fetch_member(
-        self, guild: discord.Guild, member_id: int
-    ) -> discord.Member | None:
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> discord.Member | None:
         """Looks up a member in cache or fetches if not found."""
         member = guild.get_member(member_id)
         if member is not None:
@@ -230,15 +226,11 @@ class Quotient(commands.AutoShardedBot):
         )
 
     async def global_interaction_check(self, interaction: discord.Interaction):
-        self.loop.create_task(
-            create_user_if_not_exists(self.my_pool, interaction.user.id)
-        )
+        self.loop.create_task(create_user_if_not_exists(self.my_pool, interaction.user.id))
 
         if not interaction.guild_id:
             await interaction.response.send_message(
-                embed=self.error_embed(
-                    "Application commands can not be used in Private Messages."
-                ),
+                embed=self.error_embed("Application commands can not be used in Private Messages."),
                 ephemeral=True,
             )
 
@@ -270,6 +262,17 @@ class Quotient(commands.AutoShardedBot):
             return
 
         await self.process_commands(message)
+
+    @staticmethod
+    def contact_support_view(label: str = "Need help? Contact Support!") -> discord.ui.View:
+        return discord.ui.View().add_item(
+            discord.ui.Button(
+                label=label,
+                style=discord.ButtonStyle.link,
+                url=os.getenv("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
 
     async def on_ready(self) -> None:
         log.info("Ready: %s (ID: %s)", self.user, self.user.id)
