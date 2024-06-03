@@ -19,6 +19,7 @@ aiohttp-asgi = "^0.5.2"
 aiocache = "^0.12.2"
 humanize = "^4.9.0"
 jishaku = {git = "https://github.com/Gorialis/jishaku.git", rev = "master"}
+dateparser = "^1.2.0"
 
 
 [build-system]
