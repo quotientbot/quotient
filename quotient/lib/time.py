@@ -8,6 +8,13 @@ from discord.ext import commands
 TIME_REGEX = re.compile(r"(?:(\d{1,5})(h|s|m|d))+?")
 
 
+def get_today_day() -> int:
+    """
+    Returns the current day of the week.
+    """
+    return datetime.datetime.now(pytz.timezone("Asia/Kolkata")).weekday()
+
+
 def get_current_time() -> datetime.datetime:
     """
     Returns the current time in Asia/Kolkata timezone.

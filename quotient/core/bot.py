@@ -100,6 +100,7 @@ class Quotient(commands.AutoShardedBot):
                         "models": ["models"],
                         "default_connection": os.getenv("INSTANCE_TYPE"),
                     },
+                    
                 },
             }
         )

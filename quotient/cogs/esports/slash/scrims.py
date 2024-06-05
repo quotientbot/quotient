@@ -15,6 +15,8 @@ from discord.ext import commands
 from lib import parse_natural_time
 from models import Scrim
 
+from ..views.scrims.edit import ScrimsEditPanel
+
 __all__ = ("ScrimsSlash",)
 
 
@@ -39,29 +41,6 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         return app_commands.check(predicate)
 
-    async def scrims_autocomplete(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
-
-        records = await Scrim.filter(guild_id=interaction.guild_id).order_by("id")
-        if not records:
-            return await interaction.response.autocomplete([])
-
-        records_to_return = []
-
-        if current:
-            for record in records:
-                channel = interaction.guild.get_channel(record.registration_channel_id)
-                if channel and current.lower() in channel.name.lower():
-                    records_to_return.append((record, channel))
-        else:
-            records_to_return = [
-                (record, interaction.guild.get_channel(record.registration_channel_id)) for record in records
-            ]
-
-        return [
-            app_commands.Choice(name=getattr(channel, "name", "Unknown Registration Channel"), value=record.id)
-            for record, channel in records_to_return
-        ][:25]
-
     @app_commands.command(name="create", description="Create a new scrim.")
     @app_commands.guild_only()
     @app_commands.describe(
@@ -70,10 +49,18 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         success_role="The role to be given to the users who successfully register.",
         required_mentions="The number of mentions required for successful registration.",
         total_slots="The total number of slots available for the scrim.",
-        start_time="The time at which the registration should be started. Ex: 3:00 PM, 9:30 AM, etc",
+        reg_start_time="The time at which the registration should be started. Ex: 3:00 PM, 9:30 AM, etc",
     )
     @can_use_scrims_command()
     @app_commands.checks.bot_has_permissions(administrator=True)
+    @app_commands.rename(
+        registration_channel="registration-channel",
+        slotlist_channel="slotlist-channel",
+        success_role="success-role",
+        required_mentions="required-mentions",
+        total_slots="total-slots",
+        reg_start_time="registration-start-time",
+    )
     async def create_new_scrim(
         self,
         inter: discord.Interaction,
@@ -82,7 +69,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         success_role: discord.Role,
         required_mentions: app_commands.Range[int, 0, 5],
         total_slots: app_commands.Range[int, 1, 30],
-        start_time: str,
+        reg_start_time: str,
     ):
         await inter.response.defer(thinking=True, ephemeral=False)
 
@@ -137,7 +124,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
             )
 
         try:
-            registration_start_time = parse_natural_time(start_time)
+            registration_start_time = parse_natural_time(reg_start_time)
 
         except TypeError:
             return await inter.followup.send(
@@ -158,7 +145,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
             success_role_id=success_role.id,
             required_mentions=required_mentions,
             total_slots=total_slots,
-            start_time=registration_start_time,
+            reg_start_time=registration_start_time,
             autoclean_time=autoclean_time,
         )
 
@@ -170,7 +157,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
                 view=self.bot.contact_support_view(),
             )
         await scrim.save()
-        await self.bot.reminders.create_timer(scrim.start_time, "scrim_open", scrim_id=scrim.id)
+        await self.bot.reminders.create_timer(scrim.reg_start_time, "scrim_open", scrim_id=scrim.id)
         await self.bot.reminders.create_timer(scrim.autoclean_time, "autoclean", scrim_id=scrim.id)
 
         e = discord.Embed(
@@ -183,7 +170,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
                 f"**Success Role:** {success_role.mention}\n"
                 f"**Required Mentions:** `{required_mentions}`\n"
                 f"**Total Slots:** `{total_slots}`\n"
-                f"**Open Time:** {discord.utils.format_dt(scrim.start_time,'f')}\n"
+                f"**Open Time:** {discord.utils.format_dt(scrim.reg_start_time,'f')}\n"
                 f"**Autoclean Time:** {discord.utils.format_dt(autoclean_time,'f')}\n"
             ),
         )
@@ -197,15 +184,32 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
     @can_use_scrims_command()
     async def scrim_settings(self, inter: discord.Interaction, registration_channel: discord.TextChannel):
         await inter.response.defer(thinking=True, ephemeral=False)
+        record = await Scrim.get_or_none(registration_channel_id=registration_channel.id)
+        if not record:
+            return await inter.followup.send(
+                embed=self.bot.error_embed(f"No Scrim found in the {registration_channel.mention}"),
+                view=self.bot.contact_support_view(),
+            )
+
+        ctx = commands.Context.from_interaction(inter)
+        view = ScrimsEditPanel(self.bot, ctx, record)
+
+        view.message = await inter.followup.send(embed=view.initital_embed, view=view)
 
     @app_commands.command(name="delete", description="Delete a scrim.")
     @app_commands.guild_only()
     @app_commands.describe(registration_channel="Registration Channel of the scrim you want to delete.")
-    @app_commands.autocomplete(registration_channel=scrims_autocomplete)
+    @app_commands.rename(registration_channel="registration-channel")
     @can_use_scrims_command()
-    async def delete_scrim(self, inter: discord.Interaction, registration_channel: str):
+    async def delete_scrim(self, inter: discord.Interaction, registration_channel: discord.TextChannel):
         await inter.response.defer(thinking=True, ephemeral=False)
 
-        record = await Scrim.get(pk=registration_channel)
+        record = await Scrim.get_or_none(registration_channel_id=registration_channel.id)
+        if not record:
+            return await inter.followup.send(
+                embed=self.bot.error_embed("No Scrim found in the {0}.".format(registration_channel.mention)),
+                view=self.bot.contact_support_view(),
+            )
+
         await record.full_delete()
         await inter.followup.send(embed=self.bot.success_embed("Scrim deleted successfully."))

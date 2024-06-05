@@ -10,6 +10,7 @@ from core import Context
 from discord import app_commands
 from discord.ext import commands
 
+from .events import ScrimsEvents
 from .slash import ScrimSlashCommands
 
 
@@ -21,3 +22,4 @@ class Esports(commands.Cog):
 async def setup(bot: Quotient) -> None:
     await bot.add_cog(Esports(bot))
     await bot.add_cog(ScrimSlashCommands(bot))
+    await bot.add_cog(ScrimsEvents(bot))

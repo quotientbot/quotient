@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from models import BaseDbModel
 from tortoise import fields
@@ -25,7 +27,8 @@ class Scrim(BaseDbModel):
     available_slots = ArrayField("SMALLINT", default=list)
     total_slots = fields.SmallIntField()
 
-    start_time = fields.DatetimeField()
+    reg_start_time = fields.DatetimeField()
+    match_start_time = fields.DatetimeField(null=True)  # time when actual game will start
     started_at = fields.DatetimeField(null=True)
     ended_at = fields.DatetimeField(null=True)
 
@@ -38,15 +41,14 @@ class Scrim(BaseDbModel):
     reg_end_ping_role_id = fields.BigIntField(null=True)
     open_role_id = fields.BigIntField(null=True)
 
-    allow_multiple_registrations = fields.BooleanField(default=True)
+    allow_multiple_registrations = fields.BooleanField(default=True)  # whether same user can register multiple times
     autodelete_rejected_registrations = fields.BooleanField(default=False)
     autodelete_extra_msges = fields.BooleanField(default=False)
     allow_without_teamname = fields.BooleanField(default=False)
-    allow_duplicate_teamname = fields.BooleanField(default=True)
-    allow_duplicate_mentions = fields.BooleanField(default=False)
+    allow_duplicate_teamname = fields.BooleanField(default=True)  # whether same team name can be used multiple times
+    allow_duplicate_mentions = fields.BooleanField(default=False)  # whether same user can be mentioned in multiple regs
 
     registration_time_elapsed = fields.SmallIntField(default=0)  # in seconds
-    show_registration_time_elapsed = fields.BooleanField(default=True)
 
     registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in Day]))
 
@@ -90,12 +92,153 @@ class Scrim(BaseDbModel):
     def logs_channel(self):
         return discord.utils.get(self.guild.text_channels, name="quotient-scrims-logs")
 
+    @property
+    def tick_emoji(self):
+        try:
+            return self.reactions[0]
+        except IndexError:
+            return "✅"
+
+    @property
+    def cross_emoji(self):
+        try:
+            return self.reactions[1]
+        except IndexError:
+            return "❌"
+
+    @property
+    def start_ping_role(self):
+        return self.guild.get_role(self.reg_start_ping_role_id)
+
+    @property
+    def end_ping_role(self):
+        return self.guild.get_role(self.reg_end_ping_role_id)
+
+    @property
+    def open_role(self):
+        return (self.guild.get_role(self.open_role_id), self.guild.default_role)[not self.open_role_id]
+
+    async def add_tick_and_role(self, msg: discord.Message):
+        try:
+            await msg.add_reaction(self.tick_emoji)
+        except discord.HTTPException:
+            pass
+
+        try:
+            await msg.author.add_roles(
+                discord.Object(id=self.success_role_id), reason=f"Registered for scrim: {self.pk}."
+            )
+        except discord.HTTPException:
+            pass
+
     async def full_delete(self):
         await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
         await ScrimReservedSlot.filter(scrim_id=self.id).delete()
         await ScrimBannedTeam.filter(scrim_id=self.id).delete()
         await ScrimSlotReminder.filter(scrim_id=self.id).delete()
         await self.delete()
+
+    @property
+    def registration_open_embed(self):
+        reserved_slots_count = len(self.reserved_slots)
+
+        if len(self.open_msg_design) <= 1:
+            return discord.Embed(
+                color=self.bot.color,
+                title="Registration is now open!",
+                description=f"📣 **`{self.required_mentions}`** mentions required.\n"
+                f"📣 Total slots: **`{self.total_slots}`** [`{reserved_slots_count}` slots reserved]",
+            )
+
+        # TODO: custom open msg
+
+    @property
+    def registration_close_embed(self):
+        if len(self.close_msg_design) <= 1:
+            return discord.Embed(color=self.bot.color, description="**Registration is now Closed!**")
+
+    async def add_role_to_reserved_users(self, member_ids: set[int]):
+        role = discord.Object(id=self.success_role_id)
+        guild = self.guild
+
+        async for member in self.bot.resolve_member_ids(guild, member_ids):
+            try:
+                if not member._roles.has(role.id):
+                    await member.add_roles(role, reason=f"Reserved Slot [{self.pk}]")
+                    await asyncio.sleep(0.2)
+            except discord.HTTPException:
+                continue
+
+    async def start_registration(self):
+
+        await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
+
+        # Put all available slots in the database (after removing reserved ones)
+        self.available_slots = sorted(
+            [
+                slot_num
+                for slot_num in range(self.slotlist_start_from, self.total_slots + self.slotlist_start_from)
+                if not slot_num in [slot.num for slot in self.reserved_slots]
+            ]
+        )
+
+        for reserved_slot in self.reserved_slots:
+            await ScrimAssignedSlot.create(
+                num=reserved_slot.num,
+                leader_id=reserved_slot.leader_id,
+                team_name=reserved_slot.team_name,
+                jump_url=None,
+            )
+
+            self.bot.loop.create_task(
+                self.add_role_to_reserved_users(
+                    {reserved_slot.leader_id for reserved_slot in self.reserved_slots if reserved_slot.leader_id}
+                )
+            )
+
+        self.started_at = self.bot.current_time
+        self.ended_at = None
+        self.slotlist_message_id = None
+
+        await self.save(update_fields=["started_at", "ended_at", "slotlist_message_id", "available_slots"])
+        await asyncio.sleep(0.2)
+
+        self.bot.cache.scrim_channel_ids.add(self.registration_channel_id)
+
+        await self.registration_channel.send(
+            getattr(self.start_ping_role, "mention", ""),
+            embed=self.registration_open_embed,
+            allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
+        )
+
+        # TODO: send to logs channel
+        from lib import toggle_channel_perms
+
+        await toggle_channel_perms(self.registration_channel, self.open_role, True)
+
+    async def close_registration(self):
+
+        self.ended_at = self.bot.current_time
+        self.registration_time_elapsed = (self.ended_at - self.started_at).total_seconds()
+        self.started_at = None
+
+        await self.save(update_fields=["ended_at", "registration_time_elapsed", "started_at"])
+
+        from lib import toggle_channel_perms
+
+        registration_channel = self.registration_channel
+        await toggle_channel_perms(registration_channel, self.open_role, False)
+
+        try:
+            await registration_channel.send(
+                getattr(self.end_ping_role, "mention", ""),
+                embed=self.registration_close_embed,
+                allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
+            )
+        except discord.HTTPException:
+            pass
+
+        # TODO: send to logs channel
 
     async def setup_logs(self):
         _reason = "Created for scrims management."
@@ -153,7 +296,7 @@ class BaseScrimSlot(BaseDbModel):
 
     id = fields.IntField(primary_key=True, db_index=True)
     num = fields.SmallIntField(null=True)
-    leader_id = fields.BigIntField()
+    leader_id = fields.BigIntField(null=True)
     team_name = fields.CharField(max_length=100, null=True)
     members = ArrayField("BIGINT", default=list)
 
@@ -166,7 +309,6 @@ class ScrimAssignedSlot(BaseScrimSlot):
     class Meta:
         table = "scrims_assigned_slots"
 
-    message_id = fields.BigIntField(null=True)
     jump_url = fields.CharField(max_length=200, null=True)
     assigned_at = fields.DatetimeField(auto_now=True)
 
