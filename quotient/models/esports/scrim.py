@@ -5,7 +5,7 @@ from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
-from .enums import Day
+from .enums import Day, IdpShareType
 
 
 class Scrim(BaseDbModel):
@@ -13,9 +13,14 @@ class Scrim(BaseDbModel):
         table = "scrims"
 
     id = fields.IntField(primary_key=True, db_index=True)
-    guild_id = fields.BigIntField()
+
+    guild = fields.ForeignKeyField("default.Guild", related_name="scrims")
     name = fields.CharField(max_length=100)
     registration_channel_id = fields.BigIntField(db_index=True)
+
+    idp_channel_id = fields.BigIntField(null=True)
+    idp_message_id = fields.BigIntField(null=True)
+    idp_share_type = fields.IntEnumField(IdpShareType, default=IdpShareType.LEADER_ONLY)
 
     slotlist_channel_id = fields.BigIntField()
     slotlist_message_id = fields.BigIntField(null=True)
@@ -29,14 +34,11 @@ class Scrim(BaseDbModel):
 
     reg_start_time = fields.DatetimeField()
     match_start_time = fields.DatetimeField(null=True)  # time when actual game will start
-    started_at = fields.DatetimeField(null=True)
-    ended_at = fields.DatetimeField(null=True)
+    reg_started_at = fields.DatetimeField(null=True)
+    reg_ended_at = fields.DatetimeField(null=True)
 
-    autoclean_channel = fields.BooleanField(default=True)
-    autoclean_role = fields.BooleanField(default=True)
-    autoclean_time = fields.DatetimeField(null=True)
+    autoclean_channel_time = fields.DatetimeField(null=True)
 
-    success_role_id = fields.BigIntField()
     reg_start_ping_role_id = fields.BigIntField(null=True)
     reg_end_ping_role_id = fields.BigIntField(null=True)
     open_role_id = fields.BigIntField(null=True)
@@ -118,16 +120,9 @@ class Scrim(BaseDbModel):
     def open_role(self):
         return (self.guild.get_role(self.open_role_id), self.guild.default_role)[not self.open_role_id]
 
-    async def add_tick_and_role(self, msg: discord.Message):
+    async def add_tick(self, msg: discord.Message):
         try:
             await msg.add_reaction(self.tick_emoji)
-        except discord.HTTPException:
-            pass
-
-        try:
-            await msg.author.add_roles(
-                discord.Object(id=self.success_role_id), reason=f"Registered for scrim: {self.pk}."
-            )
         except discord.HTTPException:
             pass
 
@@ -157,18 +152,6 @@ class Scrim(BaseDbModel):
         if len(self.close_msg_design) <= 1:
             return discord.Embed(color=self.bot.color, description="**Registration is now Closed!**")
 
-    async def add_role_to_reserved_users(self, member_ids: set[int]):
-        role = discord.Object(id=self.success_role_id)
-        guild = self.guild
-
-        async for member in self.bot.resolve_member_ids(guild, member_ids):
-            try:
-                if not member._roles.has(role.id):
-                    await member.add_roles(role, reason=f"Reserved Slot [{self.pk}]")
-                    await asyncio.sleep(0.2)
-            except discord.HTTPException:
-                continue
-
     async def start_registration(self):
 
         await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
@@ -188,12 +171,6 @@ class Scrim(BaseDbModel):
                 leader_id=reserved_slot.leader_id,
                 team_name=reserved_slot.team_name,
                 jump_url=None,
-            )
-
-            self.bot.loop.create_task(
-                self.add_role_to_reserved_users(
-                    {reserved_slot.leader_id for reserved_slot in self.reserved_slots if reserved_slot.leader_id}
-                )
             )
 
         self.started_at = self.bot.current_time

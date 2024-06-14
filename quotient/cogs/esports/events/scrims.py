@@ -40,9 +40,7 @@ class ScrimsEvents(commands.Cog):
         if scrim is None:
             return self.bot.cache.scrim_channel_ids.discard(channel_id)
 
-        success_role = msg.guild.get_role(scrim.success_role_id)
-
-        if not scrim.started_at or not success_role:
+        if not scrim.started_at:
             return
 
         if Scrim.is_ignorable(msg.author):

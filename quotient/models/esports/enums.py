@@ -9,3 +9,8 @@ class Day(IntEnum):
     FRIDAY = 4
     SATURDAY = 5
     SUNDAY = 6
+
+
+class IdpShareType(IntEnum):
+    LEADER_ONLY = 0
+    ALL_TEAM_MEMBERS = 1

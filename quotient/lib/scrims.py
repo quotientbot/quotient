@@ -24,7 +24,6 @@ async def toggle_channel_perms(channel: discord.TextChannel, role: discord.Role,
 async def ensure_self_permissions(scrim: Scrim) -> bool:
     guild = scrim.guild
     me = guild.me
-    success_role = guild.get_role(scrim.success_role_id)
     logs_channel = scrim.logs_channel
     registration_channel = scrim.registration_channel
 
@@ -58,18 +57,6 @@ async def ensure_self_permissions(scrim: Scrim) -> bool:
     if registration_channel and not registration_channel.permissions_for(me).manage_permissions:
         all_ok = False
         e.description += "- I don't have `Manage Permissions` permission in the registration channel.\n"
-
-    if not success_role:
-        all_ok = False
-        e.description += "- Success role not found.\n"
-
-    if success_role and not me.guild_permissions.manage_roles:
-        all_ok = False
-        e.description += "- I don't have `Manage Roles` permission.\n"
-
-    if success_role and not success_role < me.top_role:
-        all_ok = False
-        e.description += f"- My top role {me.top_role.mention} is not higher than {success_role.mention}.\n"
 
     if open_role_id and not guild.get_role(open_role_id):
         all_ok = False
