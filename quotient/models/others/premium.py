@@ -1,10 +1,16 @@
 import os
 from datetime import timedelta
+from enum import IntEnum
 
 from models import BaseDbModel
 from tortoise import fields
 
 __all__ = ("PremiumTxn", "PremiumPlan")
+
+
+class Currency(IntEnum):
+    INR = 1
+    USD = 2
 
 
 class PremiumPlan(BaseDbModel):
@@ -15,17 +21,13 @@ class PremiumPlan(BaseDbModel):
     name = fields.CharField(max_length=50)
     description = fields.CharField(max_length=250, null=True)
     price = fields.IntField()
+    currency = fields.IntEnumField(Currency, default=Currency.INR)
     duration = fields.TimeDeltaField()
 
     @staticmethod
     async def insert_plans():
         await PremiumPlan.all().delete()
-        await PremiumPlan.create(
-            name="Trial (10d)",
-            description="Duration: 10 days",
-            price=49,
-            duration=timedelta(days=10),
-        )
+
         await PremiumPlan.create(
             name="Basic (1m)",
             description="Duration: 28 days",
@@ -33,22 +35,38 @@ class PremiumPlan(BaseDbModel):
             duration=timedelta(days=28),
         )
         await PremiumPlan.create(
-            name="Professional (3m)",
+            name="Standard (3m)",
             description="Duration: 84 days",
             price=249,
             duration=timedelta(days=84),
         )
         await PremiumPlan.create(
-            name="Enterprise (6m)",
+            name="Advanced (6m)",
             description="Duration: 168 days",
             price=499,
             duration=timedelta(days=168),
         )
         await PremiumPlan.create(
-            name="GodLike (Lifetime)",
+            name="Ultimate (Lifetime)",
             description="Duration: 69 years",
             price=4999,
             duration=timedelta(days=25185),
+        )
+
+        await PremiumPlan.create(
+            name="Elite (12m)",
+            description="Duration: 365 days",
+            price=59,
+            duration=timedelta(days=365),
+            currency=Currency.USD,
+        )
+
+        await PremiumPlan.create(
+            name="Ultimate (Lifetime)",
+            description="Duration: 69 years",
+            price=99,
+            duration=timedelta(days=25185),
+            currency=Currency.USD,
         )
 
 

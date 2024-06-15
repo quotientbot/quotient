@@ -167,12 +167,14 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         password="The Password of the scrim.",
         map_name="The Map Name of the scrim.",
         ping_leaders="Whether to ping team leaders or not.",
+        channel_to_send="The channel where the ID/Pass will be sent. (Default: Slotlist Channel)",
     )
     @app_commands.rename(
         registration_channel="registration-channel",
         room_id="room-id",
         map_name="map-name",
         ping_leaders="ping-leaders",
+        channel_to_send="channel-to-send",
     )
     @can_use_scrims_command()
     async def share_scrims_idp(
@@ -183,6 +185,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         password: str,
         map_name: str,
         ping_leaders: T.Literal["Yes", "No"],
+        channel_to_send: discord.TextChannel = None,
     ):
         await inter.response.defer(thinking=True, ephemeral=False)
         record = await Scrim.get_or_none(registration_channel_id=registration_channel.id)
