@@ -54,9 +54,8 @@ class ScrimsEditSelect(discord.ui.Select):
 
 
 class ScrimsEditPanel(QuoView):
-    def __init__(self, bot: Quotient, ctx: commands.Context, scrim: Scrim):
-        super().__init__(bot=bot, ctx=ctx, timeout=100)
-        self.bot = bot
+    def __init__(self, ctx: commands.Context, scrim: Scrim):
+        super().__init__(ctx=ctx, timeout=100)
         self.ctx = ctx
         self.record = scrim
 

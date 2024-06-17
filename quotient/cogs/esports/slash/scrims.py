@@ -15,6 +15,8 @@ from discord.ext import commands
 from lib import parse_natural_time
 from models import Guild, Scrim
 
+from ..views.scrims.main import ScrimsMainPanel
+
 __all__ = ("ScrimsSlash",)
 
 
@@ -39,11 +41,20 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         return app_commands.check(predicate)
 
+    @app_commands.command(name="panel", description="Shows the main dashboard to manage scrims.")
+    @app_commands.guild_only()
+    @can_use_scrims_command()
+    async def scrims_panel(self, inter: discord.Interaction):
+        await inter.response.defer(thinking=True)
+
+        ctx = await self.bot.get_context(inter)
+        v = ScrimsMainPanel(ctx)
+        v.message = await inter.followup.send(embed=await v.initial_msg(), view=v)
+
     @app_commands.command(name="create", description="Create a new scrim.")
     @app_commands.guild_only()
     @app_commands.describe(
         registration_channel="The channel where users will register for the scrim.",
-        slotlist_channel="The channel where the slotlist will be posted.",
         required_mentions="The number of mentions required for successful registration.",
         total_slots="The total number of slots available for the scrim.",
         reg_start_time="The time at which the registration should be started. Ex: 3:00 PM, 9:30 AM, etc",
@@ -52,7 +63,6 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
     @app_commands.checks.bot_has_permissions(administrator=True)
     @app_commands.rename(
         registration_channel="registration-channel",
-        slotlist_channel="slotlist-channel",
         required_mentions="required-mentions",
         total_slots="total-slots",
         reg_start_time="registration-start-time",
@@ -61,17 +71,16 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         self,
         inter: discord.Interaction,
         registration_channel: discord.TextChannel,
-        slotlist_channel: discord.TextChannel,
         required_mentions: app_commands.Range[int, 0, 5],
         total_slots: app_commands.Range[int, 1, 30],
         reg_start_time: str,
     ):
         await inter.response.defer(thinking=True, ephemeral=False)
 
-        guild = await Guild.get(pk=inter.guild_id).prefetch_related("scrims")
+        guild = await Guild.get(pk=inter.guild_id)
 
         if not guild.is_premium:
-            if len(guild.scrims) >= SCRIMS_LIMIT:
+            if await Scrim.filter(guild_id=guild.pk).count() >= SCRIMS_LIMIT:
                 v = RequirePremiumView(
                     f"You have reached the maximum limit of '{SCRIMS_LIMIT} scrims', Upgrade to Quotient Pro to unlock unlimited scrims."
                 )
@@ -104,9 +113,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         scrim = Scrim(
             guild=guild,
-            name=f"Quotient Scrims",
             registration_channel_id=registration_channel.id,
-            slotlist_channel_id=slotlist_channel.id,
             required_mentions=required_mentions,
             total_slots=total_slots,
             reg_start_time=registration_start_time,
@@ -122,7 +129,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
             )
         await scrim.save()
         await self.bot.reminders.create_timer(scrim.reg_start_time, "scrim_open", scrim_id=scrim.id)
-        await self.bot.reminders.create_timer(scrim.autoclean_time, "autoclean", scrim_id=scrim.id)
+        await self.bot.reminders.create_timer(scrim.autoclean_time, "autoclean_scrims_channel", scrim_id=scrim.id)
 
         e = discord.Embed(
             color=self.bot.color,
@@ -130,7 +137,6 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
             title="Scrim created successfully!",
             description=(
                 f"**Registration Channel:** {registration_channel.mention}\n"
-                f"**Slotlist Channel:** {slotlist_channel.mention}\n"
                 f"**Required Mentions:** `{required_mentions}`\n"
                 f"**Total Slots:** `{total_slots}`\n"
                 f"**Open Time:** {discord.utils.format_dt(scrim.reg_start_time,'f')}\n"

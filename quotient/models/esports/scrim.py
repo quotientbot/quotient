@@ -9,20 +9,18 @@ from .enums import Day, IdpShareType
 
 
 class Scrim(BaseDbModel):
+
     class Meta:
         table = "scrims"
 
     id = fields.IntField(primary_key=True, db_index=True)
 
-    guild = fields.ForeignKeyField("default.Guild", related_name="scrims")
-    name = fields.CharField(max_length=100)
+    guild_id = fields.BigIntField(db_index=True)
     registration_channel_id = fields.BigIntField(db_index=True)
 
-    idp_channel_id = fields.BigIntField(null=True)
     idp_message_id = fields.BigIntField(null=True)
     idp_share_type = fields.IntEnumField(IdpShareType, default=IdpShareType.LEADER_ONLY)
 
-    slotlist_channel_id = fields.BigIntField()
     slotlist_message_id = fields.BigIntField(null=True)
     slotlist_start_from = fields.SmallIntField(default=1)
     autosend_slotlist = fields.BooleanField(default=True)
@@ -33,6 +31,7 @@ class Scrim(BaseDbModel):
     total_slots = fields.SmallIntField()
 
     reg_start_time = fields.DatetimeField()
+    reg_auto_end_time = fields.DatetimeField(null=True)  # time when registration will end automatically if not closed
     match_start_time = fields.DatetimeField(null=True)  # time when actual game will start
     reg_started_at = fields.DatetimeField(null=True)
     reg_ended_at = fields.DatetimeField(null=True)
@@ -58,7 +57,7 @@ class Scrim(BaseDbModel):
     open_msg_design = fields.JSONField(default=dict)
     close_msg_design = fields.JSONField(default=dict)
 
-    reactions = ArrayField("VARCHAR(50)", default=list)
+    reactions = ArrayField("VARCHAR(50)", default=lambda: list(["✅", "❌"]))
     required_lines = fields.SmallIntField(default=0)
     scrim_status = fields.BooleanField(default=True)
 
@@ -66,6 +65,9 @@ class Scrim(BaseDbModel):
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
     banned_teams: fields.ReverseRelation["ScrimBannedTeam"]
+
+    def __str__(self):
+        return f"{getattr(self.registration_channel,'mention','deleted-channel')} (ID: {self.id})"
 
     @staticmethod
     def is_ignorable(member: discord.Member) -> bool:
@@ -81,10 +83,6 @@ class Scrim(BaseDbModel):
     @property
     def registration_channel(self):
         return self.guild.get_channel(self.registration_channel_id)
-
-    @property
-    def slotlist_channel(self):
-        return self.guild.get_channel(self.slotlist_channel_id)
 
     @property
     def scrims_mod_role(self):
@@ -119,6 +117,11 @@ class Scrim(BaseDbModel):
     @property
     def open_role(self):
         return (self.guild.get_role(self.open_role_id), self.guild.default_role)[not self.open_role_id]
+
+    @property
+    def pretty_registration_days(self):
+        day_abbr = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+        return ", ".join([day_abbr[day] for day in self.registration_open_days])
 
     async def add_tick(self, msg: discord.Message):
         try:
