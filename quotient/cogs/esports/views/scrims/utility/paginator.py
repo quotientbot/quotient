@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from lib import NEXT_PAGE, PREVIOUS_PAGE
+from lib import NEXT_PAGE, PREVIOUS_PAGE, integer_input_modal
 from models import Scrim
 
 from ...scrims import ScrimsBtn
@@ -30,10 +30,25 @@ class NextScrim(ScrimsBtn):
 class SkipToScrim(ScrimsBtn):
     def __init__(self, ctx: commands.Context, row: int = None):
         super().__init__(ctx, label="Skip to...", row=row)
-        self.ctx = ctx
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+
+        scrim_position = await integer_input_modal(
+            inter=interaction,
+            title="Skip to Page",
+            label="Please enter the page no.",
+        )
+
+        all_scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("reg_start_time")
+
+        if not scrim_position:
+            return
+
+        if scrim_position > len(all_scrims):
+            return await interaction.followup.send("Invalid page number. Please try again.", ephemeral=True)
+
+        self.view.record = all_scrims[scrim_position - 1]
+        await self.view.refresh_view()
 
 
 class PreviousScrim(ScrimsBtn):
