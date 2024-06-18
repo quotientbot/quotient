@@ -4,9 +4,9 @@ from discord.ext import commands
 from lib import CROSS, TICK, truncate_string
 from models import Guild, Scrim
 
-from ..scrims import ScrimsView
+from . import ScrimsView
 from .create_scrim import CreateScrimView
-from .edit import ScrimsEditPanel
+from .edit_scrim import ScrimsEditPanel
 from .utility.selectors import prompt_scrims_selector
 
 

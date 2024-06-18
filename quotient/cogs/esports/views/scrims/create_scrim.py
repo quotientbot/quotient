@@ -5,7 +5,7 @@ from lib import DIAMOND, keycap_digit
 from models import Scrim
 
 from ..scrims import ScrimsView
-from .btns import (
+from .utility.buttons import (
     DiscardChanges,
     SaveScrim,
     SetMentions,

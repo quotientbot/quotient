@@ -1,46 +1,16 @@
-import typing as T
-
 import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
 from lib import DIAMOND
 from models import Guild, Scrim
 
-from ..scrims import ScrimsView
-
-
-class EditOption(T.NamedTuple):
-    label: str
-    description: str
-    premium_only: bool
-
-
-EDIT_OPTIONS = [
-    EditOption(label="Required Mentions", description="Set the number of mentions required to register", premium_only=False),
-    EditOption(label="Total Slots", description="Set the total slots for the scrim", premium_only=False),
-    EditOption(label="Registration Start Time", description="Set the registration start time", premium_only=False),
-    EditOption(label="Match Start Time", description="Set the match start time (Actual Game of BGMI, FF, etc)", premium_only=False),
-    EditOption(label="Registration Start Ping Role", description="Set the role to ping when registration starts", premium_only=False),
-    EditOption(label="Registration Open Role", description="Set the role to ping when registration opens", premium_only=False),
-    EditOption(label="Allow Multiple Registrations", description="Allow users to register multiple times", premium_only=False),
-    EditOption(label="Allow Without Teamname", description="Allow users to register without a teamname", premium_only=False),
-    EditOption(label="Registration Open Days", description="Set the days when registration is open", premium_only=False),
-    EditOption(label="Required Lines", description="Set the number of lines required in registration", premium_only=True),
-    EditOption(label="Allow Duplicate Mentions", description="Allow duplicate mentions in registration", premium_only=True),
-    EditOption(label="Allow Duplicate Teamname", description="Allow duplicate teamnames in registration", premium_only=True),
-    EditOption(label="Auto-Delete Extra Messages", description="Auto-delete extra messages in registration", premium_only=True),
-    EditOption(label="Auto-Delete Rejected Registrations", description="Auto-delete rejected registrations", premium_only=True),
-    EditOption(label="Registration End Ping Role", description="Set the role to ping when registration ends", premium_only=True),
-    EditOption(label="Channel Autoclean Time", description="Set the time to autoclean the channel", premium_only=True),
-    EditOption(label="Registration Auto-End Time", description="Set the time to auto-end registration", premium_only=True),
-    EditOption(label="Share IDP With", description="Set the type of IDP sharing", premium_only=True),
-    EditOption(label="Slotlist Start From", description="Set the first slot number of slotlist", premium_only=True),
-    EditOption(label="Auto-Send Slotlist", description="Auto send the slotlist after reg ends.", premium_only=True),
-]
+from . import ScrimsView
+from .utility.callbacks import EDIT_OPTIONS
+from .utility.paginator import NextScrim, PreviousScrim, SkipToScrim
 
 
 class ScrimsEditSelect(discord.ui.Select):
-    def __init__(self, scrim: Scrim, free_options_only: bool = True, disabled: bool = False):
+    def __init__(self, free_options_only: bool = True, disabled: bool = False):
 
         options = []
         if free_options_only:
@@ -51,7 +21,7 @@ class ScrimsEditSelect(discord.ui.Select):
                     emoji="🆓",
                 )
                 for option in EDIT_OPTIONS
-                if not option.premium_only
+                if not option.premium_guild_only
             ]
         else:
             options = [
@@ -61,7 +31,7 @@ class ScrimsEditSelect(discord.ui.Select):
                     emoji=DIAMOND,
                 )
                 for option in EDIT_OPTIONS
-                if option.premium_only
+                if option.premium_guild_only
             ]
 
         super().__init__(
@@ -69,10 +39,10 @@ class ScrimsEditSelect(discord.ui.Select):
             options=options,
             disabled=disabled,
         )
-        self.scrim = scrim
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        handler = next(option.handler for option in EDIT_OPTIONS if option.label == self.values[0])
+        await handler(self, interaction)
 
 
 class ScrimsEditPanel(ScrimsView):
@@ -81,8 +51,11 @@ class ScrimsEditPanel(ScrimsView):
         self.ctx = ctx
         self.record = scrim
 
-        self.add_item(ScrimsEditSelect(scrim=scrim, free_options_only=True))
-        self.add_item(ScrimsEditSelect(scrim=scrim, free_options_only=False, disabled=not guild.is_premium))
+        self.add_item(PreviousScrim(ctx))
+        self.add_item(SkipToScrim(ctx))
+        self.add_item(NextScrim(ctx))
+        self.add_item(ScrimsEditSelect(free_options_only=True))
+        self.add_item(ScrimsEditSelect(free_options_only=False, disabled=not guild.is_premium))
 
     async def initial_msg(self):
         embed = discord.Embed(
@@ -114,6 +87,7 @@ class ScrimsEditPanel(ScrimsView):
             f"Share IDP with {DIAMOND}": f"`{s.idp_share_type.name.replace('_', ' ').title()}`",
             f"Slotlist Start From {DIAMOND}": f"`{s.slotlist_start_from}`",
             f"Auto-Send Slotlist {DIAMOND}": ("`No`", "`Yes`")[s.autosend_slotlist],
+            f"Reactions {DIAMOND}": ", ".join(s.reactions),
         }
 
         for idx, (name, value) in enumerate(fields.items(), start=1):
@@ -126,3 +100,12 @@ class ScrimsEditPanel(ScrimsView):
         # embed.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
 
         return embed
+
+    async def refresh_view(self):
+        await self.record.save()
+        # TODO: add new timers for changed times.
+
+        try:
+            self.message = await self.message.edit(embed=await self.initial_msg(), view=self)
+        except discord.HTTPException:
+            await self.on_timeout()

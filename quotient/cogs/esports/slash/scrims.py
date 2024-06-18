@@ -15,7 +15,7 @@ from discord.ext import commands
 from lib import parse_natural_time
 from models import Guild, Scrim
 
-from ..views.scrims.main import ScrimsMainPanel
+from ..views.scrims.main_panel import ScrimsMainPanel
 
 __all__ = ("ScrimsSlash",)
 
