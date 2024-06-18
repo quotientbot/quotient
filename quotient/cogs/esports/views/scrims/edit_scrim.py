@@ -14,13 +14,14 @@ from .utility.paginator import NextScrim, PreviousScrim, SkipToScrim
 
 
 class ScrimsEditSelect(discord.ui.Select):
-    def __init__(self, free_options_only: bool = True, disabled: bool = False):
+    def __init__(self, ctx: commands.Context, free_options_only: bool = True, disabled: bool = False):
+        self.ctx = ctx
 
         options = []
         if free_options_only:
             options = [
                 discord.SelectOption(
-                    label=f"🆓 {option.label}",
+                    label=f"{option.label}",
                     description=option.description,
                     emoji=ri(ascii_uppercase[idx]),
                 )
@@ -39,7 +40,7 @@ class ScrimsEditSelect(discord.ui.Select):
             ]
 
         super().__init__(
-            placeholder="Please Select an option to edit" + ("(Premium Only)" if not free_options_only else ""),
+            placeholder="Please Select an option to edit" + (" (Premium Only)" if not free_options_only else ""),
             options=options,
             disabled=disabled,
         )
@@ -67,10 +68,10 @@ class ScrimsEditPanel(ScrimsView):
             self.add_item(SkipToScrim(self.ctx))
             self.add_item(NextScrim(self.ctx))
 
-        self.add_item(DiscardChanges(self.ctx, label="Main Menu", emoji="<:exit:926048897548300339>"))
+        self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji="<:exit:926048897548300339>"))
 
-        self.add_item(ScrimsEditSelect(free_options_only=True))
-        self.add_item(ScrimsEditSelect(free_options_only=False, disabled=not self.guild.is_premium))
+        self.add_item(ScrimsEditSelect(self.ctx, free_options_only=True))
+        self.add_item(ScrimsEditSelect(self.ctx, free_options_only=False, disabled=not self.guild.is_premium))
 
         embed = discord.Embed(
             title="Scrims Editor - Edit Settings",

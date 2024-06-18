@@ -3,7 +3,14 @@ from typing import NamedTuple
 
 import discord
 from cogs.premium import RequirePremiumView
-from lib import integer_input_modal, send_error_embed, text_input, time_input_modal
+from lib import (
+    guild_role_input,
+    integer_input_modal,
+    send_error_embed,
+    send_simple_embed,
+    text_input,
+    time_input_modal,
+)
 from models import Guild, IdpShareType
 
 from ...scrims import ScrimsBtn
@@ -91,11 +98,52 @@ async def edit_match_start_time(cls: discord.ui.Select | ScrimsBtn, inter: disco
 
 
 async def edit_reg_start_ping_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the registration start ping role button")
+    await inter.response.defer()
+
+    if cls.view.record.reg_start_ping_role_id:
+        cls.view.record.reg_start_ping_role_id = None
+        return await cls.view.refresh_view()
+
+    m = await send_simple_embed(inter.channel, "Please mention the role to ping when registration starts.")
+
+    role = await guild_role_input(
+        cls.ctx,
+        timeout=120,
+        delete_after=True,
+    )
+    await m.delete(delay=0)
+
+    if not role:
+        return
+
+    cls.view.record.reg_start_ping_role_id = role.id
+    await cls.view.refresh_view()
 
 
 async def edit_reg_open_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the registration open role button")
+    await inter.response.defer()
+
+    if cls.view.record.open_role_id:
+        cls.view.record.open_role_id = None
+        return await cls.view.refresh_view()
+
+    m = await send_simple_embed(
+        inter.channel,
+        "Please mention the role for which registration channel is opened. (Given send messages permissions when registration starts)",
+    )
+
+    role = await guild_role_input(
+        cls.ctx,
+        timeout=120,
+        delete_after=True,
+    )
+    await m.delete(delay=0)
+
+    if not role:
+        return
+
+    cls.view.record.open_role_id = role.id
+    await cls.view.refresh_view()
 
 
 async def edit_allow_multiple_registrations(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
@@ -176,7 +224,26 @@ async def edit_auto_delete_rejected_registrations(cls: discord.ui.Select | Scrim
 
 
 async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the registration end ping role button")
+    await inter.response.defer()
+
+    if cls.view.record.reg_end_ping_role_id:
+        cls.view.record.reg_end_ping_role_id = None
+        return await cls.view.refresh_view()
+
+    m = await send_simple_embed(inter.channel, "Please mention the role to ping when registration ends.")
+
+    role = await guild_role_input(
+        cls.ctx,
+        timeout=120,
+        delete_after=True,
+    )
+    await m.delete(delay=0)
+
+    if not role:
+        return
+
+    cls.view.record.reg_end_ping_role_id = role.id
+    await cls.view.refresh_view()
 
 
 async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):

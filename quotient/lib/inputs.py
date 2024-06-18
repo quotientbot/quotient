@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 
 import discord
-from discord.ext.commands import Context, TextChannelConverter
+from discord.ext.commands import Context, RoleConverter, TextChannelConverter
 
 from .time import convert_to_seconds, parse_natural_time
 
@@ -46,8 +46,7 @@ async def text_channel_input(
 
         if not all((perms.read_messages, perms.send_messages, perms.embed_links)):
             raise InputError(
-                f"Please make sure I have the following perms in {channel.mention}:\n"
-                "`read_messages`,`send_messages`,`embed_links`."
+                f"Please make sure I have the following perms in {channel.mention}:\n" "`read_messages`,`send_messages`,`embed_links`."
             )
 
         if check_perms:
@@ -69,6 +68,22 @@ async def text_channel_input(
             await message.delete(delay=0)
 
         return channel
+
+
+async def guild_role_input(ctx: Context, check=None, timeout=120, delete_after=False) -> discord.Role:
+    check = check or (lambda m: m.channel == ctx.channel and m.author == ctx.author)
+    try:
+        message: discord.Message = await ctx.bot.wait_for("message", check=check, timeout=timeout)
+    except asyncio.TimeoutError:
+        raise InputError("You failed to select a role in time. Try again!")
+
+    else:
+        role = await RoleConverter().convert(ctx, message.content)
+
+        if delete_after:
+            await message.delete(delay=0)
+
+        return role
 
 
 async def simple_time_input(ctx: Context, timeout=120, delete_after=False) -> int:
@@ -131,9 +146,7 @@ async def time_input_modal(
 
     v = InputModal(title=title, timeout=120)
     v.add_item(
-        discord.ui.TextInput(
-            label=label, max_length=8, min_length=3, default=default, placeholder="Ex: 10AM, 10:14PM, 22:00, etc"
-        )
+        discord.ui.TextInput(label=label, max_length=8, min_length=3, default=default, placeholder="Ex: 10AM, 10:14PM, 22:00, etc")
     )
 
     await inter.response.send_modal(v)

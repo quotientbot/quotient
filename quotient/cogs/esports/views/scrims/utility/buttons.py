@@ -29,6 +29,9 @@ class SetRegChannel(ScrimsBtn):
         channel = await text_channel_input(self.ctx, delete_after=True)
         await m.delete(delay=0)
 
+        if not channel:
+            return
+
         if await Scrim.filter(registration_channel_id=channel.id).exists():
             return await send_error_embed(interaction.channel, "That channel is already in use for another scrim.", 5)
 

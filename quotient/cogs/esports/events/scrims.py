@@ -119,7 +119,7 @@ class ScrimsEvents(commands.Cog):
         if not scrim.scrim_status or not get_today_day() in scrim.registration_open_days:
             return
 
-        if scrim.started_at and scrim.started_at.strftime("%d-%b-%Y %I:%M %p") == self.bot.current_time.strftime(
+        if scrim.reg_started_at and scrim.reg_started_at.strftime("%d-%b-%Y %I:%M %p") == self.bot.current_time.strftime(
             "%d-%b-%Y %I:%M %p"
         ):
             return

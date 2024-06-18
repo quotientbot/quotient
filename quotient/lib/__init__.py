@@ -1,5 +1,6 @@
 from .emojis import *
 from .inputs import (
+    guild_role_input,
     integer_input_modal,
     simple_time_input,
     text_channel_input,
