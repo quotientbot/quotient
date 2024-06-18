@@ -15,6 +15,12 @@ services:
     volumes:
       - ./logs/quotient.log:/logs/quotient.log
 
+    develop:
+      watch:
+        - action: rebuild
+          path: ./quotient
+
+
 
   pro:
     build:
@@ -28,3 +34,8 @@ services:
     
     volumes:
       - ./logs/pro.log:/logs/pro.log
+
+    develop:
+      watch:
+        - action: rebuild
+          path: ./quotient
