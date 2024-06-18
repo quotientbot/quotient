@@ -78,8 +78,8 @@ class SetReactions(ScrimsBtn):
 
 
 class DiscardChanges(ScrimsBtn):
-    def __init__(self, ctx: commands.Context, label="Back", row: int = None):
-        super().__init__(ctx=ctx, style=discord.ButtonStyle.red, label=label, row=row)
+    def __init__(self, ctx: commands.Context, label="Back", row: int = None, **kwargs):
+        super().__init__(ctx=ctx, style=discord.ButtonStyle.red, label=label, row=row, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()

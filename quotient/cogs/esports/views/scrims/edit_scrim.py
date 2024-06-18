@@ -1,10 +1,14 @@
+from string import ascii_uppercase
+
 import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
-from lib import DIAMOND
+from lib import DIAMOND, INFO
+from lib import regional_indicator as ri
 from models import Guild, Scrim
 
 from . import ScrimsView
+from .utility.buttons import DiscardChanges
 from .utility.callbacks import EDIT_OPTIONS
 from .utility.paginator import NextScrim, PreviousScrim, SkipToScrim
 
@@ -16,17 +20,17 @@ class ScrimsEditSelect(discord.ui.Select):
         if free_options_only:
             options = [
                 discord.SelectOption(
-                    label=option.label,
+                    label=f"🆓 {option.label}",
                     description=option.description,
-                    emoji="🆓",
+                    emoji=ri(ascii_uppercase[idx]),
                 )
-                for option in EDIT_OPTIONS
+                for idx, option in enumerate(EDIT_OPTIONS)
                 if not option.premium_guild_only
             ]
         else:
             options = [
                 discord.SelectOption(
-                    label=option.label,
+                    label=f"{option.label}",
                     description=option.description,
                     emoji=DIAMOND,
                 )
@@ -50,14 +54,24 @@ class ScrimsEditPanel(ScrimsView):
         super().__init__(ctx=ctx, timeout=100)
         self.ctx = ctx
         self.record = scrim
-
-        self.add_item(PreviousScrim(ctx))
-        self.add_item(SkipToScrim(ctx))
-        self.add_item(NextScrim(ctx))
-        self.add_item(ScrimsEditSelect(free_options_only=True))
-        self.add_item(ScrimsEditSelect(free_options_only=False, disabled=not guild.is_premium))
+        self.guild = guild
 
     async def initial_msg(self):
+        scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("reg_start_time")
+        scrim_position = [scrim.pk for scrim in scrims].index(self.record.pk) + 1
+
+        self.clear_items()
+
+        if len(scrims) > 1:
+            self.add_item(PreviousScrim(self.ctx))
+            self.add_item(SkipToScrim(self.ctx))
+            self.add_item(NextScrim(self.ctx))
+
+        self.add_item(DiscardChanges(self.ctx, label="Main Menu", emoji="<:exit:926048897548300339>"))
+
+        self.add_item(ScrimsEditSelect(free_options_only=True))
+        self.add_item(ScrimsEditSelect(free_options_only=False, disabled=not self.guild.is_premium))
+
         embed = discord.Embed(
             title="Scrims Editor - Edit Settings",
             color=self.bot.color,
@@ -76,7 +90,7 @@ class ScrimsEditPanel(ScrimsView):
             "Multiple Reg": ("`Not Allowed`", "`Allowed`")[s.allow_multiple_registrations],
             "Reg Without Teamname": ("`Not Allowed`", "`Allowed`")[s.allow_without_teamname],
             "Reg Open Days": f"`{s.pretty_registration_days}`",
-            f"Required Lines {DIAMOND}": ("`Not Set`", f"`{s.required_lines}`")[bool(s.required_lines)],
+            f"Min Req Lines {DIAMOND}": ("`Not Set`", f"`{s.required_lines}`")[bool(s.required_lines)],
             f"Fake Mentions {DIAMOND}": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_mentions],
             f"Duplicate Teamname {DIAMOND}": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_teamname],
             f"Delete Extra Msgs {DIAMOND}": ("`No`", "`Yes`")[s.autodelete_extra_msges],
@@ -90,14 +104,14 @@ class ScrimsEditPanel(ScrimsView):
             f"Reactions {DIAMOND}": ", ".join(s.reactions),
         }
 
-        for idx, (name, value) in enumerate(fields.items(), start=1):
+        for idx, (name, value) in enumerate(fields.items()):
             embed.add_field(
-                name=f"{name}:",
+                name=f"{ri(ascii_uppercase[idx])} {name}:",
                 value=value,
             )
 
-        embed.add_field(name="\u200b", value="\u200b")  # invisible field
-        # embed.set_footer(text=f"Page - {' / '.join(await self.record.scrim_posi())}")
+        # embed.add_field(name="\u200b", value="\u200b")  # invisible field
+        embed.set_footer(text=f"Page - {scrim_position} / {len(scrims)}")
 
         return embed
 

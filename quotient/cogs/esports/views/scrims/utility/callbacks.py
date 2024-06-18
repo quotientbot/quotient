@@ -4,7 +4,7 @@ from typing import NamedTuple
 import discord
 from cogs.premium import RequirePremiumView
 from lib import integer_input_modal, send_error_embed, text_input, time_input_modal
-from models import Guild
+from models import Guild, IdpShareType
 
 from ...scrims import ScrimsBtn
 from .selectors import WeekDaysSelector
@@ -71,7 +71,23 @@ async def edit_reg_start_time(cls: discord.ui.Select | ScrimsBtn, inter: discord
 
 
 async def edit_match_start_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the match start time button")
+    match_start_time = await time_input_modal(
+        inter,
+        title="Match Start Time (IST - UTC+5:30)",
+        label="Time the actual game starts (BGMI, FF, etc)",
+        default=cls.view.record.match_start_time.strftime("%I:%M%p") if cls.view.record.match_start_time else None,
+    )
+
+    if match_start_time is None:
+        return await send_error_embed(
+            inter.channel,
+            "You failed to enter match start time in valid format! Take a look at the examples below:",
+            delete_after=5,
+            image_url="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
+        )
+
+    cls.view.record.match_start_time = match_start_time
+    await cls.view.refresh_view()
 
 
 async def edit_reg_start_ping_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
@@ -83,11 +99,17 @@ async def edit_reg_open_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.
 
 
 async def edit_allow_multiple_registrations(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the allow multiple registrations button")
+    await inter.response.defer()
+
+    cls.view.record.allow_multiple_registrations = not cls.view.record.allow_multiple_registrations
+    await cls.view.refresh_view()
 
 
 async def edit_allow_without_teamname(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the allow without teamname button")
+    await inter.response.defer()
+
+    cls.view.record.allow_without_teamname = not cls.view.record.allow_without_teamname
+    await cls.view.refresh_view()
 
 
 async def edit_registration_open_days(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
@@ -103,23 +125,54 @@ async def edit_registration_open_days(cls: discord.ui.Select | ScrimsBtn, inter:
 
 
 async def edit_required_lines(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the required lines button")
+    if cls.view.record.required_lines:
+        cls.view.record.required_lines = 0
+        return await cls.view.refresh_view()
+
+    required_lines = await integer_input_modal(
+        inter,
+        title="Useful to ignore incomplete info in Reg Msg",
+        label="Atleast how many lines are req in reg msg?",
+        placeholder="Enter a number in range 0-10",
+        default=cls.view.record.required_lines,
+    )
+
+    if required_lines is None:
+        return await send_error_embed(inter.channel, "You failed to enter a valid number! Please try again.", 5)
+
+    if not 0 <= required_lines <= 10:
+        return await send_error_embed(inter.channel, "Min Required Lines must be in range 0-10.", 5)
+
+    cls.view.record.required_lines = required_lines
+    await cls.view.refresh_view()
 
 
 async def edit_allow_duplicate_mentions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the allow duplicate mentions button")
+    await inter.response.defer()
+
+    cls.view.record.allow_duplicate_mentions = not cls.view.record.allow_duplicate_mentions
+    await cls.view.refresh_view()
 
 
 async def edit_allow_duplicate_teamname(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the allow duplicate teamname button")
+    await inter.response.defer()
+
+    cls.view.record.allow_duplicate_teamname = not cls.view.record.allow_duplicate_teamname
+    await cls.view.refresh_view()
 
 
 async def edit_auto_delete_extra_messages(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the auto delete extra messages button")
+    await inter.response.defer()
+
+    cls.view.record.autodelete_extra_msges = not cls.view.record.autodelete_extra_msges
+    await cls.view.refresh_view()
 
 
 async def edit_auto_delete_rejected_registrations(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the auto delete rejected registrations button")
+    await inter.response.defer()
+
+    cls.view.record.autodelete_rejected_registrations = not cls.view.record.autodelete_rejected_registrations
+    await cls.view.refresh_view()
 
 
 async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
@@ -127,23 +180,83 @@ async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, in
 
 
 async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the channel autoclean time button")
+    channel_autoclean_time = await time_input_modal(
+        inter,
+        title="Channel Autoclean Time (IST - UTC+5:30)",
+        label="Time when reg channel should be cleaned?",
+        default=cls.view.record.autoclean_channel_time.strftime("%I:%M%p") if cls.view.record.autoclean_channel_time else None,
+    )
+
+    if channel_autoclean_time is None:
+        return await send_error_embed(
+            inter.channel,
+            "You failed to enter channel autoclean time in valid format! Take a look at the examples below:",
+            delete_after=5,
+            image_url="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
+        )
+
+    cls.view.record.autoclean_channel_time = channel_autoclean_time
+    await cls.view.refresh_view()
 
 
 async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the registration auto end time button")
+    registration_auto_end_time = await time_input_modal(
+        inter,
+        title="Registration Auto-End Time (IST - UTC+5:30)",
+        label="Time reg should be auto-ended if not already?",
+        default=cls.view.record.registration_auto_end_time.strftime("%I:%M%p") if cls.view.record.registration_auto_end_time else None,
+    )
+
+    if registration_auto_end_time is None:
+        return await send_error_embed(
+            inter.channel,
+            "You failed to enter registration auto-end time in valid format! Take a look at the examples below:",
+            delete_after=5,
+            image_url="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
+        )
+
+    cls.view.record.registration_auto_end_time = registration_auto_end_time
+    await cls.view.refresh_view()
 
 
 async def edit_share_idp_with(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the share IDP with button")
+    await inter.response.defer()
+
+    if cls.view.record.idp_share_type == IdpShareType.LEADER_ONLY:
+        cls.view.record.idp_share_type = IdpShareType.ALL_TEAM_MEMBERS
+
+    else:
+        cls.view.record.idp_share_type = IdpShareType.LEADER_ONLY
+
+    await cls.view.refresh_view()
 
 
 async def edit_slotlist_start_from(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the slotlist start from button")
+    slotlist_start_from = await integer_input_modal(
+        inter,
+        title="Slotlist Should Start From?",
+        label="Enter the first slot number of slotlist.",
+        placeholder=f"Enter a num in range 1-{cls.view.record.total_slots}",
+        default=cls.view.record.slotlist_start_from,
+    )
+
+    if slotlist_start_from is None:
+        return await send_error_embed(inter.channel, "You failed to enter a valid number! Please try again.", 5)
+
+    if not 1 <= slotlist_start_from <= 30:
+        return await send_error_embed(
+            inter.channel, f"'Slotlist Start From' must be in range 1-{cls.view.record.slotlist_start_from}.", 5
+        )
+
+    cls.view.record.slotlist_start_from = slotlist_start_from
+    await cls.view.refresh_view()
 
 
 async def edit_auto_send_slotlist(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    await inter.response.send_message("You clicked the auto send slotlist button")
+    await inter.response.defer()
+
+    cls.view.record.autosend_slotlist = not cls.view.record.autosend_slotlist
+    await cls.view.refresh_view()
 
 
 async def edit_reactions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):

@@ -12,9 +12,10 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord import app_commands
 from discord.ext import commands
-from lib import parse_natural_time
+from lib import INFO, parse_natural_time
 from models import Guild, Scrim
 
+from ..views.scrims.edit_scrim import ScrimsEditPanel
 from ..views.scrims.main_panel import ScrimsMainPanel
 
 __all__ = ("ScrimsSlash",)
@@ -49,6 +50,14 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         ctx = await self.bot.get_context(inter)
         v = ScrimsMainPanel(ctx)
+        v.add_item(
+            discord.ui.Button(
+                label="Contact Support",
+                style=discord.ButtonStyle.link,
+                url=self.bot.config("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
         v.message = await inter.followup.send(embed=await v.initial_msg(), view=v)
 
     @app_commands.command(name="create", description="Create a new scrim.")
@@ -91,9 +100,7 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         if await Scrim.exists(registration_channel_id=registration_channel.id):
             return await inter.followup.send(
-                embed=self.bot.error_embed(
-                    f"A scrim already exists in {registration_channel.mention}, please use another channel."
-                ),
+                embed=self.bot.error_embed(f"A scrim already exists in {registration_channel.mention}, please use another channel."),
                 view=self.bot.contact_support_view(),
             )
 
@@ -107,9 +114,9 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
                 )
             )
 
-        autoclean_time = self.bot.current_time.replace(
-            hour=randint(3, 7), minute=randint(1, 59), second=0, microsecond=0
-        ) + timedelta(days=1)
+        autoclean_time = self.bot.current_time.replace(hour=randint(3, 7), minute=randint(1, 59), second=0, microsecond=0) + timedelta(
+            days=1
+        )
 
         scrim = Scrim(
             guild=guild,
@@ -146,6 +153,25 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
         e.set_footer(text=f"Get more info, using `{self.bot.default_prefix} s` command.")
 
         await inter.followup.send(embed=e)
+
+    @app_commands.command(name="edit", description="Edit a scrims settings.")
+    @app_commands.guild_only()
+    @app_commands.describe(registration_channel="Registration Channel of the scrim you want to edit.")
+    @app_commands.rename(registration_channel="registration-channel")
+    @can_use_scrims_command()
+    async def edit_scrim(self, inter: discord.Interaction, registration_channel: discord.TextChannel):
+        await inter.response.defer(thinking=True, ephemeral=False)
+
+        record = await Scrim.get_or_none(registration_channel_id=registration_channel.id)
+        if not record:
+            return await inter.followup.send(
+                embed=self.bot.error_embed("No Scrim found in the {0}.".format(registration_channel.mention)),
+                view=self.bot.contact_support_view(),
+            )
+
+        ctx = await self.bot.get_context(inter)
+        v = ScrimsEditPanel(ctx, scrim=record, guild=await Guild.get(pk=inter.guild_id))
+        v.message = await inter.followup.send(embed=await v.initial_msg(), view=v)
 
     @app_commands.command(name="delete", description="Delete a scrim.")
     @app_commands.guild_only()

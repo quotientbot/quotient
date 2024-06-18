@@ -60,7 +60,7 @@ class ScrimsMainPanel(ScrimsView):
         v = CreateScrimView(self.ctx)
         v.message = await self.message.edit(content="", embed=v.initial_msg(), view=v)
 
-    @discord.ui.button(label="Edit Settings", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Edit Settings", style=discord.ButtonStyle.blurple)
     async def edit_scrim_settings(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
 
