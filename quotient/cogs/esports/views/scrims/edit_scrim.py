@@ -10,6 +10,7 @@ from models import Guild, Scrim
 from . import ScrimsView
 from .utility.buttons import DiscardChanges
 from .utility.callbacks import EDIT_OPTIONS
+from .utility.common import get_scrim_position
 from .utility.paginator import NextScrim, PreviousScrim, SkipToScrim
 
 
@@ -59,8 +60,6 @@ class ScrimsEditPanel(ScrimsView):
 
     async def initial_msg(self):
         scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("reg_start_time")
-        scrim_position = [scrim.pk for scrim in scrims].index(self.record.pk) + 1
-
         self.clear_items()
 
         if len(scrims) > 1:
@@ -112,7 +111,7 @@ class ScrimsEditPanel(ScrimsView):
             )
 
         # embed.add_field(name="\u200b", value="\u200b")  # invisible field
-        embed.set_footer(text=f"Page - {scrim_position} / {len(scrims)}")
+        embed.set_footer(text=f"Page - {' / '.join(await get_scrim_position(self.record.pk, self.ctx.guild.id))}")
 
         return embed
 

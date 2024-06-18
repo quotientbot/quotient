@@ -7,6 +7,7 @@ from models import Guild, Scrim
 from . import ScrimsView
 from .create_scrim import CreateScrimView
 from .edit_scrim import ScrimsEditPanel
+from .instant_toggle import InstantToggleView
 from .utility.selectors import prompt_scrims_selector
 
 
@@ -82,7 +83,22 @@ class ScrimsMainPanel(ScrimsView):
 
     @discord.ui.button(label="Instant Start/Stop Reg", style=discord.ButtonStyle.secondary)
     async def instant_start_stop_reg(self, inter: discord.Interaction, btn: discord.ui.Button):
-        pass
+        await inter.response.defer()
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id),
+            placeholder="Select a scrim to start/stop registration ...",
+            single_scrim_only=True,
+        )
+
+        if not scrims:
+            return
+
+        self.stop()
+        v = InstantToggleView(self.ctx, scrims[0])
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
     @discord.ui.button(label="Manage Slot Reservations", style=discord.ButtonStyle.secondary)
     async def manage_slot_reservations(self, inter: discord.Interaction, btn: discord.ui.Button):
