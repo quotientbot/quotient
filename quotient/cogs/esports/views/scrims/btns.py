@@ -16,7 +16,7 @@ from lib import (
 from models import Guild, Scrim
 
 from ..scrims import ScrimsBtn
-from .selectors import WeekDaysSelector
+from .utility.selectors import WeekDaysSelector
 
 
 class SetRegChannel(ScrimsBtn):

@@ -47,7 +47,7 @@ class Scrim(BaseDbModel):
     autodelete_extra_msges = fields.BooleanField(default=False)
     allow_without_teamname = fields.BooleanField(default=False)
     allow_duplicate_teamname = fields.BooleanField(default=True)  # whether same team name can be used multiple times
-    allow_duplicate_mentions = fields.BooleanField(default=False)  # whether same user can be mentioned in multiple regs
+    allow_duplicate_mentions = fields.BooleanField(default=True)  # whether same user can be mentioned in multiple regs
 
     registration_time_elapsed = fields.SmallIntField(default=0)  # in seconds
 

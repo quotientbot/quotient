@@ -5,6 +5,8 @@ DIAMOND = "<a:diamond:899295009289949235>"  # Quotient Premium
 
 INFO = "<:info2:899020593188462693>"  # blue round i symbol
 
+TEXT_CHANNEL = "<:text:815827264679706624>"  # text channel symbol
+
 
 def regional_indicator(c: str) -> str:
     """Returns a regional indicator emoji given a character."""

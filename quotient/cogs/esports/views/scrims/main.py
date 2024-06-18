@@ -6,6 +6,8 @@ from models import Guild, Scrim
 
 from ..scrims import ScrimsView
 from .create_scrim import CreateScrimView
+from .edit import ScrimsEditPanel
+from .utility.selectors import prompt_scrims_selector
 
 
 class ScrimsMainPanel(ScrimsView):
@@ -13,9 +15,7 @@ class ScrimsMainPanel(ScrimsView):
         super().__init__(ctx, timeout=100)
 
     async def initial_msg(self) -> discord.Embed:
-        e = discord.Embed(
-            color=0x00FFB3, title="Quotient's Smart Scrims Manager", url=self.bot.config("SUPPORT_SERVER_LINK")
-        )
+        e = discord.Embed(color=0x00FFB3, title="Quotient's Smart Scrims Manager", url=self.bot.config("SUPPORT_SERVER_LINK"))
 
         scrims_to_show = []
         for idx, record in enumerate(await Scrim.filter(guild_id=self.ctx.guild.id).order_by("reg_start_time"), start=1):
@@ -62,7 +62,23 @@ class ScrimsMainPanel(ScrimsView):
 
     @discord.ui.button(label="Edit Settings", style=discord.ButtonStyle.secondary)
     async def edit_scrim_settings(self, inter: discord.Interaction, btn: discord.ui.Button):
-        pass
+        await inter.response.defer()
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id),
+            placeholder="Select a scrim to edit ...",
+            single_scrim_only=True,
+        )
+
+        if not scrims:
+            return
+
+        self.stop()
+
+        v = ScrimsEditPanel(self.ctx, scrims[0], await Guild.get(pk=inter.guild_id))
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
     @discord.ui.button(label="Instant Start/Stop Reg", style=discord.ButtonStyle.secondary)
     async def instant_start_stop_reg(self, inter: discord.Interaction, btn: discord.ui.Button):
