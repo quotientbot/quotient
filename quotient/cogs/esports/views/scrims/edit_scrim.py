@@ -3,7 +3,7 @@ from string import ascii_uppercase
 import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
-from lib import DIAMOND, INFO
+from lib import DIAMOND
 from lib import regional_indicator as ri
 from models import Guild, Scrim
 
@@ -118,7 +118,7 @@ class ScrimsEditPanel(ScrimsView):
 
     async def refresh_view(self):
         await self.record.save()
-        # TODO: add new timers for changed times.
+        await self.record.refresh_timers()
 
         try:
             self.message = await self.message.edit(embed=await self.initial_msg(), view=self)

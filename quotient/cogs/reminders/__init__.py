@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import typing as T
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import asyncpg
 import discord
@@ -27,13 +27,7 @@ class Reminders(commands.Cog):
         self._task.cancel()
 
     async def get_active_timer(self, *, days=7):
-        return (
-            await Timer.filter(
-                expires__lte=self.bot.current_time + timedelta(days=days)
-            )
-            .order_by("expires")
-            .first()
-        )
+        return await Timer.filter(expires__lte=self.bot.current_time + timedelta(days=days)).order_by("expires").first()
 
     async def wait_for_active_timers(self, *, days=7):
         timer = await self.get_active_timer(days=days)
@@ -50,9 +44,7 @@ class Reminders(commands.Cog):
         # delete the timer
         deleted = await Timer.filter(pk=timer.id, expires=timer.expires).delete()
 
-        if (
-            deleted == 0
-        ):  # Probably a task is already deleted or its expire time changed.
+        if deleted == 0:  # Probably a task is already deleted or its expire time changed.
             return
 
         # dispatch the event
@@ -83,8 +75,7 @@ class Reminders(commands.Cog):
         event_name = f"{timer.event}_timer_complete"
         self.bot.dispatch(event_name, timer)
 
-    async def create_timer(self, *args, **kwargs):
-        when, event, *args = args
+    async def create_timer(self, when: datetime, event: str, *args, **kwargs):
 
         try:
             now = kwargs.pop("created")

@@ -5,6 +5,7 @@ from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
+from ..others import Timer
 from .enums import Day, IdpShareType
 
 
@@ -154,6 +155,22 @@ class Scrim(BaseDbModel):
     def registration_close_embed(self):
         if len(self.close_msg_design) <= 1:
             return discord.Embed(color=self.bot.color, description="**Registration is now Closed!**")
+
+    async def refresh_timers(self):
+        """
+        Delete the timers and create new ones.
+        """
+
+        await Timer.filter(
+            extra={"args": [], "kwargs": {"scrim_id": self.id}},
+            event__in=["scrim_reg_start", "scrim_reg_end", "scrim_channel_autoclean"],
+        ).delete()
+
+        await self.bot.reminders.create_timer(self.reg_start_time, "scrim_reg_start", scrim_id=self.id)
+        if self.reg_auto_end_time:
+            await self.bot.reminders.create_timer(self.reg_auto_end_time, "scrim_reg_end", scrim_id=self.id)
+        if self.autoclean_channel_time:
+            await self.bot.reminders.create_timer(self.autoclean_channel_time, "scrim_channel_autoclean", scrim_id=self.id)
 
     async def start_registration(self):
 

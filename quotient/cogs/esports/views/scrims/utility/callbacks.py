@@ -247,6 +247,11 @@ async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, in
 
 
 async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
+    if cls.view.record.autoclean_channel_time:
+        await inter.response.defer()
+        cls.view.record.autoclean_channel_time = None
+        return await cls.view.refresh_view()
+
     channel_autoclean_time = await time_input_modal(
         inter,
         title="Channel Autoclean Time (IST - UTC+5:30)",
