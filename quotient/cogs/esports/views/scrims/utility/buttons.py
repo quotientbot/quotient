@@ -5,7 +5,7 @@ from random import randint
 import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
-from lib import send_error_embed, send_simple_embed, text_channel_input
+from lib import INFO, send_error_embed, send_simple_embed, text_channel_input
 from models import Guild, Scrim
 
 from .. import ScrimsBtn
@@ -90,7 +90,16 @@ class DiscardChanges(ScrimsBtn):
         from ..main_panel import ScrimsMainPanel
 
         self.view.stop()
+
         v = ScrimsMainPanel(self.ctx)
+        v.add_item(
+            discord.ui.Button(
+                label="Contact Support",
+                style=discord.ButtonStyle.link,
+                url=self.bot.config("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
         v.message = await self.view.message.edit(embed=await v.initial_msg(), view=v)
 
 
