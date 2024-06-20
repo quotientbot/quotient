@@ -3,6 +3,7 @@ from datetime import timedelta
 import discord
 from discord.ext import commands
 from lib import (
+    EXIT,
     INFO,
     TEXT_CHANNEL,
     convert_to_seconds,
@@ -40,7 +41,7 @@ class ScrimReservationsManager(ScrimsView):
             self.add_item(SkipToScrim(self.ctx, row=2))
             self.add_item(NextScrim(self.ctx, row=2))
 
-        self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji="<:exit:926048897548300339>", row=2))
+        self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji=EXIT, row=2))
 
         embed = discord.Embed(color=self.bot.color)
         embed.description = f"**{self.record}  -  Reserved Slots**\n\n"

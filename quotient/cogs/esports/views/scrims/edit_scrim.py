@@ -3,7 +3,7 @@ from string import ascii_uppercase
 import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
-from lib import DIAMOND
+from lib import DIAMOND, EXIT
 from lib import regional_indicator as ri
 from models import Guild, Scrim
 
@@ -67,7 +67,7 @@ class ScrimsEditPanel(ScrimsView):
             self.add_item(SkipToScrim(self.ctx))
             self.add_item(NextScrim(self.ctx))
 
-        self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji="<:exit:926048897548300339>"))
+        self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji=EXIT))
 
         self.add_item(ScrimsEditSelect(self.ctx, free_options_only=True))
         self.add_item(ScrimsEditSelect(self.ctx, free_options_only=False, disabled=not self.guild.is_premium))

@@ -5,6 +5,7 @@ from lib import CROSS, TICK, truncate_string
 from models import Guild, Scrim
 
 from . import ScrimsView
+from .ban_unban import ScrimBanManager
 from .create_scrim import CreateScrimView
 from .edit_scrim import ScrimsEditPanel
 from .instant_toggle import InstantToggleView
@@ -101,7 +102,7 @@ class ScrimsMainPanel(ScrimsView):
         v = InstantToggleView(self.ctx, scrims[0])
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
-    @discord.ui.button(label="Manage Slot Reservations", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Manage Slot Reservations", style=discord.ButtonStyle.green)
     async def manage_slot_reservations(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
 
@@ -120,9 +121,24 @@ class ScrimsMainPanel(ScrimsView):
         v = ScrimReservationsManager(self.ctx, scrims[0])
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
-    @discord.ui.button(label="Ban/Unban Teams", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Ban/Unban Teams", style=discord.ButtonStyle.primary)
     async def ban_unban_teams(self, inter: discord.Interaction, btn: discord.ui.Button):
-        pass
+        await inter.response.defer()
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id),
+            placeholder="Select a scrim to manage banned teams ...",
+            single_scrim_only=True,
+        )
+
+        if not scrims:
+            return
+
+        self.stop()
+        v = ScrimBanManager(self.ctx, scrims[0])
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
     @discord.ui.button(label="Change Designs", style=discord.ButtonStyle.secondary)
     async def change_designs(self, inter: discord.Interaction, btn: discord.ui.Button):

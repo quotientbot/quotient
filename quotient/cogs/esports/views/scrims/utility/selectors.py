@@ -29,7 +29,6 @@ class ScrimSelector(discord.ui.Select):
                 discord.SelectOption(
                     label="#" + getattr(scrim.registration_channel, "name", "Unknown-Channel"),  # type: ignore
                     value=scrim.id,
-                    emoji=TEXT_CHANNEL,
                 )
                 for scrim in scrims
             ],

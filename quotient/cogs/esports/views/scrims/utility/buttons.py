@@ -96,7 +96,7 @@ class DiscardChanges(ScrimsBtn):
             discord.ui.Button(
                 label="Contact Support",
                 style=discord.ButtonStyle.link,
-                url=self.bot.config("SUPPORT_SERVER_LINK"),
+                url=self.view.bot.config("SUPPORT_SERVER_LINK"),
                 emoji=INFO,
             )
         )
