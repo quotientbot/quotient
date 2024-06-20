@@ -150,4 +150,29 @@ class ScrimsMainPanel(ScrimsView):
 
     @discord.ui.button(label="Enable / Disable Scrims", style=discord.ButtonStyle.danger)
     async def enable_disable_scrims(self, inter: discord.Interaction, btn: discord.ui.Button):
-        pass
+        await inter.response.defer()
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id),
+            placeholder="Select scrims to enable/disable ...",
+            single_scrim_only=False,
+        )
+
+        if not scrims:
+            return
+        
+        self.stop()
+        for scrim in scrims:
+            scrim.scrim_status = not scrim.scrim_status
+            await scrim.save()
+
+        embed = discord.Embed(color=self.bot.color, description= "Successfully toggled the status of selected scrims.\n\n")
+        for scrim in scrims:
+            embed.description += f"- {("`Disabled`","`Enabled`")[scrim.scrim_status]}: {str(scrim)}\n"
+
+        await inter.followup.send(embed=embed, ephemeral=True)
+
+        v = ScrimsMainPanel(self.ctx)
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
