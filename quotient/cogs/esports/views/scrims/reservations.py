@@ -43,18 +43,30 @@ class ScrimReservationsManager(ScrimsView):
         self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji="<:exit:926048897548300339>", row=2))
 
         embed = discord.Embed(color=self.bot.color)
-        embed.description = f"**{self.record}  -  Reserved Slots**\n\n```\n"
+        embed.description = f"**{self.record}  -  Reserved Slots**\n\n"
 
-        for idx in range(self.record.slotlist_start_from, self.record.total_slots + self.record.slotlist_start_from):
-            team_name = next(
-                (f"{reserved_slot.team_name}" for reserved_slot in reserved_slots if reserved_slot.num == idx),
-                "❌",
+        if not reserved_slots:
+            embed.description += """```No Slots Reserved yet.```"""
+
+        for slot in reserved_slots:
+            embed.description += (
+                f"`Slot {slot.num:02}` - **{slot.team_name}** [{getattr(slot.leader, 'mention', '`No Leader`')}]: "
+                f"{discord.utils.format_dt(slot.reserved_till,'R') if slot.reserved_till else '`Lifetime`'}\n"
             )
 
-            embed.description += f"Slot {idx:02}  ->  {team_name}\n"
+        available_to_reserve = [
+            i
+            for i in range(self.record.slotlist_start_from, self.record.total_slots + self.record.slotlist_start_from)
+            if i not in [s.num for s in reserved_slots]
+        ]
 
-        embed.description += "```"
-        embed.set_footer(text=f"Page - {' / '.join(await get_scrim_position(self.record.pk, self.record.guild_id))}")
+        if available_to_reserve:
+            embed.description += f"\n\n**Available to Reserve**: `Slot {', '.join(map(str, available_to_reserve))}`"
+
+        embed.set_footer(
+            text=f"Page - {' / '.join(await get_scrim_position(self.record.pk, self.record.guild_id))}",
+            icon_url=self.ctx.author.display_avatar.url,
+        )
 
         return embed
 
@@ -134,7 +146,7 @@ class ReserveNewSlot(ScrimsBtn):
 
             await ScrimReservedSlot.create(
                 num=num,
-                user_id=owner_id,
+                leader_id=owner_id,
                 team_name=team_name,
                 scrim=self.view.record,
                 reserved_by=inter.user.id,
@@ -146,7 +158,7 @@ class ReserveNewSlot(ScrimsBtn):
                     expires,
                     "scrim_slot_reserve",
                     scrim_id=self.view.record.id,
-                    user_id=owner_id,
+                    leader_id=owner_id,
                     team_name=team_name,
                     num=num,
                 )
