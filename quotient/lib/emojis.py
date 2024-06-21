@@ -9,6 +9,8 @@ TEXT_CHANNEL = "<:text:815827264679706624>"  # text channel symbol
 
 EXIT = "<:exit:926048897548300339>"  # back , exit symbol
 
+PLANT = "<:plant:1253293916724264981>"
+
 # Paginator:
 
 PREVIOUS_PAGE = "<:left:878668491660623872>"
