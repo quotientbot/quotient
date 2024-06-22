@@ -8,6 +8,7 @@ if T.TYPE_CHECKING:
 import discord
 from core import Context
 from discord.ext import commands
+from lib import INFO
 from models import Scrim
 
 from .events import ScrimsEvents
@@ -30,6 +31,15 @@ class Esports(commands.Cog):
             )
 
         view = ScrimsMainPanel(ctx)
+        view.add_item(
+            discord.ui.Button(
+                label="Contact Support",
+                style=discord.ButtonStyle.link,
+                url=self.bot.config("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
+
         view.message = await ctx.send(embed=await view.initial_msg(), view=view)
 
 
