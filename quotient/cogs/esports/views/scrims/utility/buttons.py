@@ -154,4 +154,12 @@ class SaveScrim(ScrimsBtn):
         from ..main_panel import ScrimsMainPanel
 
         view = ScrimsMainPanel(self.ctx)
+        view.add_item(
+            discord.ui.Button(
+                label="Contact Support",
+                style=discord.ButtonStyle.link,
+                url=self.view.bot.config("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
         view.message = await self.view.message.edit(embed=await view.initial_msg(), view=view)

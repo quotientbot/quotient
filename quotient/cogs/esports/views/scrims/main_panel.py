@@ -37,8 +37,9 @@ class ScrimsMainPanel(ScrimsView):
         )
 
         if not scrims_to_show:
-            for _ in self.children[1:]:
-                _.disabled = True
+            for i, child in enumerate(self.children):
+                if i != 0 and i != len(self.children) - 1:
+                    child.disabled = True
 
         return e
 
