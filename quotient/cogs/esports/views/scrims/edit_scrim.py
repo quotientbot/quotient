@@ -1,10 +1,7 @@
-from string import ascii_uppercase
-
 import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
-from lib import DIAMOND, EXIT
-from lib import regional_indicator as ri
+from lib import DIAMOND, EXIT, F_WORD
 from models import Guild, Scrim
 
 from . import ScrimsView
@@ -24,9 +21,9 @@ class ScrimsEditSelect(discord.ui.Select):
                 discord.SelectOption(
                     label=f"{option.label}",
                     description=option.description,
-                    emoji=ri(ascii_uppercase[idx]),
+                    emoji="🆓",
                 )
-                for idx, option in enumerate(EDIT_OPTIONS)
+                for option in EDIT_OPTIONS
                 if not option.premium_guild_only
             ]
         else:
@@ -81,32 +78,32 @@ class ScrimsEditPanel(ScrimsView):
         s = self.record
 
         fields = {
-            "Req. Mentions": f"`{s.required_mentions}`",
-            "Total Slots": f"`{s.total_slots}`",
-            "Reg Start Time": fdt(s.reg_start_time, "t"),
-            "Match Start Time": fdt(s.match_start_time, "t") if s.match_start_time else "`Not Set`",
-            "Reg Start Ping Role": getattr(s.start_ping_role, "mention", "`Not Set`"),
-            "Reg Open Role": getattr(s.open_role, "mention", "`Not Set`"),
-            "Multiple Reg": ("`Not Allowed`", "`Allowed`")[s.allow_multiple_registrations],
-            "Reg Without Teamname": ("`Not Allowed`", "`Allowed`")[s.allow_without_teamname],
-            "Reg Open Days": f"`{s.pretty_registration_days}`",
-            f"Min Req Lines {DIAMOND}": ("`Not Set`", f"`{s.required_lines}`")[bool(s.required_lines)],
-            f"Fake Mentions {DIAMOND}": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_mentions],
-            f"Duplicate Teamname {DIAMOND}": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_teamname],
-            f"Delete Extra Msgs {DIAMOND}": ("`No`", "`Yes`")[s.autodelete_extra_msges],
-            f"Delete Rejected Regs {DIAMOND}": ("`No`", "`Yes`")[s.autodelete_rejected_registrations],
-            f"Reg End Ping Role {DIAMOND}": getattr(s.end_ping_role, "mention", "`Not Set`"),
-            f"Channel Autoclean time {DIAMOND}": fdt(self.record.autoclean_channel_time, "t"),
-            f"Reg Auto-end time {DIAMOND}": fdt(s.reg_auto_end_time, "t") if s.reg_auto_end_time else "`Not Set`",
-            f"Share IDP with {DIAMOND}": f"`{s.idp_share_type.name.replace('_', ' ').title()}`",
-            f"Slotlist Start From {DIAMOND}": f"`{s.slotlist_start_from}`",
-            f"Auto-Send Slotlist {DIAMOND}": ("`No`", "`Yes`")[s.autosend_slotlist],
-            f"Reactions {DIAMOND}": ", ".join(s.reactions),
+            f"{F_WORD}Req. Mentions": f"`{s.required_mentions}`",
+            f"{F_WORD}Total Slots": f"`{s.total_slots}`",
+            f"{F_WORD}Reg Start Time": fdt(s.reg_start_time, "t"),
+            f"{F_WORD}Match Start Time": fdt(s.match_start_time, "t") if s.match_start_time else "`Not Set`",
+            f"{F_WORD}Reg Start Ping Role": getattr(s.start_ping_role, "mention", "`Not Set`"),
+            f"{F_WORD}Reg Open Role": getattr(s.open_role, "mention", "`Not Set`"),
+            f"{F_WORD}Multiple Reg": ("`Not Allowed`", "`Allowed`")[s.allow_multiple_registrations],
+            f"{F_WORD}Reg Without Teamname": ("`Not Allowed`", "`Allowed`")[s.allow_without_teamname],
+            f"{F_WORD}Reg Open Days": f"`{s.pretty_registration_days}`",
+            f"{DIAMOND}Min Req Lines": ("`Not Set`", f"`{s.required_lines}`")[bool(s.required_lines)],
+            f"{DIAMOND}Fake Mentions": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_mentions],
+            f"{DIAMOND}Duplicate Teamname": ("`Not Allowed`", "`Allowed`")[s.allow_duplicate_teamname],
+            f"{DIAMOND}Delete Extra Msgs": ("`No`", "`Yes`")[s.autodelete_extra_msges],
+            f"{DIAMOND}Delete Rejected Regs": ("`No`", "`Yes`")[s.autodelete_rejected_registrations],
+            f"{DIAMOND}Reg End Ping Role": getattr(s.end_ping_role, "mention", "`Not Set`"),
+            f"{DIAMOND}Channel Autoclean time": fdt(self.record.autoclean_channel_time, "t"),
+            f"{DIAMOND}Reg Auto-end time": fdt(s.reg_auto_end_time, "t") if s.reg_auto_end_time else "`Not Set`",
+            f"{DIAMOND}Share IDP with": f"`{s.idp_share_type.name.replace('_', ' ').title()}`",
+            f"{DIAMOND}Slotlist Start From": f"`{s.slotlist_start_from}`",
+            f"{DIAMOND}Auto-Send Slotlist": ("`No`", "`Yes`")[s.autosend_slotlist],
+            f"{DIAMOND}Reactions": ", ".join(s.reactions),
         }
 
-        for idx, (name, value) in enumerate(fields.items()):
+        for name, value in fields.items():
             embed.add_field(
-                name=f"{ri(ascii_uppercase[idx])} {name}:",
+                name=f"{name}:",
                 value=value,
             )
 
