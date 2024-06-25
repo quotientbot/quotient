@@ -20,6 +20,7 @@ from models import Guild, create_user_if_not_exists
 
 from .cache import CacheManager
 from .ctx import Context
+from .views import PromptView
 
 __all__ = ("Quotient",)
 
@@ -224,6 +225,33 @@ class Quotient(commands.AutoShardedBot):
             description=CROSS + " | " + description,
             title=title,
         )
+
+    async def prompt(
+        self,
+        target: discord.TextChannel | discord.Interaction,
+        user: discord.Member,
+        msg: str,
+        msg_title: str = None,
+        ephemeral: bool = False,
+        confirm_btn_label: str = "Confirm",
+        cancel_btn_label: str = "Cancel",
+        delete_after: bool = True,
+    ):
+        embed = discord.Embed(title=msg_title, description=msg, color=self.color)
+        view = PromptView(user.id, confirm_btn_label=confirm_btn_label, cancel_btn_label=cancel_btn_label)
+
+        if isinstance(target, discord.TextChannel):
+            view.message = await target.send(embed=embed, view=view)
+
+        else:
+            view.message = await target.followup.send(embed=embed, view=view, ephemeral=ephemeral)
+
+        await view.wait()
+
+        if delete_after:
+            await view.message.delete(delay=0)
+
+        return view.value
 
     async def global_interaction_check(self, interaction: discord.Interaction):
         self.loop.create_task(create_user_if_not_exists(self.my_pool, interaction.user.id))

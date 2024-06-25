@@ -53,3 +53,61 @@ class QuoView(discord.ui.View):
             ephemeral=True,
         )
         return False
+
+
+class PromptView(discord.ui.View):
+    view: bool | None
+
+    def __init__(self, user_id: int, confirm_btn_label: str = "Confirm", cancel_btn_label: str = "Cancel"):
+        super().__init__(timeout=60.0)
+
+        self.user_id = user_id
+        self.value = None
+
+        self.add_item(ConfirmBtn(confirm_btn_label))
+        self.add_item(CancelBtn(cancel_btn_label))
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "Sorry, you can't use this interaction as it is not started by you.", ephemeral=True
+            )
+            return False
+        return True
+
+    async def on_timeout(self) -> None:
+        if not hasattr(self, "message"):
+            return
+
+        for b in self.children:
+            if isinstance(b, discord.ui.Button):
+                b.style, b.disabled = discord.ButtonStyle.grey, True
+
+        try:
+            await self.message.edit(view=self)
+        except discord.HTTPException:
+            pass
+
+
+class ConfirmBtn(discord.ui.Button):
+    view: PromptView
+
+    def __init__(self, label: str, **kwargs):
+        super().__init__(style=discord.ButtonStyle.green, label=label, **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.view.value = True
+        self.view.stop()
+
+
+class CancelBtn(discord.ui.Button):
+    view: PromptView
+
+    def __init__(self, label: str, **kwargs):
+        super().__init__(style=discord.ButtonStyle.red, label=label, **kwargs)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.view.value = False
+        self.view.stop()
