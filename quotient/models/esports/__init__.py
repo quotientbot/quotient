@@ -1,4 +1,4 @@
-from .enums import Day, IdpShareType
+from .enums import Day, IdpShareType, RegCloseMsgVar, RegOpenMsgVar, SlotlistMsgVar
 from .scrim import (
     Scrim,
     ScrimAssignedSlot,

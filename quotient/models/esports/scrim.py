@@ -7,6 +7,7 @@ from tortoise.contrib.postgres.fields import ArrayField
 
 from ..others import Timer
 from .enums import Day, IdpShareType
+from .utility import default_reg_close_msg, default_reg_open_msg
 
 
 class Scrim(BaseDbModel):
@@ -55,8 +56,8 @@ class Scrim(BaseDbModel):
     registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in Day]))
 
     slotlist_msg_design = fields.JSONField(default=dict)
-    open_msg_design = fields.JSONField(default=dict)
-    close_msg_design = fields.JSONField(default=dict)
+    open_msg_design = fields.JSONField(default=default_reg_open_msg().to_dict())
+    close_msg_design = fields.JSONField(default=default_reg_close_msg().to_dict())
 
     reactions = ArrayField("VARCHAR(50)", default=lambda: list(["✅", "❌"]))
     required_lines = fields.SmallIntField(default=0)
@@ -236,6 +237,28 @@ class Scrim(BaseDbModel):
             pass
 
         # TODO: send to logs channel
+
+    async def confirm_change_for_all_scrims(self, target: discord.Interaction, **kwargs):
+        """
+        Confirm if the current change should be applied to other scrims
+        """
+
+        scrims = await Scrim.filter(guild_id=self.guild_id, id__not=self.pk).order_by("reg_start_time")
+        if not scrims:
+            return
+
+        prompt = await self.bot.prompt(
+            target,
+            target.user,
+            "Do you want to apply this change to all scrims?",
+            ephemeral=True,
+        )
+
+        if not prompt:
+            return
+
+        await Scrim.filter(id__in=[scrim.pk for scrim in scrims]).update(**kwargs)
+        await target.followup.send(embed=self.bot.success_embed("Changes applied to all scrims.", title="Success"), ephemeral=True)
 
     async def setup_logs(self):
         _reason = "Created for scrims management."

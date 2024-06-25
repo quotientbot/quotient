@@ -14,7 +14,7 @@ class EmbedBuilder(QuoView):
         embed: discord.Embed = None,
         extra_items: list[discord.ui.Select | discord.ui.Button] = [],
     ):
-        super().__init__(ctx, timeout=100)
+        super().__init__(ctx, timeout=200)
 
         self.embed = embed or self.default_embed
         self.add_item(EmbedBuilderOptions(ctx))
