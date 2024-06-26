@@ -58,18 +58,13 @@ class AutopurgeView(QuoView):
         # Check if guild can create more ap channels
         if await AutoPurge.filter(guild_id=inter.guild_id).count() >= consts.AUTOPURGE_LIMIT:
             if not await self.bot.is_pro_guild(inter.guild_id):
-                v = views.RequirePremiumView(
-                    text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier."
-                )
+                v = views.RequirePremiumView(text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier.")
                 return await inter.followup.send(embed=v.premium_embed, view=v)
 
-        await inter.followup.send(embed=self.bot.simple_embed("Please mention the channel you want to set autopurge."))
         try:
-            channel = await text_channel_input(self.ctx, timeout=60, delete_after=True)
+            channel = await text_channel_input(inter, "Please mention the channel you want to set autopurge.")
         except asyncio.TimeoutError:
-            return await inter.followup.send(
-                embed=self.bot.error_embed("You failed to select a channel in time. Try again!")
-            )
+            return await inter.followup.send(embed=self.bot.error_embed("You failed to select a channel in time. Try again!"))
 
         if not channel.permissions_for(inter.user).manage_messages:
             return await inter.followup.send(
@@ -81,9 +76,7 @@ class AutopurgeView(QuoView):
             return await inter.followup.send(embed=self.bot.error_embed("This channel is already set for AutoPurge."))
 
         await inter.followup.send(
-            embed=self.bot.simple_embed(
-                "Please input the time for the message to be deleted.\n\n```Example: 10s, 10m, 10h, etc.```"
-            ),
+            embed=self.bot.simple_embed("Please input the time for the message to be deleted.\n\n```Example: 10s, 10m, 10h, etc.```"),
             ephemeral=True,
         )
         try:
@@ -100,9 +93,7 @@ class AutopurgeView(QuoView):
         # Check if guild can create more ap channels
         if await AutoPurge.filter(guild_id=inter.guild_id).count() >= consts.AUTOPURGE_LIMIT:
             if not await self.bot.is_premium(inter.guild_id):
-                v = views.RequirePremiumView(
-                    text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier."
-                )
+                v = views.RequirePremiumView(text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier.")
                 return await inter.followup.send(embed=v.premium_embed, view=v, ephemeral=True)
 
         await AutoPurge.create(guild_id=inter.guild_id, channel_id=channel.id, delete_after=time_in_seconds)
@@ -125,7 +116,7 @@ class AutopurgeView(QuoView):
             ephemeral=True,
         )
         try:
-            channel = await text_channel_input(self.ctx, timeout=60, delete_after=True, check_perms=False)
+            channel = await text_channel_input(inter, "Please mention the channel you want to remove from AutoPurge.")
         except asyncio.TimeoutError:
             return await inter.followup.send(
                 embed=self.bot.error_embed("You failed to select a channel in time. Try again!"),

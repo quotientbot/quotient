@@ -8,7 +8,7 @@ from .inputs import (
     text_input,
     time_input_modal,
 )
-from .msgs import send_error_embed, send_simple_embed, truncate_string
+from .msgs import plural, send_error_embed, send_simple_embed, truncate_string
 from .random import random_greeting_msg, random_thanks_image
 from .regex import find_team_name
 from .scrims import (
