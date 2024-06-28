@@ -5,7 +5,7 @@ from random import randint
 import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
-from lib import INFO, send_error_embed, send_simple_embed, text_channel_input
+from lib import INFO, send_error_embed, text_channel_input
 from models import Guild, Scrim
 
 from .. import ScrimsBtn
@@ -25,9 +25,7 @@ class SetRegChannel(ScrimsBtn):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        m = await send_simple_embed(interaction.channel, "Please mention the channel you want to set as the registration channel.")
-        channel = await text_channel_input(self.ctx, delete_after=True)
-        await m.delete(delay=0)
+        channel = await text_channel_input(interaction, "Please mention the channel you want to set as the registration channel.")
 
         if not channel:
             return

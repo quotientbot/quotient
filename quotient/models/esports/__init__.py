@@ -2,7 +2,8 @@ from .enums import Day, IdpShareType, RegCloseMsgVar, RegOpenMsgVar, SlotlistMsg
 from .scrim import (
     Scrim,
     ScrimAssignedSlot,
-    ScrimBannedTeam,
     ScrimReservedSlot,
+    ScrimsBanLog,
+    ScrimsBannedUser,
     ScrimSlotReminder,
 )

@@ -1,6 +1,7 @@
 import asyncio
 
 import discord
+from lib import plural
 from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
@@ -66,7 +67,6 @@ class Scrim(BaseDbModel):
     slot_reminders: fields.ReverseRelation["ScrimSlotReminder"]
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
-    banned_teams: fields.ReverseRelation["ScrimBannedTeam"]
 
     def __str__(self):
         return f"{getattr(self.registration_channel,'mention','deleted-channel')} (ID: {self.id})"
@@ -134,7 +134,6 @@ class Scrim(BaseDbModel):
     async def full_delete(self):
         await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
         await ScrimReservedSlot.filter(scrim_id=self.id).delete()
-        await ScrimBannedTeam.filter(scrim_id=self.id).delete()
         await ScrimSlotReminder.filter(scrim_id=self.id).delete()
         await self.delete()
 
@@ -346,13 +345,70 @@ class ScrimReservedSlot(BaseScrimSlot):
     scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="reserved_slots")
 
 
-class ScrimBannedTeam(BaseScrimSlot):
+class ScrimsBannedUser(BaseDbModel):
     class Meta:
-        table = "scrims_banned_teams"
+        table = "scrims_banned_users"
+
+    id = fields.IntField(primary_key=True)
+    user_id = fields.BigIntField()
+    guild_id = fields.BigIntField()
 
     reason = fields.CharField(max_length=200, null=True)
     banned_at = fields.DatetimeField(auto_now=True)
     banned_till = fields.DatetimeField(null=True)
     banned_by = fields.BigIntField()
 
-    scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="banned_teams")
+    @property
+    def user(self):
+        return self.bot.get_user(self.user_id)
+
+
+class ScrimsBanLog(BaseDbModel):
+    class Meta:
+        table = "scrims_ban_logs"
+
+    guild_id = fields.BigIntField(primary_key=True, generated=False)
+    channel_id = fields.BigIntField()
+
+    @property
+    def channel(self):
+        return self.bot.get_channel(self.channel_id)
+
+    async def log_ban(self, banned_user: ScrimsBannedUser) -> None:
+        user: discord.User = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.user_id)
+        mod = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.banned_by)
+
+        e = discord.Embed(color=discord.Color.red(), title=f"🔨 Banned from Scrims", timestamp=self.bot.current_time)
+        e.add_field(name="User:", value=f"{user} ({getattr(user, 'mention','`unknown-user`')})")
+        e.add_field(name="Banned By:", value=f"{mod} ({getattr(mod, 'mention','`unknown-user`')})")
+        e.add_field(
+            name="Banned Until:",
+            value=discord.utils.format_dt(banned_user.banned_till, "R") if banned_user.banned_till else "`Indefinite`",
+        )
+        e.add_field(name="Reason:", value=f"```{banned_user.reason or 'No reason given'}```")
+
+        if user:
+            e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+
+        try:
+            await self.channel.send(getattr(user, "mention", ""), embed=e)
+        except (discord.HTTPException, AttributeError):
+            pass
+
+    async def log_unban(self, banned_user: ScrimsBannedUser, unbanned_by: discord.Member) -> None:
+        user = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.user_id)
+        mod = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.banned_by)
+
+        e = discord.Embed(color=discord.Color.green(), title=f"🍃 Unbanned from Scrims", timestamp=self.bot.current_time)
+        e.add_field(name="User:", value=f"{user} ({getattr(user, 'mention','`unknown-user`')})")
+        e.add_field(name="Banned By:", value=f"{mod} ({getattr(mod, 'mention','`unknown-user`')})")
+        e.add_field(name="Unbanned By:", value=f"{unbanned_by} ({getattr(unbanned_by, 'mention','`unknown-user`')})")
+        e.add_field(name="Was Banned For:", value=f"```{banned_user.reason or 'No reason given'}```")
+
+        if user:
+            e.set_thumbnail(url=getattr(user.display_avatar, "url", "https://cdn.discordapp.com/embed/avatars/0.png"))
+
+        try:
+            await self.channel.send(getattr(user, "mention", ""), embed=e)
+        except (discord.HTTPException, AttributeError):
+            pass

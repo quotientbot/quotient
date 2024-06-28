@@ -1,8 +1,8 @@
 import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
-from lib import CROSS, PLANT, TICK, truncate_string
-from models import Guild, Scrim
+from lib import CROSS, PLANT, TICK, text_channel_input, truncate_string
+from models import Guild, Scrim, ScrimsBanLog
 
 from . import ScrimsView
 from .ban_unban import ScrimBanManager
@@ -19,6 +19,7 @@ class ScrimsMainPanel(ScrimsView):
         super().__init__(ctx, timeout=100)
 
     async def initial_msg(self) -> discord.Embed:
+
         e = discord.Embed(color=0x00FFB3, title="Quotient's Smart Scrims Manager", url=self.bot.config("SUPPORT_SERVER_LINK"))
 
         scrims_to_show = []
@@ -123,23 +124,13 @@ class ScrimsMainPanel(ScrimsView):
         v = ScrimReservationsManager(self.ctx, scrims[0])
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
-    @discord.ui.button(label="Ban/Unban Teams", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Ban / Unban Teams", style=discord.ButtonStyle.primary)
     async def ban_unban_teams(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
 
-        scrims = await prompt_scrims_selector(
-            inter,
-            self.ctx.author,
-            await Scrim.filter(guild_id=inter.guild_id),
-            placeholder="Select a scrim to manage banned teams ...",
-            single_scrim_only=True,
-        )
-
-        if not scrims:
-            return
-
         self.stop()
-        v = ScrimBanManager(self.ctx, scrims[0])
+
+        v = ScrimBanManager(self.ctx)
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
     @discord.ui.button(label="Change Designs", style=discord.ButtonStyle.secondary, emoji=PLANT)
@@ -156,11 +147,10 @@ class ScrimsMainPanel(ScrimsView):
 
         if not scrims:
             return
-        
+
         self.stop()
         v = ScrimsDesignPanel(self.ctx, scrims[0])
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
-
 
     @discord.ui.button(label="Enable / Disable Scrims", style=discord.ButtonStyle.danger)
     async def enable_disable_scrims(self, inter: discord.Interaction, btn: discord.ui.Button):
@@ -176,15 +166,15 @@ class ScrimsMainPanel(ScrimsView):
 
         if not scrims:
             return
-        
+
         self.stop()
         for scrim in scrims:
             scrim.scrim_status = not scrim.scrim_status
             await scrim.save()
 
-        embed = discord.Embed(color=self.bot.color, description= "Successfully toggled the status of selected scrims.\n\n")
+        embed = discord.Embed(color=self.bot.color, description="Successfully toggled the status of selected scrims.\n\n")
         for scrim in scrims:
-            embed.description += f"- {("`Disabled`","`Enabled`")[scrim.scrim_status]}: {str(scrim)}\n"
+            embed.description += f"- {('`Disabled`','`Enabled`')[scrim.scrim_status]}: {str(scrim)}\n"
 
         await inter.followup.send(embed=embed, ephemeral=True)
 

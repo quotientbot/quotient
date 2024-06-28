@@ -45,6 +45,40 @@ class RoleSelectInput(discord.ui.RoleSelect):
         self.view.stop()
 
 
+class UserSelectInput(discord.ui.UserSelect):
+    def __init__(self, placeholder: str = "Please select a user ...", multiple: bool = False):
+        super().__init__(placeholder=placeholder, max_values=1 if not multiple else 10)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        self.view.stop()
+
+
+async def user_input(
+    inter: discord.Interaction,
+    message: str,
+    placeholder: str = "Please select users (upto 10) ...",
+    multiple: bool = True,
+    delete_after=True,
+) -> list[discord.Member] | None:
+
+    v = discord.ui.View(timeout=180)
+    v.add_item(UserSelectInput(placeholder=placeholder, multiple=multiple))
+
+    m = await inter.followup.send(
+        embed=discord.Embed(color=int(os.getenv("DEFAULT_COLOR")), description=message), view=v, ephemeral=True
+    )
+    await v.wait()
+
+    if delete_after:
+        await m.delete(delay=0)
+
+    try:
+        return v.children[0].values
+    except IndexError:
+        return None
+
+
 async def text_channel_input(
     inter: discord.Interaction,
     message: str,
