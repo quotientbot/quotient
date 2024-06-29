@@ -145,7 +145,7 @@ class ReserveNewSlot(ScrimsBtn):
 
             await ScrimReservedSlot.filter(scrim=self.view.record, num=num).delete()
 
-            await ScrimReservedSlot.create(
+            record = await ScrimReservedSlot.create(
                 num=num,
                 leader_id=owner_id,
                 team_name=team_name,
@@ -155,14 +155,7 @@ class ReserveNewSlot(ScrimsBtn):
             )
 
             if expires:
-                await self.view.bot.reminders.create_timer(
-                    expires,
-                    "scrim_slot_reserve",
-                    scrim_id=self.view.record.id,
-                    leader_id=owner_id,
-                    team_name=team_name,
-                    num=num,
-                )
+                await self.view.bot.reminders.create_timer(expires, "scrim_slot_reserve", reserve_id=record.id)
 
         await self.view.refresh_view()
 

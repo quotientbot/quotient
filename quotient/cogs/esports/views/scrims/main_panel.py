@@ -1,8 +1,8 @@
 import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
-from lib import CROSS, PLANT, TICK, text_channel_input, truncate_string
-from models import Guild, Scrim, ScrimsBanLog
+from lib import CROSS, PLANT, TICK, truncate_string
+from models import Guild, Scrim
 
 from . import ScrimsView
 from .ban_unban import ScrimBanManager

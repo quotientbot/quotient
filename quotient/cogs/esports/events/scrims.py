@@ -17,7 +17,14 @@ from lib import (
     find_team_name,
     get_today_day,
 )
-from models import Scrim, ScrimAssignedSlot, ScrimReservedSlot, Timer
+from models import (
+    Scrim,
+    ScrimAssignedSlot,
+    ScrimReservedSlot,
+    ScrimsBanLog,
+    ScrimsBannedUser,
+    Timer,
+)
 from tortoise.query_utils import Prefetch
 
 
@@ -25,6 +32,7 @@ class ScrimsEvents(commands.Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.scrim_registration_lock = asyncio.Lock()
+        self.scrim_autoclean_lock = asyncio.Lock()
 
     @commands.Cog.listener(name="on_message")
     async def on_scrims_registration_msg(self, msg: discord.Message):
@@ -139,3 +147,99 @@ class ScrimsEvents(commands.Cog):
             await scrim.start_registration()
         except Exception as e:
             self.bot.logger.error(f"Error starting registration of {scrim.id}: {e}")
+
+    @commands.Cog.listener()
+    async def on_scrim_channel_autoclean_timer_complete(self, timer: Timer):
+        """
+        Autocleans scrims registration msges at the set time.
+        """
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if not scrim:  # deleted probably
+            return
+
+        if timer.expires != scrim.autoclean_channel_time:
+            return
+
+        next_autoclean_time = scrim.autoclean_channel_time + timedelta(hours=24)
+
+        scrim.autoclean_channel_time = next_autoclean_time
+        await scrim.save(update_fields=["autoclean_channel_time"])
+        await self.bot.reminders.create_timer(scrim.autoclean_channel_time, "autoclean_scrims_channel", scrim_id=scrim.id)
+
+        if not scrim.scrim_status:  # Scrim is disabled
+            return
+
+        if scrim.reg_ended_at and scrim.reg_ended_at < self.bot.current_time - timedelta(hours=48):
+            return
+
+        guild = scrim.guild
+        if not guild:
+            return
+
+        if not guild.chunked:
+            self.bot.loop.create_task(guild.chunk())
+
+        registration_channel = scrim.registration_channel
+        if not registration_channel:
+            return
+
+        if not registration_channel.permissions_for(guild.me).manage_messages:
+            return await scrim.send_log(
+                f"I couldn't autoclean {scrim}, because I don't have `Manage Messages` permission in that channel.",
+                title="Autoclean Failed",
+                color=discord.Color.red(),
+                ping_scrims_mod=True,
+            )
+
+        async with self.scrim_autoclean_lock:
+            try:
+                await registration_channel.purge(limit=70, check=lambda msg: not msg.pinned, reason="Scrims Autoclean")
+            except discord.HTTPException:
+                pass
+            else:
+                await scrim.send_log(
+                    f"{scrim}, registration messages have been autocleaned.",
+                    title="Scrim Autoclean",
+                    color=discord.Color.green(),
+                )
+                await asyncio.sleep(7)
+
+    @commands.Cog.listener()
+    async def on_scrim_ban_timer_complete(self, timer: Timer):
+        ban_id = timer.kwargs["ban_id"]
+
+        record = await ScrimsBannedUser.get_or_none(pk=ban_id)
+        if not record:
+            return
+
+        await record.delete()
+
+        banlog = await ScrimsBanLog.get_or_none(guild_id=record.guild_id)
+        if not banlog:
+            return
+
+        await banlog.log_unban(record, self.bot.user)
+
+    @commands.Cog.listener()
+    async def on_scrim_slot_reserve_timer_complete(self, timer: Timer):
+        reserve_id = timer.kwargs["reserve_id"]
+
+        record = await ScrimReservedSlot.get_or_none(pk=reserve_id).prefetch_related("scrim")
+        if not record:
+            return
+
+        if record.scrim is None:
+            return
+
+        guild = record.scrim.guild
+        if not guild:
+            return
+
+        await record.delete()
+        await record.scrim.send_log(
+            f"**Slot {record.num} ({record.team_name} - {record.leader})** will no longer be reserved, because the time limit has expired.",
+            title="Slot Unreserved",
+            color=discord.Color.red(),
+        )

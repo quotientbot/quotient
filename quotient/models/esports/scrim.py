@@ -297,6 +297,18 @@ class Scrim(BaseDbModel):
             )
             await note.pin()
 
+    async def send_log(self, msg: str, title: str = "", color: discord.Color = None, ping_scrims_mod: bool = False):
+        embed = discord.Embed(color=color or self.bot.color, title=title, description=msg)
+        try:
+            await self.logs_channel.send(
+                content=getattr(self.scrims_mod_role, "mention", "@scrims-mod") if ping_scrims_mod else "",
+                embed=embed,
+                view=self.bot.contact_support_view(),
+                allowed_mentions=discord.AllowedMentions(roles=True),
+            )
+        except (discord.HTTPException, AttributeError):
+            pass
+
 
 class ScrimSlotReminder(BaseDbModel):
     class Meta:
@@ -375,6 +387,9 @@ class ScrimsBanLog(BaseDbModel):
         return self.bot.get_channel(self.channel_id)
 
     async def log_ban(self, banned_user: ScrimsBannedUser) -> None:
+        """
+        Sends a log message in the banlog channel.
+        """
         user: discord.User = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.user_id)
         mod = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.banned_by)
 
@@ -395,7 +410,10 @@ class ScrimsBanLog(BaseDbModel):
         except (discord.HTTPException, AttributeError):
             pass
 
-    async def log_unban(self, banned_user: ScrimsBannedUser, unbanned_by: discord.Member) -> None:
+    async def log_unban(self, banned_user: ScrimsBannedUser, unbanned_by: discord.Member | discord.User) -> None:
+        """
+        Sends a log message in the banlog channel.
+        """
         user = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.user_id)
         mod = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, banned_user.banned_by)
 
