@@ -47,12 +47,13 @@ class StartRegistration(ScrimsBtn):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        if not self.view.record.ended_at and self.view.record.started_at:
+        if not self.view.record.reg_ended_at and self.view.record.reg_started_at:
             return await interaction.followup.send(
                 embed=self.view.bot.error_embed("Registration is already open. To restart, pls stop registration first."),
                 ephemeral=True,
             )
         try:
+            await self.view.record.fetch_related("reserved_slots")
             await self.view.record.start_registration()
         except Exception as e:
             return await interaction.followup.send(embed=self.view.bot.error_embed(e), ephemeral=True)
@@ -71,7 +72,7 @@ class StopRegistration(ScrimsBtn):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        if not self.view.record.started_at:
+        if not self.view.record.reg_started_at:
             return await interaction.followup.send(
                 embed=self.view.bot.error_embed("Registration is already closed."),
                 ephemeral=True,

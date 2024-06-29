@@ -1,7 +1,7 @@
 import asyncio
 
 import discord
-from lib import plural
+from humanize import naturaldelta
 from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
@@ -138,23 +138,42 @@ class Scrim(BaseDbModel):
         await self.delete()
 
     @property
-    def registration_open_embed(self):
-        reserved_slots_count = len(self.reserved_slots)
+    async def registration_open_embed(self):
+        placeholders = {
+            "<<mentions>>": self.required_mentions,
+            "<<slots>>": self.total_slots,
+            "<<reserved>>": len(self.reserved_slots),
+            "<<multireg>>": "Allowed" if self.allow_multiple_registrations else "Not Allowed",
+            "<<start_time>>": discord.utils.format_dt(self.match_start_time, "R") if self.match_start_time else "Not Set",
+        }
 
-        if len(self.open_msg_design) <= 1:
-            return discord.Embed(
-                color=self.bot.color,
-                title="Registration is now open!",
-                description=f"📣 **`{self.required_mentions}`** mentions required.\n"
-                f"📣 Total slots: **`{self.total_slots}`** [`{reserved_slots_count}` slots reserved]",
-            )
+        embed = discord.Embed.from_dict(self.open_msg_design)
 
-        # TODO: custom open msg
+        for key, value in placeholders.items():
+            embed.title = embed.title.replace(key, str(value))
+            embed.description = embed.description.replace(key, str(value))
+            embed.footer.text = embed.footer.text.replace(key, str(value))
+
+        return embed
 
     @property
-    def registration_close_embed(self):
-        if len(self.close_msg_design) <= 1:
-            return discord.Embed(color=self.bot.color, description="**Registration is now Closed!**")
+    async def registration_close_embed(self):
+        placeholders = {
+            "<<slots>>": self.required_mentions,
+            "<<filled>>": len(self.assigned_slots),
+            "<<time_taken>>": naturaldelta(self.registration_time_elapsed),
+            "<<open_time>>": discord.utils.format_dt(self.reg_start_time, "R"),
+            "<<start_time>>": discord.utils.format_dt(self.match_start_time, "R") if self.match_start_time else "Not Set",
+        }
+
+        embed = discord.Embed.from_dict(self.close_msg_design)
+
+        for key, value in placeholders.items():
+            embed.title = embed.title.replace(key, str(value))
+            embed.description = embed.description.replace(key, str(value))
+            embed.footer.text = embed.footer.text.replace(key, str(value))
+
+        return embed
 
     async def refresh_timers(self):
         """
@@ -193,31 +212,34 @@ class Scrim(BaseDbModel):
                 jump_url=None,
             )
 
-        self.started_at = self.bot.current_time
-        self.ended_at = None
+        self.reg_started_at = self.bot.current_time
+        self.reg_ended_at = None
         self.slotlist_message_id = None
 
-        await self.save(update_fields=["started_at", "ended_at", "slotlist_message_id", "available_slots"])
+        await self.save(update_fields=["reg_started_at", "reg_ended_at", "slotlist_message_id", "available_slots"])
         await asyncio.sleep(0.2)
 
         self.bot.cache.scrim_channel_ids.add(self.registration_channel_id)
 
         await self.registration_channel.send(
             getattr(self.start_ping_role, "mention", ""),
-            embed=self.registration_open_embed,
+            embed=await self.registration_open_embed,
             allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
         )
 
-        # TODO: send to logs channel
+        await self.send_log(
+            f"Registration of {self} has been started successfully.", title="Scrims Registration Open", color=discord.Color.green()
+        )
         from lib import toggle_channel_perms
 
         await toggle_channel_perms(self.registration_channel, self.open_role, True)
 
     async def close_registration(self):
+        await self.fetch_related("assigned_slots")
 
         self.ended_at = self.bot.current_time
-        self.registration_time_elapsed = (self.ended_at - self.started_at).total_seconds()
-        self.started_at = None
+        self.registration_time_elapsed = (self.reg_ended_at - self.reg_started_at).total_seconds()
+        self.reg_started_at = None
 
         await self.save(update_fields=["ended_at", "registration_time_elapsed", "started_at"])
 
@@ -229,13 +251,16 @@ class Scrim(BaseDbModel):
         try:
             await registration_channel.send(
                 getattr(self.end_ping_role, "mention", ""),
-                embed=self.registration_close_embed,
+                embed=await self.registration_close_embed,
                 allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
             )
         except discord.HTTPException:
             pass
 
-        # TODO: send to logs channel
+        else:
+            await self.send_log(
+                f"Registration of {self} has been closed successfully.", title="Scrims Registration Closed", color=discord.Color.red()
+            )
 
     async def confirm_change_for_all_scrims(self, target: discord.Interaction, **kwargs):
         """
