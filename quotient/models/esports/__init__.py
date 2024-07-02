@@ -6,4 +6,5 @@ from .scrim import (
     ScrimsBanLog,
     ScrimsBannedUser,
     ScrimSlotReminder,
+    ScrimsSlotManager,
 )

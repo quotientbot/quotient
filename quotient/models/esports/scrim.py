@@ -11,12 +11,37 @@ from .enums import Day, IdpShareType
 from .utility import default_reg_close_msg, default_reg_open_msg
 
 
+class ScrimsSlotManager(BaseDbModel):
+    class Meta:
+        table = "scrims_slot_manager"
+
+    id = fields.IntField(pk=True)
+    guild_id = fields.BigIntField()
+
+    channel_id = fields.BigIntField()
+    message_id = fields.BigIntField()
+
+    status = fields.BooleanField(default=True)
+
+    allow_multiple_slots = fields.BooleanField(default=False)
+
+    scrims: fields.ReverseRelation["Scrim"]
+
+    async def refresh_public_message(self): ...
+
+    async def get_user_slots(self, user_id: int) -> list["ScrimAssignedSlot"]:
+        return await ScrimAssignedSlot.filter(scrim__slotm=self, members__contains=user_id).all()
+
+
 class Scrim(BaseDbModel):
 
     class Meta:
         table = "scrims"
 
     id = fields.IntField(primary_key=True, db_index=True)
+    slotm: fields.ForeignKeyRelation[ScrimsSlotManager] = fields.ForeignKeyField(
+        "default.ScrimsSlotManager", related_name="scrims", null=True
+    )
 
     guild_id = fields.BigIntField(db_index=True)
     registration_channel_id = fields.BigIntField(db_index=True)

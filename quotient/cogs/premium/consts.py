@@ -20,3 +20,4 @@ def get_pro_features_formatted() -> str:
 AUTOPURGE_LIMIT = 2
 SCRIMS_LIMIT = 2
 TOURNEY_LIMIT = 1
+SLOTM_PANEL = 1

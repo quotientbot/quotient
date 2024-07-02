@@ -1,6 +1,6 @@
 import discord
 from lib import TEXT_CHANNEL, keycap_digit
-from models import Day, Scrim
+from models import Day, Scrim, ScrimAssignedSlot
 
 
 class WeekDaysSelector(discord.ui.Select):
@@ -16,6 +16,30 @@ class WeekDaysSelector(discord.ui.Select):
         self.view.stop()
 
         self.view.selected_days = self.values
+
+
+class ScrimsSlotSelector(discord.ui.Select):
+
+    def __init__(self, slots: list[ScrimAssignedSlot], multiple: bool = False):
+
+        options = []
+        for idx, slot in enumerate(slots[:25], start=1):
+            options.append(
+                discord.SelectOption(
+                    label=f"Slot {slot.num} ─ #{getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
+                    description=f"{slot.team_name} (ID: {slot.scrim.id})",
+                    value=f"{slot.scrim.id}:{slot.id}",
+                    emoji=keycap_digit(idx) if idx <= 9 else "📇",
+                )
+            )
+
+        super().__init__(placeholder="Select slot(s) from this dropdown...", options=options, max_values=len(slots) if multiple else 1)
+
+    async def callback(self, interaction: discord.Interaction) -> any:
+        await interaction.response.edit_message(view=self.view)
+        self.view.stop()
+
+        self.view.selected_slots = interaction.data["values"]
 
 
 class ScrimSelector(discord.ui.Select):

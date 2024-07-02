@@ -21,6 +21,8 @@ F_WORD = "<:f_word:1254123534729351178>"
 
 IMAGE_SYMBOL = "<:image:1254123107694936156>"
 
+BELL = "<a:ringing_bell:1256877114125189153>"
+
 
 # Paginator:
 

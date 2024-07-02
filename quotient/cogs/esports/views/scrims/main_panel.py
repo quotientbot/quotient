@@ -1,7 +1,7 @@
 import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
-from lib import CROSS, PLANT, TICK, truncate_string
+from lib import CROSS, EXIT, PLANT, TICK, truncate_string
 from models import Guild, Scrim
 
 from . import ScrimsView
@@ -11,6 +11,8 @@ from .design_panel import ScrimsDesignPanel
 from .edit_scrim import ScrimsEditPanel
 from .instant_toggle import InstantToggleView
 from .reservations import ScrimReservationsManager
+from .slotm.main_panel import SlotmMainPanel
+from .utility.buttons import DiscardChanges
 from .utility.selectors import prompt_scrims_selector
 
 
@@ -179,4 +181,43 @@ class ScrimsMainPanel(ScrimsView):
         await inter.followup.send(embed=embed, ephemeral=True)
 
         v = ScrimsMainPanel(self.ctx)
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
+
+    @discord.ui.button(label="Delete Scrims", style=discord.ButtonStyle.danger)
+    async def delete_scrims(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer()
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id),
+            placeholder="Select scrims to delete ...",
+            single_scrim_only=False,
+        )
+
+        if not scrims:
+            return
+
+        self.stop()
+        for scrim in scrims:
+            await scrim.full_delete()
+
+        embed = discord.Embed(color=self.bot.color, description="Successfully deleted selected scrims.\n\n")
+        for scrim in scrims:
+            embed.description += f"- {str(scrim)}\n"
+
+        await inter.followup.send(embed=embed, ephemeral=True)
+
+        v = ScrimsMainPanel(self.ctx)
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
+
+    @discord.ui.button(label="Cancel / Claim Panel", style=discord.ButtonStyle.green)
+    async def scrims_cancel_claim_panel(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer()
+
+        self.stop()
+
+        v = SlotmMainPanel(self.ctx)
+        v.add_item(DiscardChanges(self.ctx, label="Back to Scrims Panel", emoji=EXIT))
+
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
