@@ -20,7 +20,7 @@ class WeekDaysSelector(discord.ui.Select):
 
 class ScrimsSlotSelector(discord.ui.Select):
 
-    def __init__(self, slots: list[ScrimAssignedSlot], multiple: bool = False):
+    def __init__(self, slots: list[ScrimAssignedSlot], multiple: bool = False, placeholder: str = None):
 
         options = []
         for idx, slot in enumerate(slots[:25], start=1):
@@ -28,18 +28,50 @@ class ScrimsSlotSelector(discord.ui.Select):
                 discord.SelectOption(
                     label=f"Slot {slot.num} ─ #{getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
                     description=f"{slot.team_name} (ID: {slot.scrim.id})",
-                    value=f"{slot.scrim.id}:{slot.id}",
+                    value=slot.id,
                     emoji=keycap_digit(idx) if idx <= 9 else "📇",
                 )
             )
 
-        super().__init__(placeholder="Select slot(s) from this dropdown...", options=options, max_values=len(slots) if multiple else 1)
+        super().__init__(
+            placeholder=placeholder or "Select slot(s) from this dropdown...",
+            options=options,
+            max_values=len(slots) if multiple else 1,
+        )
 
     async def callback(self, interaction: discord.Interaction) -> any:
         await interaction.response.edit_message(view=self.view)
         self.view.stop()
 
         self.view.selected_slots = interaction.data["values"]
+
+
+async def prompt_scrims_slot_selector(
+    inter: discord.Interaction,
+    slots: list[ScrimAssignedSlot],
+    msg: str,
+    placeholder: str = "Select the slots to continue...",
+    multiple: bool = False,
+) -> list[ScrimAssignedSlot]:
+
+    if len(slots) == 1:
+        return slots
+
+    view = discord.ui.View(timeout=100)
+    view.selected_slots = []
+
+    for slot_group in discord.utils.as_chunks(slots, 25):
+        view.add_item(ScrimsSlotSelector(slot_group, multiple, placeholder))
+
+    msg = await inter.followup.send(msg, view=view, ephemeral=True)
+
+    await view.wait()
+    await msg.delete(delay=0)
+
+    if not view.selected_slots:
+        return []
+
+    return await ScrimAssignedSlot.filter(pk__in=view.selected_slots).prefetch_related("scrim")
 
 
 class ScrimSelector(discord.ui.Select):
