@@ -272,14 +272,14 @@ async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter:
 
 
 async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    registration_auto_end_time = await time_input_modal(
+    reg_auto_end_time = await time_input_modal(
         inter,
         title="Registration Auto-End Time (IST - UTC+5:30)",
         label="Time reg should be auto-ended if not already?",
-        default=cls.view.record.registration_auto_end_time.strftime("%I:%M%p") if cls.view.record.registration_auto_end_time else None,
+        default=cls.view.record.reg_auto_end_time.strftime("%I:%M%p") if cls.view.record.reg_auto_end_time else None,
     )
 
-    if registration_auto_end_time is None:
+    if reg_auto_end_time is None:
         return await send_error_embed(
             inter.channel,
             "You failed to enter registration auto-end time in valid format! Take a look at the examples below:",
@@ -287,7 +287,7 @@ async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, in
             image_url="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
         )
 
-    cls.view.record.registration_auto_end_time = registration_auto_end_time
+    cls.view.record.reg_auto_end_time = reg_auto_end_time
     await cls.view.refresh_view()
 
 

@@ -102,6 +102,8 @@ class ScrimsSlotlistMainPanel(discord.ui.View):
         e = discord.Embed(color=self.bot.color, title="Punished Successfully!", description="")
 
         if view.value == "leader":
+            await ScrimsBannedUser.filter(user_id=slot_to_ban[0].leader_id, guild_id=inter.guild_id).delete()
+
             record = await ScrimsBannedUser.create(
                 user_id=slot_to_ban[0].leader_id,
                 guild_id=inter.guild_id,
@@ -119,7 +121,10 @@ class ScrimsSlotlistMainPanel(discord.ui.View):
             )
 
         else:
+
             for member in slot_to_ban[0].members:
+                await ScrimsBannedUser.filter(user_id=member, guild_id=inter.guild_id).delete()
+
                 record = await ScrimsBannedUser.create(
                     user_id=member,
                     guild_id=inter.guild_id,

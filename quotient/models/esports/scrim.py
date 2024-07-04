@@ -339,10 +339,6 @@ class Scrim(BaseDbModel):
         except discord.HTTPException:
             return
 
-        await self.send_log(
-            f"Registration of {self} has been closed successfully.", title="Scrims Registration Closed", color=discord.Color.red()
-        )
-
         if self.autosend_slotlist and self.assigned_slots:
             await self.send_slotlist()
 

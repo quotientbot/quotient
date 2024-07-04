@@ -100,7 +100,21 @@ class ScrimsEvents(commands.Cog):
                 try:
                     await scrim.close_registration()
                 except Exception as e:
-                    self.bot.logger.error(f"Error closing registration of {scrim.id}: {e}")
+                    await scrim.send_log(
+                        f"Error closing registration of {scrim.id}: {e}",
+                        title="Scrim Registration Close Error",
+                        color=discord.Color.red(),
+                        ping_scrims_mod=True,
+                        add_contact_btn=True,
+                    )
+
+                else:
+                    await scrim.send_log(
+                        f"{scrim}, registration has been closed.",
+                        title="Scrim Registration Closed",
+                        color=discord.Color.green(),
+                        add_contact_btn=False,
+                    )
 
     @commands.Cog.listener()
     async def on_scrim_reg_start_timer_complete(self, timer: Timer):
@@ -147,6 +161,40 @@ class ScrimsEvents(commands.Cog):
             await scrim.start_registration()
         except Exception as e:
             self.bot.logger.error(f"Error starting registration of {scrim.id}: {e}")
+
+    @commands.Cog.listener()
+    async def on_scrim_reg_end_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if not scrim:
+            return
+
+        scrim.reg_auto_end_time += timedelta(hours=24)
+        await scrim.save(update_fields=["reg_auto_end_time"])
+
+        await self.bot.reminders.create_timer(scrim.reg_auto_end_time, "scrim_reg_end", scrim_id=scrim.id)
+
+        if scrim.reg_ended_at:  # already ended
+            return
+
+        try:
+            await scrim.close_registration()
+        except Exception as e:
+            await scrim.send_log(
+                f"Error auto closing registration of {scrim.id}: {e}",
+                title="Scrim Auto End Error",
+                color=discord.Color.red(),
+                ping_scrims_mod=True,
+            )
+
+        else:
+            await scrim.send_log(
+                f"{scrim}, registration has been automatically closed.",
+                title="Scrim Registration Closed",
+                color=discord.Color.green(),
+                add_contact_btn=False,
+            )
 
     @commands.Cog.listener()
     async def on_scrim_channel_autoclean_timer_complete(self, timer: Timer):
