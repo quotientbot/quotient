@@ -1,14 +1,14 @@
 import asyncio
 
 import discord
-from humanize import naturaldelta
+from humanize import precisedelta
 from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
 from ..others import Timer
 from .enums import Day, IdpShareType
-from .utility import default_reg_close_msg, default_reg_open_msg
+from .utility import default_reg_close_msg, default_reg_open_msg, default_slotlist_msg
 
 
 class ScrimsSlotManager(BaseDbModel):
@@ -81,7 +81,7 @@ class Scrim(BaseDbModel):
 
     registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in Day]))
 
-    slotlist_msg_design = fields.JSONField(default=dict)
+    slotlist_msg_design = fields.JSONField(default=default_slotlist_msg().to_dict())
     open_msg_design = fields.JSONField(default=default_reg_open_msg().to_dict())
     close_msg_design = fields.JSONField(default=default_reg_close_msg().to_dict())
 
@@ -175,9 +175,11 @@ class Scrim(BaseDbModel):
         embed = discord.Embed.from_dict(self.open_msg_design)
 
         for key, value in placeholders.items():
-            embed.title = embed.title.replace(key, str(value))
-            embed.description = embed.description.replace(key, str(value))
-            embed.footer.text = embed.footer.text.replace(key, str(value))
+            embed.title = embed.title.replace(key, str(value)) if embed.title else ""
+            embed.description = embed.description.replace(key, str(value)) if embed.description else ""
+            embed.set_footer(
+                text=embed.footer.text.replace(key, str(value)) if embed.footer.text else "", icon_url=embed.footer.icon_url
+            )
 
         return embed
 
@@ -186,7 +188,7 @@ class Scrim(BaseDbModel):
         placeholders = {
             "<<slots>>": self.required_mentions,
             "<<filled>>": len(self.assigned_slots),
-            "<<time_taken>>": naturaldelta(self.registration_time_elapsed),
+            "<<time_taken>>": precisedelta(self.registration_time_elapsed),
             "<<open_time>>": discord.utils.format_dt(self.reg_start_time, "R"),
             "<<start_time>>": discord.utils.format_dt(self.match_start_time, "R") if self.match_start_time else "Not Set",
         }
@@ -194,10 +196,11 @@ class Scrim(BaseDbModel):
         embed = discord.Embed.from_dict(self.close_msg_design)
 
         for key, value in placeholders.items():
-            embed.title = embed.title.replace(key, str(value))
-            embed.description = embed.description.replace(key, str(value))
-            embed.footer.text = embed.footer.text.replace(key, str(value))
-
+            embed.title = embed.title.replace(key, str(value)) if embed.title else ""
+            embed.description = embed.description.replace(key, str(value)) if embed.description else ""
+            embed.set_footer(
+                text=embed.footer.text.replace(key, str(value)) if embed.footer.text else "", icon_url=embed.footer.icon_url
+            )
         return embed
 
     async def refresh_timers(self):
@@ -215,6 +218,60 @@ class Scrim(BaseDbModel):
             await self.bot.reminders.create_timer(self.reg_auto_end_time, "scrim_reg_end", scrim_id=self.id)
         if self.autoclean_channel_time:
             await self.bot.reminders.create_timer(self.autoclean_channel_time, "scrim_channel_autoclean", scrim_id=self.id)
+
+    async def create_slotlist(self) -> tuple[discord.Embed, discord.ui.View]:
+        from cogs.esports.views.scrims.slotlist.main_panel import (
+            ScrimsSlotlistMainPanel,
+        )
+
+        slotlist_msg = ""
+
+        await self.fetch_related("assigned_slots")
+
+        for idx in range(self.slotlist_start_from, self.total_slots + self.slotlist_start_from):
+            slot = next((i for i in self.assigned_slots if i.num == idx), None)
+            if slot:
+                slotlist_msg += f"S{idx:02}  ->  {slot.team_name}\n"
+            else:
+                slotlist_msg += f"S{idx:02}  ->  __\n"
+
+        placeholders = {
+            "<<name>>": self.registration_channel.name,
+            "<<time_taken>>": precisedelta(self.registration_time_elapsed),
+            "<<open_time>>": discord.utils.format_dt(self.reg_start_time, "R"),
+            "<<slots>>": slotlist_msg,
+        }
+        embed = discord.Embed.from_dict(self.slotlist_msg_design)
+
+        for k, v in placeholders.items():
+            embed.title = embed.title.replace(k, str(v)) if embed.title else ""
+            embed.description = embed.description.replace(k, str(v)) if embed.description else ""
+            embed.set_footer(text=embed.footer.text.replace(k, str(v)) if embed.footer.text else "", icon_url=embed.footer.icon_url)
+
+        view = ScrimsSlotlistMainPanel(self)
+        return embed, view
+
+    async def send_slotlist(self) -> discord.Message:
+        e, v = await self.create_slotlist()
+
+        try:
+            v.message = await self.registration_channel.send(embed=e, view=v)
+        except discord.HTTPException:
+            return
+
+        self.slotlist_message_id = v.message.id
+        await self.save(update_fields=["slotlist_message_id"])
+        return v.message
+
+    async def refresh_slotlist_message(self):
+        e, v = await self.create_slotlist()
+
+        try:
+            await self.registration_channel.get_partial_message(self.slotlist_message_id).edit(embed=e, view=v)
+        except discord.HTTPException:
+            m = await self.registration_channel.send(embed=e, view=v)
+            self.slotlist_message_id = m.id
+            await self.save(update_fields=["slotlist_message_id"])
 
     async def start_registration(self):
 
@@ -260,13 +317,13 @@ class Scrim(BaseDbModel):
         await toggle_channel_perms(self.registration_channel, self.open_role, True)
 
     async def close_registration(self):
-        await self.fetch_related("assigned_slots")
+        await self.fetch_related("assigned_slots", "slotm")
 
-        self.ended_at = self.bot.current_time
+        self.reg_ended_at = self.bot.current_time
         self.registration_time_elapsed = (self.reg_ended_at - self.reg_started_at).total_seconds()
         self.reg_started_at = None
 
-        await self.save(update_fields=["ended_at", "registration_time_elapsed", "started_at"])
+        await self.save(update_fields=["reg_ended_at", "registration_time_elapsed", "reg_started_at"])
 
         from lib import toggle_channel_perms
 
@@ -280,12 +337,25 @@ class Scrim(BaseDbModel):
                 allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
             )
         except discord.HTTPException:
-            pass
+            return
 
-        else:
-            await self.send_log(
-                f"Registration of {self} has been closed successfully.", title="Scrims Registration Closed", color=discord.Color.red()
+        await self.send_log(
+            f"Registration of {self} has been closed successfully.", title="Scrims Registration Closed", color=discord.Color.red()
+        )
+
+        if self.autosend_slotlist and self.assigned_slots:
+            await self.send_slotlist()
+
+        if self.autodelete_extra_msges:
+            reg_msg_ids = [i.message_id for i in self.assigned_slots]
+
+            check = lambda x: all(
+                (not x.pinned, not x.reactions, not x.embeds, not x.author.id == self.bot.user.id, not x.id in reg_msg_ids)
             )
+            self.bot.loop.create_task(self.bot.wait_and_purge(registration_channel, limit=50, wait_for=60, check=check))
+
+        if self.slotm:
+            await self.slotm.refresh_public_message()
 
     async def confirm_change_for_all_scrims(self, target: discord.Interaction, **kwargs):
         """
@@ -347,13 +417,15 @@ class Scrim(BaseDbModel):
             )
             await note.pin()
 
-    async def send_log(self, msg: str, title: str = "", color: discord.Color = None, ping_scrims_mod: bool = False):
+    async def send_log(
+        self, msg: str, title: str = "", color: discord.Color = None, ping_scrims_mod: bool = False, add_contact_btn: bool = True
+    ) -> None:
         embed = discord.Embed(color=color or self.bot.color, title=title, description=msg)
         try:
             await self.logs_channel.send(
                 content=getattr(self.scrims_mod_role, "mention", "@scrims-mod") if ping_scrims_mod else "",
                 embed=embed,
-                view=self.bot.contact_support_view(),
+                view=self.bot.contact_support_view() if add_contact_btn else None,
                 allowed_mentions=discord.AllowedMentions(roles=True),
             )
         except (discord.HTTPException, AttributeError):
@@ -394,6 +466,10 @@ class ScrimAssignedSlot(BaseScrimSlot):
     assigned_at = fields.DatetimeField(auto_now=True)
 
     scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="assigned_slots")
+
+    @property
+    def message_id(self):
+        return int(self.jump_url.split("/")[-1]) if self.jump_url else None
 
 
 class ScrimReservedSlot(BaseScrimSlot):

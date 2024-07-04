@@ -139,7 +139,7 @@ class EditSlotlistMsg(ScrimsBtn):
 
         v = EmbedBuilder(
             self.ctx,
-            embed=discord.Embed.from_dict(self.view.record.slotlist_design),
+            embed=discord.Embed.from_dict(self.view.record.slotlist_msg_design),
             extra_items=[
                 SaveDesign(self.ctx, self.view.record, RegMsgType.SLOTLIST, self.view.message),
                 ResetDefault(self.ctx, self.view.record, RegMsgType.SLOTLIST),
@@ -173,9 +173,9 @@ class SaveDesign(ScrimsBtn):
             await self.scrim.confirm_change_for_all_scrims(interaction, close_msg_design=self.scrim.close_msg_design)
 
         elif self.msg_type == RegMsgType.SLOTLIST:
-            self.scrim.slotlist_design = self.view.embed.to_dict()
-            await self.scrim.save(update_fields=["slotlist_design"])
-            await self.scrim.confirm_change_for_all_scrims(interaction, slotlist_design=self.scrim.slotlist_design)
+            self.scrim.slotlist_msg_design = self.view.embed.to_dict()
+            await self.scrim.save(update_fields=["slotlist_msg_design"])
+            await self.scrim.confirm_change_for_all_scrims(interaction, slotlist_msg_design=self.scrim.slotlist_msg_design)
 
         await interaction.followup.send(embed=self.view.bot.success_embed("Design saved successfully."), ephemeral=True)
         self.view.stop()

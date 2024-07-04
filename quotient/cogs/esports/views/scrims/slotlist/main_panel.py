@@ -12,7 +12,7 @@ from ..utility.selectors import prompt_scrims_slot_selector
 from .edit_panel import ScrimSlotlistEditPanel
 
 
-class ScrimsSlotlistPanel(discord.ui.View):
+class ScrimsSlotlistMainPanel(discord.ui.View):
     message: discord.Message
 
     def __init__(self, scrim: Scrim):
@@ -40,7 +40,7 @@ class ScrimsSlotlistPanel(discord.ui.View):
 
     async def make_sure_scrim_exists(self, inter: discord.Interaction) -> bool:
         self.scrim = await Scrim.get_or_none(id=self.scrim.id).prefetch_related(
-            Prefetch("assigned_slots", queryset=ScrimAssignedSlot.all().order_by("num"))
+            Prefetch("assigned_slots", queryset=ScrimAssignedSlot.all().order_by("num").prefetch_related("scrim"))
         )
 
         if not self.scrim:
@@ -74,24 +74,26 @@ class ScrimsSlotlistPanel(discord.ui.View):
 
         banned_until = convert_to_seconds(modal.ban_until.value) if modal.ban_until.value else None
         if banned_until:
-            banned_until = self.view.bot.current_time + timedelta(seconds=banned_until)
+            banned_until = self.bot.current_time + timedelta(seconds=banned_until)
 
         if not await self.make_sure_scrim_exists(inter):
             return
 
-        if not self.scrim.assigned_slots:
+        assigned_slots = list(self.scrim.assigned_slots)
+
+        if not assigned_slots:
             return await inter.followup.send("No slot in the scrim to ban.", ephemeral=True)
 
-        slot_to_ban = await prompt_scrims_slot_selector(inter, self.scrim.assigned_slots, "Select the slots to ban...", multiple=False)
+        slot_to_ban = await prompt_scrims_slot_selector(inter, assigned_slots, "Select the slot to ban team.", multiple=False)
         if not slot_to_ban:
             return
 
         view = discord.ui.View(timeout=60)
         view.add_item(BanOptions())
 
-        await inter.followup.send("", view=view, ephemeral=True)
-
+        m = await inter.followup.send("", view=view, ephemeral=True)
         await view.wait()
+
         if not view.value:
             return
 
@@ -105,14 +107,14 @@ class ScrimsSlotlistPanel(discord.ui.View):
                 guild_id=inter.guild_id,
                 banned_until=banned_until,
                 banned_by=inter.user.id,
-                reason=modal.reason.value,
+                reason=modal.ban_reason.value,
             )
             if scrim_banlog:
                 self.bot.loop.create_task(scrim_banlog.log_ban(record))
 
             e.description += (
                 f"{slot_to_ban[0].leader} *[{slot_to_ban[0].leader_id}]*, has been banned from all scrims.\n\n"
-                f"**Reason:** `{modal.reason.value or 'No reason provided.'}`\n"
+                f"**Reason:** `{modal.ban_reason.value or 'No reason provided.'}`\n"
                 f"**Until:** {discord.utils.format_dt(banned_until) if banned_until else 'Indefinite'}"
             )
 
@@ -123,7 +125,7 @@ class ScrimsSlotlistPanel(discord.ui.View):
                     guild_id=inter.guild_id,
                     banned_until=banned_until,
                     banned_by=inter.user.id,
-                    reason=modal.reason.value,
+                    reason=modal.ban_reason.value,
                 )
                 if scrim_banlog:
                     self.bot.loop.create_task(scrim_banlog.log_ban(record))
@@ -131,11 +133,11 @@ class ScrimsSlotlistPanel(discord.ui.View):
                 e.description += f"{slot_to_ban[0].leader} *[{slot_to_ban[0].leader_id}]*, has been banned from all scrims.\n"
 
             e.description += (
-                f"\n\n**Reason:** `{modal.reason.value or 'No reason provided.'}`\n"
+                f"\n\n**Reason:** `{modal.ban_reason.value or 'No reason provided.'}`\n"
                 f"**Until:** {discord.utils.format_dt(banned_until) if banned_until else 'Indefinite'}\n"
             )
 
-        await inter.followup.send(embed=e, ephemeral=True)
+        await m.edit(embed=e, view=None)
 
     @discord.ui.button(label="Info", emoji=INFO, style=discord.ButtonStyle.green, custom_id="scrim_slotlist_info_b")
     async def get_slot_info(self, inter: discord.Interaction, button: discord.ui.Button):
@@ -144,10 +146,12 @@ class ScrimsSlotlistPanel(discord.ui.View):
         if not await self.make_sure_scrim_exists(inter):
             return
 
-        if not self.scrim.assigned_slots:
+        assigned_slots = list(self.scrim.assigned_slots)
+
+        if not assigned_slots:
             return await inter.followup.send("No slot in the scrim to get info.", ephemeral=True)
 
-        slot = await prompt_scrims_slot_selector(inter, self.scrim.assigned_slots, "Select the slot to get info...", multiple=False)
+        slot = await prompt_scrims_slot_selector(inter, assigned_slots, "Select the slot to get info...", multiple=False)
         if not slot:
             return
 
@@ -158,7 +162,7 @@ class ScrimsSlotlistPanel(discord.ui.View):
             description=(
                 f"**Slot Num:** `{slot[0].num}`\n"
                 f"**Name:** `{slot[0].team_name}`\n"
-                f"**Captain:** `{leader}` (<@{slot[0].user_id}>)\n"
+                f"**Captain:** `{leader}` (<@{slot[0].leader_id}>)\n"
                 f"**Team:** " + ", ".join([f"<@{i}>" for i in slot[0].members])
             ),
         )
@@ -183,6 +187,8 @@ class BanOptions(discord.ui.Select):
             max_values=1,
         )
 
-    async def callback(self, inter: discord.Interactionaction):
+    async def callback(self, inter: discord.Interaction):
         await inter.response.edit_message(view=self.view)
         self.view.value = self.values[0]
+
+        self.view.stop()

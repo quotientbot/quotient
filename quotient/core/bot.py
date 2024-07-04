@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import typing as T
@@ -290,6 +291,14 @@ class Quotient(commands.AutoShardedBot):
             return
 
         await self.process_commands(message)
+
+    async def wait_and_purge(self, channel: discord.TextChannel, limit: int = 100, wait_for: int = 15, check=lambda msg: True):
+        await asyncio.sleep(wait_for)
+
+        try:
+            await channel.purge(limit=limit, check=check)
+        except discord.HTTPException:
+            pass
 
     @staticmethod
     def contact_support_view(label: str = "Need help? Contact Support!") -> discord.ui.View:

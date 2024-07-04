@@ -39,3 +39,4 @@ class SlotlistMsgVar(Enum):
     TIME_TAKEN = "Time taken to finish reg."
     OPEN_TIME = "Next time when this reg will start."
     MAP = "Game Map of the day."
+    SLOTS = "List of scrims slots."

@@ -1,5 +1,5 @@
 import discord
-from models import Scrim
+from models import Scrim, ScrimsBannedUser
 from tortoise.expressions import Q
 
 from .regex import find_team_name
@@ -30,9 +30,7 @@ async def ensure_self_permissions(scrim: Scrim) -> bool:
     open_role_id = scrim.open_role_id
 
     all_ok = True
-    e = scrim.bot.error_embed(
-        title="Scrims Registration Stopped!", description="Fix the issues below before restarting:\n\n"
-    )
+    e = scrim.bot.error_embed(title="Scrims Registration Stopped!", description="Fix the issues below before restarting:\n\n")
 
     if not registration_channel:
         all_ok = False
@@ -141,21 +139,21 @@ async def ensure_scrims_requirements_in_msg(scrim: Scrim, msg: discord.Message) 
         )
         return False
 
-    if record := await scrim.banned_teams.filter(members__contains=msg.author.id).first():
-        await deny_scrims_registration(
-            scrim,
-            msg,
-            f"You are banned from registering in this scrim. ({discord.utils.format_dt(record.banned_till) if record.banned_till else 'Permanent'})",
-            "Member is banned from the scrim.",
-        )
-        return False
-
     if scrim.required_lines and len(msg.content.split("\n")) < scrim.required_lines:
         await deny_scrims_registration(
             scrim,
             msg,
             f"Your registration message is too short. It seems you missed some required information.",
             f"Only {len(msg.content.splitlines())}/{scrim.required_lines} lines provided in registration message.",
+        )
+        return False
+
+    if record := await ScrimsBannedUser.get_or_none(user_id=msg.author.id, guild_id=scrim.guild_id):
+        await deny_scrims_registration(
+            scrim,
+            msg,
+            f"You are banned from registering in this scrim. ({discord.utils.format_dt(record.banned_till) if record.banned_till else 'Permanent'})",
+            "Member is banned from the scrim.",
         )
         return False
 

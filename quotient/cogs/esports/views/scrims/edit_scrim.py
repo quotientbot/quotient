@@ -81,7 +81,7 @@ class ScrimsEditPanel(ScrimsView):
         fields = {
             f"{F_WORD}Req. Mentions": f"`{s.required_mentions}`",
             f"{F_WORD}Total Slots": f"`{s.total_slots}`",
-            f"{F_WORD}Reg Start Time": fdt(s.reg_start_time, "t"),
+            f"{F_WORD}Reg Start Time": fdt(s.reg_start_time, "t") + " IST",
             f"{F_WORD}Match Start Time": fdt(s.match_start_time, "t") if s.match_start_time else "`Not Set`",
             f"{F_WORD}Reg Start Ping Role": getattr(s.start_ping_role, "mention", "`Not Set`"),
             f"{F_WORD}Reg Open Role": getattr(s.open_role, "mention", "`Not Set`"),
@@ -95,9 +95,9 @@ class ScrimsEditPanel(ScrimsView):
             f"{DIAMOND}Delete Rejected Regs": ("`No`", "`Yes`")[s.autodelete_rejected_registrations],
             f"{DIAMOND}Reg End Ping Role": getattr(s.end_ping_role, "mention", "`Not Set`"),
             f"{DIAMOND}Channel Autoclean time": (
-                fdt(self.record.autoclean_channel_time, "t") if s.autoclean_channel_time else "`Not Set`"
+                fdt(self.record.autoclean_channel_time, "t") + " IST" if s.autoclean_channel_time else "`Not Set`"
             ),
-            f"{DIAMOND}Reg Auto-end time": fdt(s.reg_auto_end_time, "t") if s.reg_auto_end_time else "`Not Set`",
+            f"{DIAMOND}Reg Auto-end time": fdt(s.reg_auto_end_time, "t") + " IST" if s.reg_auto_end_time else "`Not Set`",
             f"{DIAMOND}Share IDP with": f"`{s.idp_share_type.name.replace('_', ' ').title()}`",
             f"{DIAMOND}Slotlist Start From": f"`{s.slotlist_start_from}`",
             f"{DIAMOND}Auto-Send Slotlist": ("`No`", "`Yes`")[s.autosend_slotlist],

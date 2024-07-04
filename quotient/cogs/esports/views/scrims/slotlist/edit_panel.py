@@ -8,7 +8,7 @@ from ..utility.selectors import prompt_scrims_slot_selector
 class NewTeamNameModal(discord.ui.Modal, title="New Team Name"):
     new_team_name = discord.ui.TextInput(label="Enter new teamname:", min_length=3, max_length=25)
 
-    async def on_submit(self, inter: discord.Interactionaction) -> None:
+    async def on_submit(self, inter: discord.Interaction) -> None:
         await inter.response.defer()
 
 
@@ -36,7 +36,7 @@ class ScrimSlotlistEditPanel(discord.ui.View):
         except discord.NotFound:
             pass
 
-    async def initial_embed(self) -> discord.Embed:
+    def initial_embed(self) -> discord.Embed:
         _e = discord.Embed(color=0x00FFB3, description="Choose an option below to edit the slotlist.")
         return _e
 
@@ -49,11 +49,14 @@ class ScrimSlotlistEditPanel(discord.ui.View):
         if not modal.new_team_name.value:
             return
 
-        if not self.scrim.assigned_slots:
-            return await inter.followup.send("No slot available to replace.", ephemeral=True)
+        assigned_slots = list(self.scrim.assigned_slots)
 
+        if not assigned_slots:
+            return await self.message.edit(content="No slot available to replace.", embed=None, view=None)
+
+        await self.message.delete(delay=0)
         slot = await prompt_scrims_slot_selector(
-            inter, self.scrim.assigned_slots, "Select the slot to change team name...", placeholder="Click me to pick a slot"
+            inter, assigned_slots, "Select the slot to change team name...", placeholder="Click me to pick a slot"
         )
         if not (slot := slot[0]):
             return
@@ -78,12 +81,15 @@ class ScrimSlotlistEditPanel(discord.ui.View):
     async def remove_team_name(self, inter: discord.Interaction, button: discord.Button):
         await inter.response.defer()
 
-        if not self.scrim.assigned_slots:
-            return await inter.followup.send("No slot available to replace.", ephemeral=True)
+        assigned_slots = list(self.scrim.assigned_slots)
 
+        if not assigned_slots:
+            return await self.message.edit(content="No slot available to replace.", embed=None, view=None)
+
+        await self.message.delete(delay=0)
         slots_to_remove = await prompt_scrims_slot_selector(
             inter,
-            self.scrim.assigned_slots,
+            assigned_slots,
             "Select the slots you want to remove.",
             placeholder="Click me to pick slots...",
             multiple=True,
@@ -91,10 +97,9 @@ class ScrimSlotlistEditPanel(discord.ui.View):
         if not slots_to_remove:
             return
 
-        await self.scrim.make_changes(available_slots=sorted(self.scrim.available_slots + [_.num for _ in slots_to_remove]))
-
-        for slot in slots_to_remove:
-            await slot.delete()
+        self.scrim.available_slots = sorted(self.scrim.available_slots + [_.num for _ in slots_to_remove])
+        await self.scrim.save(update_fields=["available_slots"])
+        await ScrimAssignedSlot.filter(pk__in=[_.id for _ in slots_to_remove]).delete()
 
         await self.scrim.refresh_slotlist_message()
 
@@ -114,17 +119,8 @@ class ScrimSlotlistEditPanel(discord.ui.View):
         if not modal.new_team_name.value:
             return
 
-        available_slots = list(range(self.scrim.start_from, 30))
-        for slot in self.scrim.assigned_slots:
-            available_slots.remove(slot.num)
-
-        available_slots = [ScrimAssignedSlot(num=_, id=_, team_name="Click to add") for _ in available_slots]
-        if not available_slots:
-            return await inter.followup.send("No slots available to add this time.", ephemeral=True)
-
-        selected_slot = await prompt_scrims_slot_selector(inter, available_slots, "Select a slot to add the team...", multiple=False)
-        if not (selected_slot := selected_slot[0]):
-            return
+        if not self.scrim.available_slots:
+            return await self.message.edit(content="No slots available to add this time.", embed=None, view=None)
 
         team_members = await user_input(
             inter,
@@ -135,9 +131,13 @@ class ScrimSlotlistEditPanel(discord.ui.View):
         if not team_members:
             return
 
+        await self.scrim.refresh_from_db(fields=["available_slots"])
+        if not self.scrim.available_slots:
+            return await self.message.edit(content="No slots available to add this time.", embed=None, view=None)
+
         slot = await ScrimAssignedSlot.create(
             scrim=self.scrim,
-            num=selected_slot.num,
+            num=self.scrim.available_slots[0],
             team_name=modal.new_team_name.value,
             leader_id=team_members[0].id,
             members=[_.id for _ in team_members],
@@ -148,7 +148,11 @@ class ScrimSlotlistEditPanel(discord.ui.View):
 
         await self.scrim.refresh_slotlist_message()
 
-        return await inter.followup.send(
-            embed=self.bot.success_embed(f"`Team {slot.team_name}` has been added at `Slot {slot.num}`"),
-            ephemeral=True,
+        await inter.followup.send(
+            embed=self.bot.success_embed(f"`Team {slot.team_name}` has been added at `Slot {slot.num}`"), ephemeral=True
         )
+
+        await self.scrim.fetch_related("slotm")
+
+        if self.scrim.slotm:
+            await self.scrim.slotm.refresh_public_message()

@@ -27,6 +27,6 @@ def default_slotlist_msg() -> discord.Embed:
     """
     return discord.Embed(
         color=int(os.getenv("DEFAULT_COLOR")),
-        title=f"<<name>> Slotlist",
+        title=f"#<<name>> Slotlist",
         description="```\n<<slots>>\n```",
     ).set_footer(text=f"Registration took: <<time_taken>>")

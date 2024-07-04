@@ -1,5 +1,5 @@
 import discord
-from lib import TEXT_CHANNEL, keycap_digit
+from lib import keycap_digit
 from models import Day, Scrim, ScrimAssignedSlot
 
 
@@ -26,8 +26,8 @@ class ScrimsSlotSelector(discord.ui.Select):
         for idx, slot in enumerate(slots[:25], start=1):
             options.append(
                 discord.SelectOption(
-                    label=f"Slot {slot.num} ─ #{getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
-                    description=f"{slot.team_name} (ID: {slot.scrim.id})",
+                    label=f"Slot {slot.num} ─ {slot.team_name}",
+                    description=f"#{getattr(slot.scrim.registration_channel,'name','deleted-channel')}",
                     value=slot.id,
                     emoji=keycap_digit(idx) if idx <= 9 else "📇",
                 )

@@ -48,7 +48,7 @@ class ScrimsEvents(commands.Cog):
         if scrim is None:
             return self.bot.cache.scrim_channel_ids.discard(channel_id)
 
-        if not scrim.started_at:
+        if not scrim.reg_started_at:
             return
 
         if Scrim.is_ignorable(msg.author):
@@ -68,7 +68,7 @@ class ScrimsEvents(commands.Cog):
                 team_name = f"{msg.author}'s Team"
 
             scrim = await Scrim.get_or_none(pk=scrim.pk)
-            if scrim is None or not scrim.started_at:
+            if scrim is None or not scrim.reg_started_at:
                 return
 
             try:
@@ -94,7 +94,7 @@ class ScrimsEvents(commands.Cog):
 
             await Scrim.get(pk=scrim.pk).update(available_slots=scrim.available_slots[1:])
 
-            self.bot.loop.create_task(scrim.add_tick_and_role(msg))
+            self.bot.loop.create_task(scrim.add_tick(msg))
 
             if len(scrim.available_slots) == 1:
                 try:
@@ -103,12 +103,12 @@ class ScrimsEvents(commands.Cog):
                     self.bot.logger.error(f"Error closing registration of {scrim.id}: {e}")
 
     @commands.Cog.listener()
-    async def on_scrim_open_timer_complete(self, timer: Timer):
+    async def on_scrim_reg_start_timer_complete(self, timer: Timer):
         scrim_id = timer.kwargs["scrim_id"]
 
         scrim = await Scrim.get_or_none(pk=scrim_id).prefetch_related(
             Prefetch("reserved_slots", queryset=ScrimReservedSlot.all().order_by("num"))
-        )  # type: Scrim
+        )
         if not scrim:
             return
 
