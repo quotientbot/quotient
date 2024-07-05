@@ -23,6 +23,7 @@ from models import (
     ScrimReservedSlot,
     ScrimsBanLog,
     ScrimsBannedUser,
+    ScrimsSlotManager,
     Timer,
 )
 from tortoise.query_utils import Prefetch
@@ -291,3 +292,13 @@ class ScrimsEvents(commands.Cog):
             title="Slot Unreserved",
             color=discord.Color.red(),
         )
+
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
+        slotm = await ScrimsSlotManager.get_or_none(channel_id=channel.id)
+        if slotm:
+            await slotm.full_delete()
+
+        scrim = await Scrim.get_or_none(registration_channel_id=channel.id)
+        if scrim:
+            await scrim.full_delete()

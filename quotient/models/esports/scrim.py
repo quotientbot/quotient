@@ -2,6 +2,7 @@ import asyncio
 
 import discord
 from humanize import precisedelta
+from lib import plural
 from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
@@ -21,16 +22,101 @@ class ScrimsSlotManager(BaseDbModel):
     channel_id = fields.BigIntField()
     message_id = fields.BigIntField()
 
-    status = fields.BooleanField(default=True)
-
     allow_multiple_slots = fields.BooleanField(default=False)
 
     scrims: fields.ReverseRelation["Scrim"]
 
-    async def refresh_public_message(self): ...
+    @property
+    async def guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    async def get_public_msg(self) -> discord.Message | None:
+        return await self.bot.get_or_fetch_message(self.channel_id, self.message_id)
+
+    async def get_public_embed(self) -> tuple[discord.Embed, discord.ui.View]:
+        from cogs.esports.views.scrims.slotm.public_panel import ScrimSlotmPublicPanel
+
+        available_scrims = await self.claimable_scrims()
+        view = ScrimSlotmPublicPanel(self)
+
+        e = discord.Embed(color=self.bot.color, title="Scrims Slot Manager", url=self.bot.config("SUPPORT_SERVER_LINK"))
+        e.description = (
+            f"● Press `Cancel Slot` to cancel your slot.\n"
+            f"● Press `Remind Me` to get a reminder is desired slot is unavailable.\n\n"
+            f"● Available Slots: \n"
+        )
+
+        if not available_scrims:
+            e.description += "```No Slots Available at the time.\nPress 🔔 to set a reminder. ``` \n"
+            view.children[1].disabled = True
+
+        for idx, scrim in enumerate(available_scrims, start=1):
+            e.description += f"`{idx}` {getattr(scrim.registration_channel, 'mention','deleted-channel')}  ─  {plural(scrim.available_slots):Slot|Slots}\n"
+
+        return e, view
+
+    async def refresh_public_message(self):
+        msg = await self.get_public_msg()
+        if not msg:
+            return
+
+        e, v = await self.get_public_embed()
+        await msg.edit(content="", embed=e, view=v)
 
     async def get_user_slots(self, user_id: int) -> list["ScrimAssignedSlot"]:
-        return await ScrimAssignedSlot.filter(scrim__slotm=self, members__contains=user_id).all()
+        return await ScrimAssignedSlot.filter(scrim__slotm=self, members__contains=user_id).prefetch_related("scrim").order_by("num")
+
+    async def full_delete(self):
+        await Scrim.filter(slotm=self).update(slotm_id=None)
+        await self.delete()
+
+        msg = await self.get_public_msg()
+        if msg:
+            await msg.delete(delay=0)
+
+    async def claimable_scrims(self):
+        return (
+            await Scrim.filter(
+                slotm=self,
+                reg_ended_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
+                available_slots__not=[],
+                match_start_time__gt=self.bot.current_time,
+                reg_started_at__isnull=True,
+            )
+            .order_by("reg_start_time")
+            .limit(25)
+        )
+
+    async def dispatch_reminders(self, scrim_id: int):
+        reminders = await ScrimSlotReminder.filter(scrim_id=scrim_id)
+        scrim = await Scrim.get_or_none(id=scrim_id)
+
+        if not reminders:
+            return
+
+        slotm_link = f"https://discord.com/channels/{self.guild_id}/{self.channel_id}/{self.message_id}"
+        e = discord.Embed(color=self.bot.color, title=f"Slot Available To Claim - {self.guild}", url=slotm_link)
+        e.description = f"A slot of {scrim} is now available to claim! {plural(reminders):User|Users} want to claim it."
+
+        v = discord.ui.View(timeout=None)
+        v.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Click me to Claim Slot", url=slotm_link))
+        async for user in self.bot.resolve_member_ids(self.guild, [reminder.user_id for reminder in reminders]):
+            try:
+                await user.send(embed=e, view=v)
+            except discord.Forbidden:
+                pass
+
+        await ScrimSlotReminder.filter(scrim_id=scrim_id).delete()
+
+
+class ScrimSlotReminder(BaseDbModel):
+    class Meta:
+        table = "scrims_slot_reminders"
+
+    id = fields.IntField(primary_key=True)
+    scrim_id = fields.IntField()
+    user_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now=True)
 
 
 class Scrim(BaseDbModel):
@@ -89,7 +175,6 @@ class Scrim(BaseDbModel):
     required_lines = fields.SmallIntField(default=0)
     scrim_status = fields.BooleanField(default=True)
 
-    slot_reminders: fields.ReverseRelation["ScrimSlotReminder"]
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
 
@@ -426,17 +511,6 @@ class Scrim(BaseDbModel):
             )
         except (discord.HTTPException, AttributeError):
             pass
-
-
-class ScrimSlotReminder(BaseDbModel):
-    class Meta:
-        table = "scrims_slot_reminders"
-
-    id = fields.IntField(primary_key=True)
-    user_id = fields.BigIntField()
-    created_at = fields.DatetimeField(auto_now=True)
-
-    scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="slot_reminders")
 
 
 class BaseScrimSlot(BaseDbModel):

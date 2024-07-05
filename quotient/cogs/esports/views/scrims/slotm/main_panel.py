@@ -1,10 +1,11 @@
 import discord
 from cogs.premium import SLOTM_PANEL, RequirePremiumView
 from discord.ext import commands
-from lib import plural
+from lib import EXIT, plural
 from models import Scrim, ScrimsSlotManager
 
 from .. import ScrimsView
+from ..utility.buttons import DiscardChanges
 from ..utility.selectors import prompt_scrims_selector
 
 
@@ -29,8 +30,13 @@ class SlotmMainPanel(ScrimsView):
         if not slotm_records:
             e.description += "```No slot manager records found```"
 
+            self.children[1].disabled = True
+
         for idx, slotm in enumerate(slotm_records, start=1):
-            e.description += f"`{idx:02}.` <#{slotm.channel_id}> - ({plural(slotm.scrims):scrim|scrims})"
+            e.description += (
+                f"`{idx:02}.` <#{slotm.channel_id}> - ({plural(list(slotm.scrims)):scrim|scrims})\n"
+                f" - `Allow to claim Multiple Slots:` {('No', 'Yes')[slotm.allow_multiple_slots]}\n"
+            )
 
         e.set_footer(text="Don't forget to set the match times for scrims.")
         return e
@@ -64,6 +70,18 @@ class SlotmMainPanel(ScrimsView):
         if not scrims:
             return
 
+        allow_multiple_slots = await self.bot.prompt(
+            inter,
+            inter.user,
+            "Do you want to allow users to be able to claim 'Multiple Slots'?",
+            ephemeral=True,
+            confirm_btn_label="Yes",
+            cancel_btn_label="No",
+        )
+
+        if allow_multiple_slots is None:
+            return
+
         prompt = await self.bot.prompt(
             inter,
             inter.user,
@@ -90,22 +108,19 @@ class SlotmMainPanel(ScrimsView):
             name="cancel-claim-slot", overwrites=overwrites, reason=f"Created for scrims slotm by {inter.user}"
         )
 
-        record = ScrimsSlotManager(channel_id=channel.id, guild_id=inter.guild_id)
-        await record.setup(scrims)
         msg = await channel.send("Setting up cancel claim panel ...")
 
-        slotm = await ScrimsSlotManager.create(channel_id=channel.id, guild_id=inter.guild_id, message_id=msg.id)
+        slotm = await ScrimsSlotManager.create(
+            channel_id=channel.id, guild_id=inter.guild_id, message_id=msg.id, allow_multiple_slots=allow_multiple_slots
+        )
         await Scrim.filter(pk__in=[s.pk for s in scrims]).update(slotm=slotm)
 
         await slotm.refresh_public_message()
 
         self.stop()
         v = SlotmMainPanel(self.ctx)
+        v.add_item(DiscardChanges(self.ctx, label="Back to Scrims Panel", emoji=EXIT))
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
-
-    @discord.ui.button(label="Edit Settings", style=discord.ButtonStyle.primary)
-    async def edit_settings(self, inter: discord.Interaction, btn: discord.ui.Button):
-        await inter.response.defer()
 
     @discord.ui.button(label="Set Match Time")
     async def set_match_times(self, inter: discord.Interaction, btn: discord.ui.Button):
