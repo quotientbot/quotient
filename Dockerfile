@@ -28,4 +28,6 @@ COPY .git .git
 
 EXPOSE 6000
 
+STOPSIGNAL SIGINT
+
 ENTRYPOINT ["python","quotient/launcher.py"]
