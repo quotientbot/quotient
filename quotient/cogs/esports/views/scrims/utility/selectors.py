@@ -140,10 +140,11 @@ async def prompt_scrims_selector(
     scrims: list[Scrim],
     placeholder: str = None,
     single_scrim_only: bool = False,
+    force_dropdown: bool = False,
 ) -> list[Scrim]:
     placeholder = placeholder or "Choose {0} to continue...".format("a scrim" if single_scrim_only else "scrims")
 
-    if len(scrims) == 1:
+    if len(scrims) == 1 and not force_dropdown:
         return scrims
 
     view = ScrimSelectorView(user, scrims, placeholder, single_scrim_only)

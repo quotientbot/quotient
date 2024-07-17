@@ -1,12 +1,13 @@
 import discord
 from cogs.premium import SLOTM_PANEL, RequirePremiumView
 from discord.ext import commands
-from lib import EXIT, plural
+from lib import EXIT, LOADING, plural
 from models import Scrim, ScrimsSlotManager
 
 from .. import ScrimsView
 from ..utility.buttons import DiscardChanges
 from ..utility.selectors import prompt_scrims_selector
+from .selector import prompt_slotm_selector
 
 
 class SlotmMainPanel(ScrimsView):
@@ -64,7 +65,7 @@ class SlotmMainPanel(ScrimsView):
         scrims = await prompt_scrims_selector(
             inter,
             inter.user,
-            await Scrim.filter(guild_id=inter.guild_id),
+            await Scrim.filter(guild_id=inter.guild_id).order_by("reg_start_time"),
             "Select scrims to setup slot manager for.",
         )
         if not scrims:
@@ -122,6 +123,32 @@ class SlotmMainPanel(ScrimsView):
         v.add_item(DiscardChanges(self.ctx, label="Back to Scrims Panel", emoji=EXIT))
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
-    @discord.ui.button(label="Set Match Time")
-    async def set_match_times(self, inter: discord.Interaction, btn: discord.ui.Button):
-        await inter.response.defer()
+    @discord.ui.button(label="Edit Slotm Scrims", style=discord.ButtonStyle.secondary)
+    async def edit_slotm_scrims(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer(ephemeral=True, thinking=True)
+
+        slotm = await prompt_slotm_selector(inter, "Select slot manager, you want to edit scrims for.")
+        if not slotm:
+            return
+
+        scrims = await prompt_scrims_selector(
+            inter,
+            inter.user,
+            await Scrim.filter(guild_id=inter.guild_id).order_by("reg_start_time"),
+            f"Select scrims to add in <#{slotm.channel_id}> slotm.",
+            force_dropdown=True,
+        )
+
+        if not scrims:
+            return
+
+        m = await inter.followup.send(f"Updating slot manager ...{LOADING}", ephemeral=True)
+        await Scrim.filter(pk__in=[s.pk for s in scrims]).update(slotm=slotm)
+        await slotm.refresh_public_message()
+
+        self.stop()
+        v = SlotmMainPanel(self.ctx)
+        v.add_item(DiscardChanges(self.ctx, label="Back to Scrims Panel", emoji=EXIT))
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
+
+        await m.edit(content="Updated Successfully.", embed=None, view=None)
