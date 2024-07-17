@@ -397,7 +397,10 @@ class Scrim(BaseDbModel):
         )
 
         await self.send_log(
-            f"Registration of {self} has been started successfully.", title="Scrims Registration Open", color=discord.Color.green()
+            f"Registration of {self} has been started successfully.",
+            title="Scrims Registration Open",
+            color=discord.Color.green(),
+            add_contact_btn=False,
         )
         from lib import toggle_channel_perms
 

@@ -294,6 +294,20 @@ class ScrimsEvents(commands.Cog):
         )
 
     @commands.Cog.listener()
+    async def on_scrims_match_start_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id).prefetch_related("slotm")
+        if not scrim:
+            return
+
+        if not scrim.match_start_time == timer.expires:
+            return
+
+        if scrim.slotm:
+            await scrim.slotm.refresh_public_message()
+
+    @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel: discord.TextChannel):
         slotm = await ScrimsSlotManager.get_or_none(channel_id=channel.id)
         if slotm:
@@ -302,3 +316,14 @@ class ScrimsEvents(commands.Cog):
         scrim = await Scrim.get_or_none(registration_channel_id=channel.id)
         if scrim:
             await scrim.full_delete()
+
+    @commands.Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        if not payload.guild_id:
+            return
+
+        record = await ScrimsSlotManager.get_or_none(message_id=payload.message_id)
+        if not record:
+            return
+
+        await record.full_delete()
