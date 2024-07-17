@@ -88,7 +88,7 @@ class ScrimSlotmPublicPanel(discord.ui.View):
         m = TeamNameInput()
         await inter.response.send_modal(m)
         await m.wait()
-        team_name = "Team " + re.sub(r"team|name|[^\w\s]", "", m.team_name.lower()).strip().title()
+        team_name = "Team " + re.sub(r"team|name|[^\w\s]", "", m.team_name.value.lower()).strip().title()
 
         if await ScrimsBannedUser.filter(user_id=inter.user.id, guild_id=inter.guild_id).exists():
             return await inter.followup.send(
@@ -102,7 +102,7 @@ class ScrimSlotmPublicPanel(discord.ui.View):
         v = discord.ui.View(timeout=60)
         v.add_item(ClaimSlotSelector(available_scrims))
         m = await inter.followup.send("Please select the slot you want to claim:", view=v, ephemeral=True)
-        await m.wait()
+        await v.wait()
 
         if not v.selected_slot:
             return
