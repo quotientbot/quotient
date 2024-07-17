@@ -10,6 +10,7 @@ from models import Guild, Scrim
 
 from .. import ScrimsBtn
 from .callbacks import (
+    edit_match_start_time,
     edit_reactions,
     edit_reg_start_time,
     edit_registration_open_days,
@@ -60,6 +61,14 @@ class SetRegStartTime(ScrimsBtn):
 
     async def callback(self, interaction: discord.Interaction) -> any:
         await edit_reg_start_time(self, interaction)
+
+
+class SetMatchStartTime(ScrimsBtn):
+    def __init__(self, ctx: commands.Context, emoji: str):
+        super().__init__(ctx, emoji=emoji)
+
+    async def callback(self, interaction: discord.Interaction) -> any:
+        await edit_match_start_time(self, interaction)
 
 
 class SetRegOpenDays(ScrimsBtn):
@@ -139,6 +148,9 @@ class SaveScrim(ScrimsBtn):
             self.view.record.autoclean_channel_time,
             "autoclean_scrims_channel",
             scrim_id=self.view.record.id,
+        )
+        await self.view.bot.reminders.create_timer(
+            self.view.record.match_start_time, "scrims_match_start", scrim_id=self.view.record.id
         )
 
         self.view.stop()

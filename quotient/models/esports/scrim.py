@@ -295,7 +295,7 @@ class Scrim(BaseDbModel):
 
         await Timer.filter(
             extra={"args": [], "kwargs": {"scrim_id": self.id}},
-            event__in=["scrim_reg_start", "scrim_reg_end", "scrim_channel_autoclean"],
+            event__in=["scrim_reg_start", "scrim_reg_end", "scrim_channel_autoclean", "scrims_match_start"],
         ).delete()
 
         await self.bot.reminders.create_timer(self.reg_start_time, "scrim_reg_start", scrim_id=self.id)
@@ -303,6 +303,8 @@ class Scrim(BaseDbModel):
             await self.bot.reminders.create_timer(self.reg_auto_end_time, "scrim_reg_end", scrim_id=self.id)
         if self.autoclean_channel_time:
             await self.bot.reminders.create_timer(self.autoclean_channel_time, "scrim_channel_autoclean", scrim_id=self.id)
+
+        await self.bot.reminders.create_timer(self.match_start_time, "scrims_match_start", scrim_id=self.id)
 
     async def create_slotlist(self) -> tuple[discord.Embed, discord.ui.View]:
         from cogs.esports.views.scrims.slotlist.main_panel import (
