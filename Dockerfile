@@ -26,6 +26,7 @@ COPY quotient quotient
 # Copy .git directory
 COPY .git .git
 
+ENV PYTHONUNBUFFERED=1
 EXPOSE 6000
 
 ENTRYPOINT ["python","quotient/launcher.py"]
