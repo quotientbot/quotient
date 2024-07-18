@@ -27,7 +27,7 @@ class ScrimsSlotManager(BaseDbModel):
     scrims: fields.ReverseRelation["Scrim"]
 
     @property
-    async def guild(self):
+    def guild(self):
         return self.bot.get_guild(self.guild_id)
 
     async def get_public_msg(self) -> discord.Message | None:

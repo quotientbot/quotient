@@ -5,9 +5,19 @@ from typing import Any
 
 import discord
 from lib import BELL, LOADING
-from models import Scrim, ScrimAssignedSlot, ScrimsBannedUser, ScrimsSlotManager
+from models import (
+    Scrim,
+    ScrimAssignedSlot,
+    ScrimsBannedUser,
+    ScrimSlotReminder,
+    ScrimsSlotManager,
+)
 
-from ..utility.selectors import ScrimsSlotSelector, prompt_scrims_slot_selector
+from ..utility.selectors import (
+    ScrimsSlotSelector,
+    prompt_scrims_selector,
+    prompt_scrims_slot_selector,
+)
 
 
 class TeamNameInput(discord.ui.Modal, title="Slot Claim Form"):
@@ -25,6 +35,8 @@ class ScrimSlotmPublicPanel(discord.ui.View):
         super().__init__(timeout=None)
         self.record = record
 
+        self.bot = record.bot
+
     async def on_error(self, interaction: discord.Interaction[discord.Client], error: Exception, item: discord.ui.Item[Any]) -> None:
         if isinstance(error, discord.NotFound):
             return
@@ -40,7 +52,7 @@ class ScrimSlotmPublicPanel(discord.ui.View):
             )
 
         selected_slots = await prompt_scrims_slot_selector(
-            inter, user_slots, "Please select the slots you want to cancel from dropdown.", multiple=True
+            inter, user_slots, "Please select the slots you want to cancel from dropdown.", multiple=True, force_dropdown=True
         )
         if not selected_slots:
             return
@@ -50,8 +62,8 @@ class ScrimSlotmPublicPanel(discord.ui.View):
             inter.user,
             "Are you sure you want to cancel the selected slots?",
             msg_title="This action can't be undone!",
-            confirm_btn_label="Yes",
-            cancel_btn_label="No, Cancel",
+            confirm_btn_label="Yes, Cancel",
+            cancel_btn_label="No, Abort",
             ephemeral=True,
         )
         if not prompt:
@@ -151,6 +163,78 @@ class ScrimSlotmPublicPanel(discord.ui.View):
     @discord.ui.button(label="Remind Me", emoji=BELL, custom_id="scrims_slot_reminder")
     async def scrims_remind_me(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
+        self.bot.logger.debug(f"User {inter.user} requested slot reminder in {inter.guild_id}")
+
+        if not await self.record.bot.is_pro_guild(inter.guild_id):
+            return await inter.followup.send(
+                embed=self.bot.error_embed(
+                    "`Slot Available Reminder` feature is only available for Quotient Premium servers.", title="Premium Only Feature"
+                ),
+            )
+
+        self.bot.logger.debug(f"User {inter.user} is in a premium guild {inter.guild_id}")
+
+        if await ScrimsBannedUser.filter(user_id=inter.user.id, guild_id=inter.guild_id).exists():
+            return await inter.followup.send(
+                embed=self.record.bot.error_embed("You are banned from claiming slots in this server."), ephemeral=True
+            )
+
+        self.bot.logger.debug(f"User {inter.user} is not banned from claiming slots in {inter.guild_id}")
+
+        scrims = (
+            await Scrim.filter(
+                slotm=self.record,
+                reg_ended_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
+                match_start_time__gt=self.bot.current_time,
+                reg_started_at__isnull=True,
+            )
+            .order_by("reg_start_time")
+            .limit(25)
+        )
+
+        scrims = [s for s in scrims if not s.available_slots]
+
+        self.bot.logger.debug(f"Found {len(scrims)} scrims for slot reminder in {inter.guild_id}")
+
+        selected_scrims = await prompt_scrims_selector(
+            inter,
+            inter.user,
+            scrims,
+            "Please select the scrim you want to be reminded for (In DM).",
+            single_scrim_only=True,
+            force_dropdown=True,
+        )
+
+        if not selected_scrims:
+            return
+
+        selected_scrim = selected_scrims[0]
+
+        if await ScrimSlotReminder.filter(user_id=inter.user.id, scrim_id=selected_scrim.id).exists():
+            return await inter.followup.send(
+                embed=self.record.bot.error_embed(
+                    "You already have a reminder set for this scrim, we will remind you as soon as we have a slot available.",
+                    title="Don't be Impatient!",
+                ),
+                ephemeral=True,
+            )
+
+        if not self.record.allow_multiple_slots:
+            if await ScrimAssignedSlot.filter(leader_id=inter.user.id, scrim=selected_scrim).exists():
+                return await inter.followup.send(
+                    embed=self.record.bot.error_embed(
+                        "You already have a slot in this scrim, this server doesn't allow multiple slots per scrim.",
+                    ),
+                    ephemeral=True,
+                )
+
+        await ScrimSlotReminder.create(user_id=inter.user.id, scrim_id=selected_scrim.id)
+        await inter.followup.send(
+            embed=self.bot.success_embed(
+                f"You will be reminded as soon as we have a slot available for {selected_scrim}.", title="Reminder Set!"
+            ),
+            ephemeral=True,
+        )
 
 
 class ClaimSlotSelector(discord.ui.Select):

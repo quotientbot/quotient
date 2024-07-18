@@ -52,9 +52,10 @@ async def prompt_scrims_slot_selector(
     msg: str,
     placeholder: str = "Select the slots to continue...",
     multiple: bool = False,
+    force_dropdown: bool = False,
 ) -> list[ScrimAssignedSlot]:
 
-    if len(slots) == 1:
+    if len(slots) == 1 and not force_dropdown:
         return slots
 
     view = discord.ui.View(timeout=100)
