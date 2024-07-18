@@ -27,7 +27,7 @@ class RemoveNoise(logging.Filter):
 
 @contextlib.contextmanager
 def setup_logging():
-    log = logging.getLogger()
+    log = logging.getLogger(os.getenv("INSTANCE_TYPE"))
 
     try:
         discord.utils.setup_logging()
@@ -37,7 +37,7 @@ def setup_logging():
         logging.getLogger("discord.http").setLevel(logging.WARNING)
         logging.getLogger("discord.state").addFilter(RemoveNoise())
 
-        log.setLevel(logging.INFO)
+        log.setLevel("DEBUG")
         handler = RotatingFileHandler(
             filename=f"../logs/{os.getenv('INSTANCE_TYPE')}.log",
             encoding="utf-8",
@@ -46,9 +46,7 @@ def setup_logging():
             backupCount=5,
         )
         dt_fmt = "%Y-%m-%d %H:%M:%S"
-        fmt = logging.Formatter(
-            "[{asctime}] [{levelname:<7}] {name}: {message}", dt_fmt, style="{"
-        )
+        fmt = logging.Formatter("[{asctime}] [{levelname:<7}] {name}: {message}", dt_fmt, style="{")
         handler.setFormatter(fmt)
         log.addHandler(handler)
 
