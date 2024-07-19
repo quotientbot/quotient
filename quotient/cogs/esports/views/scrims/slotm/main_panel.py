@@ -135,7 +135,7 @@ class SlotmMainPanel(ScrimsView):
             inter,
             inter.user,
             await Scrim.filter(guild_id=inter.guild_id).order_by("reg_start_time"),
-            f"Select scrims to add in <#{slotm.channel_id}> slotm.",
+            f"Select scrims to add in <#{inter.guild.get_channel(slotm.channel_id)}> slotm.",
             force_dropdown=True,
         )
 

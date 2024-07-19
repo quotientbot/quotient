@@ -8,7 +8,7 @@ from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
 from ..others import Timer
-from .enums import Day, IdpShareType
+from .enums import DayType, IdpShareType
 from .utility import default_reg_close_msg, default_reg_open_msg, default_slotlist_msg
 
 
@@ -165,7 +165,7 @@ class Scrim(BaseDbModel):
 
     registration_time_elapsed = fields.SmallIntField(default=0)  # in seconds
 
-    registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in Day]))
+    registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in DayType]))
 
     slotlist_msg_design = fields.JSONField(default=default_slotlist_msg().to_dict())
     open_msg_design = fields.JSONField(default=default_reg_open_msg().to_dict())
@@ -174,6 +174,9 @@ class Scrim(BaseDbModel):
     reactions = ArrayField("VARCHAR(50)", default=lambda: list(["✅", "❌"]))
     required_lines = fields.SmallIntField(default=0)
     scrim_status = fields.BooleanField(default=True)
+
+    drop_panel_message_id = fields.BigIntField(null=True)
+    game_maps = fields.JSONField(default={d.name: None for d in DayType})
 
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
@@ -360,6 +363,22 @@ class Scrim(BaseDbModel):
             self.slotlist_message_id = m.id
             await self.save(update_fields=["slotlist_message_id"])
 
+    async def send_drop_panel(self):
+        from cogs.esports.views.scrims.drop_panel.after_scrim import (
+            DropLocationSelectorView,
+        )
+
+        v = DropLocationSelectorView(self)
+        e, f = await v.initial_msg()
+        try:
+            v.message = await self.registration_channel.send(content="", embed=e, view=v, file=f)
+            self.bot.logger.debug(f"Drop Panel Message ID: {v.message.id}, Sent in #{self.registration_channel}")
+        except discord.HTTPException:
+            return
+        else:
+            self.drop_panel_message_id = v.message.id
+            await self.save(update_fields=["drop_panel_message_id"])
+
     async def start_registration(self):
 
         await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
@@ -431,6 +450,9 @@ class Scrim(BaseDbModel):
 
         if self.autosend_slotlist and self.assigned_slots:
             await self.send_slotlist()
+
+        if self.game_maps[self.bot.current_time.strftime("%A").upper()]:
+            await self.send_drop_panel()
 
         if self.autodelete_extra_msges:
             reg_msg_ids = [i.message_id for i in self.assigned_slots]
@@ -527,6 +549,7 @@ class BaseScrimSlot(BaseDbModel):
     leader_id = fields.BigIntField(null=True)
     team_name = fields.CharField(max_length=100, null=True)
     members = ArrayField("BIGINT", default=list)
+    drop_location = fields.CharField(max_length=50, null=True)
 
     @property
     def leader(self):

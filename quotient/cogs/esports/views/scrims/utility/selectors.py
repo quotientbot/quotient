@@ -1,12 +1,12 @@
 import discord
 from lib import keycap_digit
-from models import Day, Scrim, ScrimAssignedSlot
+from models import DayType, Scrim, ScrimAssignedSlot
 
 
 class WeekDaysSelector(discord.ui.Select):
     def __init__(self, placeholder="Select the days for registrations", max=7):
         _o = []
-        for idx, day in enumerate(Day, start=1):
+        for idx, day in enumerate(DayType, start=1):
             _o.append(discord.SelectOption(label=day.name.title(), value=day.value, emoji=keycap_digit(idx)))
 
         super().__init__(placeholder=placeholder, max_values=max, options=_o)
