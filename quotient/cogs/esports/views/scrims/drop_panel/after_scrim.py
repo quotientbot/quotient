@@ -37,8 +37,10 @@ class DropLocationSelectorView(discord.ui.View):
         super().__init__(timeout=None)
         self.scrim = scrim
         self.bot = scrim.bot
-        self.scrim_map_name: str = scrim.game_maps[self.bot.current_time.strftime("%A").upper()]
-        self.map_location: Enum = get_map_type(self.scrim_map_name)
+        self.scrim_map_name: str | None = scrim.game_maps[self.bot.current_time.strftime("%A").upper()]
+
+        if self.scrim_map_name:
+            self.map_location: Enum = get_map_type(self.scrim_map_name)
 
     async def initial_msg(self):
         slots = await self.scrim.assigned_slots.filter(drop_location__isnull=False).order_by("num").prefetch_related("scrim")

@@ -19,3 +19,4 @@ from .scrim import (
     ScrimSlotReminder,
     ScrimsSlotManager,
 )
+from .tagcheck import TagCheck

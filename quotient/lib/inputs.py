@@ -33,6 +33,8 @@ class ChannelSelectorInput(discord.ui.ChannelSelect):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        self.view.selected_channel = self.values[0]
         self.view.stop()
 
 
@@ -98,8 +100,8 @@ async def text_channel_input(
         await m.delete(delay=0)
 
     try:
-        return v.children[0].values[0]
-    except IndexError:
+        return v.selected_channel.resolve()
+    except Exception:
         return None
 
 

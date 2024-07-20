@@ -9,11 +9,12 @@ import discord
 from core import Context
 from discord.ext import commands
 from lib import INFO
-from models import Scrim
+from models import Scrim, TagCheck
 
-from .events import ScrimsEvents
+from .events import ScrimsEvents, TagCheckEvents
 from .slash import ScrimSlashCommands
 from .views.scrims.main_panel import ScrimsMainPanel
+from .views.tagcheck.panel import TagCheckPanel
 
 
 class Esports(commands.Cog):
@@ -42,8 +43,22 @@ class Esports(commands.Cog):
 
         view.message = await ctx.send(embed=await view.initial_msg(), view=view)
 
+    @commands.hybrid_command(name="tagcheck", aliases=("tc",))
+    async def tagcheck(self, ctx: Context) -> None:
+        """
+        Manage tag check settings of the server.
+        """
+        if not any((ctx.author.guild_permissions.manage_guild, TagCheck.ignorerole_role in ctx.author.roles)):
+            return await ctx.send(
+                embed=self.bot.error_embed("You need `quotient-tag-ignore` role or `Manage-Server` permissions to use this command.")
+            )
+
+        v = TagCheckPanel(ctx)
+        v.message = await ctx.send(embed=await v.initial_msg(), view=v)
+
 
 async def setup(bot: Quotient) -> None:
     await bot.add_cog(Esports(bot))
     await bot.add_cog(ScrimSlashCommands(bot))
     await bot.add_cog(ScrimsEvents(bot))
+    await bot.add_cog(TagCheckEvents(bot))

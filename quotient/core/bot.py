@@ -150,8 +150,8 @@ class Quotient(commands.AutoShardedBot):
         async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
             self.add_view(ScrimsSlotlistMainPanel(scrim), message_id=scrim.slotlist_message_id)
 
-        async for scrim in Scrim.filter(drop_location_message_id__isnull=False):
-            self.add_view(DropLocationSelectorView(scrim), message_id=scrim.drop_location_message_id)
+        async for scrim in Scrim.filter(drop_panel_message_id__isnull=False):
+            self.add_view(DropLocationSelectorView(scrim), message_id=scrim.drop_panel_message_id)
 
     async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> discord.Member | None:
         """Looks up a member in cache or fetches if not found."""
