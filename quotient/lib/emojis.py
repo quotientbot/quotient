@@ -23,6 +23,7 @@ IMAGE_SYMBOL = "<:image:1254123107694936156>"
 
 BELL = "<a:ringing_bell:1256877114125189153>"
 
+YOUTUBE = "<:yt:1264245964315689041>"
 
 # Paginator:
 
