@@ -126,7 +126,7 @@ class YtNotification(BaseDbModel):
             self.lease_ends_at = self.bot.current_time + timedelta(seconds=86400)
             await self.save(update_fields=["lease_ends_at"])
 
-    async def send_notification(self, channel: str, title: str, link: str):
+    async def send_notification(self, channel: str, title: str, link: str, video_type: str):
         """
         Sends a notification to the Discord channel when a new video is uploaded to the YouTube channel.
 
@@ -135,7 +135,11 @@ class YtNotification(BaseDbModel):
             title (str): The title of the video.
             link (str): The URL of the video.
         """
-        msg = self.regular_video_msg.format(
+        if video_type == "live":
+            if not self.bot.is_pro_guild(self.discord_guild_id):
+                return
+
+        msg = (self.live_video_msg if video_type == "live" else self.regular_video_msg).format(
             ping=f"<@&{self.ping_role_id}>" if self.ping_role_id else "",
             channel=channel,
             title=title,

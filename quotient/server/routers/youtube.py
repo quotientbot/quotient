@@ -93,6 +93,6 @@ async def handle_notification(request: Request, record: YtNotification = Depends
             "video_type": "regular" if video_details["snippet"]["liveBroadcastContent"] == "none" else "live",
         }
 
-        await record.send_notification(author_name, title, link)
+        await record.send_notification(author_name, title, link, yt_element["video_type"])
 
     return Response(content="Notification received", status_code=200)

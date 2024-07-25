@@ -1,16 +1,18 @@
 from datetime import timedelta
 
 import discord
+from cogs.premium import YT_NOTIFICATIONS_LIMIT, RequirePremiumView
 from core import QuoView
 from discord.ext import commands
 from lib import (
+    DIAMOND,
     YOUTUBE,
     guild_role_input,
     text_channel_input,
     text_input_modal,
     truncate_string,
 )
-from models import YtNotification
+from models import Guild, YtNotification
 
 
 class SetChannel(discord.ui.Button):
@@ -102,8 +104,8 @@ class SetRegularVideoMsg(discord.ui.Button):
 class SetLiveVideoMsg(discord.ui.Button):
     view: "SetupNewYt"
 
-    def __init__(self):
-        super().__init__(style=discord.ButtonStyle.primary, label="Live Video Message")
+    def __init__(self, disabled: bool = True):
+        super().__init__(style=discord.ButtonStyle.primary, label="Live Video Message", disabled=disabled)
 
     async def callback(self, inter: discord.Interaction):
         msg = await text_input_modal(
@@ -149,6 +151,13 @@ class SaveDetails(discord.ui.Button):
 
     async def callback(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral=True)
+
+        if not await self.bot.is_pro_guild(inter.guild_id):
+            if await YtNotification.filter(discord_guild_id=inter.guild_id).count() >= YT_NOTIFICATIONS_LIMIT:
+                v = RequirePremiumView(f"You can setup only {YT_NOTIFICATIONS_LIMIT} Youtube Notification in free version.")
+                v.message = await inter.followup.send(embed=v.premium_embed, view=v)
+                return
+
         self.view.record.lease_ends_at = self.view.bot.current_time + timedelta(seconds=86400)
         await self.view.record.save()
         await self.view.record.setup_or_resubscribe()
@@ -190,11 +199,13 @@ class SetupNewYt(QuoView):
         if not self.record:
             self.record = YtNotification(discord_guild_id=self.ctx.guild.id)
 
+        g = await Guild.get_or_none(guild_id=self.ctx.guild.id)
+
         self.clear_items()
         self.add_item(SetChannel())
         self.add_item(YtUsername())
         self.add_item(SetRegularVideoMsg())
-        self.add_item(SetLiveVideoMsg())
+        self.add_item(SetLiveVideoMsg(disabled=not g.is_premium))
         self.add_item(SetPingRole())
         self.add_item(
             SaveDetails(
@@ -242,7 +253,7 @@ class SetupNewYt(QuoView):
             inline=False,
         )
         e.add_field(
-            name="Live Video Message",
+            name=f"{DIAMOND} Live Video Message (Premium Only)",
             value=self.record.live_video_msg,
             inline=False,
         )

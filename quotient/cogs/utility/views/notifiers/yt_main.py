@@ -1,7 +1,8 @@
 import discord
+from cogs.premium import YT_NOTIFICATIONS_LIMIT, RequirePremiumView
 from core import QuoView
 from discord.ext import commands
-from lib import YOUTUBE, INFO
+from lib import INFO, YOUTUBE
 from models import YtNotification
 
 from .yt_setup import SetupNewYt
@@ -44,8 +45,13 @@ class YtNotificationView(QuoView):
     @discord.ui.button(label="Setup New", style=discord.ButtonStyle.primary)
     async def setup_new_yt(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
-        self.stop()
+        if not await self.bot.is_pro_guild(inter.guild_id):
+            if await YtNotification.filter(discord_guild_id=inter.guild_id).count() >= YT_NOTIFICATIONS_LIMIT:
+                v = RequirePremiumView(f"You can setup only {YT_NOTIFICATIONS_LIMIT} Youtube Notification in free version.")
+                v.message = await inter.followup.send(embed=v.premium_embed, view=v)
+                return
 
+        self.stop()
         v = SetupNewYt(self.ctx)
         v.message = await self.message.edit(embed=await v.initial_msg(), view=v)
 
