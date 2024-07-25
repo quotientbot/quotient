@@ -12,7 +12,7 @@ from core import Context
 from discord.ext import commands
 from models import AutoPurge, Snipe, Timer
 
-from .views import AutopurgeView
+from .views import AutopurgeView, YtNotificationView
 
 
 class Utility(commands.Cog):
@@ -22,9 +22,7 @@ class Utility(commands.Cog):
 
     async def delete_older_snipes(self):  # we delete snipes that are older than 10 days
         await self.bot.wait_until_ready()
-        await Snipe.filter(
-            deleted_at__lte=(self.bot.current_time - timedelta(days=10))
-        ).delete()
+        await Snipe.filter(deleted_at__lte=(self.bot.current_time - timedelta(days=10))).delete()
 
     @commands.Cog.listener(name="on_message_delete")
     async def on_new_snipe_msg(self, message: discord.Message):
@@ -94,6 +92,14 @@ class Utility(commands.Cog):
         except discord.HTTPException:
             pass
 
+    @commands.hybrid_command(name="yt-notifier", aliases=["yt"])
+    async def yt_notifier(self, ctx: Context):
+        """
+        Setup notifications for new videos and live streams.
+        """
+        v = YtNotificationView(ctx)
+        v.message = await ctx.send(embed=await v.initial_msg(), view=v)
+
     @commands.hybrid_command(name="autopurge", aliases=["ap"])
     async def autopurge_cmd(self, ctx: Context):
         """
@@ -109,20 +115,14 @@ class Utility(commands.Cog):
         """
         channel = channel or ctx.channel
 
-        snipe = (
-            await Snipe.filter(channel_id=channel.id).order_by("-deleted_at").first()
-        )
+        snipe = await Snipe.filter(channel_id=channel.id).order_by("-deleted_at").first()
 
         if not snipe:
-            return await ctx.send(
-                embed=self.bot.error_embed("Nothing to snipe here!"), ephemeral=True
-            )
+            return await ctx.send(embed=self.bot.error_embed("Nothing to snipe here!"), ephemeral=True)
 
         elif snipe.nsfw and not ctx.channel.is_nsfw():
             return await ctx.send(
-                embed=self.bot.error_embed(
-                    "This snipe is NSFW, please use an NSFW channel!"
-                ),
+                embed=self.bot.error_embed("This snipe is NSFW, please use an NSFW channel!"),
                 ephemeral=True,
             )
 
@@ -134,10 +134,7 @@ class Utility(commands.Cog):
             name=snipe.author,
             icon_url=snipe.author.display_avatar.url if snipe.author else None,
         )
-        embed.description = (
-            f"{discord.utils.format_dt(snipe.deleted_at)}\n"
-            f"\n**__Deleted Message Content__**\n{snipe.content}"
-        )
+        embed.description = f"{discord.utils.format_dt(snipe.deleted_at)}\n" f"\n**__Deleted Message Content__**\n{snipe.content}"
 
         embed.set_footer(text="Deleted")
         await ctx.send(embed=embed)

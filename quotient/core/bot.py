@@ -323,12 +323,13 @@ class Quotient(commands.AutoShardedBot):
         user: discord.Member,
         msg: str,
         msg_title: str = None,
+        thumbnail: str = None,
         ephemeral: bool = False,
         confirm_btn_label: str = "Confirm",
         cancel_btn_label: str = "Cancel",
         delete_after: bool = True,
     ):
-        embed = discord.Embed(title=msg_title, description=msg, color=self.color)
+        embed = discord.Embed(title=msg_title, description=msg, color=self.color).set_thumbnail(url=thumbnail)
         view = PromptView(user.id, confirm_btn_label=confirm_btn_label, cancel_btn_label=cancel_btn_label)
 
         if isinstance(target, discord.TextChannel):

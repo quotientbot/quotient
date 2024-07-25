@@ -203,3 +203,32 @@ async def time_input_modal(
         return parse_natural_time(v.children[0].value)
     except (TypeError, ValueError):
         return None
+
+
+async def text_input_modal(
+    inter: discord.Interaction,
+    title: str,
+    label: str,
+    default: str = None,
+    placeholder: str = None,
+    min_length: int = 5,
+    max_length: int = 20,
+    input_type: str = "short",
+) -> str | None:
+    v = InputModal(title=title, timeout=120)
+    v.add_item(
+        discord.ui.TextInput(
+            label=label,
+            max_length=max_length,
+            min_length=min_length,
+            default=default,
+            placeholder=placeholder,
+            style=discord.TextStyle.short if input_type == "short" else discord.TextStyle.long,
+        )
+    )
+
+    await inter.response.send_modal(v)
+
+    await v.wait()
+
+    return v.children[0].value

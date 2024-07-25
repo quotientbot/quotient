@@ -18,4 +18,5 @@ class BaseDbModel(models.Model):
 
 
 from .esports import *
+from .notifiers import *
 from .others import *
