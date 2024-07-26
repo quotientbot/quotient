@@ -152,7 +152,7 @@ class SaveDetails(discord.ui.Button):
     async def callback(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral=True)
 
-        if not await self.bot.is_pro_guild(inter.guild_id):
+        if not await self.view.bot.is_pro_guild(inter.guild_id):
             if await YtNotification.filter(discord_guild_id=inter.guild_id).count() >= YT_NOTIFICATIONS_LIMIT:
                 v = RequirePremiumView(f"You can setup only {YT_NOTIFICATIONS_LIMIT} Youtube Notification in free version.")
                 v.message = await inter.followup.send(embed=v.premium_embed, view=v)
