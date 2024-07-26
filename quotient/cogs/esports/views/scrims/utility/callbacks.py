@@ -50,7 +50,11 @@ async def edit_total_slots(cls: discord.ui.Select | ScrimsBtn, inter: discord.In
         return await send_error_embed(inter.channel, "You failed to enter a valid number! Please try again.", 5)
 
     if not 1 <= total_slots <= 30:
-        return await send_error_embed(inter.channel, "Total Slots must be in range 1-30.", 5)
+        return await send_error_embed(
+            inter.channel,
+            "Total Slots in scrims must be in range 1-30, you can use `qt` command for tourneys if you want to set more slots.",
+            5,
+        )
 
     cls.view.record.total_slots = total_slots
 
