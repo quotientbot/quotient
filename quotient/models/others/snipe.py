@@ -11,7 +11,7 @@ class Snipe(BaseDbModel):
 
     content = fields.CharField(max_length=2000)
 
-    deleted_at = fields.DatetimeField(auto_now=True)
+    deleted_at = fields.DatetimeField(auto_now_add=True)
     nsfw = fields.BooleanField(default=False)
 
     @property

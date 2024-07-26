@@ -116,7 +116,7 @@ class ScrimSlotReminder(BaseDbModel):
     id = fields.IntField(primary_key=True)
     scrim_id = fields.IntField()
     user_id = fields.BigIntField()
-    created_at = fields.DatetimeField(auto_now=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
 
 
 class Scrim(BaseDbModel):
@@ -561,7 +561,7 @@ class ScrimAssignedSlot(BaseScrimSlot):
         table = "scrims_assigned_slots"
 
     jump_url = fields.CharField(max_length=200, null=True)
-    assigned_at = fields.DatetimeField(auto_now=True)
+    assigned_at = fields.DatetimeField(auto_now_add=True)
 
     scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="assigned_slots")
 
@@ -574,7 +574,7 @@ class ScrimReservedSlot(BaseScrimSlot):
     class Meta:
         table = "scrims_reserved_slots"
 
-    reserved_at = fields.DatetimeField(auto_now=True)
+    reserved_at = fields.DatetimeField(auto_now_add=True)
     reserved_by = fields.BigIntField()
     reserved_till = fields.DatetimeField(null=True)
 
@@ -590,7 +590,7 @@ class ScrimsBannedUser(BaseDbModel):
     guild_id = fields.BigIntField()
 
     reason = fields.CharField(max_length=200, null=True)
-    banned_at = fields.DatetimeField(auto_now=True)
+    banned_at = fields.DatetimeField(auto_now_add=True)
     banned_till = fields.DatetimeField(null=True)
     banned_by = fields.BigIntField()
 

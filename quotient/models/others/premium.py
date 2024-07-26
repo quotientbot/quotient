@@ -80,7 +80,7 @@ class PremiumTxn(BaseDbModel):
     guild_id = fields.BigIntField()
     plan_id = fields.IntField()
 
-    created_at = fields.DatetimeField(auto_now=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
     completed_at = fields.DatetimeField(null=True)
     raw_data = fields.JSONField(default=dict)
 
