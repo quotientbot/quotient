@@ -178,6 +178,9 @@ class Scrim(BaseDbModel):
     drop_panel_message_id = fields.BigIntField(null=True)
     game_maps = fields.JSONField(default={d.name: None for d in DayType})
 
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
 
@@ -487,7 +490,7 @@ class Scrim(BaseDbModel):
         await Scrim.filter(id__in=[scrim.pk for scrim in scrims]).update(**kwargs)
         await target.followup.send(embed=self.bot.success_embed("Changes applied to all scrims.", title="Success"), ephemeral=True)
 
-    async def setup_logs(self):
+    async def setup_logs(self, host: discord.Member):
         _reason = "Created for scrims management."
 
         guild = self.guild
@@ -523,6 +526,7 @@ class Scrim(BaseDbModel):
                     color=self.bot.color,
                 )
             )
+            await scrims_log_channel.send(f"{host.mention} **Read This Message 👆**")
             await note.pin()
 
     async def send_log(

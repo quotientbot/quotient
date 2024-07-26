@@ -369,13 +369,13 @@ async def edit_reactions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Inte
     for idx, emoji in enumerate(emojis, start=1):
         try:
             await cls.view.message.add_reaction(emoji.strip())
-            await cls.view.message.clear_reactions()
         except discord.HTTPException:
             return await inter.followup.send(
                 embed=cls.view.bot.error_embed(f"Emoji {idx} is not valid, Please make sure it is present in this server."),
                 ephemeral=True,
             )
 
+    await cls.view.message.clear_reactions()
     cls.view.record.reactions = [check.strip(), cross.strip()]
     await cls.view.refresh_view()
 

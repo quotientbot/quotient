@@ -5,7 +5,7 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
-from models import Guild, Scrim
+from models import Guild, Scrim, Tourney
 
 from .. import ScrimsBtn
 from .callbacks import (
@@ -32,6 +32,9 @@ class SetRegChannel(ScrimsBtn):
 
         if await Scrim.filter(registration_channel_id=channel.id).exists():
             return await send_error_embed(interaction.channel, "That channel is already in use for another scrim.", 5)
+
+        if await Tourney.filter(registration_channel_id=channel.id).exists():
+            return await send_error_embed(interaction.channel, "That channel is already in use for another tourney.", 5)
 
         self.view.record.registration_channel_id = channel.id
 
@@ -117,7 +120,7 @@ class SaveScrim(ScrimsBtn):
         await interaction.response.defer()
 
         try:
-            await self.view.record.setup_logs()
+            await self.view.record.setup_logs(interaction.user)
         except Exception as e:
             return await interaction.followup.send(
                 embed=self.view.bot.error_embed(f"An error occurred while creating scrim: {e}"),
