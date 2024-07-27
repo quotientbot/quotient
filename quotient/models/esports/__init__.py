@@ -20,3 +20,4 @@ from .scrim import (
     ScrimsSlotManager,
 )
 from .tagcheck import TagCheck
+from .tourney import Tourney, TourneyAssignedSlot

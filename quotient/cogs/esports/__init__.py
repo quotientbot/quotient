@@ -12,7 +12,7 @@ from lib import INFO
 from models import Scrim, TagCheck
 
 from .events import ScrimsEvents, TagCheckEvents
-from .slash import ScrimSlashCommands
+from .slash import ScrimSlashCommands, TourneySlashCommands
 from .views.scrims.main_panel import ScrimsMainPanel
 from .views.tagcheck.panel import TagCheckPanel
 
@@ -60,5 +60,6 @@ class Esports(commands.Cog):
 async def setup(bot: Quotient) -> None:
     await bot.add_cog(Esports(bot))
     await bot.add_cog(ScrimSlashCommands(bot))
+    await bot.add_cog(TourneySlashCommands(bot))
     await bot.add_cog(ScrimsEvents(bot))
     await bot.add_cog(TagCheckEvents(bot))
