@@ -2,7 +2,8 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import CROSS, EXIT, PLANT, TICK, truncate_string
-from models import Guild, Scrim
+
+from quotient.models import Guild, Scrim
 
 from . import ScrimsView
 from .ban_unban import ScrimBanManager

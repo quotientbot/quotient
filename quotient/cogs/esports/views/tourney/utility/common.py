@@ -1,5 +1,6 @@
 from aiocache import cached
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 @cached(ttl=10)

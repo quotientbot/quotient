@@ -11,7 +11,8 @@ from lib import (
     text_input,
     time_input_modal,
 )
-from models import Guild, IdpShareType
+
+from quotient.models import Guild, IdpShareType
 
 from ...scrims import ScrimsBtn
 from .selectors import WeekDaysSelector

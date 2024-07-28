@@ -1,6 +1,7 @@
 import discord
 from lib import keycap_digit
-from models import DayType, Scrim, ScrimAssignedSlot
+
+from quotient.models import DayType, Scrim, ScrimAssignedSlot
 
 
 class WeekDaysSelector(discord.ui.Select):

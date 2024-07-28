@@ -1,7 +1,8 @@
 import os
 
 import discord
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 class TourneySlotmPublicPanel(discord.ui.View):

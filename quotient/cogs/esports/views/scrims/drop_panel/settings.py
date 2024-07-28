@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 from lib import EXIT, keycap_digit, plural
-from models import DayType, Guild, MapType, Scrim
+
+from quotient.models import DayType, Guild, MapType, Scrim
 
 from .. import ScrimsBtn, ScrimsView
 from ..utility.buttons import DiscardChanges

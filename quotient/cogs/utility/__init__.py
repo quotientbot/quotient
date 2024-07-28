@@ -10,7 +10,8 @@ from datetime import timedelta
 import discord
 from core import Context
 from discord.ext import commands
-from models import AutoPurge, Snipe, Timer
+
+from quotient.models import AutoPurge, Snipe, Timer
 
 from .views import AutopurgeView, YtNotificationView
 

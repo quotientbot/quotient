@@ -17,7 +17,8 @@ if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
 from lib import CROSS, INFO, TICK
-from models import Guild, create_user_if_not_exists
+
+from quotient.models import Guild, create_user_if_not_exists
 
 from .cache import CacheManager
 from .ctx import Context
@@ -101,7 +102,7 @@ class Quotient(commands.AutoShardedBot):
                 },
                 "apps": {
                     "default": {
-                        "models": ["models"],
+                        "models": ["quotient.models"],
                         "default_connection": os.getenv("INSTANCE_TYPE"),
                     },
                 },
@@ -142,7 +143,8 @@ class Quotient(commands.AutoShardedBot):
             ScrimsSlotlistMainPanel,
         )
         from cogs.esports.views.scrims.slotm.public_panel import ScrimSlotmPublicPanel
-        from models import Scrim, ScrimsSlotManager
+
+        from quotient.models import Scrim, ScrimsSlotManager
 
         async for slotm in ScrimsSlotManager.all():
             self.add_view(ScrimSlotmPublicPanel(slotm), message_id=slotm.message_id)

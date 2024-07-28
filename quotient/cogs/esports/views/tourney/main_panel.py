@@ -2,7 +2,8 @@ import discord
 from cogs.esports.views.tourney.utility.selectors import prompt_tourneys_selector
 from cogs.premium import TOURNEY_LIMIT, RequirePremiumView
 from discord.ext import commands
-from models import Guild, Tourney
+
+from quotient.models import Guild, Tourney
 
 from . import TourneyView
 from .create_tourney import CreateTourneyView

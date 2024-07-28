@@ -1,5 +1,6 @@
 from aiocache import cached
-from models import Scrim
+
+from quotient.models import Scrim
 
 
 @cached(ttl=10)

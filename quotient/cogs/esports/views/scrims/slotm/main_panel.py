@@ -2,7 +2,8 @@ import discord
 from cogs.premium import SLOTM_PANEL, RequirePremiumView
 from discord.ext import commands
 from lib import EXIT, LOADING, plural
-from models import Scrim, ScrimsSlotManager
+
+from quotient.models import Scrim, ScrimsSlotManager
 
 from .. import ScrimsView
 from ..utility.buttons import DiscardChanges

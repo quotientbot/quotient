@@ -3,9 +3,10 @@ import asyncio
 import discord
 from humanize import precisedelta
 from lib import plural
-from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
+
+from quotient.models import BaseDbModel
 
 from ..others import Timer
 from .enums import DayType, IdpShareType

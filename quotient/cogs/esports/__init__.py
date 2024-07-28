@@ -9,7 +9,8 @@ import discord
 from core import Context
 from discord.ext import commands
 from lib import INFO
-from models import Scrim, TagCheck
+
+from quotient.models import Scrim, TagCheck
 
 from .events import ScrimsEvents, TagCheckEvents
 from .slash import ScrimSlashCommands, TourneySlashCommands

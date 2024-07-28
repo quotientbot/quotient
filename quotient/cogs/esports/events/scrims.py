@@ -17,7 +17,9 @@ from lib import (
     find_team_name,
     get_today_day,
 )
-from models import (
+from tortoise.query_utils import Prefetch
+
+from quotient.models import (
     Scrim,
     ScrimAssignedSlot,
     ScrimReservedSlot,
@@ -26,7 +28,6 @@ from models import (
     ScrimsSlotManager,
     Timer,
 )
-from tortoise.query_utils import Prefetch
 
 
 class ScrimsEvents(commands.Cog):

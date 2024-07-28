@@ -8,7 +8,8 @@ if T.TYPE_CHECKING:
 import discord
 from discord.ext import commands
 from lib import CROSS, TICK, find_team_name, plural
-from models import TagCheck
+
+from quotient.models import TagCheck
 
 
 class TagCheckEvents(commands.Cog):

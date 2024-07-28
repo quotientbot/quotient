@@ -6,7 +6,9 @@ from pathlib import Path
 import discord
 from cogs.esports.views.scrims.utility.selectors import prompt_scrims_slot_selector
 from lib.converters import to_async
-from models import (
+from PIL import Image, ImageDraw, ImageFont
+
+from quotient.models import (
     ErangleLocation,
     MiramarLocation,
     SanhokLocation,
@@ -14,7 +16,6 @@ from models import (
     ScrimAssignedSlot,
     VikendiLocation,
 )
-from PIL import Image, ImageDraw, ImageFont
 
 DROP_SELECTOR_LOCK = asyncio.Lock()
 REFRESH_TASKS = {}

@@ -1,4 +1,4 @@
-from models import AutoPurge, Guild, Scrim, TagCheck, Tourney
+from quotient.models import AutoPurge, Guild, Scrim, TagCheck, Tourney
 
 
 class CacheManager:

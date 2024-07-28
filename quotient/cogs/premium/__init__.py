@@ -9,7 +9,8 @@ import discord
 from core import Context
 from discord.ext import commands
 from lib import random_greeting_msg, random_thanks_image
-from models import Guild, PremiumTxn
+
+from quotient.models import Guild, PremiumTxn
 
 from .consts import *
 from .views import PremiumPurchaseBtn, RequirePremiumView

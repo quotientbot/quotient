@@ -2,7 +2,8 @@ from typing import Any
 
 import discord
 from discord.ext import commands
-from models import Scrim
+
+from quotient.models import Scrim
 
 from . import ScrimsBtn, ScrimsView
 from .utility.buttons import DiscardChanges

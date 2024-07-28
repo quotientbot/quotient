@@ -1,5 +1,6 @@
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 
 class Timer(BaseDbModel):

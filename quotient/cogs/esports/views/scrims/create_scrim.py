@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from discord.utils import format_dt
 from lib import DIAMOND, keycap_digit
-from models import Scrim
+
+from quotient.models import Scrim
 
 from ..scrims import ScrimsView
 from .utility.buttons import (

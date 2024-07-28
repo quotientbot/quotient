@@ -3,7 +3,8 @@ from cogs.premium import TAGCHECK_LIMIT, RequirePremiumView
 from core import QuoView
 from discord.ext import commands
 from lib import integer_input_modal, text_channel_input
-from models import TagCheck
+
+from quotient.models import TagCheck
 
 
 class TagCheckPanel(QuoView):

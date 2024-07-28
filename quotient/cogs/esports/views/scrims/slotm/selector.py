@@ -1,6 +1,7 @@
 import discord
 from lib import keycap_digit
-from models.esports import ScrimsSlotManager
+
+from quotient.models.esports import ScrimsSlotManager
 
 
 class ScrimSlotmSelector(discord.ui.Select):

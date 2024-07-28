@@ -13,9 +13,11 @@ from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord import app_commands
 from discord.ext import commands
 from lib import INFO, parse_natural_time
-from models import Guild, Scrim
 
-from ..views.scrims.edit_scrim import ScrimsEditPanel
+from quotient.cogs.esports.views.scrims.edit_scrim import ScrimsEditPanel
+from quotient.models import Guild, Scrim
+
+# from ..views.scrims.edit_scrim import ScrimsEditPanel
 from ..views.scrims.main_panel import ScrimsMainPanel
 
 __all__ = ("ScrimsSlash",)

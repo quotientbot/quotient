@@ -11,7 +11,8 @@ from lib import (
     text_input,
     text_input_modal,
 )
-from models import Guild
+
+from quotient.models import Guild
 
 from .. import TourneyBtn
 

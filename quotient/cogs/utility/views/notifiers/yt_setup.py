@@ -12,7 +12,8 @@ from lib import (
     text_input_modal,
     truncate_string,
 )
-from models import Guild, YtNotification
+
+from quotient.models import Guild, YtNotification
 
 
 class SetChannel(discord.ui.Button):

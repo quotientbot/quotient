@@ -1,6 +1,7 @@
 import discord
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 
 class TagCheck(BaseDbModel):

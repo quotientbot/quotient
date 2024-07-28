@@ -4,8 +4,9 @@ from datetime import timedelta
 
 import discord
 from lib import INFO, convert_to_seconds
-from models import Scrim, ScrimAssignedSlot, ScrimsBanLog, ScrimsBannedUser
 from tortoise.query_utils import Prefetch
+
+from quotient.models import Scrim, ScrimAssignedSlot, ScrimsBanLog, ScrimsBannedUser
 
 from ..ban_unban import BanFieldsInput
 from ..utility.selectors import prompt_scrims_slot_selector

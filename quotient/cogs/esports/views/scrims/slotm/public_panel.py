@@ -5,7 +5,8 @@ from typing import Any
 
 import discord
 from lib import BELL, LOADING
-from models import (
+
+from quotient.models import (
     Scrim,
     ScrimAssignedSlot,
     ScrimsBannedUser,

@@ -2,8 +2,9 @@ import os
 from datetime import timedelta
 from enum import IntEnum
 
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 __all__ = ("PremiumTxn", "PremiumPlan")
 

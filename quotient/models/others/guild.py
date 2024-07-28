@@ -1,8 +1,9 @@
 import os
 
 import discord
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 
 class Guild(BaseDbModel):

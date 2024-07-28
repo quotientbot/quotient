@@ -4,7 +4,8 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from lib import get_current_time
-from models import Guild, PremiumPlan, PremiumTxn, User
+
+from quotient.models import Guild, PremiumPlan, PremiumTxn, User
 
 router = APIRouter()
 template = Jinja2Templates(directory="quotient/server/templates")

@@ -1,5 +1,6 @@
 import discord
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 class TourneySelector(discord.ui.Select):

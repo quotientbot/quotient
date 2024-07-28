@@ -5,7 +5,8 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
-from models import Guild, Scrim, Tourney
+
+from quotient.models import Guild, Scrim, Tourney
 
 from .. import ScrimsBtn
 from .callbacks import (

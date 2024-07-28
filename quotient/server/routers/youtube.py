@@ -6,7 +6,8 @@ import xml.etree.ElementTree as ET
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from models import YtNotification
+
+from quotient.models import YtNotification
 
 router = APIRouter()
 logger = logging.getLogger(os.getenv("INSTANCE_TYPE"))

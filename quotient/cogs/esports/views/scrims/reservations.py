@@ -11,7 +11,8 @@ from lib import (
     text_input,
     truncate_string,
 )
-from models import Scrim, ScrimReservedSlot
+
+from quotient.models import Scrim, ScrimReservedSlot
 
 from . import ScrimsBtn, ScrimsView
 from .utility.buttons import DiscardChanges

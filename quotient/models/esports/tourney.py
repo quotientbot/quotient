@@ -1,7 +1,8 @@
 import discord
-from models import BaseDbModel
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
+
+from quotient.models import BaseDbModel
 
 
 class Tourney(BaseDbModel):

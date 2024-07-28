@@ -3,7 +3,8 @@ from cogs.premium import YT_NOTIFICATIONS_LIMIT, RequirePremiumView
 from core import QuoView
 from discord.ext import commands
 from lib import INFO, YOUTUBE
-from models import YtNotification
+
+from quotient.models import YtNotification
 
 from .yt_setup import SetupNewYt
 

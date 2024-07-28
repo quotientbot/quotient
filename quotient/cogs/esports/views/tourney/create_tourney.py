@@ -2,7 +2,8 @@ import discord
 from cogs.esports.views.tourney.utility import buttons
 from discord.ext import commands
 from lib import DIAMOND, keycap_digit
-from models import Tourney
+
+from quotient.models import Tourney
 
 from . import TourneyView
 

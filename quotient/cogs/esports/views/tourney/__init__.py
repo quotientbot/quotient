@@ -1,7 +1,8 @@
 import discord
 from core import QuoView
 from discord.ext import commands
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 class TourneyView(QuoView):

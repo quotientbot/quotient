@@ -3,7 +3,8 @@ from cogs.esports.views.tourney import TourneyView
 from discord.ext import commands
 from discord.utils import format_dt as fdt
 from lib import DIAMOND, EXIT, F_WORD, truncate_string
-from models import Guild, Tourney
+
+from quotient.models import Guild, Tourney
 
 from .utility.buttons import DiscardChanges
 from .utility.callbacks import EDIT_OPTIONS

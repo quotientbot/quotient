@@ -12,7 +12,8 @@ import time
 import discord
 from core import Context
 from discord.ext import commands
-from models import Guild
+
+from quotient.models import Guild
 
 
 class Miscellaneous(commands.Cog):
@@ -102,33 +103,21 @@ class Miscellaneous(commands.Cog):
 
             return await ctx.send(
                 embed=self.bot.simple_embed(
-                    "Current prefix of this server is `{0}`".format(
-                        self.bot.cache.prefixes.get(
-                            ctx.guild.id, self.bot.default_prefix
-                        )
-                    )
+                    "Current prefix of this server is `{0}`".format(self.bot.cache.prefixes.get(ctx.guild.id, self.bot.default_prefix))
                 )
             )
 
         if len(new_prefix) > 5:
-            return await ctx.reply(
-                embed=self.bot.error_embed(
-                    "Prefix cannot contain more than `5 characters`."
-                )
-            )
+            return await ctx.reply(embed=self.bot.error_embed("Prefix cannot contain more than `5 characters`."))
 
         self.bot.cache.prefixes[ctx.guild.id] = new_prefix
         await Guild.filter(guild_id=ctx.guild.id).update(prefix=new_prefix)
-        await ctx.reply(
-            embed=self.bot.success_embed(f"Updated server prefix to: `{new_prefix}`")
-        )
+        await ctx.reply(embed=self.bot.success_embed(f"Updated server prefix to: `{new_prefix}`"))
 
     @commands.command()
     async def ping(self, ctx: Context):
         """Check how the bot is doing"""
-        await ctx.send(
-            f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Database: `{await self.get_db_latency()}`"
-        )
+        await ctx.send(f"Bot: `{round(self.bot.latency*1000, 2)} ms`, Database: `{await self.get_db_latency()}`")
 
     async def get_db_latency(self):
         t1 = time.perf_counter()

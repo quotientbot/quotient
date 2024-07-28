@@ -6,9 +6,10 @@ import discord
 import httpx
 from fastapi import Path
 from fastapi.exceptions import HTTPException
-from models import BaseDbModel
 from pydantic import BaseModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 logger = logging.getLogger(os.getenv("INSTANCE_TYPE"))
 

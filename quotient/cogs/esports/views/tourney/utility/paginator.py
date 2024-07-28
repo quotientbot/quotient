@@ -2,7 +2,8 @@ import discord
 from cogs.esports.views.tourney import TourneyBtn
 from discord.ext import commands
 from lib import NEXT_PAGE, PREVIOUS_PAGE, integer_input_modal
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 class NextTourney(TourneyBtn):

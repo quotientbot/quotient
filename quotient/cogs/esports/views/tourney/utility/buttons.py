@@ -3,7 +3,8 @@ from cogs.esports.views.tourney import TourneyBtn
 from cogs.premium import TOURNEY_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
-from models import Scrim, Tourney
+
+from quotient.models import Scrim, Tourney
 
 from .callbacks import (
     edit_confirm_channel,

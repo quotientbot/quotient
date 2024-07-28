@@ -10,7 +10,8 @@ from cogs.esports.views.tourney.main_panel import TourneysMainPanel
 from discord import app_commands
 from discord.ext import commands
 from lib import INFO
-from models import Tourney
+
+from quotient.models import Tourney
 
 
 class TourneySlashCommands(commands.GroupCog, name="tourney"):
