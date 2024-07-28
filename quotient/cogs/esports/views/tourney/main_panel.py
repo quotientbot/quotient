@@ -1,4 +1,5 @@
 import discord
+from cogs.esports.views.tourney.utility.selectors import prompt_tourneys_selector
 from cogs.premium import TOURNEY_LIMIT, RequirePremiumView
 from discord.ext import commands
 from models import Guild, Tourney
@@ -71,6 +72,12 @@ class TourneysMainPanel(TourneyView):
     @discord.ui.button(label="Start / Stop Registration", style=discord.ButtonStyle.success)
     async def toggle_registration(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
+
+        selected_tourneys = await prompt_tourneys_selector(
+            inter, tourneys=await Tourney.filter(guild_id=inter.guild_id).order_by("id"), force_dropdown=True
+        )
+        if not selected_tourneys:
+            return
 
     @discord.ui.button(label="Ban / Unban User(s)", style=discord.ButtonStyle.danger)
     async def ban_unban_user(self, inter: discord.Interaction, btn: discord.ui.Button):
