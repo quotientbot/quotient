@@ -28,4 +28,7 @@ COPY quotient quotient
 ENV PYTHONUNBUFFERED=1
 EXPOSE 6000
 
-ENTRYPOINT ["python", "quotient/launcher.py"]
+STOPSIGNAL SIGINT
+
+ENTRYPOINT ["python","quotient/launcher.py"]
+
