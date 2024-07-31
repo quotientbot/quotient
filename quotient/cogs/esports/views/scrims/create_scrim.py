@@ -2,12 +2,14 @@ import discord
 from discord.ext import commands
 from discord.utils import format_dt
 from lib import DIAMOND, keycap_digit
-from models import Scrim
+
+from quotient.models import Scrim
 
 from ..scrims import ScrimsView
 from .utility.buttons import (
     DiscardChanges,
     SaveScrim,
+    SetMatchStartTime,
     SetMentions,
     SetReactions,
     SetRegChannel,
@@ -28,18 +30,17 @@ class CreateScrimView(ScrimsView):
         self.add_item(SetMentions(ctx, keycap_digit(2)))
         self.add_item(SetTotalSlots(ctx, keycap_digit(3)))
         self.add_item(SetRegStartTime(ctx, keycap_digit(4)))
-        self.add_item(SetRegOpenDays(ctx, keycap_digit(5)))
-        self.add_item(SetReactions(ctx, keycap_digit(6)))
-        self.add_item(DiscardChanges(ctx, label="Discard"))
+        self.add_item(SetMatchStartTime(ctx, keycap_digit(5)))
+        self.add_item(SetRegOpenDays(ctx, keycap_digit(6)))
+        self.add_item(SetReactions(ctx, keycap_digit(7)))
+        self.add_item(DiscardChanges(ctx, label="Cancel"))
         self.add_item(SaveScrim(ctx))
 
     def initial_msg(self):
         if not self.record:
             self.record = Scrim(guild_id=self.ctx.guild.id)
 
-        e = discord.Embed(
-            color=self.bot.color, title="Enter details & Press Create Scrim", url=self.bot.config("SUPPORT_SERVER_LINK")
-        )
+        e = discord.Embed(color=self.bot.color, title="Enter details & Press Create Scrim", url=self.bot.config("SUPPORT_SERVER_LINK"))
 
         e.description = "`You can skip this step & quickly create scrims using '/scrims create' command.`\n\n"
 
@@ -50,6 +51,11 @@ class CreateScrimView(ScrimsView):
             "Reg Start Time": (
                 f"{format_dt(self.record.reg_start_time,'t')} ({format_dt(self.record.reg_start_time)})"
                 if self.record.reg_start_time
+                else "`Not Set`"
+            ),
+            "Match Start Time": (
+                f"{format_dt(self.record.match_start_time,'t')} ({format_dt(self.record.match_start_time)})"
+                if self.record.match_start_time
                 else "`Not Set`"
             ),
             "Scrim Days": f"`{self.record.pretty_registration_days}`",
@@ -73,6 +79,7 @@ class CreateScrimView(ScrimsView):
                 self.record.registration_channel_id,
                 self.record.total_slots,
                 self.record.reg_start_time,
+                self.record.match_start_time,
                 self.record.registration_open_days,
             )
         ):

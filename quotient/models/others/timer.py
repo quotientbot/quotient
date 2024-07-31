@@ -1,5 +1,6 @@
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 
 class Timer(BaseDbModel):
@@ -8,7 +9,7 @@ class Timer(BaseDbModel):
 
     id = fields.BigIntField(primary_key=True)
     expires = fields.DatetimeField(db_index=True)
-    created = fields.DatetimeField(auto_now=True)
+    created = fields.DatetimeField(auto_now_add=True)
     event = fields.CharField(max_length=100)
     extra = fields.JSONField(default=dict)
 

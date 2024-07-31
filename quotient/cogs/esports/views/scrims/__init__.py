@@ -1,7 +1,8 @@
 import discord
 from core import QuoView
 from discord.ext import commands
-from models import Scrim
+
+from quotient.models import Scrim
 
 
 class ScrimsView(QuoView):

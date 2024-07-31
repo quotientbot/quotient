@@ -11,7 +11,8 @@ from lib import (
     text_channel_input,
     user_input,
 )
-from models import ScrimsBanLog, ScrimsBannedUser
+
+from quotient.models import ScrimsBanLog, ScrimsBannedUser
 
 from . import ScrimsBtn, ScrimsView
 from .utility.buttons import DiscardChanges

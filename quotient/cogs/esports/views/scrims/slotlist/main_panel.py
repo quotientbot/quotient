@@ -4,8 +4,9 @@ from datetime import timedelta
 
 import discord
 from lib import INFO, convert_to_seconds
-from models import Scrim, ScrimAssignedSlot, ScrimsBanLog, ScrimsBannedUser
 from tortoise.query_utils import Prefetch
+
+from quotient.models import Scrim, ScrimAssignedSlot, ScrimsBanLog, ScrimsBannedUser
 
 from ..ban_unban import BanFieldsInput
 from ..utility.selectors import prompt_scrims_slot_selector
@@ -102,6 +103,8 @@ class ScrimsSlotlistMainPanel(discord.ui.View):
         e = discord.Embed(color=self.bot.color, title="Punished Successfully!", description="")
 
         if view.value == "leader":
+            await ScrimsBannedUser.filter(user_id=slot_to_ban[0].leader_id, guild_id=inter.guild_id).delete()
+
             record = await ScrimsBannedUser.create(
                 user_id=slot_to_ban[0].leader_id,
                 guild_id=inter.guild_id,
@@ -119,7 +122,10 @@ class ScrimsSlotlistMainPanel(discord.ui.View):
             )
 
         else:
+
             for member in slot_to_ban[0].members:
+                await ScrimsBannedUser.filter(user_id=member, guild_id=inter.guild_id).delete()
+
                 record = await ScrimsBannedUser.create(
                     user_id=member,
                     guild_id=inter.guild_id,

@@ -1,4 +1,3 @@
-import os
 from datetime import timedelta
 from random import randint
 
@@ -6,10 +5,12 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
-from models import Guild, Scrim
+
+from quotient.models import Guild, Scrim, Tourney
 
 from .. import ScrimsBtn
 from .callbacks import (
+    edit_match_start_time,
     edit_reactions,
     edit_reg_start_time,
     edit_registration_open_days,
@@ -32,6 +33,9 @@ class SetRegChannel(ScrimsBtn):
 
         if await Scrim.filter(registration_channel_id=channel.id).exists():
             return await send_error_embed(interaction.channel, "That channel is already in use for another scrim.", 5)
+
+        if await Tourney.filter(registration_channel_id=channel.id).exists():
+            return await send_error_embed(interaction.channel, "That channel is already in use for another tourney.", 5)
 
         self.view.record.registration_channel_id = channel.id
 
@@ -60,6 +64,14 @@ class SetRegStartTime(ScrimsBtn):
 
     async def callback(self, interaction: discord.Interaction) -> any:
         await edit_reg_start_time(self, interaction)
+
+
+class SetMatchStartTime(ScrimsBtn):
+    def __init__(self, ctx: commands.Context, emoji: str):
+        super().__init__(ctx, emoji=emoji)
+
+    async def callback(self, interaction: discord.Interaction) -> any:
+        await edit_match_start_time(self, interaction)
 
 
 class SetRegOpenDays(ScrimsBtn):
@@ -109,7 +121,7 @@ class SaveScrim(ScrimsBtn):
         await interaction.response.defer()
 
         try:
-            await self.view.record.setup_logs()
+            await self.view.record.setup_logs(interaction.user)
         except Exception as e:
             return await interaction.followup.send(
                 embed=self.view.bot.error_embed(f"An error occurred while creating scrim: {e}"),
@@ -139,6 +151,9 @@ class SaveScrim(ScrimsBtn):
             self.view.record.autoclean_channel_time,
             "autoclean_scrims_channel",
             scrim_id=self.view.record.id,
+        )
+        await self.view.bot.reminders.create_timer(
+            self.view.record.match_start_time, "scrims_match_start", scrim_id=self.view.record.id
         )
 
         self.view.stop()

@@ -2,8 +2,9 @@ import os
 from datetime import timedelta
 from enum import IntEnum
 
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 __all__ = ("PremiumTxn", "PremiumPlan")
 
@@ -80,7 +81,7 @@ class PremiumTxn(BaseDbModel):
     guild_id = fields.BigIntField()
     plan_id = fields.IntField()
 
-    created_at = fields.DatetimeField(auto_now=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
     completed_at = fields.DatetimeField(null=True)
     raw_data = fields.JSONField(default=dict)
 

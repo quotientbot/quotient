@@ -17,17 +17,18 @@ RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root
 FROM python:3.12-slim-bullseye as runtime
 
 ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app"
+
+WORKDIR /app
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-
 COPY quotient quotient
 
-# Copy .git directory
-COPY .git .git
-
+ENV PYTHONUNBUFFERED=1
 EXPOSE 6000
 
 STOPSIGNAL SIGINT
 
 ENTRYPOINT ["python","quotient/launcher.py"]
+

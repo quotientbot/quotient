@@ -4,8 +4,9 @@ import discord
 from core import EmbedBuilder
 from discord.ext import commands
 from lib import EXIT, regional_indicator, send_simple_embed
-from models import RegCloseMsgVar, RegOpenMsgVar, Scrim, SlotlistMsgVar
-from models.esports.utility import (
+
+from quotient.models import RegCloseMsgVar, RegOpenMsgVar, Scrim, SlotlistMsgVar
+from quotient.models.esports.utility import (
     default_reg_close_msg,
     default_reg_open_msg,
     default_slotlist_msg,

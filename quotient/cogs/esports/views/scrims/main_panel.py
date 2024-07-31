@@ -2,12 +2,14 @@ import discord
 from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import CROSS, EXIT, PLANT, TICK, truncate_string
-from models import Guild, Scrim
+
+from quotient.models import Guild, Scrim
 
 from . import ScrimsView
 from .ban_unban import ScrimBanManager
 from .create_scrim import CreateScrimView
 from .design_panel import ScrimsDesignPanel
+from .drop_panel.settings import DropLocationSettingsPanel
 from .edit_scrim import ScrimsEditPanel
 from .instant_toggle import InstantToggleView
 from .reservations import ScrimReservationsManager
@@ -190,9 +192,10 @@ class ScrimsMainPanel(ScrimsView):
         scrims = await prompt_scrims_selector(
             inter,
             self.ctx.author,
-            await Scrim.filter(guild_id=inter.guild_id),
+            await Scrim.filter(guild_id=inter.guild_id).order_by("reg_start_time"),
             placeholder="Select scrims to delete ...",
             single_scrim_only=False,
+            force_dropdown=True,
         )
 
         if not scrims:
@@ -221,3 +224,19 @@ class ScrimsMainPanel(ScrimsView):
         v.add_item(DiscardChanges(self.ctx, label="Back to Scrims Panel", emoji=EXIT))
 
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
+
+    @discord.ui.button(label="Drop Location Panel", style=discord.ButtonStyle.blurple)
+    async def manage_drop_location_panel(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer()
+        selected_scrims = await prompt_scrims_selector(
+            inter,
+            self.ctx.author,
+            await Scrim.filter(guild_id=inter.guild_id).order_by("reg_start_time"),
+            placeholder="Select a scrim to manage drop locations settings...",
+            single_scrim_only=True,
+            force_dropdown=True,
+        )
+
+        self.stop()
+        v = DropLocationSettingsPanel(self.ctx, selected_scrims[0])
+        v.message = await self.message.edit(embed=await v.initial_msg(), view=v)

@@ -14,7 +14,8 @@ from core import QuoView
 from discord.ext import commands
 from humanize import precisedelta
 from lib import simple_time_input, text_channel_input
-from models import AutoPurge
+
+from quotient.models import AutoPurge
 
 
 class AutopurgeView(QuoView):

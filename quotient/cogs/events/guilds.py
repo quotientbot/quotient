@@ -7,7 +7,8 @@ if T.TYPE_CHECKING:
 
 import discord
 from discord.ext import commands
-from models import Guild
+
+from quotient.models import Guild
 
 
 class GuildEvents(commands.Cog):

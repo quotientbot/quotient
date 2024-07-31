@@ -1,6 +1,7 @@
 import discord
 from lib import user_input
-from models import Scrim, ScrimAssignedSlot
+
+from quotient.models import Scrim, ScrimAssignedSlot
 
 from ..utility.selectors import prompt_scrims_slot_selector
 

@@ -1,6 +1,7 @@
 import discord
-from models import Scrim, ScrimsBannedUser
 from tortoise.expressions import Q
+
+from quotient.models import Scrim, ScrimsBannedUser
 
 from .regex import find_team_name
 

@@ -17,15 +17,17 @@ from lib import (
     find_team_name,
     get_today_day,
 )
-from models import (
+from tortoise.query_utils import Prefetch
+
+from quotient.models import (
     Scrim,
     ScrimAssignedSlot,
     ScrimReservedSlot,
     ScrimsBanLog,
     ScrimsBannedUser,
+    ScrimsSlotManager,
     Timer,
 )
-from tortoise.query_utils import Prefetch
 
 
 class ScrimsEvents(commands.Cog):
@@ -100,7 +102,21 @@ class ScrimsEvents(commands.Cog):
                 try:
                     await scrim.close_registration()
                 except Exception as e:
-                    self.bot.logger.error(f"Error closing registration of {scrim.id}: {e}")
+                    await scrim.send_log(
+                        f"Error closing registration of {scrim.id}: {e}",
+                        title="Scrim Registration Close Error",
+                        color=discord.Color.red(),
+                        ping_scrims_mod=True,
+                        add_contact_btn=True,
+                    )
+
+                else:
+                    await scrim.send_log(
+                        f"{scrim}, registration has been closed.",
+                        title="Scrim Registration Closed",
+                        color=discord.Color.green(),
+                        add_contact_btn=False,
+                    )
 
     @commands.Cog.listener()
     async def on_scrim_reg_start_timer_complete(self, timer: Timer):
@@ -147,6 +163,40 @@ class ScrimsEvents(commands.Cog):
             await scrim.start_registration()
         except Exception as e:
             self.bot.logger.error(f"Error starting registration of {scrim.id}: {e}")
+
+    @commands.Cog.listener()
+    async def on_scrim_reg_end_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id)
+        if not scrim:
+            return
+
+        scrim.reg_auto_end_time += timedelta(hours=24)
+        await scrim.save(update_fields=["reg_auto_end_time"])
+
+        await self.bot.reminders.create_timer(scrim.reg_auto_end_time, "scrim_reg_end", scrim_id=scrim.id)
+
+        if scrim.reg_ended_at:  # already ended
+            return
+
+        try:
+            await scrim.close_registration()
+        except Exception as e:
+            await scrim.send_log(
+                f"Error auto closing registration of {scrim.id}: {e}",
+                title="Scrim Auto End Error",
+                color=discord.Color.red(),
+                ping_scrims_mod=True,
+            )
+
+        else:
+            await scrim.send_log(
+                f"{scrim}, registration has been automatically closed.",
+                title="Scrim Registration Closed",
+                color=discord.Color.green(),
+                add_contact_btn=False,
+            )
 
     @commands.Cog.listener()
     async def on_scrim_channel_autoclean_timer_complete(self, timer: Timer):
@@ -243,3 +293,38 @@ class ScrimsEvents(commands.Cog):
             title="Slot Unreserved",
             color=discord.Color.red(),
         )
+
+    @commands.Cog.listener()
+    async def on_scrims_match_start_timer_complete(self, timer: Timer):
+        scrim_id = timer.kwargs["scrim_id"]
+
+        scrim = await Scrim.get_or_none(pk=scrim_id).prefetch_related("slotm")
+        if not scrim:
+            return
+
+        if not scrim.match_start_time == timer.expires:
+            return
+
+        if scrim.slotm:
+            await scrim.slotm.refresh_public_message()
+
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel: discord.TextChannel):
+        slotm = await ScrimsSlotManager.get_or_none(channel_id=channel.id)
+        if slotm:
+            await slotm.full_delete()
+
+        scrim = await Scrim.get_or_none(registration_channel_id=channel.id)
+        if scrim:
+            await scrim.full_delete()
+
+    @commands.Cog.listener()
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent):
+        if not payload.guild_id:
+            return
+
+        record = await ScrimsSlotManager.get_or_none(message_id=payload.message_id)
+        if not record:
+            return
+
+        await record.full_delete()

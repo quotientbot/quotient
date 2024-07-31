@@ -3,7 +3,8 @@ import re
 
 import discord
 from lib import emojis
-from models import PremiumPlan, PremiumTxn, User
+
+from quotient.models import PremiumPlan, PremiumTxn, User
 
 from .consts import get_pro_features_formatted
 
@@ -13,9 +14,7 @@ class PlanSelector(discord.ui.Select):
         super().__init__(placeholder="Select a Quotient Pro Plan... ")
 
         for _ in plans:
-            self.add_option(
-                label=f"{_.name} - ₹{_.price}", description=_.description, value=_.id
-            )
+            self.add_option(label=f"{_.name} - ₹{_.price}", description=_.description, value=_.id)
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -37,9 +36,7 @@ class UserDetailsForm(discord.ui.Modal):
         email, phone = str(self.children[0]), str(self.children[1])
 
         if not valid_email(email):
-            return await interaction.followup.send(
-                "Invalid email format, please enter a valid email.", ephemeral=True
-            )
+            return await interaction.followup.send("Invalid email format, please enter a valid email.", ephemeral=True)
 
         if not phone.isdigit() or len(phone) < 10:
             return await interaction.followup.send(
@@ -47,9 +44,7 @@ class UserDetailsForm(discord.ui.Modal):
                 ephemeral=True,
             )
 
-        await User.get(pk=interaction.user.id).update(
-            email_id=email, phone_number=phone
-        )
+        await User.get(pk=interaction.user.id).update(email_id=email, phone_number=phone)
 
         v = discord.ui.View(timeout=100)
         v.selected_plan = None

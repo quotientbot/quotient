@@ -6,6 +6,7 @@ from .inputs import (
     simple_time_input,
     text_channel_input,
     text_input,
+    text_input_modal,
     time_input_modal,
     user_input,
 )

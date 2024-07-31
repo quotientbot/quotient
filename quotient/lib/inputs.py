@@ -33,6 +33,8 @@ class ChannelSelectorInput(discord.ui.ChannelSelect):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
+
+        self.view.selected_channel = self.values[0]
         self.view.stop()
 
 
@@ -98,8 +100,8 @@ async def text_channel_input(
         await m.delete(delay=0)
 
     try:
-        return v.children[0].values[0]
-    except IndexError:
+        return v.selected_channel.resolve()
+    except Exception:
         return None
 
 
@@ -201,3 +203,32 @@ async def time_input_modal(
         return parse_natural_time(v.children[0].value)
     except (TypeError, ValueError):
         return None
+
+
+async def text_input_modal(
+    inter: discord.Interaction,
+    title: str,
+    label: str,
+    default: str = None,
+    placeholder: str = None,
+    min_length: int = 5,
+    max_length: int = 20,
+    input_type: str = "short",
+) -> str | None:
+    v = InputModal(title=title, timeout=120)
+    v.add_item(
+        discord.ui.TextInput(
+            label=label,
+            max_length=max_length,
+            min_length=min_length,
+            default=default,
+            placeholder=placeholder,
+            style=discord.TextStyle.short if input_type == "short" else discord.TextStyle.long,
+        )
+    )
+
+    await inter.response.send_modal(v)
+
+    await v.wait()
+
+    return v.children[0].value

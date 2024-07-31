@@ -11,7 +11,8 @@ if T.TYPE_CHECKING:
     from core import Quotient
 
 from discord.ext import commands
-from models import Timer
+
+from quotient.models import Timer
 
 
 class Reminders(commands.Cog):

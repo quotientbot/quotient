@@ -1,8 +1,9 @@
 import logging
 
 from asyncpg import Pool
-from models import BaseDbModel
 from tortoise import fields
+
+from quotient.models import BaseDbModel
 
 
 async def create_user_if_not_exists(pool: Pool, user_id: int):

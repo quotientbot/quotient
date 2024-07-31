@@ -17,7 +17,8 @@ if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
 from lib import CROSS, INFO, TICK
-from models import Guild, create_user_if_not_exists
+
+from quotient.models import Guild, create_user_if_not_exists
 
 from .cache import CacheManager
 from .ctx import Context
@@ -64,6 +65,8 @@ class Quotient(commands.AutoShardedBot):
         )
 
         self.seen_messages: int = 0
+        self.message_cache: dict[int, discord.Message] = {}
+
         self.logger: logging.Logger = log
         self.cache = CacheManager()
         self.tree.interaction_check = self.global_interaction_check
@@ -99,7 +102,7 @@ class Quotient(commands.AutoShardedBot):
                 },
                 "apps": {
                     "default": {
-                        "models": ["models"],
+                        "models": ["quotient.models"],
                         "default_connection": os.getenv("INSTANCE_TYPE"),
                     },
                 },
@@ -117,15 +120,40 @@ class Quotient(commands.AutoShardedBot):
         for extension in os.getenv("EXTENSIONS").split(","):
             try:
                 await self.load_extension(extension)
+                log.debug("Loaded extension %s.", extension)
+
             except Exception as _:
                 log.exception("Failed to load extension %s.", extension)
 
         if os.getenv("INSTANCE_TYPE") == "quotient":
             await self.load_extension("server")
 
+        await self.load_persistent_views()
+        log.debug("Persistent views have been loaded.")
+
         global BOT_INSTANCE
 
         BOT_INSTANCE = self
+
+    async def load_persistent_views(self):
+        from cogs.esports.views.scrims.drop_panel.after_scrim import (
+            DropLocationSelectorView,
+        )
+        from cogs.esports.views.scrims.slotlist.main_panel import (
+            ScrimsSlotlistMainPanel,
+        )
+        from cogs.esports.views.scrims.slotm.public_panel import ScrimSlotmPublicPanel
+
+        from quotient.models import Scrim, ScrimsSlotManager
+
+        async for slotm in ScrimsSlotManager.all():
+            self.add_view(ScrimSlotmPublicPanel(slotm), message_id=slotm.message_id)
+
+        async for scrim in Scrim.filter(slotlist_message_id__isnull=False):
+            self.add_view(ScrimsSlotlistMainPanel(scrim), message_id=scrim.slotlist_message_id)
+
+        async for scrim in Scrim.filter(drop_panel_message_id__isnull=False):
+            self.add_view(DropLocationSelectorView(scrim), message_id=scrim.drop_panel_message_id)
 
     async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> discord.Member | None:
         """Looks up a member in cache or fetches if not found."""
@@ -149,6 +177,70 @@ class Quotient(commands.AutoShardedBot):
             return members[0]
 
         return None
+
+    async def resolve_member_ids(self, guild: discord.Guild, member_ids: list[int]) -> T.AsyncGenerator[discord.Member, None]:
+        """Bulk resolves member IDs to member instances, if possible."""
+
+        needs_resolution = []
+        for member_id in member_ids:
+            member = guild.get_member(member_id)
+            if member is not None:
+                yield member
+            else:
+                needs_resolution.append(member_id)
+
+        if not needs_resolution:
+            return
+
+        total_need_resolution = len(needs_resolution)
+        if total_need_resolution == 1:
+            shard: discord.ShardInfo = self.get_shard(guild.shard_id)  # type: ignore  # will never be None
+            if shard.is_ws_ratelimited():
+                try:
+                    member = await guild.fetch_member(needs_resolution[0])
+                except discord.HTTPException:
+                    pass
+                else:
+                    yield member
+            else:
+                members = await guild.query_members(limit=1, user_ids=needs_resolution, cache=True)
+                if members:
+                    yield members[0]
+        elif total_need_resolution <= 100:
+            # Only a single resolution call needed here
+            resolved = await guild.query_members(limit=100, user_ids=needs_resolution, cache=True)
+            for member in resolved:
+                yield member
+        else:
+            # We need to chunk these in bits of 100...
+            for index in range(0, total_need_resolution, 100):
+                to_resolve = needs_resolution[index : index + 100]
+                members = await guild.query_members(limit=100, user_ids=to_resolve, cache=True)
+                for member in members:
+                    yield member
+
+    async def get_or_fetch_message(self, channel: discord.TextChannel | int, message_id: int) -> discord.Message | None:
+
+        if isinstance(channel, int):
+            channel = await self.get_or_fetch(self.get_channel, self.fetch_channel, channel)
+
+        if channel is None:
+            return None
+
+        if msg := self._connection._get_message(message_id):
+            self.message_cache[message_id] = msg
+            return msg
+
+        try:
+            return self.message_cache[message_id]
+        except KeyError:
+            async for msg in channel.history(
+                limit=1,
+                before=discord.Object(message_id + 1),
+                after=discord.Object(message_id - 1),
+            ):
+                self.message_cache[message_id] = msg
+                return msg
 
     @staticmethod
     async def get_or_fetch(
@@ -233,12 +325,13 @@ class Quotient(commands.AutoShardedBot):
         user: discord.Member,
         msg: str,
         msg_title: str = None,
+        thumbnail: str = None,
         ephemeral: bool = False,
         confirm_btn_label: str = "Confirm",
         cancel_btn_label: str = "Cancel",
         delete_after: bool = True,
     ):
-        embed = discord.Embed(title=msg_title, description=msg, color=self.color)
+        embed = discord.Embed(title=msg_title, description=msg, color=self.color).set_thumbnail(url=thumbnail)
         view = PromptView(user.id, confirm_btn_label=confirm_btn_label, cancel_btn_label=cancel_btn_label)
 
         if isinstance(target, discord.TextChannel):

@@ -1,6 +1,25 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
+from typing import Callable
+
 import discord
 from discord.ext import commands
 from PIL import ImageColor
+
+
+class to_async:
+    def __init__(self):
+        self.executor = ThreadPoolExecutor()
+
+    def __call__(self, blocking: Callable):
+        @wraps(blocking)
+        async def wrapper(*args, **kwargs):
+            loop = asyncio.get_running_loop()
+            func = partial(blocking, *args, **kwargs)
+            return await loop.run_in_executor(self.executor, func)
+
+        return wrapper
 
 
 class ColorConverter(commands.Converter):

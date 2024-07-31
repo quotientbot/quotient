@@ -11,7 +11,8 @@ from lib import (
     text_input,
     time_input_modal,
 )
-from models import Guild, IdpShareType
+
+from quotient.models import Guild, IdpShareType
 
 from ...scrims import ScrimsBtn
 from .selectors import WeekDaysSelector
@@ -50,7 +51,11 @@ async def edit_total_slots(cls: discord.ui.Select | ScrimsBtn, inter: discord.In
         return await send_error_embed(inter.channel, "You failed to enter a valid number! Please try again.", 5)
 
     if not 1 <= total_slots <= 30:
-        return await send_error_embed(inter.channel, "Total Slots must be in range 1-30.", 5)
+        return await send_error_embed(
+            inter.channel,
+            "Total Slots in scrims must be in range 1-30, you can use `qt` command for tourneys if you want to set more slots.",
+            5,
+        )
 
     cls.view.record.total_slots = total_slots
 
@@ -272,14 +277,14 @@ async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter:
 
 
 async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
-    registration_auto_end_time = await time_input_modal(
+    reg_auto_end_time = await time_input_modal(
         inter,
         title="Registration Auto-End Time (IST - UTC+5:30)",
         label="Time reg should be auto-ended if not already?",
-        default=cls.view.record.registration_auto_end_time.strftime("%I:%M%p") if cls.view.record.registration_auto_end_time else None,
+        default=cls.view.record.reg_auto_end_time.strftime("%I:%M%p") if cls.view.record.reg_auto_end_time else None,
     )
 
-    if registration_auto_end_time is None:
+    if reg_auto_end_time is None:
         return await send_error_embed(
             inter.channel,
             "You failed to enter registration auto-end time in valid format! Take a look at the examples below:",
@@ -287,7 +292,7 @@ async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, in
             image_url="https://cdn.discordapp.com/attachments/851846932593770496/958291942062587934/timex.gif",
         )
 
-    cls.view.record.registration_auto_end_time = registration_auto_end_time
+    cls.view.record.reg_auto_end_time = reg_auto_end_time
     await cls.view.refresh_view()
 
 
@@ -365,13 +370,13 @@ async def edit_reactions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Inte
     for idx, emoji in enumerate(emojis, start=1):
         try:
             await cls.view.message.add_reaction(emoji.strip())
-            await cls.view.message.clear_reactions()
         except discord.HTTPException:
             return await inter.followup.send(
                 embed=cls.view.bot.error_embed(f"Emoji {idx} is not valid, Please make sure it is present in this server."),
                 ephemeral=True,
             )
 
+    await cls.view.message.clear_reactions()
     cls.view.record.reactions = [check.strip(), cross.strip()]
     await cls.view.refresh_view()
 

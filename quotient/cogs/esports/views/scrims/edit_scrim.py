@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from discord.utils import format_dt as fdt
 from lib import DIAMOND, EXIT, F_WORD
-from models import Guild, Scrim
+
+from quotient.models import Guild, Scrim
 
 from . import ScrimsView
 from .utility.buttons import DiscardChanges

@@ -2,12 +2,14 @@ import asyncio
 
 import discord
 from humanize import precisedelta
-from models import BaseDbModel
+from lib import plural
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
+from quotient.models import BaseDbModel
+
 from ..others import Timer
-from .enums import Day, IdpShareType
+from .enums import DayType, IdpShareType
 from .utility import default_reg_close_msg, default_reg_open_msg, default_slotlist_msg
 
 
@@ -21,16 +23,101 @@ class ScrimsSlotManager(BaseDbModel):
     channel_id = fields.BigIntField()
     message_id = fields.BigIntField()
 
-    status = fields.BooleanField(default=True)
-
     allow_multiple_slots = fields.BooleanField(default=False)
 
     scrims: fields.ReverseRelation["Scrim"]
 
-    async def refresh_public_message(self): ...
+    @property
+    def guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    async def get_public_msg(self) -> discord.Message | None:
+        return await self.bot.get_or_fetch_message(self.channel_id, self.message_id)
+
+    async def get_public_embed(self) -> tuple[discord.Embed, discord.ui.View]:
+        from cogs.esports.views.scrims.slotm.public_panel import ScrimSlotmPublicPanel
+
+        available_scrims = await self.claimable_scrims()
+        view = ScrimSlotmPublicPanel(self)
+
+        e = discord.Embed(color=self.bot.color, title="Scrims Slot Manager", url=self.bot.config("SUPPORT_SERVER_LINK"))
+        e.description = (
+            f"● Press `Cancel Slot` to cancel your slot.\n"
+            f"● Press `Remind Me` to get a reminder is desired slot is unavailable.\n\n"
+            f"● Available Slots: \n"
+        )
+
+        if not available_scrims:
+            e.description += "```No Slots Available at the time.\nPress 🔔 to set a reminder. ``` \n"
+            view.children[1].disabled = True
+
+        for idx, scrim in enumerate(available_scrims, start=1):
+            e.description += f"`{idx}` {getattr(scrim.registration_channel, 'mention','deleted-channel')}  ─  {plural(scrim.available_slots):Slot|Slots}\n"
+
+        return e, view
+
+    async def refresh_public_message(self):
+        msg = await self.get_public_msg()
+        if not msg:
+            return
+
+        e, v = await self.get_public_embed()
+        await msg.edit(content="", embed=e, view=v)
 
     async def get_user_slots(self, user_id: int) -> list["ScrimAssignedSlot"]:
-        return await ScrimAssignedSlot.filter(scrim__slotm=self, members__contains=user_id).all()
+        return await ScrimAssignedSlot.filter(scrim__slotm=self, members__contains=user_id).prefetch_related("scrim").order_by("num")
+
+    async def full_delete(self):
+        await Scrim.filter(slotm=self).update(slotm_id=None)
+        await self.delete()
+
+        msg = await self.get_public_msg()
+        if msg:
+            await msg.delete(delay=0)
+
+    async def claimable_scrims(self):
+        return (
+            await Scrim.filter(
+                slotm=self,
+                reg_ended_at__gt=self.bot.current_time.replace(hour=0, minute=0, second=0, microsecond=0),
+                available_slots__not=[],
+                match_start_time__gt=self.bot.current_time,
+                reg_started_at__isnull=True,
+            )
+            .order_by("reg_start_time")
+            .limit(25)
+        )
+
+    async def dispatch_reminders(self, scrim_id: int):
+        reminders = await ScrimSlotReminder.filter(scrim_id=scrim_id)
+        scrim = await Scrim.get_or_none(id=scrim_id)
+
+        if not reminders:
+            return
+
+        slotm_link = f"https://discord.com/channels/{self.guild_id}/{self.channel_id}/{self.message_id}"
+        e = discord.Embed(color=self.bot.color, title=f"Slot Available To Claim - {self.guild}", url=slotm_link)
+        e.description = f"A slot of {scrim} is now available to claim! {plural(reminders):User|Users} want to claim it."
+
+        v = discord.ui.View(timeout=None)
+        v.add_item(discord.ui.Button(style=discord.ButtonStyle.link, label="Click me to Claim Slot", url=slotm_link))
+        async for user in self.bot.resolve_member_ids(self.guild, [reminder.user_id for reminder in reminders]):
+            try:
+                await user.send(embed=e, view=v)
+            except discord.Forbidden:
+                pass
+
+        await ScrimSlotReminder.filter(scrim_id=scrim_id).delete()
+
+
+class ScrimSlotReminder(BaseDbModel):
+    class Meta:
+        table = "scrims_slot_reminders"
+
+    id = fields.IntField(primary_key=True)
+    scrim_id = fields.IntField()
+    user_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now_add=True)
 
 
 class Scrim(BaseDbModel):
@@ -79,7 +166,7 @@ class Scrim(BaseDbModel):
 
     registration_time_elapsed = fields.SmallIntField(default=0)  # in seconds
 
-    registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in Day]))
+    registration_open_days = ArrayField("SMALLINT", default=lambda: list([day.value for day in DayType]))
 
     slotlist_msg_design = fields.JSONField(default=default_slotlist_msg().to_dict())
     open_msg_design = fields.JSONField(default=default_reg_open_msg().to_dict())
@@ -89,7 +176,12 @@ class Scrim(BaseDbModel):
     required_lines = fields.SmallIntField(default=0)
     scrim_status = fields.BooleanField(default=True)
 
-    slot_reminders: fields.ReverseRelation["ScrimSlotReminder"]
+    drop_panel_message_id = fields.BigIntField(null=True)
+    game_maps = fields.JSONField(default={d.name: None for d in DayType})
+
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
     assigned_slots: fields.ReverseRelation["ScrimAssignedSlot"]
     reserved_slots: fields.ReverseRelation["ScrimReservedSlot"]
 
@@ -210,7 +302,7 @@ class Scrim(BaseDbModel):
 
         await Timer.filter(
             extra={"args": [], "kwargs": {"scrim_id": self.id}},
-            event__in=["scrim_reg_start", "scrim_reg_end", "scrim_channel_autoclean"],
+            event__in=["scrim_reg_start", "scrim_reg_end", "scrim_channel_autoclean", "scrims_match_start"],
         ).delete()
 
         await self.bot.reminders.create_timer(self.reg_start_time, "scrim_reg_start", scrim_id=self.id)
@@ -218,6 +310,8 @@ class Scrim(BaseDbModel):
             await self.bot.reminders.create_timer(self.reg_auto_end_time, "scrim_reg_end", scrim_id=self.id)
         if self.autoclean_channel_time:
             await self.bot.reminders.create_timer(self.autoclean_channel_time, "scrim_channel_autoclean", scrim_id=self.id)
+
+        await self.bot.reminders.create_timer(self.match_start_time, "scrims_match_start", scrim_id=self.id)
 
     async def create_slotlist(self) -> tuple[discord.Embed, discord.ui.View]:
         from cogs.esports.views.scrims.slotlist.main_panel import (
@@ -273,6 +367,22 @@ class Scrim(BaseDbModel):
             self.slotlist_message_id = m.id
             await self.save(update_fields=["slotlist_message_id"])
 
+    async def send_drop_panel(self):
+        from cogs.esports.views.scrims.drop_panel.after_scrim import (
+            DropLocationSelectorView,
+        )
+
+        v = DropLocationSelectorView(self)
+        e, f = await v.initial_msg()
+        try:
+            v.message = await self.registration_channel.send(content="", embed=e, view=v, file=f)
+            self.bot.logger.debug(f"Drop Panel Message ID: {v.message.id}, Sent in #{self.registration_channel}")
+        except discord.HTTPException:
+            return
+        else:
+            self.drop_panel_message_id = v.message.id
+            await self.save(update_fields=["drop_panel_message_id"])
+
     async def start_registration(self):
 
         await ScrimAssignedSlot.filter(scrim_id=self.id).delete()
@@ -310,7 +420,10 @@ class Scrim(BaseDbModel):
         )
 
         await self.send_log(
-            f"Registration of {self} has been started successfully.", title="Scrims Registration Open", color=discord.Color.green()
+            f"Registration of {self} has been started successfully.",
+            title="Scrims Registration Open",
+            color=discord.Color.green(),
+            add_contact_btn=False,
         )
         from lib import toggle_channel_perms
 
@@ -339,12 +452,11 @@ class Scrim(BaseDbModel):
         except discord.HTTPException:
             return
 
-        await self.send_log(
-            f"Registration of {self} has been closed successfully.", title="Scrims Registration Closed", color=discord.Color.red()
-        )
-
         if self.autosend_slotlist and self.assigned_slots:
             await self.send_slotlist()
+
+        if self.game_maps[self.bot.current_time.strftime("%A").upper()]:
+            await self.send_drop_panel()
 
         if self.autodelete_extra_msges:
             reg_msg_ids = [i.message_id for i in self.assigned_slots]
@@ -379,7 +491,7 @@ class Scrim(BaseDbModel):
         await Scrim.filter(id__in=[scrim.pk for scrim in scrims]).update(**kwargs)
         await target.followup.send(embed=self.bot.success_embed("Changes applied to all scrims.", title="Success"), ephemeral=True)
 
-    async def setup_logs(self):
+    async def setup_logs(self, host: discord.Member):
         _reason = "Created for scrims management."
 
         guild = self.guild
@@ -415,6 +527,7 @@ class Scrim(BaseDbModel):
                     color=self.bot.color,
                 )
             )
+            await scrims_log_channel.send(f"{host.mention} **Read This Message 👆**")
             await note.pin()
 
     async def send_log(
@@ -432,17 +545,6 @@ class Scrim(BaseDbModel):
             pass
 
 
-class ScrimSlotReminder(BaseDbModel):
-    class Meta:
-        table = "scrims_slot_reminders"
-
-    id = fields.IntField(primary_key=True)
-    user_id = fields.BigIntField()
-    created_at = fields.DatetimeField(auto_now=True)
-
-    scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="slot_reminders")
-
-
 class BaseScrimSlot(BaseDbModel):
     class Meta:
         abstract = True
@@ -452,6 +554,7 @@ class BaseScrimSlot(BaseDbModel):
     leader_id = fields.BigIntField(null=True)
     team_name = fields.CharField(max_length=100, null=True)
     members = ArrayField("BIGINT", default=list)
+    drop_location = fields.CharField(max_length=50, null=True)
 
     @property
     def leader(self):
@@ -463,7 +566,7 @@ class ScrimAssignedSlot(BaseScrimSlot):
         table = "scrims_assigned_slots"
 
     jump_url = fields.CharField(max_length=200, null=True)
-    assigned_at = fields.DatetimeField(auto_now=True)
+    assigned_at = fields.DatetimeField(auto_now_add=True)
 
     scrim: fields.ForeignKeyRelation[Scrim] = fields.ForeignKeyField("default.Scrim", related_name="assigned_slots")
 
@@ -476,7 +579,7 @@ class ScrimReservedSlot(BaseScrimSlot):
     class Meta:
         table = "scrims_reserved_slots"
 
-    reserved_at = fields.DatetimeField(auto_now=True)
+    reserved_at = fields.DatetimeField(auto_now_add=True)
     reserved_by = fields.BigIntField()
     reserved_till = fields.DatetimeField(null=True)
 
@@ -492,7 +595,7 @@ class ScrimsBannedUser(BaseDbModel):
     guild_id = fields.BigIntField()
 
     reason = fields.CharField(max_length=200, null=True)
-    banned_at = fields.DatetimeField(auto_now=True)
+    banned_at = fields.DatetimeField(auto_now_add=True)
     banned_till = fields.DatetimeField(null=True)
     banned_by = fields.BigIntField()
 

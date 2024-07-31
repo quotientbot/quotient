@@ -1,12 +1,13 @@
 import discord
 from lib import keycap_digit
-from models import Day, Scrim, ScrimAssignedSlot
+
+from quotient.models import DayType, Scrim, ScrimAssignedSlot
 
 
 class WeekDaysSelector(discord.ui.Select):
     def __init__(self, placeholder="Select the days for registrations", max=7):
         _o = []
-        for idx, day in enumerate(Day, start=1):
+        for idx, day in enumerate(DayType, start=1):
             _o.append(discord.SelectOption(label=day.name.title(), value=day.value, emoji=keycap_digit(idx)))
 
         super().__init__(placeholder=placeholder, max_values=max, options=_o)
@@ -52,9 +53,10 @@ async def prompt_scrims_slot_selector(
     msg: str,
     placeholder: str = "Select the slots to continue...",
     multiple: bool = False,
+    force_dropdown: bool = False,
 ) -> list[ScrimAssignedSlot]:
 
-    if len(slots) == 1:
+    if len(slots) == 1 and not force_dropdown:
         return slots
 
     view = discord.ui.View(timeout=100)
@@ -140,10 +142,11 @@ async def prompt_scrims_selector(
     scrims: list[Scrim],
     placeholder: str = None,
     single_scrim_only: bool = False,
+    force_dropdown: bool = False,
 ) -> list[Scrim]:
     placeholder = placeholder or "Choose {0} to continue...".format("a scrim" if single_scrim_only else "scrims")
 
-    if len(scrims) == 1:
+    if len(scrims) == 1 and not force_dropdown:
         return scrims
 
     view = ScrimSelectorView(user, scrims, placeholder, single_scrim_only)
