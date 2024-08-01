@@ -18,7 +18,9 @@ class DevCommands(commands.Cog, name="Developer"):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    bl_group = app_commands.Group(name="blacklist", description="Manage blacklist", guild_only=True)
+    bl_group = app_commands.Group(
+        name="blacklist", description="Manage blacklist", guild_only=True, guild_ids=[779229001986080779, 746337818388987967]
+    )
 
     @bl_group.command(name="add")
     async def bl_add(
