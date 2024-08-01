@@ -154,6 +154,9 @@ class YtNotification(BaseDbModel):
             return await self.delete()
 
         try:
-            await channel.send(msg, allowed_mentions=discord.AllowedMentions(roles=[self.ping_role_id]) if self.ping_role_id else None)
+            await channel.send(
+                msg,
+                allowed_mentions=discord.AllowedMentions(roles=[discord.Object(id=self.ping_role_id)]) if self.ping_role_id else None,
+            )
         except discord.HTTPException as e:
             self.bot.logger.error(f"Failed to yt send notification to {channel.id} - {e}")
