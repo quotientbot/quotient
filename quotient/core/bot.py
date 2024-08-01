@@ -453,6 +453,10 @@ class Quotient(commands.AutoShardedBot):
     async def on_shard_resumed(self, shard_id: int) -> None:
         log.info("Shard ID %s has resumed...", shard_id)
 
+    async def on_guild_join(self, guild: discord.Guild) -> None:
+        if guild and str(guild.id) in self.blacklist.all_blacklisted():
+            await guild.leave()
+
     async def start(self) -> None:
         await super().start(os.getenv("DISCORD_TOKEN"), reconnect=True)
 
