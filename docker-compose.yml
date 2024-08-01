@@ -13,7 +13,8 @@ services:
       - ./quotient-main.env
     
     volumes:
-      - ./logs/quotient.log:/logs/quotient.log
+      - ./logs/quotient.log:/logs/quotient.log 
+      - ./quotient/blacklist.json:/app/quotient/blacklist.json
 
 
 
@@ -29,3 +30,4 @@ services:
     
     volumes:
       - ./logs/pro.log:/logs/pro.log
+      - ./quotient/blacklist.json:/app/quotient/blacklist.json

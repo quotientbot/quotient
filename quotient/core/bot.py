@@ -16,13 +16,15 @@ from tortoise import Tortoise
 if T.TYPE_CHECKING:
     from cogs.reminders import Reminders
 
+from collections import Counter
+
 from lib import CROSS, INFO, TICK
 
+from quotient.core.blacklist import BlacklistManager
+from quotient.core.cache import CacheManager
+from quotient.core.ctx import Context
+from quotient.core.views import PromptView
 from quotient.models import Guild, create_user_if_not_exists
-
-from .cache import CacheManager
-from .ctx import Context
-from .views import PromptView
 
 __all__ = ("Quotient",)
 
@@ -68,8 +70,14 @@ class Quotient(commands.AutoShardedBot):
         self.message_cache: dict[int, discord.Message] = {}
 
         self.logger: logging.Logger = log
+
         self.cache = CacheManager()
+        self.blacklist = BlacklistManager()
+
         self.tree.interaction_check = self.global_interaction_check
+
+        self.spam_control = commands.CooldownMapping.from_cooldown(3, 6.0, commands.BucketType.user)
+        self._auto_spam_count = Counter()  # Triggering the rate limit 3 times in a row will auto-ban the user from the bot.
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
@@ -360,12 +368,47 @@ class Quotient(commands.AutoShardedBot):
 
         return True
 
+    @discord.utils.cached_property
+    def logs_webhook(self) -> discord.Webhook:
+        return discord.Webhook.from_url(self.config("LOGS_WEBHOOK_URL"), session=self.session)
+
     async def process_commands(self, message: discord.Message):
 
         ctx = await self.get_context(message, cls=Context)
 
         if ctx.command is None:
             return
+
+        if ctx.guild is None:
+            return
+
+        author_id = message.author.id
+        blacklisted_objs = self.blacklist.all_blacklisted()
+        if str(author_id) in blacklisted_objs or str(ctx.guild.id) in blacklisted_objs:
+            return
+
+        bucket = self.spam_control.get_bucket(message)
+        current = message.created_at.timestamp()
+        retry_after = bucket and bucket.update_rate_limit(current)
+
+        if retry_after:
+            self._auto_spam_count[author_id] += 1
+            if self._auto_spam_count[author_id] >= 3:
+                await self.blacklist.put(
+                    str(author_id),
+                    "Auto-blocked for spamming",
+                    "user",
+                    str(self.current_time.isoformat()),
+                    self.user.id,
+                )
+                del self._auto_spam_count[author_id]
+                await self.blacklist.log_spammer(self, message, retry_after, autoblock=True)
+            else:
+                await self.blacklist.log_spammer(self, message, retry_after)
+
+            return
+        else:
+            self._auto_spam_count.pop(author_id, None)
 
         self.loop.create_task(create_user_if_not_exists(self.my_pool, ctx.author.id))
 
