@@ -9,9 +9,10 @@ from datetime import timedelta
 
 import discord
 from core import Context
-from discord.ext import commands
+from discord.ext import commands, tasks
+from tortoise.expressions import Q
 
-from quotient.models import AutoPurge, Snipe, Timer
+from quotient.models import AutoPurge, Snipe, Timer, YtNotification
 
 from .views import AutopurgeView, YtNotificationView
 
@@ -20,6 +21,10 @@ class Utility(commands.Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.bot.loop.create_task(self.delete_older_snipes())
+        self.resub_yt_notifiers.start()
+
+    def cog_unload(self):
+        self.resub_yt_notifiers.stop()
 
     async def delete_older_snipes(self):  # we delete snipes that are older than 10 days
         await self.bot.wait_until_ready()
@@ -92,6 +97,11 @@ class Utility(commands.Cog):
                 await message.delete(delay=0, reason="AutoPurge is on this channel.")
         except discord.HTTPException:
             pass
+
+    @tasks.loop(seconds=10)
+    async def resub_yt_notifiers(self):
+        async for record in YtNotification.filter(lease_ends_at__lte=(self.bot.current_time + timedelta(minutes=10))):
+            await record.setup_or_resubscribe()
 
     @commands.hybrid_command(name="yt-notifier", aliases=["yt"])
     async def yt_notifier(self, ctx: Context):
