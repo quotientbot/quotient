@@ -10,7 +10,13 @@ from .inputs import (
     time_input_modal,
     user_input,
 )
-from .msgs import plural, send_error_embed, send_simple_embed, truncate_string
+from .msgs import (
+    TabularData,
+    plural,
+    send_error_embed,
+    send_simple_embed,
+    truncate_string,
+)
 from .random import random_greeting_msg, random_thanks_image
 from .regex import find_team_name
 from .scrims import (

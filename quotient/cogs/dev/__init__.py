@@ -8,10 +8,12 @@ if T.TYPE_CHECKING:
 from datetime import datetime
 
 import discord
-from core import Context
 from discord import app_commands
 from discord.ext import commands
 from discord.utils import format_dt
+
+from quotient.cogs.dev.consts import PRIVATE_GUILD_IDS
+from quotient.cogs.dev.stats import DevStats
 
 
 class DevCommands(commands.Cog, name="Developer"):
@@ -19,7 +21,10 @@ class DevCommands(commands.Cog, name="Developer"):
         self.bot = bot
 
     bl_group = app_commands.Group(
-        name="blacklist", description="Manage blacklist", guild_only=True, guild_ids=[779229001986080779, 746337818388987967]
+        name="blacklist",
+        description="Manage blacklist",
+        guild_only=True,
+        guild_ids=PRIVATE_GUILD_IDS,
     )
 
     @bl_group.command(name="add")
@@ -101,3 +106,4 @@ class DevCommands(commands.Cog, name="Developer"):
 
 async def setup(bot: Quotient):
     await bot.add_cog(DevCommands(bot))
+    await bot.add_cog(DevStats(bot))

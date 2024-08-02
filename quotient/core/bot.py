@@ -70,6 +70,7 @@ class Quotient(commands.AutoShardedBot):
         self.message_cache: dict[int, discord.Message] = {}
 
         self.logger: logging.Logger = log
+        self.started_at = self.current_time
 
         self.cache = CacheManager()
         self.blacklist = BlacklistManager()
