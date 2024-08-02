@@ -137,7 +137,7 @@ class YtNotification(BaseDbModel):
             link (str): The URL of the video.
         """
         if video_type == "live":
-            if not self.bot.is_pro_guild(self.discord_guild_id):
+            if not await self.bot.is_pro_guild(self.discord_guild_id):
                 return
 
         msg = (self.live_video_msg if video_type == "live" else self.regular_video_msg).format(

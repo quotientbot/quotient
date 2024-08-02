@@ -100,6 +100,8 @@ class Utility(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def resub_yt_notifiers(self):
+        await self.bot.wait_until_ready()
+
         async for record in YtNotification.filter(lease_ends_at__lte=(self.bot.current_time + timedelta(minutes=10))):
             await record.setup_or_resubscribe()
 
