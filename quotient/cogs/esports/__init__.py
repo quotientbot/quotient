@@ -19,6 +19,8 @@ from .views.tagcheck.panel import TagCheckPanel
 
 
 class Esports(commands.Cog):
+    SUBCOGS = ("scrims", "tourney")
+
     def __init__(self, bot: Quotient) -> None:
         self.bot = bot
 

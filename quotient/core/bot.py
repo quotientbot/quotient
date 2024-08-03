@@ -20,6 +20,7 @@ from collections import Counter
 
 from lib import CROSS, INFO, TICK
 
+from quotient.cogs.dev.consts import PRIVATE_GUILD_IDS
 from quotient.core.blacklist import BlacklistManager
 from quotient.core.cache import CacheManager
 from quotient.core.ctx import Context
@@ -65,9 +66,10 @@ class Quotient(commands.AutoShardedBot):
             case_insensitive=True,
             allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
         )
-
+        self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.seen_messages: int = 0
         self.message_cache: dict[int, discord.Message] = {}
+        self.app_commands_global: dict[int, discord.app_commands.AppCommand] = {}
 
         self.logger: logging.Logger = log
         self.started_at = self.current_time
@@ -138,11 +140,22 @@ class Quotient(commands.AutoShardedBot):
             await self.load_extension("server")
 
         await self.load_persistent_views()
-        log.debug("Persistent views have been loaded.")
+        await self.cache_app_commands()
 
         global BOT_INSTANCE
 
         BOT_INSTANCE = self
+
+    async def cache_app_commands(self):
+        log.debug("Fetching global application commands...")
+        for c in await self.tree.fetch_commands():
+            self.app_commands_global[c.name] = c
+
+        # Cache Dev Commands too
+        for c in await self.tree.fetch_commands(guild=discord.Object(PRIVATE_GUILD_IDS[0])):
+            self.app_commands_global[c.name] = c
+
+        log.info("Application commands have been cached.")
 
     async def load_persistent_views(self):
         from cogs.esports.views.scrims.drop_panel.after_scrim import (
@@ -163,6 +176,8 @@ class Quotient(commands.AutoShardedBot):
 
         async for scrim in Scrim.filter(drop_panel_message_id__isnull=False):
             self.add_view(DropLocationSelectorView(scrim), message_id=scrim.drop_panel_message_id)
+
+        log.info("Persistent views have been loaded.")
 
     async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> discord.Member | None:
         """Looks up a member in cache or fetches if not found."""

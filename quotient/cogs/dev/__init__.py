@@ -17,6 +17,8 @@ from quotient.cogs.dev.stats import DevStats
 
 
 class DevCommands(commands.Cog, name="Developer"):
+    SUBCOGS = ("devstats",)
+
     def __init__(self, bot: Quotient):
         self.bot = bot
 

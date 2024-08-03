@@ -244,7 +244,7 @@ class DevStats(commands.Cog):
         guild_ids=PRIVATE_GUILD_IDS,
     )
 
-    @history_grp.command(name="list")
+    @history_grp.command(name="all")
     async def history_list(self, inter: discord.Interaction):
         """List all commands history"""
         await inter.response.defer(thinking=True)

@@ -63,6 +63,12 @@ USD_PREMIUM_PLANS = [
 ]
 
 
+class PremiumPlan(BaseDbModel):
+    class Meta:
+        # table = "premium_plans"
+        abstract = True
+
+
 class PremiumTxn(BaseDbModel):
     class Meta:
         # table = "premium_txns"
