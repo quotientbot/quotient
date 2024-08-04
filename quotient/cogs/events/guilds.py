@@ -8,7 +8,8 @@ if T.TYPE_CHECKING:
 import discord
 from discord.ext import commands
 
-from quotient.models import Guild
+from quotient.models.others.guild import Guild, create_guild_if_not_exists
+from quotient.models.others.premium import GuildTier
 
 
 class GuildEvents(commands.Cog):
@@ -18,16 +19,12 @@ class GuildEvents(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
         if self.bot.is_main_instance:
-            await self.bot.quotient_pool.execute(
-                "INSERT INTO guilds (guild_id, prefix) VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING",
-                guild.id,
-                self.bot.config("DEFAULT_PREFIX"),
-            )
+            await create_guild_if_not_exists(self.bot.my_pool, guild.id)
 
         else:  # If this is Quotient Pro bot:
             record = await Guild.get_or_none(pk=guild.id)
 
-            if any([not record, not record.is_premium]):
-                await guild.leave()
+            if any([not record, record.tier == GuildTier.FREE]):
+                return await guild.leave()
 
         self.bot.loop.create_task(guild.chunk())
