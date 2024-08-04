@@ -2,7 +2,7 @@ import os
 from typing import NamedTuple
 
 import discord
-from cogs.premium import RequirePremiumView
+from cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from lib import (
     guild_role_input,
     integer_input_modal,
@@ -178,6 +178,11 @@ async def edit_registration_open_days(cls: discord.ui.Select | ScrimsBtn, inter:
 
 
 async def edit_required_lines(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
+    is_allowed, min_tier = await can_use_feature(Feature.MIN_REQ_LINES_TO_REG, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer(ephemeral=True, thinking=True)
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     if cls.view.record.required_lines:
         cls.view.record.required_lines = 0
         return await cls.view.refresh_view()
@@ -203,12 +208,20 @@ async def edit_required_lines(cls: discord.ui.Select | ScrimsBtn, inter: discord
 async def edit_allow_duplicate_mentions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.DUPLICATE_MENTIONS, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.allow_duplicate_mentions = not cls.view.record.allow_duplicate_mentions
     await cls.view.refresh_view()
 
 
 async def edit_allow_duplicate_teamname(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
+
+    is_allowed, min_tier = await can_use_feature(Feature.DUPLICATE_TEAMNAME, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
 
     cls.view.record.allow_duplicate_teamname = not cls.view.record.allow_duplicate_teamname
     await cls.view.refresh_view()
@@ -217,6 +230,10 @@ async def edit_allow_duplicate_teamname(cls: discord.ui.Select | ScrimsBtn, inte
 async def edit_auto_delete_extra_messages(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.DELETE_EXTRA_REG_SCRIM, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.autodelete_extra_msges = not cls.view.record.autodelete_extra_msges
     await cls.view.refresh_view()
 
@@ -224,12 +241,20 @@ async def edit_auto_delete_extra_messages(cls: discord.ui.Select | ScrimsBtn, in
 async def edit_auto_delete_rejected_registrations(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.DELETED_REJECTED_REG, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.autodelete_rejected_registrations = not cls.view.record.autodelete_rejected_registrations
     await cls.view.refresh_view()
 
 
 async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
+
+    is_allowed, min_tier = await can_use_feature(Feature.REG_END_PING_ROLE_SCRIM, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
 
     if cls.view.record.reg_end_ping_role_id:
         cls.view.record.reg_end_ping_role_id = None
@@ -252,6 +277,12 @@ async def edit_registration_end_ping_role(cls: discord.ui.Select | ScrimsBtn, in
 
 
 async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
+
+    is_allowed, min_tier = await can_use_feature(Feature.CHANNEL_AUTOCLEAN_TIME_SCRIM, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer(ephemeral=True, thinking=True)
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     if cls.view.record.autoclean_channel_time:
         await inter.response.defer()
         cls.view.record.autoclean_channel_time = None
@@ -277,6 +308,12 @@ async def edit_channel_autoclean_time(cls: discord.ui.Select | ScrimsBtn, inter:
 
 
 async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
+
+    is_allowed, min_tier = await can_use_feature(Feature.REG_AUTO_END_TIME_SCRIM, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer(ephemeral=True, thinking=True)
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     reg_auto_end_time = await time_input_modal(
         inter,
         title="Registration Auto-End Time (IST - UTC+5:30)",
@@ -299,6 +336,10 @@ async def edit_registration_auto_end_time(cls: discord.ui.Select | ScrimsBtn, in
 async def edit_share_idp_with(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.SHARE_IDP_CUSTOMIZE_SCRIM, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     if cls.view.record.idp_share_type == IdpShareType.LEADER_ONLY:
         cls.view.record.idp_share_type = IdpShareType.ALL_TEAM_MEMBERS
 
@@ -309,6 +350,12 @@ async def edit_share_idp_with(cls: discord.ui.Select | ScrimsBtn, inter: discord
 
 
 async def edit_slotlist_start_from(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
+
+    is_allowed, min_tier = await can_use_feature(Feature.SLOTLIST_START_FROM, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer(ephemeral=True, thinking=True)
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     slotlist_start_from = await integer_input_modal(
         inter,
         title="Slotlist Should Start From?",
@@ -332,6 +379,10 @@ async def edit_slotlist_start_from(cls: discord.ui.Select | ScrimsBtn, inter: di
 async def edit_auto_send_slotlist(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.AUTO_SEND_SLOTLIST_TOGGLE_SCRIM, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.autosend_slotlist = not cls.view.record.autosend_slotlist
     await cls.view.refresh_view()
 
@@ -339,12 +390,9 @@ async def edit_auto_send_slotlist(cls: discord.ui.Select | ScrimsBtn, inter: dis
 async def edit_reactions(cls: discord.ui.Select | ScrimsBtn, inter: discord.Interaction):
     await inter.response.defer()
 
-    guild = await Guild.get(pk=inter.guild_id)
-
-    if not guild.is_premium:
-        v = RequirePremiumView(f"Upgrade to Quotient Pro to use custom reactions.")
-
-        return await inter.followup.send(embed=v.premium_embed, view=v, ephemeral=True)
+    is_allowed, min_tier = await can_use_feature(Feature.CUSTOM_REACTIONS_CREATE, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
 
     e = discord.Embed(color=int(os.getenv("DEFAULT_COLOR")), title="Edit scrims emojis")
 

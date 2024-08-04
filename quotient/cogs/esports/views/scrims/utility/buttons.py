@@ -2,10 +2,10 @@ from datetime import timedelta
 from random import randint
 
 import discord
-from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import Guild, Scrim, Tourney
 
 from .. import ScrimsBtn
@@ -132,18 +132,12 @@ class SaveScrim(ScrimsBtn):
             hour=randint(2, 7), minute=randint(1, 59), second=0, microsecond=0
         ) + timedelta(days=1)
 
-        guild = await Guild.get(pk=interaction.guild_id)
-
-        if not guild.is_premium:
-            if await Scrim.filter(guild_id=guild.pk).count() >= SCRIMS_LIMIT:
-                v = RequirePremiumView(
-                    f"You have reached the maximum limit of '{SCRIMS_LIMIT} scrims', Upgrade to Quotient Pro to unlock unlimited scrims."
-                )
-
-                return await interaction.followup.send(
-                    embed=v.premium_embed,
-                    view=v,
-                )
+        is_allowed, min_tier = await can_use_feature(Feature.SCRIM_CREATE, interaction.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                interaction,
+                f"Your server has reached the limit of scrims allowed. Upgrade to min **__{min_tier.name}__** tier to create more scrims.",
+            )
 
         await self.view.record.save()
         await self.view.bot.reminders.create_timer(self.view.record.reg_start_time, "scrim_open", scrim_id=self.view.record.id)

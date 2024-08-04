@@ -2,24 +2,9 @@ import os
 import re
 
 import discord
-from lib import emojis
 
-from quotient.models import PremiumPlan, PremiumTxn, User
-
-from .consts import get_pro_features_formatted
-
-
-class PlanSelector(discord.ui.Select):
-    def __init__(self, plans: list[PremiumPlan]):
-        super().__init__(placeholder="Select a Quotient Pro Plan... ")
-
-        for _ in plans:
-            self.add_option(label=f"{_.name} - ₹{_.price}", description=_.description, value=_.id)
-
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        self.view.selected_plan = self.values[0]
-        self.view.stop()
+from quotient.lib.emojis import PANDA_RUN
+from quotient.models import INR_PREMIUM_PLANS, CurrencyType, GuildTier, PremiumTxn, User
 
 
 def valid_email(email: str):
@@ -27,117 +12,152 @@ def valid_email(email: str):
 
 
 class UserDetailsForm(discord.ui.Modal):
-    def __init__(self):
+    def __init__(self, selected_plan: str):
         super().__init__(title="Fill your details")
+        self.selected_plan = selected_plan
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(thinking=True, ephemeral=True)
 
-        email, phone = str(self.children[0]), str(self.children[1])
+        email = str(self.children[0])
 
         if not valid_email(email):
             return await interaction.followup.send("Invalid email format, please enter a valid email.", ephemeral=True)
 
-        if not phone.isdigit() or len(phone) < 10:
-            return await interaction.followup.send(
-                "Invalid phone number format, please enter a valid phone number.",
-                ephemeral=True,
+        await User.get(pk=interaction.user.id).update(email_id=email)
+
+        tier, price, currency = self.selected_plan.split(":")
+
+        tier = GuildTier[tier]
+        price = float(price)
+
+        # Find the corresponding plan
+        selected_plan = None
+        for plan in INR_PREMIUM_PLANS:
+            if plan["tier"] == tier:
+                if "price_lifetime" in plan and plan["price_lifetime"] == price:
+                    selected_plan = plan
+                    duration_key = "lifetime"
+                    break
+                elif "price_per_month" in plan and plan["price_per_month"] == price:
+                    selected_plan = plan
+                    duration_key = "month"
+                    break
+                elif "price_per_year" in plan and plan["price_per_year"] == price:
+                    selected_plan = plan
+                    duration_key = "year"
+                    break
+
+        duration = selected_plan["durations"][duration_key]
+
+        # txn = await PremiumTxn.create(
+        #     user_id=interaction.user.id,
+        #     guild_id=interaction.guild.id,
+        #     amount=price,
+        #     currency=CurrencyType[currency],
+        #     tier=tier,
+        #     premium_duration=duration,
+        # )
+
+        # _link = os.getenv("PAYMENT_SERVER_LINK") + "?txnId=" + txn.txnid
+
+        # v = discord.ui.View()
+        # v.add_item(
+        #     discord.ui.Button(
+        #         style=discord.ButtonStyle.link,
+        #         label="Complete Payment",
+        #         url=_link,
+        #     )
+        # )
+
+        # await interaction.followup.send(
+        #     f"## You are about to purchase Quotient Premium for **__{interaction.guild.name}__**.\n"
+        #     "If you want to purchase for another server, use `/premium` command in that server.",
+        #     view=v,
+        #     ephemeral=True,
+        # )
+
+
+class PlanSelector(discord.ui.Select):
+    def __init__(self, placeholder: str):
+        super().__init__(placeholder=placeholder)
+
+        for inr_plan in INR_PREMIUM_PLANS:
+            description = inr_plan.get("description", "No description available.")
+
+            if inr_plan.get("price_lifetime", None):
+                self.add_option(
+                    label=f"{inr_plan['tier'].name} - ₹{inr_plan['price_lifetime']} / Lifetime",
+                    value=f"{inr_plan['tier'].name}:{inr_plan['price_lifetime']}:INR",
+                    emoji=inr_plan["emote"],
+                    description=description,
+                )
+                continue
+
+            self.add_option(
+                label=f"{inr_plan['tier'].name} - ₹{inr_plan['price_per_month']} / Month",
+                value=f"{inr_plan['tier'].name}:{inr_plan['price_per_month']}:INR",
+                emoji=inr_plan["emote"],
+                description=description,
             )
 
-        await User.get(pk=interaction.user.id).update(email_id=email, phone_number=phone)
-
-        v = discord.ui.View(timeout=100)
-        v.selected_plan = None
-
-        v.add_item(PlanSelector(await PremiumPlan.all().order_by("id")))
-        await interaction.followup.send(
-            "Please select the Quotient Pro plan, you want to opt:",
-            view=v,
-            ephemeral=True,
-        )
-        await v.wait()
-
-        if not v.selected_plan:
-            return
-
-        txn = await PremiumTxn.create(
-            txnid=await PremiumTxn.generate_txnid(),
-            user_id=interaction.user.id,
-            guild_id=interaction.guild.id,
-            plan_id=v.selected_plan,
-        )
-
-        _link = os.getenv("PAYMENT_SERVER_LINK") + "?txnId=" + txn.txnid
-
-        v = discord.ui.View()
-        v.add_item(
-            discord.ui.Button(
-                style=discord.ButtonStyle.link,
-                label="Complete Payment",
-                url=_link,
+            self.add_option(
+                label=f"{inr_plan['tier'].name} - ₹{inr_plan['price_per_year']} / Year",
+                value=f"{inr_plan['tier'].name}:{inr_plan['price_per_year']}:INR",
+                emoji=inr_plan["emote"],
+                description=description,
             )
-        )
-
-        await interaction.followup.send(
-            f"## You are about to purchase Quotient Premium for **__{interaction.guild.name}__**.\n"
-            "If you want to purchase for another server, use `/premium` command in that server.",
-            view=v,
-            ephemeral=True,
-        )
-
-
-class PremiumPurchaseBtn(discord.ui.Button):
-    def __init__(
-        self,
-        label="Get Quotient Pro",
-        emoji=emojis.DIAMOND,
-        style=discord.ButtonStyle.grey,
-    ):
-        super().__init__(style=style, label=label, emoji=emoji)
 
     async def callback(self, interaction: discord.Interaction):
-        user = await User.get(pk=interaction.user.id)
-        form = UserDetailsForm()
+        u = await User.get(pk=interaction.user.id)
 
-        form.add_item(
+        modal = UserDetailsForm(interaction.data["values"][0])
+        modal.add_item(
             discord.ui.TextInput(
-                label="Email",
-                placeholder="Used to send payment receipt...",
-                default=user.email_id or "",
-                min_length=5,
+                label="Email ID",
+                placeholder="(Used to send payment receipt only)",
+                default=u.email_id,
+                min_length=8,
                 max_length=50,
             )
         )
-        form.add_item(
-            discord.ui.TextInput(
-                label="Phone Number",
-                placeholder="Used to send payment receipt...",
-                default=user.phone_number or "",
-                min_length=10,
-                max_length=10,
-            )
-        )
 
-        await interaction.response.send_modal(form)
+        await interaction.response.send_modal(modal)
 
 
 class RequirePremiumView(discord.ui.View):
-    def __init__(
-        self,
-        text="This feature requires Quotient Pro.",
-        *,
-        label="Get Quotient Pro",
-    ):
+    def __init__(self, text: str, placeholder="Select a Quotient Pro Plan... "):
         super().__init__(timeout=None)
         self.text = text
-        self.add_item(PremiumPurchaseBtn(label=label))
+        self.add_item(PlanSelector(placeholder=placeholder))
 
     @property
     def premium_embed(self) -> discord.Embed:
-        _e = discord.Embed(
-            color=0x00FFB3,
-            description=f"**You discovered a premium feature <a:premium:807911675981201459>**",
+        e = discord.Embed(
+            color=int(os.getenv("DEFAULT_COLOR")),
         )
-        _e.description = f"\n*`{self.text}`*\n\n__Perks you get with Quotient Pro:__\n"
-        _e.description += get_pro_features_formatted()
-        return _e
+        e.description = self.text
+
+        e.set_image(url="https://cdn.discordapp.com/attachments/782161513825042462/1269440209452269699/image.png")
+        return e
+
+
+async def prompt_premium_plan(
+    inter: discord.Interaction, text: str = None, min_tier: GuildTier = None, placeholder="Select a Quotient Pro Plan... "
+) -> None:
+    if text is None:
+        text = (
+            f"Your server needs to be on **{min_tier.name}** tier to use this feature, Consider upgrading to a Quotient Pro Plan now!"
+        )
+
+    v = RequirePremiumView(text, placeholder)
+    await inter.followup.send(embed=v.premium_embed, view=v, ephemeral=True)
+
+
+class UpgradeButton(discord.ui.Button):
+    def __init__(self, label: str = "Upgrade Server"):
+        super().__init__(label=label, style=discord.ButtonStyle.blurple, emoji=PANDA_RUN)
+
+    async def callback(self, interaction: discord.Interaction):
+        v = RequirePremiumView(text="")
+        await interaction.response.send_message(embed=v.premium_embed, view=v, ephemeral=True)

@@ -1,9 +1,9 @@
 import discord
-from cogs.premium import TAGCHECK_LIMIT, RequirePremiumView
 from core import QuoView
 from discord.ext import commands
 from lib import integer_input_modal, text_channel_input
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import TagCheck
 
 
@@ -26,6 +26,7 @@ class TagCheckPanel(QuoView):
 
     @discord.ui.button(label="#Set Channel", style=discord.ButtonStyle.primary)
     async def set_tc_channel(self, inter: discord.Interaction, btn: discord.ui.Button):
+
         no_of_mentions = await integer_input_modal(
             inter, title="Required Mentons", label="Required mentions for tagcheck?", placeholder="4", default=4
         )
@@ -57,15 +58,12 @@ class TagCheckPanel(QuoView):
                 ephemeral=True,
             )
 
-        if not await self.bot.is_pro_guild(inter.guild_id):
-            if await TagCheck.filter(guild_id=inter.guild_id).count() >= TAGCHECK_LIMIT:
-                v = RequirePremiumView("You can only set 1 Tag Check channel in free version.")
-
-                return await inter.followup.send(
-                    embed=v.premium_embed,
-                    ephemeral=True,
-                    view=v,
-                )
+        is_allowed, min_tier = await can_use_feature(Feature.TAG_CHECK_CREATE, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter,
+                f"Your server has reached the limit of tag checks allowed. Upgrade to min **__{min_tier.name}__** tier to create more tag checks.",
+            )
 
         await TagCheck.create(guild_id=inter.guild_id, channel_id=ch.id, required_mentions=no_of_mentions)
         self.bot.cache.tagcheck_channel_ids.add(ch.id)

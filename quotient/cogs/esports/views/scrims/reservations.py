@@ -12,6 +12,7 @@ from lib import (
     truncate_string,
 )
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import Scrim, ScrimReservedSlot
 
 from . import ScrimsBtn, ScrimsView
@@ -87,6 +88,13 @@ class ReserveNewSlot(ScrimsBtn):
 
     async def callback(self, inter: discord.Interaction):
         await inter.response.defer()
+
+        is_allowed, min_tier = await can_use_feature(Feature.MAX_SLOT_RESERVATION_PER, inter.guild_id, scrim_id=self.view.record.pk)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter,
+                f"Your server has reached the limit of reserved slots for this scrim. Upgrade to **__{min_tier.name}__** tier to reserve more slots.",
+            )
 
         m = await inter.followup.send(
             embed=self.view.bot.simple_embed(

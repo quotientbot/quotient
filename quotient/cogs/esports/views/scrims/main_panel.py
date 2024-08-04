@@ -1,8 +1,8 @@
 import discord
-from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord.ext import commands
 from lib import CROSS, EXIT, PLANT, TICK, truncate_string
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import Guild, Scrim
 
 from . import ScrimsView
@@ -52,18 +52,12 @@ class ScrimsMainPanel(ScrimsView):
     async def create_new_scrim(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
 
-        guild = await Guild.get(pk=inter.guild_id)
-
-        if not guild.is_premium:
-            if await Scrim.filter(guild_id=guild.pk).count() >= SCRIMS_LIMIT:
-                v = RequirePremiumView(
-                    f"You have reached the maximum limit of '{SCRIMS_LIMIT} scrims', Upgrade to Quotient Pro to unlock unlimited scrims."
-                )
-
-                return await inter.followup.send(
-                    embed=v.premium_embed,
-                    view=v,
-                )
+        is_allowed, min_tier = await can_use_feature(Feature.SCRIM_CREATE, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter,
+                f"Your server has reached the limit of scrims allowed. Upgrade to min **__{min_tier.name}__** tier to create more scrims.",
+            )
 
         self.stop()
 
@@ -87,7 +81,7 @@ class ScrimsMainPanel(ScrimsView):
 
         self.stop()
 
-        v = ScrimsEditPanel(self.ctx, scrims[0], await Guild.get(pk=inter.guild_id))
+        v = ScrimsEditPanel(self.ctx, scrims[0])
         v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
 
     @discord.ui.button(label="Instant Start/Stop Reg", style=discord.ButtonStyle.secondary)

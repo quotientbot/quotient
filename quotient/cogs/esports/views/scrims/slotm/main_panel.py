@@ -1,8 +1,8 @@
 import discord
-from cogs.premium import SLOTM_PANEL, RequirePremiumView
 from discord.ext import commands
 from lib import EXIT, LOADING, plural
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import Scrim, ScrimsSlotManager
 
 from .. import ScrimsView
@@ -54,12 +54,12 @@ class SlotmMainPanel(ScrimsView):
                 ephemeral=True,
             )
 
-        if not await self.bot.is_pro_guild(inter.guild_id):
-            if await ScrimsSlotManager.filter(guild_id=inter.guild_id).count() >= SLOTM_PANEL:
-                v = RequirePremiumView(
-                    f"You have reached the maximum limit of '{SLOTM_PANEL} slot manager panels', Upgrade to Quotient Pro to unlock more."
-                )
-                return await inter.followup.send(embed=v.premium_embed, view=v)
+        is_allowed, min_tier = await can_use_feature(Feature.CANCEL_CLAIM_PANEL_CREATE, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter,
+                f"Your server has reached the limit of max cancel-claim allowed. Upgrade to min **__{min_tier.name}__** tier to create more cancel-claim panels.",
+            )
 
         self.stop()
 

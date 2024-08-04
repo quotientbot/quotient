@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import discord
-from cogs.premium import YT_NOTIFICATIONS_LIMIT, RequirePremiumView
+from cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from core import QuoView
 from discord.ext import commands
 from lib import (
@@ -109,6 +109,12 @@ class SetLiveVideoMsg(discord.ui.Button):
         super().__init__(style=discord.ButtonStyle.primary, label="Live Video Message", disabled=disabled)
 
     async def callback(self, inter: discord.Interaction):
+        is_allowed, min_tier = await can_use_feature(Feature.YT_LIVE_NOTI_SETUP, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter, text=f"You server needs to be on **{min_tier.name}** tier to setup 'Youtube Live Video Notifications'."
+            )
+
         msg = await text_input_modal(
             inter,
             "Live Video Message",
@@ -153,11 +159,11 @@ class SaveDetails(discord.ui.Button):
     async def callback(self, inter: discord.Interaction):
         await inter.response.defer(ephemeral=True)
 
-        if not await self.view.bot.is_pro_guild(inter.guild_id):
-            if await YtNotification.filter(discord_guild_id=inter.guild_id).count() >= YT_NOTIFICATIONS_LIMIT:
-                v = RequirePremiumView(f"You can setup only {YT_NOTIFICATIONS_LIMIT} Youtube Notification in free version.")
-                v.message = await inter.followup.send(embed=v.premium_embed, view=v)
-                return
+        is_allowed, min_tier = await can_use_feature(Feature.YT_NOTI_SETUP, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter, text=f"You server needs to be on **{min_tier.name}** tier to setup more 'Youtube Notifications'."
+            )
 
         self.view.record.lease_ends_at = self.view.bot.current_time + timedelta(seconds=86400)
         await self.view.record.save()
@@ -206,7 +212,7 @@ class SetupNewYt(QuoView):
         self.add_item(SetChannel())
         self.add_item(YtUsername())
         self.add_item(SetRegularVideoMsg())
-        self.add_item(SetLiveVideoMsg(disabled=not g.is_premium))
+        self.add_item(SetLiveVideoMsg())
         self.add_item(SetPingRole())
         self.add_item(
             SaveDetails(

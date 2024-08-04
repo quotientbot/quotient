@@ -2,7 +2,7 @@ import os
 from typing import NamedTuple
 
 import discord
-from cogs.premium import RequirePremiumView
+from cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from lib import (
     guild_role_input,
     integer_input_modal,
@@ -84,12 +84,9 @@ async def edit_total_slots(cls: discord.ui.Select | TourneyBtn, inter: discord.I
 async def edit_reactions(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
     await inter.response.defer()
 
-    guild = await Guild.get(pk=inter.guild_id)
-
-    if not guild.is_premium:
-        v = RequirePremiumView(f"Upgrade to Quotient Pro to use custom reactions.")
-
-        return await inter.followup.send(embed=v.premium_embed, view=v, ephemeral=True)
+    is_allowed, min_tier = await can_use_feature(Feature.CUSTOM_REACTIONS_CREATE, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
 
     e = discord.Embed(color=int(os.getenv("DEFAULT_COLOR")), title="Edit tourney emojis")
 
@@ -199,6 +196,10 @@ async def edit_start_ping_role(cls: discord.ui.Select | TourneyBtn, inter: disco
 async def edit_duplicate_tags(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.DUPLICATE_MENTIONS, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.allow_duplicate_mentions = not cls.view.record.allow_duplicate_mentions
     await cls.view.refresh_view()
 
@@ -213,12 +214,20 @@ async def edit_require_team_name(cls: discord.ui.Select | TourneyBtn, inter: dis
 async def edit_duplicate_team_name(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
     await inter.response.defer()
 
+    is_allowed, min_tier = await can_use_feature(Feature.DUPLICATE_TEAMNAME, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     cls.view.record.allow_duplicate_teamname = not cls.view.record.allow_duplicate_teamname
     await cls.view.refresh_view()
 
 
 async def edit_autodel_rejected_reg(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
     await inter.response.defer()
+
+    is_allowed, min_tier = await can_use_feature(Feature.DELETED_REJECTED_REG, inter.guild_id)
+    if not is_allowed:
+        return await prompt_premium_plan(inter, min_tier=min_tier)
 
     cls.view.record.autodelete_rejected_registrations = not cls.view.record.autodelete_rejected_registrations
     await cls.view.refresh_view()
@@ -232,6 +241,11 @@ async def edit_allow_multi_reg(cls: discord.ui.Select | TourneyBtn, inter: disco
 
 
 async def edit_required_lines(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
+    is_allowed, min_tier = await can_use_feature(Feature.MIN_REQ_LINES_TO_REG, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer()
+        return await prompt_premium_plan(inter, min_tier=min_tier)
+
     if cls.view.record.required_lines:
         await inter.response.defer()
 
@@ -257,6 +271,14 @@ async def edit_required_lines(cls: discord.ui.Select | TourneyBtn, inter: discor
 
 
 async def edit_success_message(cls: discord.ui.Select | TourneyBtn, inter: discord.Interaction):
+    is_allowed, min_tier = await can_use_feature(Feature.SUCCESS_DM_MESSAGE_TOURNEY, inter.guild_id)
+    if not is_allowed:
+        await inter.response.defer()
+        return await prompt_premium_plan(
+            inter,
+            f"Upgrade to min **__{min_tier.name}__** tier to set a custom success message.",
+        )
+
     message = await text_input_modal(
         inter,
         "Success Message",

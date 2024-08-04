@@ -1,6 +1,6 @@
 import discord
 from cogs.esports.views.tourney import TourneyBtn
-from cogs.premium import TOURNEY_LIMIT, RequirePremiumView
+from cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from discord.ext import commands
 from lib import INFO, send_error_embed, text_channel_input
 
@@ -139,16 +139,9 @@ class SaveTourney(TourneyBtn):
                 view=self.view.bot.contact_support_view(),
             )
 
-        if not await self.view.bot.is_pro_guild(self.ctx.guild.id):
-            if await Tourney.filter(guild_id=self.ctx.guild.id).count() >= TOURNEY_LIMIT:
-                v = RequirePremiumView(
-                    f"You have reached the maximum limit of '{TOURNEY_LIMIT} Tourney', Upgrade to Quotient Pro to unlock unlimited Tourney."
-                )
-
-                return await interaction.followup.send(
-                    embed=v.premium_embed,
-                    view=v,
-                )
+        is_allowed, min_tier = await can_use_feature(Feature.TOURNEY_CREATE, self.ctx.guild.id)
+        if not is_allowed:
+            return await prompt_premium_plan(interaction, f"Upgrade to min **__{min_tier.name}__** tier to create more tournaments.")
 
         await self.view.record.save()
 

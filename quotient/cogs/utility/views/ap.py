@@ -1,20 +1,14 @@
-from __future__ import annotations
-
-import typing as T
-
-if T.TYPE_CHECKING:
-    from core import Quotient
-
 import asyncio
 from datetime import timedelta
 
 import discord
-from cogs.premium import consts, views
+from cogs.premium import views
 from core import QuoView
 from discord.ext import commands
 from humanize import precisedelta
 from lib import simple_time_input, text_channel_input
 
+from quotient.cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from quotient.models import AutoPurge
 
 
@@ -57,10 +51,11 @@ class AutopurgeView(QuoView):
         await inter.response.defer(thinking=True, ephemeral=True)
 
         # Check if guild can create more ap channels
-        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= consts.AUTOPURGE_LIMIT:
-            if not await self.bot.is_pro_guild(inter.guild_id):
-                v = views.RequirePremiumView(text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier.")
-                return await inter.followup.send(embed=v.premium_embed, view=v)
+        is_allowed, min_tier = await can_use_feature(Feature.AUTOPURGE_CREATE, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter, text=f"You need to be on **{min_tier.name}** tier to setup more 'Auto Purge' channels."
+            )
 
         try:
             channel = await text_channel_input(inter, "Please mention the channel you want to set autopurge.")
@@ -92,10 +87,11 @@ class AutopurgeView(QuoView):
             )
 
         # Check if guild can create more ap channels
-        if await AutoPurge.filter(guild_id=inter.guild_id).count() >= consts.AUTOPURGE_LIMIT:
-            if not await self.bot.is_premium(inter.guild_id):
-                v = views.RequirePremiumView(text=f"You can only have {consts.AUTOPURGE_LIMIT} AutoPurge channels in the free tier.")
-                return await inter.followup.send(embed=v.premium_embed, view=v, ephemeral=True)
+        is_allowed, min_tier = await can_use_feature(Feature.AUTOPURGE_CREATE, inter.guild_id)
+        if not is_allowed:
+            return await prompt_premium_plan(
+                inter, text=f"You need to be on **{min_tier.name}** tier to setup more 'Auto Purge' channels."
+            )
 
         await AutoPurge.create(guild_id=inter.guild_id, channel_id=channel.id, delete_after=time_in_seconds)
         self.bot.cache.autopurge_channel_ids.add(channel.id)

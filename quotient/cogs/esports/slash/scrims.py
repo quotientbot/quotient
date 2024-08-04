@@ -9,7 +9,7 @@ from datetime import timedelta
 from random import randint
 
 import discord
-from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
+# from cogs.premium import SCRIMS_LIMIT, RequirePremiumView
 from discord import app_commands
 from discord.ext import commands
 from lib import INFO, parse_natural_time
@@ -90,15 +90,15 @@ class ScrimSlashCommands(commands.GroupCog, name="scrims"):
 
         guild = await Guild.get(pk=inter.guild_id)
 
-        if not guild.is_premium:
-            if await Scrim.filter(guild_id=guild.pk).count() >= SCRIMS_LIMIT:
-                v = RequirePremiumView(
-                    f"You have reached the maximum limit of '{SCRIMS_LIMIT} scrims', Upgrade to Quotient Pro to unlock unlimited scrims."
-                )
-                return await inter.followup.send(
-                    embed=v.premium_embed,
-                    view=v,
-                )
+        # if not guild.is_premium:
+        #     if await Scrim.filter(guild_id=guild.pk).count() >= SCRIMS_LIMIT:
+        #         v = RequirePremiumView(
+        #             f"You have reached the maximum limit of '{SCRIMS_LIMIT} scrims', Upgrade to Quotient Pro to unlock unlimited scrims."
+        #         )
+        #         return await inter.followup.send(
+        #             embed=v.premium_embed,
+        #             view=v,
+        #         )
 
         if await Scrim.exists(registration_channel_id=registration_channel.id):
             return await inter.followup.send(

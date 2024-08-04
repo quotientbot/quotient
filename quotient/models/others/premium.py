@@ -1,3 +1,4 @@
+from datetime import timedelta
 from enum import IntEnum
 
 import httpx
@@ -6,43 +7,55 @@ from tortoise import fields
 from quotient.models import BaseDbModel
 
 
-class Currency(IntEnum):
+class CurrencyType(IntEnum):
     INR = 1
     USD = 2
 
 
 class GuildTier(IntEnum):
     FREE = 0
-    BASIC = 1
+    STARTER = 1
     INTERMEDIATE = 2
     ULTIMATE = 3
 
 
 INR_PREMIUM_PLANS = [
     {
-        "tier": GuildTier.BASIC,
+        "tier": GuildTier.STARTER,
         "price_per_month": 99,
         "price_per_year": 999,
+        "emote": "<:B_SYMBOL:1269436552778354851>",
+        "description": "Basic features to get you started.",
+        "durations": {"month": timedelta(days=28), "year": timedelta(days=365)},
     },
     {
         "tier": GuildTier.INTERMEDIATE,
         "price_per_month": 149,
         "price_per_year": 1599,
+        "emote": "<:I_SYMBOL:1269436053383680042>",
+        "description": "Advanced tools for growing communities.",
+        "durations": {"month": timedelta(days=28), "year": timedelta(days=365)},
     },
     {
         "tier": GuildTier.ULTIMATE,
         "price_per_month": 169,
         "price_per_year": 1999,
+        "emote": "<a:diamond:899295009289949235>",
+        "description": "All-inclusive access for power users.",
+        "durations": {"month": timedelta(days=28), "year": timedelta(days=365)},
     },
     {
         "tier": GuildTier.ULTIMATE,
         "price_lifetime": 4999,
+        "emote": "<a:PandaReeRun:929077838273974279>",
+        "description": "Lifetime access for dedicated communities.",
+        "durations": {"lifetime": timedelta(days=365 * 69)},  # Lifetime duration example
     },
 ]
 
 USD_PREMIUM_PLANS = [
     {
-        "tier": GuildTier.BASIC,
+        "tier": GuildTier.STARTER,
         "price_per_month": 2.99,
         "price_per_year": 35.99,
     },
@@ -79,7 +92,7 @@ class PremiumTxn(BaseDbModel):
     guild_id = fields.BigIntField()
 
     amount = fields.FloatField()
-    currency = fields.IntEnumField(Currency)
+    currency = fields.IntEnumField(CurrencyType)
     tier = fields.IntEnumField(GuildTier)
     premium_duration = fields.TimeDeltaField()
 

@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.utils import format_dt as fdt
 from lib import DIAMOND, EXIT, F_WORD
 
-from quotient.models import Guild, Scrim
+from quotient.models import Scrim
 
 from . import ScrimsView
 from .utility.buttons import DiscardChanges
@@ -50,11 +50,10 @@ class ScrimsEditSelect(discord.ui.Select):
 
 
 class ScrimsEditPanel(ScrimsView):
-    def __init__(self, ctx: commands.Context, scrim: Scrim, guild: Guild):
+    def __init__(self, ctx: commands.Context, scrim: Scrim):
         super().__init__(ctx=ctx, timeout=100)
         self.ctx = ctx
         self.record = scrim
-        self.guild = guild
 
     async def initial_msg(self):
         scrims = await Scrim.filter(guild_id=self.ctx.guild.id).order_by("reg_start_time")
@@ -68,7 +67,7 @@ class ScrimsEditPanel(ScrimsView):
         self.add_item(DiscardChanges(self.ctx, label="Back to Main Menu", emoji=EXIT))
 
         self.add_item(ScrimsEditSelect(self.ctx, free_options_only=True))
-        self.add_item(ScrimsEditSelect(self.ctx, free_options_only=False, disabled=not self.guild.is_premium))
+        self.add_item(ScrimsEditSelect(self.ctx, free_options_only=False))
 
         embed = discord.Embed(
             title="Scrims Editor - Edit Settings",

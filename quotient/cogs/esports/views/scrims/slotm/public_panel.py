@@ -6,6 +6,7 @@ from typing import Any
 import discord
 from lib import BELL, LOADING
 
+from quotient.cogs.premium import Feature, can_use_feature
 from quotient.models import (
     Scrim,
     ScrimAssignedSlot,
@@ -14,11 +15,7 @@ from quotient.models import (
     ScrimsSlotManager,
 )
 
-from ..utility.selectors import (
-    ScrimsSlotSelector,
-    prompt_scrims_selector,
-    prompt_scrims_slot_selector,
-)
+from ..utility.selectors import prompt_scrims_selector, prompt_scrims_slot_selector
 
 
 class TeamNameInput(discord.ui.Modal, title="Slot Claim Form"):
@@ -166,7 +163,8 @@ class ScrimSlotmPublicPanel(discord.ui.View):
         await inter.response.defer()
         self.bot.logger.debug(f"User {inter.user} requested slot reminder in {inter.guild_id}")
 
-        if not await self.record.bot.is_pro_guild(inter.guild_id):
+        is_allowed, _ = await can_use_feature(Feature.CANCEL_CLAIM_PANEL_REMINDER, inter.guild_id)
+        if not is_allowed:
             return await inter.followup.send(
                 embed=self.bot.error_embed(
                     "`Slot Available Reminder` feature is only available for Quotient Premium servers.", title="Premium Only Feature"
