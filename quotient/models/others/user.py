@@ -21,4 +21,3 @@ class User(BaseDbModel):
 
     user_id = fields.BigIntField(primary_key=True, db_index=True)
     email_id = fields.CharField(max_length=50, null=True)
-    phone_number = fields.CharField(max_length=15, null=True)
