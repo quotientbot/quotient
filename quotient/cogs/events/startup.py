@@ -7,12 +7,14 @@ if T.TYPE_CHECKING:
 
 from discord.ext import commands, tasks
 
+from quotient.models.others.guild import bulk_create_guilds
+
 
 class StartupEvents(commands.Cog):
     def __init__(self, bot: Quotient) -> None:
         self.bot = bot
 
-        if self.bot.config("INSTANCE_TYPE") == "quotient":
+        if self.bot.is_main_instance:
             self.insert_new_guilds_in_db.start()
 
     def cog_unload(self):
@@ -20,12 +22,7 @@ class StartupEvents(commands.Cog):
 
     @tasks.loop(count=1)
     async def insert_new_guilds_in_db(self):
-        prefix = self.bot.config("DEFAULT_PREFIX")
-
-        await self.bot.quotient_pool.executemany(
-            "INSERT INTO guilds (guild_id, prefix) VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING",
-            [(guild.id, prefix) for guild in self.bot.guilds],
-        )
+        await bulk_create_guilds(self.bot.my_pool, [guild.id for guild in self.bot.guilds])
 
     @insert_new_guilds_in_db.before_loop
     async def before_loop(self):
