@@ -82,7 +82,7 @@ async def can_use_feature(feat: Feature, guild_id: int, **kwargs) -> tuple[bool,
         return is_allowed, GuildTier(min_tier)
 
     if feat == Feature.YT_NOTI_SETUP:
-        yt_notis_count = await YtNotification.filter(guild_id=guild_id).count()
+        yt_notis_count = await YtNotification.filter(discord_guild_id=guild_id).count()
         is_allowed = yt_notis_count < feat.value[tier.value]
         min_tier = next((t for t, limit in enumerate(feat.value) if limit == -1 or yt_notis_count < limit), GuildTier.ULTIMATE)
         return is_allowed, GuildTier(min_tier)

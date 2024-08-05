@@ -21,10 +21,10 @@ class Utility(commands.Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
         self.bot.loop.create_task(self.delete_older_snipes())
-        self.resub_yt_notifiers.start()
+        self.check_for_new_videos.start()
 
     def cog_unload(self):
-        self.resub_yt_notifiers.stop()
+        self.check_for_new_videos.stop()
 
     async def delete_older_snipes(self):  # we delete snipes that are older than 10 days
         await self.bot.wait_until_ready()
@@ -99,11 +99,25 @@ class Utility(commands.Cog):
             pass
 
     @tasks.loop(seconds=10)
-    async def resub_yt_notifiers(self):
+    async def check_for_new_videos(self):
         await self.bot.wait_until_ready()
 
-        async for record in YtNotification.filter(lease_ends_at__lte=(self.bot.current_time + timedelta(minutes=10))):
-            await record.setup_or_resubscribe()
+        async for record in YtNotification.filter(yt_last_fetched_at__lte=(self.bot.current_time - timedelta(minutes=4))):
+            video = await record.fetch_latest_video_details(partial=False)
+            record.yt_last_fetched_at = self.bot.current_time
+
+            if not video or video.id == record.yt_last_video_id or video.publishedAt <= record.yt_last_uploaded_at:
+                self.bot.logger.debug(f"No new video found for {record.yt_channel_id}")
+                await record.save(update_fields=["yt_last_fetched_at"])
+                continue
+
+            record.yt_last_video_id = video.id
+            record.yt_last_uploaded_at = video.publishedAt
+
+            await record.save(update_fields=["yt_last_video_id", "yt_last_uploaded_at", "yt_last_fetched_at"])
+
+            self.bot.logger.debug(f"New video found for {record.yt_channel_id}")
+            await record.send_notification(video)
 
     @commands.hybrid_command(name="yt-notifier", aliases=["yt"])
     async def yt_notifier(self, ctx: Context):

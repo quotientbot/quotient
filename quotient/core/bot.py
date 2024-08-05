@@ -128,16 +128,17 @@ class Quotient(commands.AutoShardedBot):
         await self.cache.populate_internal_cache()
         log.info("Internal cache has been populated.")
 
+        if os.getenv("INSTANCE_TYPE") == "quotient":
+            await self.load_extension("server")
+            log.info("Loaded extension 'Server'.")
+
         for extension in os.getenv("EXTENSIONS").split(","):
             try:
                 await self.load_extension(extension)
-                log.debug("Loaded extension %s.", extension)
+                log.info("Loaded extension %s.", extension)
 
             except Exception as _:
                 log.exception("Failed to load extension %s.", extension)
-
-        if os.getenv("INSTANCE_TYPE") == "quotient":
-            await self.load_extension("server")
 
         await self.load_persistent_views()
         await self.cache_app_commands()

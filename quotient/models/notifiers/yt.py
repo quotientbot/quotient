@@ -1,11 +1,10 @@
 import logging
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
+from itertools import cycle
 
 import discord
 import httpx
-from fastapi import Path
-from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from tortoise import fields
 
@@ -33,7 +32,21 @@ class YtChannel(BaseModel):
         return f"https://www.youtube.com/channel/{self.id}"
 
 
+class YtVideo(BaseModel):
+    id: str
+    publishedAt: datetime
+    channel_name: str | None = None
+    title: str | None = None
+    live: bool = False
+
+    @property
+    def watch_url(self):
+        return f"https://www.youtube.com/watch?v={self.id}"
+
+
 class YtNotification(BaseDbModel):
+    YOUTUBE_API_KEYS = cycle(os.getenv("YT_API_KEYS").split(","))
+
     class Meta:
         table = "yt_notifications"
 
@@ -42,20 +55,22 @@ class YtNotification(BaseDbModel):
     discord_guild_id = fields.BigIntField()
 
     yt_channel_id = fields.CharField(max_length=100)
+    yt_upload_playlist_id = fields.CharField(max_length=100)
     yt_channel_username = fields.CharField(max_length=100)
+    yt_last_video_id = fields.CharField(max_length=100, null=True)
+    yt_last_uploaded_at = fields.DatetimeField(null=True)
+
     regular_video_msg = fields.CharField(max_length=255, default="{ping} {channel} just uploaded {title} at {link}!")
     live_video_msg = fields.CharField(max_length=255, default="{ping} {channel} just went live at {link}!")
-
     ping_role_id = fields.BigIntField(null=True)
 
-    lease_ends_at = fields.DatetimeField()  # Time before which we must resubscribe to pubsubhubbub.
+    yt_last_fetched_at = fields.DatetimeField(auto_now=True)
 
     @property
     def yt_channel_url(self):
         return f"https://www.youtube.com/channel/{self.yt_channel_id}"
 
-    @staticmethod
-    async def search_yt_channel(username: str) -> YtChannel | None:
+    async def search_yt_channel(self, username: str) -> YtChannel | None:
         async with httpx.AsyncClient() as client:
 
             # Check if input is a username
@@ -63,7 +78,7 @@ class YtNotification(BaseDbModel):
             params = {
                 "part": "snippet",
                 "forHandle": username.strip(),
-                "key": os.getenv("YT_API_KEY"),
+                "key": self.yt_api_key,
                 "maxResults": 1,
             }
             response = await client.get(url, params=params)
@@ -73,78 +88,33 @@ class YtNotification(BaseDbModel):
 
         return None
 
-    @staticmethod
-    async def get_video_by_id(yt_video_id: str):
-        async with httpx.AsyncClient() as client:
-            url = f"https://www.googleapis.com/youtube/v3/videos"
-            params = {
-                "part": "snippet",
-                "id": yt_video_id,
-                "key": os.getenv("YT_API_KEY"),
-                "maxResults": 1,
-            }
-            response = await client.get(url, params=params)
-            data = response.json()
+    async def setup(self) -> None:
+        self.yt_upload_playlist_id = await self.get_uploads_playlist_id(self.yt_channel_id)
+        latest_video = await self.fetch_latest_video_details()
 
-            logger.debug(f"Video details fetched for {yt_video_id}: {data}")
+        if latest_video:
+            self.yt_last_video_id = latest_video.id
+            self.yt_last_uploaded_at = latest_video.publishedAt
 
-            if "items" in data and len(data["items"]) > 0:
-                return data["items"][0]
-        return None
+        self.yt_last_fetched_at = self.bot.current_time
+        await self.save()
 
-    @staticmethod
-    async def get_record(record: str = Path(...)) -> "YtNotification":
-        if not (r := await YtNotification.get_or_none(id=record)):
-            raise HTTPException(status_code=400, detail="Bad Request")
-
-        return r
-
-    async def setup_or_resubscribe(self) -> None:
-        """
-        Sets up or resubscribes the notifier to receive notifications from a YouTube channel.
-
-        This function sends a POST request to the YouTube PubSubHubbub endpoint to subscribe to the channel's feed.
-        It includes the necessary parameters such as the callback URL, mode, topic, verification tokens, and lease duration.
-
-        Raises:
-            httpx.HTTPError: If the POST request to the PubSubHubbub endpoint fails.
-        """
-        async with httpx.AsyncClient() as client:
-            url = "https://pubsubhubbub.appspot.com/subscribe"
-            data = {
-                "hub.callback": os.getenv("YT_CALLBACK_URL") + f"/{self.id}",
-                "hub.mode": "subscribe",
-                "hub.topic": f"https://www.youtube.com/xml/feeds/videos.xml?channel_id={self.yt_channel_id}",
-                "hub.verify": "async",
-                "hub.verify_token": os.getenv("YT_SUBSCRIBE_REQ_TOKEN"),  # YT regularly sends a GET request to verify the sub
-                "hub.secret": os.getenv("YT_NOTIFICATION_TOKEN"),  # YT sends a POST request with a signature to verify the noti
-                "hub.lease_seconds": 86400,  # 24 hours
-            }
-            response = await client.post(url, data=data)
-            self.bot.logger.debug(f"Subscribing to {self.yt_channel_id} - {response.text}")
-            response.raise_for_status()
-
-            self.lease_ends_at = self.bot.current_time + timedelta(seconds=86400)
-            await self.save(update_fields=["lease_ends_at"])
-
-    async def send_notification(self, channel: str, title: str, link: str, video_type: str):
+    async def send_notification(self, video: YtVideo):
         """
         Sends a notification to the Discord channel when a new video is uploaded to the YouTube channel.
-
-        Args:
-            channel (str): The name of the YouTube channel.
-            title (str): The title of the video.
-            link (str): The URL of the video.
         """
-        if video_type == "live":
-            if not await self.bot.is_pro_guild(self.discord_guild_id):
+        from quotient.cogs.premium import Feature, can_use_feature
+
+        if video.live:
+            is_allowed, _ = await can_use_feature(Feature.YT_LIVE_NOTI_SETUP, self.discord_guild_id)
+            if not is_allowed:
                 return
 
-        msg = (self.live_video_msg if video_type == "live" else self.regular_video_msg).format(
+        msg = (self.live_video_msg if video.live else self.regular_video_msg).format(
             ping=f"<@&{self.ping_role_id}>" if self.ping_role_id else "",
-            channel=channel,
-            title=title,
-            link=link,
+            channel=video.channel_name,
+            title=video.title,
+            link=video.watch_url,
         )
 
         channel: discord.TextChannel | None = await self.bot.get_or_fetch(
@@ -160,3 +130,86 @@ class YtNotification(BaseDbModel):
             )
         except discord.HTTPException as e:
             self.bot.logger.error(f"Failed to yt send notification to {channel.id} - {e}")
+            pass
+
+    @property
+    def yt_api_key(self) -> str:
+        """
+        Returns the next available YouTube API key from the list of keys.
+        """
+        return next(YtNotification.YOUTUBE_API_KEYS)
+
+    async def fetch_latest_video_details(self, partial: bool = True) -> YtVideo | None:
+        """
+        Fetches the details of the lastest uploaded video from the YouTube channel.
+        """
+        async with httpx.AsyncClient() as client:
+            url = f"https://www.googleapis.com/youtube/v3/playlistItems"
+            params = {
+                "part": "snippet,contentDetails",
+                "playlistId": self.yt_upload_playlist_id,
+                "key": self.yt_api_key,
+                "maxResults": 1,
+                "order": "date",
+            }
+
+            response = await client.get(url, params=params)
+            if response.status_code == 404:
+                await self.delete()
+                return None
+
+            data = response.json()
+
+            if "items" in data and len(data["items"]) > 0:
+                video_id = data["items"][0]["snippet"]["resourceId"]["videoId"]
+                published_at = datetime.fromisoformat(data["items"][0]["contentDetails"]["videoPublishedAt"]) + timedelta(
+                    hours=5, minutes=30
+                )
+                if partial or self.yt_last_video_id == video_id:
+                    return YtVideo(id=video_id, publishedAt=published_at)
+
+                video = await self.fetch_video_by_id(video_id)
+                if video:
+                    return YtVideo(
+                        id=video_id,
+                        publishedAt=published_at,
+                        title=video["snippet"]["title"],
+                        live=video["snippet"]["liveBroadcastContent"] == "live",
+                        channel_name=video["snippet"]["channelTitle"],
+                    )
+
+        return None
+
+    async def get_uploads_playlist_id(self, channel_id: str) -> str:
+        url = f"https://www.googleapis.com/youtube/v3/channels" f"?part=contentDetails" f"&id={channel_id}" f"&key={self.yt_api_key}"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            data = response.json()
+            # Extract the uploads playlist ID
+            try:
+                playlist_id = data["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+                return playlist_id
+            except (IndexError, KeyError) as e:
+                self.bot.logger.exception(f"Failed to retrieve uploads playlist ID: {e}")
+                return None
+
+    async def fetch_video_by_id(self, yt_video_id: str):
+        async with httpx.AsyncClient() as client:
+            url = f"https://www.googleapis.com/youtube/v3/videos"
+            params = {
+                "part": "snippet",
+                "id": yt_video_id,
+                "key": self.yt_api_key,
+                "maxResults": 1,
+            }
+            response = await client.get(url, params=params)
+
+            data = response.json()
+
+            logger.debug(f"Video details fetched for {yt_video_id}: {data}")
+
+            if "items" in data and len(data["items"]) > 0:
+                return data["items"][0]
+
+        return None

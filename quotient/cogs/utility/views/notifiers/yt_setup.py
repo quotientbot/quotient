@@ -46,7 +46,7 @@ class YtUsername(discord.ui.Button):
         if not yt_user_name:
             return
 
-        yt_channel = await YtNotification.search_yt_channel(yt_user_name)
+        yt_channel = await self.view.record.search_yt_channel(yt_user_name)
         if not yt_channel:
             return await inter.followup.send(
                 embed=discord.Embed(
@@ -105,8 +105,8 @@ class SetRegularVideoMsg(discord.ui.Button):
 class SetLiveVideoMsg(discord.ui.Button):
     view: "SetupNewYt"
 
-    def __init__(self, disabled: bool = True):
-        super().__init__(style=discord.ButtonStyle.primary, label="Live Video Message", disabled=disabled)
+    def __init__(self):
+        super().__init__(style=discord.ButtonStyle.primary, label="Live Video Message")
 
     async def callback(self, inter: discord.Interaction):
         is_allowed, min_tier = await can_use_feature(Feature.YT_LIVE_NOTI_SETUP, inter.guild_id)
@@ -166,8 +166,7 @@ class SaveDetails(discord.ui.Button):
             )
 
         self.view.record.lease_ends_at = self.view.bot.current_time + timedelta(seconds=86400)
-        await self.view.record.save()
-        await self.view.record.setup_or_resubscribe()
+        await self.view.record.setup()
 
         self.view.stop()
         from .yt_main import YtNotificationView
