@@ -165,7 +165,6 @@ class SaveDetails(discord.ui.Button):
                 inter, text=f"You server needs to be on **{min_tier.name}** tier to setup more 'Youtube Notifications'."
             )
 
-        self.view.record.lease_ends_at = self.view.bot.current_time + timedelta(seconds=86400)
         await self.view.record.setup()
 
         self.view.stop()
