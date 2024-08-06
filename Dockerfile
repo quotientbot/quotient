@@ -24,6 +24,7 @@ WORKDIR /app
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY quotient quotient
+COPY .git .git
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 6000
@@ -31,4 +32,3 @@ EXPOSE 6000
 STOPSIGNAL SIGINT
 
 ENTRYPOINT ["python","quotient/launcher.py"]
-
