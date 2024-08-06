@@ -21,6 +21,7 @@ humanize = "^4.9.0"
 jishaku = {git = "https://github.com/Gorialis/jishaku.git", rev = "master"}
 dateparser = "^1.2.0"
 pillow = "^10.3.0"
+pygit2 = "^1.15.1"
 
 
 [build-system]
