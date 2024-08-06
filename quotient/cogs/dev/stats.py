@@ -161,7 +161,7 @@ class DevStats(commands.Cog):
         exc = "".join(traceback.format_exception(type(error), error, error.__traceback__, chain=False))
         e.description = f"```py\n{exc}\n```"
         e.timestamp = discord.utils.utcnow()
-        await self.bot.logs_webhook.send(embed=e, username=self.bot.user.name, avatar_url=self.bot.user.default_avatar.url)
+        await self.bot.logs_webhook.send(embed=e, username=self.bot.user.name, avatar_url=self.bot.user.display_avatar.url)
 
     async def on_app_command_error(self, interaction: discord.Interaction, error: discord.app_commands.AppCommandError, /) -> None:
         command = interaction.command
@@ -192,7 +192,7 @@ class DevStats(commands.Cog):
         e.timestamp = interaction.created_at
 
         try:
-            await self.bot.logs_webhook.send(embed=e, username=self.bot.user.name, avatar_url=self.bot.user.default_avatar.url)
+            await self.bot.logs_webhook.send(embed=e, username=self.bot.user.name, avatar_url=self.bot.user.display_avatar.url)
         except:
             pass
 

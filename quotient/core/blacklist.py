@@ -89,4 +89,4 @@ class BlacklistManager:
         embed.add_field(name="Guild Info", value=f"{guild_name} (ID: {guild_id})", inline=False)
         embed.add_field(name="Channel Info", value=f"{message.channel} (ID: {message.channel.id}", inline=False)
         embed.timestamp = discord.utils.utcnow()
-        return await bot.logs_webhook.send(embed=embed, username=bot.user.name, avatar_url=bot.user.default_avatar.url)
+        return await bot.logs_webhook.send(embed=embed, username=bot.user.name, avatar_url=bot.user.display_avatar.url)

@@ -25,7 +25,7 @@ class HelpCommands(commands.Cog):
     async def send_bot_help(self, ctx: Context, g: Guild):
         guild_id = ctx.guild.id
         e = discord.Embed(color=self.bot.color, description="")
-        e.set_author(name=ctx.author, icon_url=getattr(ctx.author.avatar, "url", ctx.author.default_avatar.url))
+        e.set_author(name=ctx.author, icon_url=getattr(ctx.author.avatar, "url", ctx.author.display_avatar.url))
         e.description += (
             f"Hello, I'm {self.bot.user.name}, an [open-source](https://github.com/quotientbot/Quotient-Bot) "
             f"bot made by [dead.dev]({self.bot.config('SUPPORT_SERVER_LINK')}).\n"
@@ -76,7 +76,7 @@ class HelpCommands(commands.Cog):
             return await self.send_bot_help(ctx, g)
 
         e = discord.Embed(color=self.bot.color, description=c.help or "No help found ...")
-        e.set_author(name=c.cog_name.capitalize(), icon_url=ctx.guild.me.default_avatar.url)
+        e.set_author(name=c.cog_name.capitalize(), icon_url=ctx.guild.me.display_avatar.url)
 
         if c.name in self.bot.app_commands_global:
             if c.name == "scrims":
