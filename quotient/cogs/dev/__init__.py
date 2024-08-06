@@ -105,6 +105,30 @@ class DevCommands(commands.Cog, name="Developer"):
 
         await inter.response.send_message(embed=e, ephemeral=True)
 
+    @app_commands.command(name="presence")
+    @app_commands.guild_only()
+    @app_commands.guilds(*PRIVATE_GUILD_IDS)
+    async def presence(
+        self,
+        inter: discord.Interaction,
+        status: T.Literal["dnd", "idle", "online"],
+        activity: T.Literal["playing", "watching", "listening", "competing"],
+        text: str,
+    ):
+        """
+        Change the bot's status
+        """
+
+        try:
+            await self.bot.change_presence(
+                status=discord.Status(status),
+                activity=discord.Activity(type=discord.ActivityType[activity], name=text),
+            )
+            await inter.response.send_message(embed=self.bot.success_embed(f"Changed presence to `{text}`"), ephemeral=True)
+
+        except Exception as e:
+            await inter.response.send_message(embed=self.bot.error_embed(e), ephemeral=True)
+
 
 async def setup(bot: Quotient):
     await bot.add_cog(DevCommands(bot))
