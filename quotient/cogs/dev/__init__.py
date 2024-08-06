@@ -12,7 +12,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord.utils import format_dt
 
-from quotient.cogs.dev.consts import PRIVATE_GUILD_IDS
+from quotient.cogs.dev.consts import MOD_ROLE_IDS, PRIVATE_GUILD_IDS
 from quotient.cogs.dev.stats import DevStats
 
 
@@ -21,6 +21,15 @@ class DevCommands(commands.Cog, name="Developer"):
 
     def __init__(self, bot: Quotient):
         self.bot = bot
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if not interaction.user.id == self.bot.owner_id and not any(role_id in interaction.user._roles for role_id in MOD_ROLE_IDS):
+            await interaction.response.send_message(
+                "https://tenor.com/view/pedro-monkey-puppet-meme-awkward-gif-15268759", ephemeral=True
+            )
+            return False
+
+        return True
 
     bl_group = app_commands.Group(
         name="blacklist",

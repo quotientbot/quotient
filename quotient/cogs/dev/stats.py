@@ -19,7 +19,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from humanize import precisedelta
 
-from quotient.cogs.dev.consts import PRIVATE_GUILD_IDS
+from quotient.cogs.dev.consts import MOD_ROLE_IDS, PRIVATE_GUILD_IDS
 from quotient.lib.msgs import TabularData
 from quotient.models.others.cmds import Command
 
@@ -32,9 +32,18 @@ class DevStats(commands.Cog):
         self._cmds_batch: list[Command] = []
         self.bulk_insert_loop.start()
 
-        # self.bot.on_error = self.on_error
-        # self.bot.old_tree_error = self.bot.tree.on_error
-        # self.bot.tree.on_error = self.on_app_command_error
+        self.bot.on_error = self.on_error
+        self.bot.old_tree_error = self.bot.tree.on_error
+        self.bot.tree.on_error = self.on_app_command_error
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if not interaction.user.id == self.bot.owner_id and not any(role_id in interaction.user._roles for role_id in MOD_ROLE_IDS):
+            await interaction.response.send_message(
+                "https://tenor.com/view/pedro-monkey-puppet-meme-awkward-gif-15268759", ephemeral=True
+            )
+            return False
+
+        return True
 
     def cog_unload(self):
         self.bulk_insert_loop.stop()
