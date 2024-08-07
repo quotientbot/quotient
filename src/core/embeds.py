@@ -52,7 +52,7 @@ class EmbedOptions(discord.ui.Select):
                 discord.SelectOption(
                     label="Edit Embed Color",
                     description="Change the color of the embed",
-                    emoji="<:staff:807911358549065738>",
+                    emoji="<a:messenger:807912019130974242>",
                     value="color",
                 ),
             ],
