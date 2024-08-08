@@ -313,7 +313,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def support_server(self):
-        return self.get_guild(746337818388987967)
+        return self.get_guild(746337818388987967)  # Quotient HQ
 
     @property
     def is_main_instance(self) -> bool:

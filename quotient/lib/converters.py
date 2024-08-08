@@ -22,6 +22,18 @@ class to_async:
         return wrapper
 
 
+class Snowflake:
+    @classmethod
+    async def convert(cls, ctx: commands.Context, argument: str) -> int:
+        try:
+            return int(argument)
+        except ValueError:
+            param = ctx.current_parameter
+            if param:
+                raise commands.BadArgument(f"{param.name} argument expected a Discord ID not {argument!r}")
+            raise commands.BadArgument(f"expected a Discord ID not {argument!r}")
+
+
 class ColorConverter(commands.Converter):
     async def convert(self, ctx: commands.Context, arg: str) -> discord.Color:
 
