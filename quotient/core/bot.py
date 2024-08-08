@@ -7,6 +7,7 @@ import typing as T
 from datetime import datetime
 
 import aiohttp
+import asyncpg
 import discord
 import pytz
 from asyncpg import Pool
@@ -78,6 +79,9 @@ class Quotient(commands.AutoShardedBot):
         self.cache = CacheManager()
         self.blacklist = BlacklistManager()
 
+        self.quotient_pool: Pool = None
+        self.pro_pool: Pool = None
+
         self.tree.interaction_check = self.global_interaction_check
 
         self.spam_control = commands.CooldownMapping.from_cooldown(3, 6.0, commands.BucketType.user)
@@ -85,7 +89,6 @@ class Quotient(commands.AutoShardedBot):
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()
-
         await Tortoise.init(
             config={
                 "use_tz": True,
@@ -132,6 +135,13 @@ class Quotient(commands.AutoShardedBot):
         if os.getenv("INSTANCE_TYPE") == "quotient":
             await self.load_extension("server")
             log.info("Loaded extension 'Server'.")
+
+            self.quotient_pool = Tortoise.get_connection("quotient")._pool
+            self.pro_pool = await asyncpg.create_pool(dsn=os.getenv("PRO_DB_DSN"), min_size=1, max_size=3)
+
+        elif os.getenv("INSTANCE_TYPE") == "pro":
+            self.pro_pool = Tortoise.get_connection("pro")._pool
+            self.quotient_pool = await asyncpg.create_pool(dsn=os.getenv("QUOTIENT_DB_DSN"), min_size=1, max_size=3)
 
         for extension in os.getenv("EXTENSIONS").split(","):
             try:
@@ -287,15 +297,7 @@ class Quotient(commands.AutoShardedBot):
 
     @property
     def my_pool(self) -> Pool:
-        return Tortoise.get_connection(os.getenv("INSTANCE_TYPE"))._pool
-
-    @property
-    def quotient_pool(self) -> Pool:
-        return Tortoise.get_connection("quotient")._pool
-
-    @property
-    def pro_pool(self) -> Pool:
-        return Tortoise.get_connection("pro")._pool
+        return getattr(self, f"{os.getenv('INSTANCE_TYPE')}_pool")
 
     @property
     def reminders(self) -> T.Optional[Reminders]:
