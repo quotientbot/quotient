@@ -8,10 +8,10 @@ if T.TYPE_CHECKING:
 import discord
 from core import Context
 from discord.ext import commands
+from humanize import naturaldelta
 
-from quotient.lib import TabularData, random_greeting_msg, random_thanks_image
-from quotient.models import Guild, PremiumTxn
-from quotient.models.others.premium import GuildTier
+from quotient.lib import INFO, TabularData, random_greeting_msg, random_thanks_image
+from quotient.models import Guild, GuildTier, PremiumQueue, PremiumTxn
 
 from .checks import *
 from .views import *
@@ -21,11 +21,12 @@ class Premium(commands.Cog):
     def __init__(self, bot: Quotient):
         self.bot = bot
 
-    @commands.hybrid_command()
-    @commands.bot_has_permissions(embed_links=True)
-    async def pstatus(self, ctx: Context):
-        """Get current server's premium status."""
+    @commands.hybrid_command(aliases=("pro", "pstatus"))
+    async def premium(self, ctx: Context):
+        """Checkout Quotient Premium Plans."""
+        await ctx.defer()
         guild = await Guild.get(pk=ctx.guild.id)
+        premium_queue = await PremiumQueue.filter(guild_id=ctx.guild.id).prefetch_related("txn").order_by("created_at")
 
         t = TabularData()
         t.set_columns(["Tier", "Is Active "])
@@ -34,11 +35,7 @@ class Premium(commands.Cog):
             t.add_row([tier.name.upper(), "✅" if guild.tier == tier else "❌"])
 
         embed = discord.Embed(color=self.bot.color)
-        embed.add_field(
-            name="Server Tier",
-            value=f"```\n{t.render()}\n```",
-            inline=False,
-        )
+        embed.description = f"Current Tier: ```\n{t.render()}\n```"
 
         if guild.is_premium:
             embed.add_field(
@@ -53,74 +50,37 @@ class Premium(commands.Cog):
                 inline=False,
             )
 
+        upcoming_plans_text = ""
+        for idx, pq in enumerate(premium_queue, start=1):
+            txn = pq.txn
+            upcoming_plans_text += f"`{idx}.`**{txn.tier.name}** - {naturaldelta(txn.premium_duration)}\n"
+
+        if not premium_queue:
+            upcoming_plans_text = "`Purchase Premium to add to queue.`"
+        embed.add_field(name="Upcoming Premium", value=upcoming_plans_text, inline=False)
+        embed.set_footer(text="Next upcoming plan auto applies after current plan ends.")
+
         v = discord.ui.View(timeout=None)
-        v.add_item(UpgradeButton(label=("Upgrade Server" if not guild.is_premium else "Extend / Renew Quotient Pro")))
+        v.add_item(UpgradeButton(label=("Purchase Tier")))
+        v.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link,
+                url=self.bot.config("SUPPORT_SERVER_LINK"),
+                emoji=INFO,
+            )
+        )
 
-        return await ctx.reply(embed=embed, view=v)
-
-    @commands.hybrid_command(aliases=("perks", "pro"))
-    async def premium(self, ctx: Context):
-        """Checkout Quotient Premium Plans."""
-
-        g = await Guild.get(pk=ctx.guild.id)
-
-        await prompt_premium_plan(ctx, f"Current Tier: **{g.tier.name}**")
+        await ctx.send(embed=embed, view=v)
 
     @commands.Cog.listener()
-    async def on_premium_purchase(self, txnId: str):
-        record = await PremiumTxn.get(txnid=txnId)
-
-        upgraded_guild_asyncpg = await self.bot.my_pool.fetchrow("SELECT * FROM guilds WHERE guild_id = $1", record.guild_id)
-        await self.bot.pro_pool.execute(
-            """
-            INSERT INTO guilds (guild_id, prefix, tier, upgraded_by, upgraded_until)
-            VALUES ($1, $2, $3, $4, $5)
-            ON CONFLICT (guild_id)
-            DO UPDATE SET tier = $3, upgraded_by = $4, upgraded_until = $5""",
-            record.guild_id,
-            self.bot.default_prefix,
-            True,
-            upgraded_guild_asyncpg["premium_end_time"],
-            record.user_id,
-        )
-
-        member = self.bot.support_server.get_member(record.user_id)
-        if member is not None:
-            await member.add_roles(discord.Object(id=self.bot.config("PREMIUM_ROLE_ID")), reason="They purchased premium.")
-
-        else:
-            member = await self.bot.get_or_fetch(self.bot.get_user, self.bot.fetch_user, record.user_id)
-
-        _e = discord.Embed(color=discord.Color.gold(), description=f"Thanks **{member}** for purchasing Quotient Premium.")
-        _e.set_image(url=random_thanks_image())
-        await self.hook.send(embed=_e, username="premium-logs", avatar_url=self.bot.config("PRO_BOT_AVATAR_URL"))
-
-        upgraded_guild = self.bot.get_guild(record.guild_id)
-        _guild = await Guild.get_or_none(pk=record.guild_id)
-
-        _e = discord.Embed(
-            color=self.bot.color,
-            title="Quotient Pro Purchase Successful!",
-            url=self.bot.config("SUPPORT_SERVER_LINK"),
-            description=(
-                f"{random_greeting_msg()} {member.mention},\n"
-                f"Thanks for purchasing Quotient Premium. Your server **__{upgraded_guild}__** "
-                f"has access to Quotient Pro features until `{_guild.premium_end_time.strftime('%d-%b-%Y %I:%M %p')} IST`.\n\n"
-            ),
-        )
-
-        v = discord.ui.View(timeout=None)
-        v.add_item(
-            discord.ui.Button(style=discord.ButtonStyle.link, label="Join Support Server", url=self.bot.config("SUPPORT_SERVER_LINK"))
-        )
-        v.add_item(
-            discord.ui.Button(style=discord.ButtonStyle.link, label="Invite Quotient Pro", url=self.bot.config("PRO_INVITE_LINK"))
-        )
-
-        try:
-            await member.send(embed=_e, view=v)
-        except discord.HTTPException:
-            pass
+    async def on_premium_purchase(self, record: PremiumTxn):
+        """
+        Some 'not so important' tasks to be done after a successful premium purchase.
+        """
+        pass
+        # member = self.bot.support_server.get_member(record.user_id)
+        # if member is not None:
+        #     await member.add_roles(discord.Object(id=self.bot.config("PREMIUM_ROLE_ID")), reason="They purchased premium.")
 
 
 async def setup(bot: Quotient):

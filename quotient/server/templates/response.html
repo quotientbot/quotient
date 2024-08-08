@@ -6,49 +6,99 @@
 		<title>Payment Response</title>
 		<style>
 			body {
-				font-family: Arial, sans-serif;
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 				display: flex;
-				background-color: #222;
+				background-color: #1b1b1b;
 				justify-content: center;
 				align-items: center;
 				height: 100vh;
 				margin: 0;
+				color: #fff;
 			}
-
 			.container {
-				background-color: black;
-				padding: 20px;
+				background-color: #333;
+				padding: 40px;
 				text-align: center;
-				border-radius: 30px;
+				border-radius: 15px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+				max-width: 500px;
+				margin: auto;
 			}
-
+			.container img {
+				height: 80px;
+				width: 80px;
+				margin-bottom: 20px;
+			}
 			.success-message {
-				color: #00ffb3;
+				color: #28a745;
+				font-size: 24px;
+				font-weight: bold;
+				margin-bottom: 20px;
 			}
-
 			.error-message {
 				color: #e74c3c;
+				font-size: 24px;
+				font-weight: bold;
+				margin-bottom: 20px;
 			}
-			p {
-				color: white;
+			.info-message {
+				color: #fff;
+				margin: 20px 0;
+				font-size: 18px;
 			}
-			img {
-				height: 70px;
-				width: 70px;
+			.support-link,
+			.discord-link {
+				color: #00ffb3;
+				text-decoration: none;
+				font-weight: bold;
+			}
+			.support-link:hover,
+			.discord-link:hover {
+				text-decoration: underline;
+			}
+			.button {
+				display: inline-block;
+				padding: 10px 20px;
+				margin-top: 20px;
+				background-color: #00ffb3;
+				color: #000;
+				text-decoration: none;
+				border-radius: 5px;
+				font-weight: bold;
+			}
+			.button:hover {
+				background-color: #00cc8c;
 			}
 		</style>
 	</head>
-
 	<body>
 		<div class="container">
 			{% if success %}
-			<h1 class="success-message">Transaction was Successful!</h1>
-			<img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png" />
-			<p>Please return to the Discord App.</p>
+			<img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png" alt="Success" />
+			<h1 class="success-message">Transaction Successful!</h1>
+			<p class="info-message">Thank you for your purchase. An invoice has been sent to your email.</p>
+			<p class="info-message">
+				Return to Discord and check your premium status using <span class="discord-link">/premium</span>.
+			</p>
+			<p class="info-message">
+				You can invite Quotient Pro to your server by using
+				<a href="https://discord.com/oauth2/authorize?client_id=902856923311919104" class="support-link">
+					this invite link.</a
+				>
+			</p>
+			<p class="info-message">
+				If you have any issues, please contact us on our
+				<a href="https://discord.gg/aBM5xz6" class="support-link">support server</a>.
+			</p>
+			<a href="discord://" class="button">Return to Discord</a>
 			{% else %}
-			<h1 class="error-message">An Error occurred during the Transaction.</h1>
-			<img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png" />
-			<p>Please try again later or contact support.</p>
+			<img src="https://quotientbot.xyz/static/media/favicon.b181bf099887fa60b39b.png" alt="Error" />
+			<h1 class="error-message">Transaction Failed</h1>
+			<p class="info-message">We couldn't complete your transaction. If this is a mistake, please contact us.</p>
+			<p class="info-message">
+				Visit our <a href="https://discord.gg/aBM5xz6" class="support-link">support server</a> for assistance.
+			</p>
+			<a href="discord://" class="button">Return to Discord</a>
 			{% endif %}
 		</div>
 	</body>

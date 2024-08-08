@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from enum import IntEnum
 
@@ -22,7 +23,7 @@ class GuildTier(IntEnum):
 INR_PREMIUM_PLANS = [
     {
         "tier": GuildTier.STARTER,
-        "price_per_month": 99,
+        "price_per_month": 1,
         "price_per_year": 999,
         "emote": "<:B_SYMBOL:1269436552778354851>",
         "description": "Basic features to get you started.",
@@ -76,16 +77,9 @@ USD_PREMIUM_PLANS = [
 ]
 
 
-class PremiumPlan(BaseDbModel):
-    class Meta:
-        # table = "premium_plans"
-        abstract = True
-
-
 class PremiumTxn(BaseDbModel):
     class Meta:
-        # table = "premium_txns"
-        abstract = True
+        table = "premium_txns"
 
     txnid = fields.UUIDField(primary_key=True)
     user_id = fields.BigIntField()
@@ -100,17 +94,64 @@ class PremiumTxn(BaseDbModel):
     completed_at = fields.DatetimeField(null=True)
     raw_data = fields.JSONField(default=dict)
 
-    @staticmethod
-    async def generate_qr():
-        URL = "https://info.payu.in/merchant/postservice.php"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        payload = {
-            "command": "generate_dynamic_bharat_qr",
-            "key": "vDy3i7",
-            "hash": "87617bd37d7f2d627c5117ce0f1a97839200870c3281764bad542c90fc9684a2e2108257dfebbb32cfc4c2a83aa4b9bfe7761da745b14b3df2525e75a4eb6846",
-            "var1": '{"transactionId":"DBQR1981","transactionAmount":"1","merchantVpa":"gauravdua1.payu@indus","expiryTime":"3600","qrName":"payu","qrCity":"Gurgaon","qrPinCode":"122001","customerName":"Ravi","customerCity":"Ranchi","customerPinCode":"834001","customerPhone":"7800078000","customerEmail":"hello@payu.in","customerAddress":"Ggn","udf3":"deliveryboy1","udf4":"sector14","udf5":"cod","outputType":"string"}',
-        }
+    queue: fields.ReverseRelation["PremiumQueue"]
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(URL, data=payload, headers=headers)
-            print(response.text)
+
+class PremiumQueue(BaseDbModel):
+    class Meta:
+        table = "premium_queue"
+
+    id = fields.IntField(primary_key=True)
+    txn: fields.ForeignKeyRelation[PremiumTxn] = fields.ForeignKeyField("default.PremiumTxn", related_name="queue")
+    guild_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    async def copy_premium_to_pro(self):
+
+        await self.bot.pro_pool.execute(
+            """
+            INSERT INTO premium_txns (
+                txnid,
+                user_id,
+                guild_id,
+                amount,
+                currency,
+                tier,
+                premium_duration,
+                created_at,
+                completed_at,
+                raw_data
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (txnid)
+            DO NOTHING
+            """,
+            self.txn.txnid,
+            self.txn.user_id,
+            self.guild_id,
+            self.txn.amount,
+            self.txn.currency.value,
+            self.txn.tier.value,
+            int(self.txn.premium_duration.total_seconds() * 1_000_000),
+            self.txn.created_at,
+            self.txn.completed_at,
+            json.dumps(self.txn.raw_data),
+        )
+
+        await self.bot.pro_pool.execute(
+            """
+            INSERT INTO premium_queue (
+                id,
+                txn_id,
+                guild_id,
+                created_at
+            )
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (id)
+            DO NOTHING
+            """,
+            self.id,
+            self.txn.txnid,
+            self.guild_id,
+            self.created_at,
+        )

@@ -42,3 +42,17 @@ class Guild(BaseDbModel):
     @property
     def is_premium(self) -> bool:
         return self.tier != GuildTier.FREE
+
+    async def copy_premium_to_pro(self):
+        await self.bot.pro_pool.execute(
+            """
+            INSERT INTO guilds (guild_id, prefix, tier, upgraded_by, upgraded_until)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (guild_id)
+            DO UPDATE SET tier = $3, upgraded_by = $4, upgraded_until = $5""",
+            self.guild_id,
+            "q!",
+            self.tier.value,
+            self.upgraded_by,
+            self.upgraded_until,
+        )

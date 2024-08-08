@@ -65,7 +65,6 @@ class HelpCommands(commands.Cog):
             e.add_field(name=cog_name.capitalize(), value=cmds_list or "No commands available", inline=False)
 
         await ctx.send(
-            content=self.bot.config("SUPPORT_SERVER_LINK").lstrip("https://"),
             embed=e,
             view=self.bot.contact_support_view(),
         )
@@ -114,6 +113,7 @@ class HelpCommands(commands.Cog):
         g = await Guild.get(pk=ctx.guild.id)
 
         if command == None:
+            await ctx.defer()
             return await self.send_bot_help(ctx, g)
 
         return await self.send_command_help(ctx, command, g)

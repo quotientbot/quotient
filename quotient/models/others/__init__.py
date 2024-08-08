@@ -6,7 +6,7 @@ from .premium import (
     USD_PREMIUM_PLANS,
     CurrencyType,
     GuildTier,
-    PremiumPlan,
+    PremiumQueue,
     PremiumTxn,
 )
 from .snipe import Snipe

@@ -199,7 +199,7 @@ class DevStats(commands.Cog):
     async def on_error(self, event: str, *args: T.Any, **kwargs: T.Any) -> None:
         (exc_type, exc, tb) = sys.exc_info()
         # Silence command errors that somehow get bubbled up far enough here
-        if isinstance(exc, commands.CommandInvokeError):
+        if isinstance(exc, commands.CommandInvokeError | discord.NotFound):
             return
 
         e = discord.Embed(title="Event Error", colour=0xA32952)

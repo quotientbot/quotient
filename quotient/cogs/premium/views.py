@@ -50,35 +50,37 @@ class UserDetailsForm(discord.ui.Modal):
 
         duration = selected_plan["durations"][duration_key]
 
-        # txn = await PremiumTxn.create(
-        #     user_id=interaction.user.id,
-        #     guild_id=interaction.guild.id,
-        #     amount=price,
-        #     currency=CurrencyType[currency],
-        #     tier=tier,
-        #     premium_duration=duration,
-        # )
+        txn = await PremiumTxn.create(
+            user_id=interaction.user.id,
+            guild_id=interaction.guild.id,
+            amount=price,
+            currency=CurrencyType[currency],
+            tier=tier,
+            premium_duration=duration,
+        )
 
-        # _link = os.getenv("PAYMENT_SERVER_LINK") + "?txnId=" + txn.txnid
+        _link = os.getenv("PAYMENT_SERVER_LINK") + "/payment?txnId=" + str(txn.txnid)
 
-        # v = discord.ui.View()
-        # v.add_item(
-        #     discord.ui.Button(
-        #         style=discord.ButtonStyle.link,
-        #         label="Complete Payment",
-        #         url=_link,
-        #     )
-        # )
+        v = discord.ui.View()
+        v.add_item(
+            discord.ui.Button(
+                style=discord.ButtonStyle.link,
+                label="Complete Payment",
+                url=_link,
+            )
+        )
 
-        # await interaction.followup.send(
-        #     f"## You are about to purchase Quotient Premium for **__{interaction.guild.name}__**.\n"
-        #     "If you want to purchase for another server, use `/premium` command in that server.",
-        #     view=v,
-        #     ephemeral=True,
-        # )
+        await interaction.followup.send(
+            f"## You are about to purchase Quotient Premium for **__{interaction.guild.name}__**.\n"
+            "If you want to purchase for another server, use `/premium` command in that server.",
+            view=v,
+            ephemeral=True,
+        )
 
 
 class PlanSelector(discord.ui.Select):
+    view: "RequirePremiumView"
+
     def __init__(self, placeholder: str):
         super().__init__(placeholder=placeholder)
 
@@ -110,7 +112,6 @@ class PlanSelector(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         u = await User.get(pk=interaction.user.id)
-
         modal = UserDetailsForm(interaction.data["values"][0])
         modal.add_item(
             discord.ui.TextInput(
