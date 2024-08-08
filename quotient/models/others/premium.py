@@ -96,6 +96,37 @@ class PremiumTxn(BaseDbModel):
 
     queue: fields.ReverseRelation["PremiumQueue"]
 
+    async def copy_to_main(self):
+        await self.bot.quotient_pool.execute(
+            """
+            INSERT INTO premium_txns (
+                txnid,
+                user_id,
+                guild_id,
+                amount,
+                currency,
+                tier,
+                premium_duration,
+                created_at,
+                completed_at,
+                raw_data
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (txnid)
+            DO NOTHING
+            """,
+            self.txnid,
+            self.user_id,
+            self.guild_id,
+            self.amount,
+            self.currency.value,
+            self.tier.value,
+            int(self.premium_duration.total_seconds() * 1_000_000),
+            self.created_at,
+            self.completed_at,
+            json.dumps(self.raw_data),
+        )
+
 
 class PremiumQueue(BaseDbModel):
     class Meta:

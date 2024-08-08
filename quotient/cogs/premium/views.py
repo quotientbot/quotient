@@ -59,6 +59,9 @@ class UserDetailsForm(discord.ui.Modal):
             premium_duration=duration,
         )
 
+        if txn.bot.is_main_instance is False:
+            await txn.copy_to_main()
+
         _link = os.getenv("PAYMENT_SERVER_LINK") + "/payment?txnId=" + str(txn.txnid)
 
         v = discord.ui.View()
@@ -71,7 +74,7 @@ class UserDetailsForm(discord.ui.Modal):
         )
 
         await interaction.followup.send(
-            f"## You are about to purchase Quotient Premium for **__{interaction.guild.name}__**.\n"
+            f"## You are about to purchase Quotient Pro for **__{interaction.guild.name}__**.\n"
             "If you want to purchase for another server, use `/premium` command in that server.",
             view=v,
             ephemeral=True,
