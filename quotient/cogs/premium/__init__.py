@@ -76,11 +76,12 @@ class Premium(commands.Cog):
     async def on_premium_purchase(self, record: PremiumTxn):
         """
         Some 'not so important' tasks to be done after a successful premium purchase.
+        This event is fired only in the Main bot.
         """
-        pass
-        # member = self.bot.support_server.get_member(record.user_id)
-        # if member is not None:
-        #     await member.add_roles(discord.Object(id=self.bot.config("PREMIUM_ROLE_ID")), reason="They purchased premium.")
+
+        member = self.bot.support_server.get_member(record.user_id)
+        if member is not None:
+            await member.add_roles(discord.Object(id=self.bot.config("PREMIUM_ROLE_ID")), reason="They purchased premium.")
 
 
 async def setup(bot: Quotient):

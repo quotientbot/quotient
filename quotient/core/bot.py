@@ -66,7 +66,7 @@ class Quotient(commands.AutoShardedBot):
             strip_after_prefix=True,
             case_insensitive=True,
             activity=discord.Activity(type=discord.ActivityType.listening, name="/help"),
-            allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
+            allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, replied_user=False, users=True),
         )
         self._BotBase__cogs = commands.core._CaseInsensitiveDict()
         self.seen_messages: int = 0

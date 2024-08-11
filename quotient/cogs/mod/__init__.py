@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Any, Callable, Literal, Optional
+from typing import TYPE_CHECKING, Annotated, Any, Callable, List, Literal, Optional
 
 if TYPE_CHECKING:
     from core import Quotient
 
+import asyncio
+import random
 import re
 from collections import Counter
 
 import discord
 from core import Context
+from discord import app_commands
 from discord.ext import commands
 
-from quotient.lib import Snowflake
+from quotient.cogs.mod.checks import role_permissions_check
+from quotient.lib import CROSS, LOADING, Snowflake, user_input
 
 
 class PurgeFlags(commands.FlagConverter):  # Src: R. Danny
@@ -95,7 +99,7 @@ class ModerationCmds(commands.Cog, name="Moderation"):
     @commands.hybrid_command(aliases=["purge"], usage="[search] [flags...]")
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
-    @discord.app_commands.describe(search="How many messages to search for")
+    @app_commands.describe(search="How many messages to search for")
     async def clear(self, ctx: Context, search: int, *, flags: PurgeFlags):
         """Removes messages that meet a criteria.
 
@@ -202,6 +206,126 @@ class ModerationCmds(commands.Cog, name="Moderation"):
             await ctx.send(embed=self.bot.success_embed(f"Successfully removed {deleted} messages."), delete_after=6)
         else:
             await ctx.send(to_send, delete_after=6)
+
+    @commands.hybrid_command(name="role")
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    @role_permissions_check()
+    @app_commands.rename(add_more_people="add-more-people")
+    @app_commands.describe(
+        role="The role to give", member="The member to give the role to", add_more_people="Whether to give the role to more people"
+    )
+    async def give_role(self, ctx: Context, role: discord.Role, *, member: discord.Member, add_more_people: bool = False):
+        """
+        Give a role to one or multiple members.
+        """
+        await ctx.defer()
+
+        members = [member]
+        if add_more_people:
+            new_members = await user_input(
+                ctx.interaction, f"Please select the members you want to give {role.mention}, apart from {member.mention}."
+            )
+            if new_members is None:
+                return
+
+            members.extend(new_members)
+
+        members_length = len(members)
+
+        if members_length == 1:
+            try:
+                await member.add_roles(role, reason=f"Role given by {ctx.author}")
+            except discord.HTTPException as e:
+                return await ctx.reply(embed=self.bot.error_embed(f"An error occurred while giving the role: {e}"))
+            else:
+                return await ctx.reply(embed=self.bot.success_embed(f"{role.mention} has been given to {member.mention}."))
+
+        m = await ctx.reply(
+            embed=discord.Embed(color=self.bot.color, description=f"Adding {role.mention} to {members_length} members... {LOADING}")
+        )
+
+        failed = []
+        for member in members:
+            try:
+                await member.add_roles(role, reason=f"Role given by {ctx.author}")
+            except discord.HTTPException as e:
+                failed.append((member, e))
+            else:
+                await asyncio.sleep(random.uniform(0.5, 1.0))
+
+        e = discord.Embed(color=self.bot.color, title="Role Assign Complete!")
+        e.description = f"Added {role.mention} to `{members_length - len(failed)}/{members_length} members`.\n\n"
+        if failed:
+            e.description += "\n".join(f"{CROSS} **{member}**: {error}" for member, error in failed)
+
+        try:
+            await m.edit(embed=e)
+        except discord.NotFound:
+            await ctx.reply(embed=e)
+
+    @commands.hybrid_command(name="rrole")
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    @role_permissions_check()
+    @app_commands.rename(add_more_people="add-more-people")
+    @app_commands.describe(
+        role="The role to remove",
+        member="The member to remove the role from",
+        add_more_people="Whether to remove the role from more people",
+    )
+    async def remove_role(self, ctx: Context, role: discord.Role, member: discord.Member, add_more_people: bool = False):
+        """
+        Remove a role from one or multiple members.
+        """
+        await ctx.defer()
+
+        members = [member]
+        if add_more_people:
+            new_members = await user_input(
+                ctx.interaction, f"Please select the members you want to remove {role.mention} from, apart from {member.mention}."
+            )
+            if new_members is None:
+                return
+
+            members.extend(new_members)
+
+        members_length = len(members)
+
+        if members_length == 1:
+            try:
+                await member.remove_roles(role, reason=f"Role removed by {ctx.author}")
+            except discord.HTTPException as e:
+                return await ctx.reply(embed=self.bot.error_embed(f"An error occurred while removing the role: {e}"))
+            else:
+                return await ctx.reply(embed=self.bot.success_embed(f"{role.mention} has been removed from {member.mention}."))
+
+        m = await ctx.reply(
+            embed=discord.Embed(
+                color=self.bot.color, description=f"Removing {role.mention} from {members_length} members... {LOADING}"
+            )
+        )
+
+        failed = []
+        for member in members:
+            try:
+                await member.remove_roles(role, reason=f"Role removed by {ctx.author}")
+            except discord.HTTPException as e:
+                failed.append((member, e))
+            else:
+                await asyncio.sleep(random.uniform(0.5, 1.0))
+
+        e = discord.Embed(color=self.bot.color, title="Role Removal Complete!")
+        e.description = f"Removed {role.mention} from `{members_length - len(failed)}/{members_length} members`.\n\n"
+        if failed:
+            e.description += "\n".join(f"{CROSS} **{member}**: {error}" for member, error in failed)
+
+        try:
+            await m.edit(embed=e)
+        except discord.NotFound:
+            await ctx.reply(embed=e)
 
 
 async def setup(bot: Quotient):
