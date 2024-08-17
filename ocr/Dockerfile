@@ -1,7 +1,5 @@
 FROM golang:1.22.6
 
-LABEL maintainer="deadaf <dead@heyo.ooo>"
-
 RUN apt-get update -qq
 
 RUN apt-get install -y -qq libtesseract-dev libleptonica-dev
@@ -17,7 +15,6 @@ COPY . .
 
 RUN go get -v ./... && go install .
 
-ENV PYTHONUNBUFFERED=1
 EXPOSE 8080
 
 CMD ["ocr"]
