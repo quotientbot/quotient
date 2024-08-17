@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    
+
     ports:
       - "6000:6000"
 
@@ -11,9 +11,9 @@ services:
     container_name: quotient-main-bot
     env_file:
       - ./quotient-main.env
-    
+
     volumes:
-      - ./logs/quotient.log:/logs/quotient.log 
+      - ./logs/quotient.log:/logs/quotient.log
       - ./quotient/blacklist.json:/app/quotient/blacklist.json
 
 
@@ -27,7 +27,23 @@ services:
     container_name: quotient-pro-bot
     env_file:
       - ./quotient-pro.env
-    
+
     volumes:
       - ./logs/pro.log:/logs/pro.log
       - ./quotient/blacklist.json:/app/quotient/blacklist.json
+
+
+  ocr:
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - ./logs/ocr.log:/logs/ocr.log
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: "4.0"
