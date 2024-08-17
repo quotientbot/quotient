@@ -159,3 +159,10 @@ class MiramarLocation(Enum):
     valle_del_mar = 200, 962
     minas_del_sur = 180, 1136
     partona = 540, 1200
+
+
+class ScreenshotType(Enum):
+    yt = "Youtube"
+    insta = "Instagram"
+    anyss = "Any Screenshot"
+    custom = "Custom"
