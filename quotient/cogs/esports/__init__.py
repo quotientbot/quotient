@@ -15,6 +15,7 @@ from quotient.models import Scrim, TagCheck
 from .events import ScrimsEvents, TagCheckEvents
 from .slash import ScrimSlashCommands, TourneySlashCommands
 from .views.scrims.main_panel import ScrimsMainPanel
+from .views.ssverify.main_panel import SsVerifyMainPanel
 from .views.tagcheck.panel import TagCheckPanel
 
 
@@ -57,6 +58,18 @@ class Esports(commands.Cog):
             )
 
         v = TagCheckPanel(ctx)
+        v.message = await ctx.send(embed=await v.initial_msg(), view=v)
+
+    @commands.hybrid_command(name="ssverify", aliases=("ss",))
+    @commands.has_permissions(manage_guild=True, manage_roles=True)
+    @commands.bot_has_guild_permissions(manage_roles=True)
+    async def ssverify_panel(self, ctx: Context) -> None:
+        """
+        Setup Screenshots Verification in the server.
+        """
+        await ctx.defer()
+
+        v = SsVerifyMainPanel(ctx)
         v.message = await ctx.send(embed=await v.initial_msg(), view=v)
 
 

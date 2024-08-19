@@ -1,4 +1,4 @@
-from quotient.models import AutoPurge, Guild, Scrim, TagCheck, Tourney
+from quotient.models import AutoPurge, Guild, Scrim, SSverify, TagCheck, Tourney
 
 
 class CacheManager:
@@ -8,6 +8,7 @@ class CacheManager:
         self.scrim_channel_ids: set[int] = set()
         self.tagcheck_channel_ids: set[int] = set()
         self.tourney_channel_ids: set[int] = set()
+        self.ssverify_channel_ids: set[int] = set()
 
     async def populate_internal_cache(self):
         async for guild in Guild.all():
@@ -24,3 +25,6 @@ class CacheManager:
 
         async for tourney in Tourney.all():
             self.tourney_channel_ids.add(tourney.registration_channel_id)
+
+        async for ssverify in SSverify.all():
+            self.ssverify_channel_ids.add(ssverify.channel_id)

@@ -7,6 +7,7 @@ from quotient.models import (
     Scrim,
     ScrimReservedSlot,
     ScrimsSlotManager,
+    SSverify,
     TagCheck,
     Tourney,
     YtNotification,
@@ -24,6 +25,7 @@ class Feature(Enum):
 
     SCRIM_CREATE = (2, 5, 7, -1)  # limit
     TOURNEY_CREATE = (1, 2, 3, -1)  # limit
+    SSVERIFY_CREATE = (1, 2, 3, -1)  # limit
     SCRIM_DROP_LOCATION = (0, 1, 1, 1)
     SCRIM_POINTS_TABLE = (0, 0, 1, 1)
     TAG_CHECK_CREATE = (1, 1, 2, -1)  # limit
@@ -67,6 +69,12 @@ async def can_use_feature(feat: Feature, guild_id: int, **kwargs) -> tuple[bool,
         tourneys_count = await Tourney.filter(guild_id=guild_id).count()
         is_allowed = tourneys_count < feat.value[tier.value]
         min_tier = next((t for t, limit in enumerate(feat.value) if limit == -1 or tourneys_count < limit), GuildTier.ULTIMATE)
+        return is_allowed, GuildTier(min_tier)
+
+    if feat == Feature.SSVERIFY_CREATE:
+        ssverify_count = await SSverify.filter(guild_id=guild_id).count()
+        is_allowed = ssverify_count < feat.value[tier.value]
+        min_tier = next((t for t, limit in enumerate(feat.value) if limit == -1 or ssverify_count < limit), GuildTier.ULTIMATE)
         return is_allowed, GuildTier(min_tier)
 
     if feat == Feature.TAG_CHECK_CREATE:

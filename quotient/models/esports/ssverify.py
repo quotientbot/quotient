@@ -28,6 +28,21 @@ class SSverify(BaseDbModel):
 
     entries: fields.ReverseRelation["SSverifyEntry"]
 
+    def __str__(self):
+        return f"{getattr(self.channel,'mention','`unknown-channel`')} (`{self.screenshot_type.value}`)"
+
+    @property
+    def _guild(self):
+        return self.bot.get_guild(self.guild_id)
+
+    @property
+    def success_role(self) -> discord.Role | None:
+        return self._guild.get_role(self.role_id)
+
+    @property
+    def channel(self) -> discord.TextChannel | None:
+        return self._guild.get_channel(self.channel_id)
+
 
 class SSverifyEntry(BaseDbModel):
     class Meta:

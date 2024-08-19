@@ -162,7 +162,7 @@ class MiramarLocation(Enum):
 
 
 class ScreenshotType(Enum):
-    yt = "Youtube"
-    insta = "Instagram"
-    anyss = "Any Screenshot"
-    custom = "Custom"
+    YT = "Youtube"
+    INSTA = "Instagram"
+    ANY = "Any Screenshot"
+    CUSTOM = "Custom"
