@@ -3,6 +3,7 @@ from cogs.esports.views.tourney.utility.selectors import prompt_tourneys_selecto
 from cogs.premium import Feature, can_use_feature, prompt_premium_plan
 from discord.ext import commands
 
+from quotient.cogs.esports.views.ssverify.main_panel import SsVerifyMainPanel
 from quotient.models import Guild, Tourney
 
 from . import TourneyView
@@ -99,3 +100,11 @@ class TourneysMainPanel(TourneyView):
     @discord.ui.button(style=discord.ButtonStyle.green, label="Export Excel Sheet")
     async def download_excel_sheet(self, inter: discord.Interaction, btn: discord.ui.Button):
         await inter.response.defer()
+
+    @discord.ui.button(style=discord.ButtonStyle.red, label="SS Verification")
+    async def setup_or_manage_ssverify(self, inter: discord.Interaction, btn: discord.ui.Button):
+        await inter.response.defer()
+
+        self.stop()
+        v = SsVerifyMainPanel(self.ctx)
+        v.message = await self.message.edit(content="", embed=await v.initial_msg(), view=v)
