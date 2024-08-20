@@ -13,7 +13,7 @@ import discord
 from discord.ext import commands
 from lib import (
     ensure_scrims_requirements_in_msg,
-    ensure_self_permissions,
+    ensure_self_scrims_permissions,
     find_team_name,
     get_today_day,
 )
@@ -56,7 +56,7 @@ class ScrimsEvents(commands.Cog):
         if Scrim.is_ignorable(msg.author):
             return
 
-        if not await ensure_self_permissions(scrim):
+        if not await ensure_self_scrims_permissions(scrim):
             return self.bot.cache.scrim_channel_ids.discard(channel_id)
 
         msg.content = normalize("NFKC", msg.content.lower().strip())
@@ -153,7 +153,7 @@ class ScrimsEvents(commands.Cog):
         if not guild:
             return
 
-        if not await ensure_self_permissions(scrim):
+        if not await ensure_self_scrims_permissions(scrim):
             return
 
         if not guild.chunked:

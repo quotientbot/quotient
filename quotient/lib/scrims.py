@@ -22,7 +22,7 @@ async def toggle_channel_perms(channel: discord.TextChannel, role: discord.Role,
         return False
 
 
-async def ensure_self_permissions(scrim: Scrim) -> bool:
+async def ensure_self_scrims_permissions(scrim: Scrim) -> bool:
     guild = scrim.guild
     me = guild.me
     logs_channel = scrim.logs_channel
