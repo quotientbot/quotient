@@ -9,6 +9,7 @@ from quotient.models import SSverify
 from . import SsVerifyView
 from .utility.buttons import (
     DeleteSsVerifySetup,
+    DiscardButton,
     NextPage,
     PreviousPage,
     SetAllowDuplicateSS,
@@ -47,6 +48,7 @@ class EditSsVerifySettings(SsVerifyView):
 
         self.add_item(SetSuccessMessage(self.ctx, regional_indicator("H")))
         self.add_item(DeleteSsVerifySetup(self.ctx, self.record))
+        self.add_item(DiscardButton(self.ctx, label="Back to Main Menu", style=discord.ButtonStyle.blurple))
 
         e = discord.Embed(color=self.bot.color, description=f"## Editing SSverify settings: {self.record}")
 

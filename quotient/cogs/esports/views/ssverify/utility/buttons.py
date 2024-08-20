@@ -222,8 +222,8 @@ class SetSuccessMessage(SsVerifyBtn):
 
 
 class DiscardButton(SsVerifyBtn):
-    def __init__(self, ctx: commands.Context):
-        super().__init__(ctx, label="Cancel", style=discord.ButtonStyle.red)
+    def __init__(self, ctx: commands.Context, label: str = "Cancel", style=discord.ButtonStyle.red):
+        super().__init__(ctx, label=label, style=style)
 
     async def callback(self, interaction: discord.Interaction):
         from ..main_panel import SsVerifyMainPanel

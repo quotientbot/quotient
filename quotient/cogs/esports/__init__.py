@@ -12,7 +12,7 @@ from lib import INFO
 
 from quotient.models import Scrim, TagCheck
 
-from .events import ScrimsEvents, TagCheckEvents
+from .events import ScrimsEvents, SSverifyEvents, TagCheckEvents
 from .slash import ScrimSlashCommands, TourneySlashCommands
 from .views.scrims.main_panel import ScrimsMainPanel
 from .views.ssverify.main_panel import SsVerifyMainPanel
@@ -79,3 +79,4 @@ async def setup(bot: Quotient) -> None:
     await bot.add_cog(TourneySlashCommands(bot))
     await bot.add_cog(ScrimsEvents(bot))
     await bot.add_cog(TagCheckEvents(bot))
+    await bot.add_cog(SSverifyEvents(bot))

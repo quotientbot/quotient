@@ -22,7 +22,7 @@ from .random import random_greeting_msg, random_thanks_image
 from .regex import find_team_name
 from .scrims import (
     ensure_scrims_requirements_in_msg,
-    ensure_self_permissions,
+    ensure_self_scrims_permissions,
     toggle_channel_perms,
 )
 from .time import (
