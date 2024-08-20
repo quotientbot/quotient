@@ -102,7 +102,7 @@ class HelpCommands(commands.Cog):
 
         return [discord.app_commands.Choice(name=cmd.name, value=cmd.name) for cmd in commands[:25] if curr in cmd.name]
 
-    @commands.hybrid_command("help")
+    @commands.hybrid_command("help", aliases=("h",))
     @commands.guild_only()
     @commands.cooldown(1, 4, commands.BucketType.user)
     @discord.app_commands.describe(command="The command for which you need help")
