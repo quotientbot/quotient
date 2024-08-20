@@ -104,7 +104,10 @@ func processImage(file io.Reader) (string, string, error) {
 		log.Printf("Error decoding image: %v", err)
 		return "", "", err
 	}
+	// Scale image to 3x size
+	img = imaging.Resize(img, 0, 2*img.Bounds().Dy(), imaging.Lanczos)
 
+	// Convert image to grayscale
 	grayImg := imaging.Grayscale(img)
 
 	// Timing hash generation
@@ -161,6 +164,7 @@ func performOCR(img image.Image) (string, error) {
 	client.SetLanguage("eng")
 	client.SetVariable("user_defined_dpi", "300")
 	client.SetWhitelist("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-@' ")
+	client.SetPageSegMode(gosseract.PSM_SINGLE_LINE)
 
 	buf := new(bytes.Buffer)
 	err := imaging.Encode(buf, img, imaging.PNG)
