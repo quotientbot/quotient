@@ -163,7 +163,7 @@ func performOCR(img image.Image) (string, error) {
 	// Tesseract configuration for better results
 	client.SetLanguage("eng")
 	client.SetVariable("user_defined_dpi", "300")
-	client.SetWhitelist("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-@' ")
+	client.SetWhitelist("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-@_' ")
 	client.SetPageSegMode(gosseract.PSM_SINGLE_LINE)
 
 	buf := new(bytes.Buffer)
