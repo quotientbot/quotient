@@ -1,4 +1,5 @@
 import discord
+import imagehash
 from tortoise import fields
 from tortoise.contrib.postgres.fields import ArrayField
 
@@ -43,6 +44,30 @@ class SSverify(BaseDbModel):
     def channel(self) -> discord.TextChannel | None:
         return self._guild.get_channel(self.channel_id)
 
+    @property
+    def default_entity_link(self) -> str:
+        return self.entity_link or self.bot.config("SUPPORT_SERVER_LINK")
+
+    async def full_delete(self):
+        self.bot.cache.ssverify_channel_ids.discard(self.channel_id)
+
+        await SSverifyEntry.filter(ssverify=self).delete()
+        await self.delete()
+
+    async def check_duplicate_ss(self, dHash: str, author_id: int):
+        from quotient.lib.emojis import CROSS
+
+        resolved_dHash = imagehash.hex_to_hash(dHash[2:])
+        user_entries = [entry for entry in self.entries if entry.author_id == author_id]
+
+        if duplicate_records := [entry for entry in self.entries if dHash == entry.dHash]:
+            return True, f"{CROSS} | You've already submitted this screenshot [here]({duplicate_records[0].jump_url}).\n"
+
+        if duplicate_records := [entry for entry in user_entries if resolved_dHash - imagehash.hex_to_hash(entry.dHash) <= 7]:
+            return True, f"{CROSS} | You've already submitted this screenshot [here]({duplicate_records[0].jump_url})\n"
+
+        return False, False
+
 
 class SSverifyEntry(BaseDbModel):
     class Meta:
@@ -63,4 +88,4 @@ class SSverifyEntry(BaseDbModel):
 
     @property
     def jump_url(self) -> str:
-        return f"https://discord.com/channels/{self.channel_id}/{self.message_id}"
+        return f"https://discord.com/channels/{self.ssverify.guild_id}/{self.channel_id}/{self.message_id}"
