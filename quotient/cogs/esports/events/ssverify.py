@@ -49,13 +49,15 @@ class SSverifyEvents(commands.Cog):
         og_txt = resp["text"]
         txt_lower = og_txt.lower().strip().replace(" ", "")
 
-        if not any(_ in txt_lower for _ in ("follow", "followers")):
-            return f"{CROSS} | This is not a valid instagram screenshot.\n"
+        if not "follow" in txt_lower:
+            return f"{CROSS} | This is not a valid Instagram screenshot.\n"
 
         elif not record.entity_name.lower().replace(" ", "") in txt_lower:
-            return f"{CROSS} | Screenshot must belong to [`{record.entity_name}`]({record.default_entity_link}) profile.\n"
+            return (
+                f"{CROSS} | Screenshot must belong to [`{record.entity_name}`]({record.default_entity_link}) profile on Instagram.\n"
+            )
 
-        elif not "following" in txt_lower:
+        elif "Follow" in og_txt:
             return f"{CROSS} | You must follow [`{record.entity_name}`]({record.default_entity_link}) to get verified.\n"
 
         await SSverifyEntry.create(
@@ -68,7 +70,22 @@ class SSverifyEvents(commands.Cog):
 
         return f"{TICK} | Verified successfully.\n"
 
-    async def verify_custom_ss(self, record: SSverify, message: discord.Message, resp: dict): ...
+    async def verify_custom_ss(self, record: SSverify, message: discord.Message, resp: dict):
+        og_text = resp["text"]
+        txt_lower = og_text.lower().strip().replace(" ", "")
+
+        if not any(_ in txt_lower for _ in record.possible_keywords):
+            return f"{CROSS} | This doesn't seem to be a valid `{record.entity_name}` screenshot.\n"
+
+        await SSverifyEntry.create(
+            ssverify=record,
+            author_id=message.author.id,
+            channel_id=record.channel_id,
+            message_id=message.id,
+            dHash=resp["dHash"][2:],
+        )
+
+        return f"{TICK} | Verified successfully.\n"
 
     async def validate_and_resp(self, record: SSverify, message: discord.Message, ocr_result: list[dict]) -> discord.Embed:
         e = discord.Embed(color=self.bot.color, description="")
