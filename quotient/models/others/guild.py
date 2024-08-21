@@ -35,6 +35,8 @@ class Guild(BaseDbModel):
     upgraded_by = fields.BigIntField(null=True)
     upgraded_until = fields.DatetimeField(null=True)
 
+    tags: fields.ReverseRelation["Tag"]
+
     @property
     def _guild(self) -> discord.Guild:
         return self.bot.get_guild(self.guild_id)
@@ -56,3 +58,25 @@ class Guild(BaseDbModel):
             self.upgraded_by,
             self.upgraded_until,
         )
+
+
+class Tag(BaseDbModel):
+    class Meta:
+        table = "guild_tags"
+
+    id = fields.IntField(primary_key=True)
+    name = fields.CharField(max_length=100)
+    content = fields.CharField(max_length=2000)
+
+    is_embed = fields.BooleanField(default=False)
+    is_nsfw = fields.BooleanField(default=False)
+
+    owner_id = fields.BigIntField()
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    usage = fields.IntField(default=0)
+    guild: fields.ForeignKeyRelation[Guild] = fields.ForeignKeyField("default.Guild", related_name="tags")
+
+    @property
+    def owner(self):
+        return self.bot.get_user(self.owner_id)
