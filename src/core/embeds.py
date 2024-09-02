@@ -52,7 +52,7 @@ class EmbedOptions(discord.ui.Select):
                 discord.SelectOption(
                     label="Edit Embed Color",
                     description="Change the color of the embed",
-                    emoji="<a:messenger:807912019130974242>",
+                    emoji="<:plant:1253293916724264981>",
                     value="color",
                 ),
             ],
@@ -238,9 +238,7 @@ class EmbedBuilder(QuotientView):
     def help_embed(self):
         return (
             discord.Embed(color=self.bot.color, title="Title", description="Description")
-            .set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/853174868551532564/860464565338898472/embed_thumbnail.png"
-            )
+            .set_thumbnail(url="https://cdn.discordapp.com/attachments/853174868551532564/860464565338898472/embed_thumbnail.png")
             .set_image(url="https://cdn.discordapp.com/attachments/853174868551532564/860462053063393280/embed_image.png")
             .set_footer(
                 text="Footer Message",
