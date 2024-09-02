@@ -72,7 +72,7 @@ class Scrim(BaseDbModel):
 
     required_lines = fields.SmallIntField(default=0)
     allow_duplicate_tags = fields.BooleanField(default=True)
-    require_drop_location = fields.BooleanField(default=False)
+    # require_drop_location = fields.BooleanField(default=False)
 
     assigned_slots: fields.ManyToManyRelation["AssignedSlot"] = fields.ManyToManyField("models.AssignedSlot")
     reserved_slots: fields.ManyToManyRelation["ReservedSlot"] = fields.ManyToManyField("models.ReservedSlot")
@@ -203,11 +203,7 @@ class Scrim(BaseDbModel):
     async def create_slotlist(self):
         _slots = await self.cleaned_slots()
 
-        desc = "\n".join(
-            f"Slot {slot.num:02}  ->  {slot.team_name}"
-            + (f"( {slot.drop_location} )" if slot.drop_location != "None" else "")
-            for slot in _slots
-        )
+        desc = "\n".join(f"Slot {slot.num:02}  ->  {slot.team_name}" for slot in _slots)
 
         if len(self.slotlist_format) <= 1:
             text = str(self.default_slotlist_format().to_dict())
@@ -285,9 +281,7 @@ class Scrim(BaseDbModel):
         if self.match_time != _time:
             await Scrim.filter(pk=self.pk).update(match_time=_time)
 
-        check = await Timer.filter(
-            event="scrim_match", expires=_time, extra={"args": [], "kwargs": {"scrim_id": self.pk}}
-        ).exists()
+        check = await Timer.filter(event="scrim_match", expires=_time, extra={"args": [], "kwargs": {"scrim_id": self.pk}}).exists()
         if not check:
             await self.bot.reminders.create_timer(_time, "scrim_match", scrim_id=self.pk)
 
@@ -404,9 +398,7 @@ class Scrim(BaseDbModel):
             ("<<teamname>>", "Yes" if self.teamname_compulsion else "No"),
             (
                 "<<mention_banned>>",
-                ", ".join(
-                    map(lambda x: getattr(x, "mention", "Left"), map(self.guild.get_member, await self.banned_user_ids()))
-                ),
+                ", ".join(map(lambda x: getattr(x, "mention", "Left"), map(self.guild.get_member, await self.banned_user_ids()))),
             ),
             (
                 "<<mention_reserved>>",
@@ -534,9 +526,7 @@ class Scrim(BaseDbModel):
         if self.autodelete_extras:
             msg_ids = (i.message_id for i in registered)
 
-            check = lambda x: all(
-                (not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids)
-            )
+            check = lambda x: all((not x.pinned, not x.reactions, not x.embeds, not x.author == self.bot.user, not x.id in msg_ids))
             self.bot.loop.create_task(wait_and_purge(registration_channel, check=check, wait_for=60))
 
         slotm = await ScrimsSlotManager.get_or_none(guild_id=self.guild_id, scrim_ids__contains=self.id)
@@ -554,7 +544,11 @@ class Scrim(BaseDbModel):
                 continue
 
     async def start_registration(self):
-        from cogs.esports.helpers.utils import available_to_reserve, scrim_work_role, toggle_channel
+        from cogs.esports.helpers.utils import (
+            available_to_reserve,
+            scrim_work_role,
+            toggle_channel,
+        )
 
         oldslots = await self.assigned_slots
         await AssignedSlot.filter(id__in=(slot.id for slot in oldslots)).delete()
@@ -656,7 +650,7 @@ class BaseSlot(models.Model):
     num = fields.IntField(null=True)  # this will never be null but there are already records in the table so
     user_id = fields.BigIntField(null=True)
     team_name = fields.TextField(null=True)
-    drop_location = fields.CharField(max_length=30, null=True)
+    # drop_location = fields.CharField(max_length=30, null=True)
     members = ArrayField(fields.BigIntField(), default=list)
 
 

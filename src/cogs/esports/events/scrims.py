@@ -16,7 +16,12 @@ from constants import IST, AutocleanType, Day
 from core import Cog
 from models import ArrayRemove, AssignedSlot, BanLog, BannedTeam, Scrim, Timer
 
-from ..helpers import before_registrations, cannot_take_registration, check_scrim_requirements, should_open_scrim
+from ..helpers import (
+    before_registrations,
+    cannot_take_registration,
+    check_scrim_requirements,
+    should_open_scrim,
+)
 
 
 class ScrimEvents(Cog):
@@ -82,7 +87,7 @@ class ScrimEvents(Cog):
             slot = await AssignedSlot.create(
                 user_id=ctx.author.id,
                 team_name=utils.truncate_string(teamname, 30),
-                drop_location=utils.truncate_string(drop_location, 30),
+                # drop_location=utils.truncate_string(drop_location, 30),
                 num=slot_num,
                 jump_url=message.jump_url,
                 message_id=message.id,
@@ -129,9 +134,7 @@ class ScrimEvents(Cog):
         if scrim.toggle is not True or not Day(utils.day_today()) in scrim.open_days:
             return
 
-        if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime(
-            "%d-%b-%Y %I:%M %p"
-        ):
+        if scrim.opened_at and scrim.opened_at.strftime("%d-%b-%Y %I:%M %p") == datetime.now(tz=IST).strftime("%d-%b-%Y %I:%M %p"):
             return  # means we are having multiple timers for a single scrim :c shit
 
         guild = scrim.guild
