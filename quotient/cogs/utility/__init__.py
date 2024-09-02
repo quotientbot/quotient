@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import discord
 from core import Context
+from discord import app_commands
 from discord.ext import commands, tasks
 from tortoise.expressions import Q
 
@@ -165,6 +166,11 @@ class Utility(commands.Cog):
 
         embed.set_footer(text="Deleted")
         await ctx.send(embed=embed)
+
+    async def aliased_tag_autocomplete(self, interaction: discord.Interaction, current: str) -> list[app_commands.Choice[str]]:
+        query = """SELECT name FROM tag_lookup WHERE location_id=$1 AND LOWER(name) % $2 LIMIT 12;"""
+        results: list[tuple[str]] = await self.bot.pool.fetch(query, interaction.guild_id, current.lower())
+        return [app_commands.Choice(name=a, value=a) for a, in results]
 
 
 async def setup(bot: Quotient):
