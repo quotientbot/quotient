@@ -6,6 +6,7 @@ services:
       context: .
     ports:
       - "8888:8888"
+      - "6000:6000"
     restart: always
 
     environment:
